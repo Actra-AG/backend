@@ -1,0 +1,21 @@
+{
+  "name": "actra/backend",
+  "description": "TODO",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Actra AG",
+      "homepage": "https://www.actra.ch"
+    }
+  ],
+  "require": {
+    "php": ">=8.5",
+    "actra/yuf": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "actra\\backend\\": "src/"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html class="no-js" lang="{tst:text value='language'}">
+<head>
+    <meta charset="{tst:text value='charset'}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{tst:text value='pageTitle'} | {tst:text value='siteName'}</title>
+    <meta name="author" content="Actra AG Webagentur" />
+    <meta name="robots" content="noindex,nofollow" />
+    <script nonce="{tst:text value='cspNonce'}">
+        document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+    </script>
+    <link rel="stylesheet" href="{tst:text value='stylesHref'}">
+</head>
+<body class="body-authentication">
+<header class="auth-header">
+    <div class="auth-logo">{tst:text value='siteName'}</div>
+</header>
+<main class="auth-main | flow">
+    <tst:loadSubTpl tplfile="{this}" />
+</main>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "actra/backend",
-  "description": "TODO",
+  "description": "A backend management library for the YUF framework, providing user account management and one-time token authentication via email.",
   "type": "library",
   "license": "MIT",
   "authors": [

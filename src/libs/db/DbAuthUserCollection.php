@@ -33,11 +33,11 @@ class DbAuthUserCollection
     public function getFormOptions(): FormOptions
     {
         $formOptions = new FormOptions();
-        foreach ($this->items as $dbAuthUserItem) {
+        foreach ($this->items as $dbAuthUser) {
             $formOptions->addItem(
-                key: (string)$dbAuthUserItem->ID,
+                key: (string)$dbAuthUser->ID,
                 htmlText: HtmlText::encoded(
-                    textContent: $dbAuthUserItem->email . ' (' . $dbAuthUserItem->firstName . ' ' . $dbAuthUserItem->lastName . ')'
+                    textContent: $dbAuthUser->email . ' (' . $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName . ')'
                 )
             );
         }

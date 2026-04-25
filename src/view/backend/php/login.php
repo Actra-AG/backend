@@ -10,8 +10,8 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\LoginForm;
-use actra\backend\src\libs\auth\MyAuthUser;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\core\HttpResponse;

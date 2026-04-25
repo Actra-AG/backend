@@ -34,12 +34,12 @@ class UserTable extends AbstractTable
 					FROM auth_user
 				'
         );
-        $dbAuthGroupItem = $userSearchForm->dbAuthGroup;
-        if (!is_null(value: $dbAuthGroupItem)) {
+        $dbAuthGroup = $userSearchForm->dbAuthGroup;
+        if (!is_null(value: $dbAuthGroup)) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
                 parameters: [
-                    $dbAuthGroupItem->ID,
+                    $dbAuthGroup->ID,
                 ]
             );
         }

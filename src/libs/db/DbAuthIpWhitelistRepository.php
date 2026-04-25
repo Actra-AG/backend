@@ -38,14 +38,13 @@ class DbAuthIpWhitelistRepository
 
         return $dbAuthIpWhitelistCollection;
     }
-    /*
 
     public static function insert(
         int $userID,
         string $ipAddress
     ): void {
         DB::get()->execute(
-            sql: 'INSERT INTO ipWhitelist (userID, ipAddress) VALUES (?, ?)',
+            sql: 'INSERT INTO auth_ipWhitelist (userID, ipAddress) VALUES (?, ?)',
             parameters: [
                 $userID,
                 $ipAddress,
@@ -58,12 +57,11 @@ class DbAuthIpWhitelistRepository
         string $ipAddress
     ): void {
         DB::get()->execute(
-            sql: 'DELETE FROM ipWhitelist WHERE userID=? AND ipAddress=?',
+            sql: 'DELETE FROM auth_ipWhitelist WHERE userID=? AND ipAddress=?',
             parameters: [
                 $userID,
                 $ipAddress,
             ]
         );
     }
-    */
 }

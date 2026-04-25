@@ -133,16 +133,14 @@ class MyAuthUser extends AuthUser
             userID: $this->ID
         );
     }
-    /*
 
-        public function isAdmin(): bool
-        {
-            return (
-                $this->dbAuthUserItem->accessRightCollection->hasAccessRight(
-                    accessRight: AccessRightEnum::MANAGE_USERS->value
-                )
-                || $this->isSessionChange()
-            );
-        }
-        */
+    public function canManageUsers(): bool
+    {
+        return (
+            $this->dbAuthUser->accessRightCollection->hasAccessRight(
+                accessRight: ActraBackend::RIGHT_MANAGE_USERS
+            )
+            || $this->isSessionChange()
+        );
+    }
 }

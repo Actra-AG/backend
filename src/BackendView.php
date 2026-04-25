@@ -174,16 +174,6 @@ abstract class BackendView extends BaseView
             identifier: 'breadcrumb',
             content: $breadcrumb
         );
-        /*
-            $replacements->addBool(
-                identifier: 'isRegistrar',
-                booleanValue: !is_null(value: DbRegistrarUserRepository::getByUserID(userID: MyAuthUser::get()->ID))
-            );
-            $replacements->addBool(
-                identifier: 'isAdmin',
-                booleanValue: $myAuthUser->isAdmin()
-            );
-    */
     }
 
     abstract protected static function getRequiredAccessRights(): AccessRightCollection;
@@ -191,14 +181,4 @@ abstract class BackendView extends BaseView
     abstract protected function getPageTitle(): HtmlText;
 
     abstract protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void;
-    /*
-            protected static function getAccessRightCollectionForLoggedInUser(): AccessRightCollection
-            {
-                return AccessRightCollection::createFromStringArray(input: [
-                    AccessRightEnum::VIEW_DOMAINS->value,
-                    AccessRightEnum::MANAGE_DOMAINS->value,
-                    AccessRightEnum::MANAGE_USERS->value,
-                ]);
-            }
-            */
 }

@@ -79,17 +79,17 @@ class user extends BackendView
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUserItem = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
-        if (is_null(value: $dbAuthUserItem)) {
+        $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
+        if (is_null(value: $dbAuthUser)) {
             throw new NotFoundException();
         }
         $this->pageTitle = HtmlText::unencoded(
-            textContent: $dbAuthUserItem->firstName . ' ' . $dbAuthUserItem->lastName
+            textContent: $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName
         );
         $authUser = MyAuthUser::get();
-        $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUserItem);
+        $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUser);
         if (!is_null(value: $this->getInputString(keyName: user::PARAM_REMOVE))) {
-            UserController::deleteUser(userID: $dbAuthUserItem->ID);
+            UserController::deleteUser(userID: $dbAuthUser->ID);
             HttpResponse::redirectAndExit(relativeOrAbsoluteUri: users::getPath() . '?' . users::PARAM_REMOVED);
         }
         if (
@@ -99,7 +99,7 @@ class user extends BackendView
             AuthSession::logIn(
                 authSessionID: DbAuthSessionRepository::insert(
                     parentID: AuthSession::getAuthSessionID(),
-                    userID: $dbAuthUserItem->ID
+                    userID: $dbAuthUser->ID
                 )
             );
             HttpResponse::redirectAndExit(
@@ -111,7 +111,7 @@ class user extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
             identifier: 'userModHref',
-            content: userMod::getPath(ID: $dbAuthUserItem->ID)
+            content: userMod::getPath(ID: $dbAuthUser->ID)
         );
         $replacements->addEncodedText(
             identifier: 'impersonateHref',
@@ -135,47 +135,47 @@ class user extends BackendView
         );
         $replacements->addBool(
             identifier: 'isInvited',
-            booleanValue: $dbAuthUserItem->isInvited()
+            booleanValue: $dbAuthUser->isInvited()
         );
         $replacements->addEncodedText(
             identifier: 'inviteHref',
-            content: userInvite::getPath(ID: $dbAuthUserItem->ID)
+            content: userInvite::getPath(ID: $dbAuthUser->ID)
         );
         $replacements->addUnencodedText(
             identifier: 'firstName',
-            content: $dbAuthUserItem->firstName
+            content: $dbAuthUser->firstName
         );
         $replacements->addUnencodedText(
             identifier: 'lastName',
-            content: $dbAuthUserItem->lastName
+            content: $dbAuthUser->lastName
         );
         $replacements->addEncodedText(
             identifier: 'email',
-            content: $dbAuthUserItem->email
+            content: $dbAuthUser->email
         );
         $replacements->addEncodedText(
             identifier: 'registered',
-            content: $dbAuthUserItem->registered->format(format: 'd.m.Y H:i:s')
+            content: $dbAuthUser->registered->format(format: 'd.m.Y H:i:s')
         );
         $replacements->addEncodedText(
             identifier: 'invitedDate',
-            content: $dbAuthUserItem->isInvited() ? $dbAuthUserItem->invitedDate->format(format: 'd.m.Y H:i:s') : ''
+            content: $dbAuthUser->isInvited() ? $dbAuthUser->invitedDate->format(format: 'd.m.Y H:i:s') : ''
         );
         $replacements->addEncodedText(
             identifier: 'lastLogin',
-            content: $dbAuthUserItem->renderLastLogin()
+            content: $dbAuthUser->renderLastLogin()
         );
         $replacements->addEncodedText(
             identifier: 'visitsHref',
-            content: visits::getPath(userID: $dbAuthUserItem->ID)
+            content: visits::getPath(userID: $dbAuthUser->ID)
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
-            htmlDataObjectCollection: $this->renderUserGroups(dbAuthUser: $dbAuthUserItem)
+            htmlDataObjectCollection: $this->renderUserGroups(dbAuthUser: $dbAuthUser)
         );
         $replacements->addEncodedText(
             identifier: 'active',
-            content: $dbAuthUserItem->isActive ? 'ja' : 'nein'
+            content: $dbAuthUser->isActive ? 'ja' : 'nein'
         );
     }
 

@@ -66,11 +66,11 @@ class tokens extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if (!is_null(value: $this->getPathVar(nr: 1))) {
-            $dbAuthUserItem = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
-            if (is_null(value: $dbAuthUserItem)) {
+            $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
+            if (is_null(value: $dbAuthUser)) {
                 throw new NotFoundException();
             }
-            $filterUserID = $dbAuthUserItem->ID;
+            $filterUserID = $dbAuthUser->ID;
         } else {
             $filterUserID = null;
         }

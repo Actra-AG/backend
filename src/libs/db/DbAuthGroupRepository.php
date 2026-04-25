@@ -23,7 +23,7 @@ class DbAuthGroupRepository
     {
         return array_find(
             array: DbAuthGroupRepository::listAll()->items,
-            callback: fn($dbAuthGroupItem) => $ID === $dbAuthGroupItem->ID
+            callback: fn($dbAuthGroup) => $ID === $dbAuthGroup->ID
         );
     }
 

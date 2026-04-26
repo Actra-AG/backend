@@ -108,8 +108,16 @@ abstract class BackendView extends BaseView
         );
         $actraBackend = ActraBackend::get();
         $replacements->addEncodedText(
-            identifier: 'siteName',
-            content: $actraBackend->siteName
+            identifier: 'backendName',
+            content: $actraBackend->backendName
+        );
+        $replacements->addEncodedText(
+            identifier: 'frontendHref',
+            content: $actraBackend->frontendHref
+        );
+        $replacements->addEncodedText(
+            identifier: 'frontendName',
+            content: $actraBackend->frontendName
         );
         $replacements->addEncodedText(
             identifier: 'scriptsHref',

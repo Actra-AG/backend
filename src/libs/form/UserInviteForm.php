@@ -52,7 +52,7 @@ class UserInviteForm extends Form
                         '',
                         'Freundliche Grüsse',
                         '',
-                        ActraBackend::get()->siteName,
+                        ActraBackend::get()->mailerSettings->signature,
                     ]
                 ),
                 requiredError: HtmlText::encoded(textContent: 'Geben Sie bitte den gewünschten Text ein.')

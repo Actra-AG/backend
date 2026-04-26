@@ -33,7 +33,7 @@ class EmailLoginToken
                 '',
                 'Freundliche Grüsse',
                 '',
-                ActraBackend::get()->siteName,
+                ActraBackend::get()->mailerSettings->signature,
             ])
         );
     }

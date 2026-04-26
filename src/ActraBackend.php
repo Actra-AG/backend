@@ -40,13 +40,15 @@ class ActraBackend
     private function __construct(
         public readonly string $path,
         public readonly array $ipWhitelist,
-        public readonly string $siteName,
+        public readonly string $backendName,
         public readonly string $scriptsHref,
         public readonly string $stylesHref,
         public readonly DbSettingsModel $dbSettingsModel,
         public readonly int $maxAllowedLoginAttempts,
         public readonly MailerSettings $mailerSettings,
-        public readonly NavigationItemCollection $navigationItemCollection
+        public readonly NavigationItemCollection $navigationItemCollection,
+        public readonly string $frontendHref,
+        public readonly string $frontendName
     ) {
     }
 
@@ -56,24 +58,28 @@ class ActraBackend
         bool $isDefaultForLanguage,
         Language $language,
         array $ipWhitelist,
-        string $siteName,
+        string $backendName,
         string $scriptsHref,
         string $stylesHref,
         DbSettingsModel $dbSettingsModel,
         MailerSettings $mailerSettings,
         NavigationItemCollection $navigationItemCollection,
-        int $maxAllowedLoginAttempts = 5
+        int $maxAllowedLoginAttempts = 5,
+        ?string $frontendHref = '',
+        ?string $frontendName = ''
     ): void {
         ActraBackend::$instance = new ActraBackend(
             path: $path,
             ipWhitelist: $ipWhitelist,
-            siteName: $siteName,
+            backendName: $backendName,
             scriptsHref: $scriptsHref,
             stylesHref: $stylesHref,
             dbSettingsModel: $dbSettingsModel,
             maxAllowedLoginAttempts: $maxAllowedLoginAttempts,
             mailerSettings: $mailerSettings,
-            navigationItemCollection: $navigationItemCollection
+            navigationItemCollection: $navigationItemCollection,
+            frontendHref: $frontendHref,
+            frontendName: $frontendName
         );
         $routeCollection->addRoute(
             route: new Route(

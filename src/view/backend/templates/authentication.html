@@ -3,7 +3,7 @@
 <head>
     <meta charset="{tst:text value='charset'}" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{tst:text value='pageTitle'} | {tst:text value='siteName'}</title>
+    <title>{tst:text value='pageTitle'} | {tst:text value='backendName'}</title>
     <meta name="author" content="Actra AG Webagentur" />
     <meta name="robots" content="noindex,nofollow" />
     <script nonce="{tst:text value='cspNonce'}">
@@ -13,10 +13,15 @@
 </head>
 <body class="body-authentication">
 <header class="auth-header">
-    <div class="auth-logo">{tst:text value='siteName'}</div>
+    <div class="auth-logo">{tst:text value='backendName'}</div>
 </header>
 <main class="auth-main | flow">
     <tst:loadSubTpl tplfile="{this}" />
 </main>
+<tst:if compare="frontendHref" operator="NE" against="">
+    <footer class="auth-footer">
+        <a href="{tst:text value='frontendHref'}">{tst:text value='frontendName'}</a>
+    </footer>
+</tst:if>
 </body>
 </html>

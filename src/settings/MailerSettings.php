@@ -16,7 +16,8 @@ readonly class MailerSettings
         public string $username,
         public string $password,
         public int $port,
-        public bool $tls
+        public bool $tls,
+        public string $signature
     ) {
     }
 }

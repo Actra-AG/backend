@@ -14,7 +14,6 @@ use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\UserController;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthSessionRepository;
-use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\AuthSession;
@@ -22,8 +21,6 @@ use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\exception\NotFoundException;
-use actra\yuf\html\HtmlDataObject;
-use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -171,7 +168,7 @@ class user extends BackendView
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
-            htmlDataObjectCollection: $this->renderUserGroups(dbAuthUser: $dbAuthUser)
+            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->render()
         );
         $replacements->addEncodedText(
             identifier: 'active',
@@ -182,21 +179,5 @@ class user extends BackendView
     public static function getPath(int|string $ID): string
     {
         return ActraBackend::get()->path . 'user-' . $ID . '.html';
-    }
-
-    public function renderUserGroups(DbAuthUser $dbAuthUser): ?HtmlDataObjectCollection
-    {
-        $userGroups = new HtmlDataObjectCollection();
-        foreach (DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->items as $dbAuthGroupItem) {
-            $userGroup = new HtmlDataObject();
-            $userGroup->addTextElement(
-                propertyName: 'name',
-                content: $dbAuthGroupItem->title,
-                isEncodedForRendering: true
-            );
-            $userGroups->add(htmlDataObject: $userGroup);
-        }
-
-        return $userGroups;
     }
 }

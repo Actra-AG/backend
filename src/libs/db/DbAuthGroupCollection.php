@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\form\FormOptions;
+use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlText;
 
 class DbAuthGroupCollection
@@ -41,5 +42,15 @@ class DbAuthGroupCollection
     public function listIDs(): array
     {
         return array_keys(array: $this->items);
+    }
+
+    public function render(): ?HtmlDataObjectCollection
+    {
+        $userGroups = new HtmlDataObjectCollection();
+        foreach ($this->items as $dbAuthGroup) {
+            $userGroups->add(htmlDataObject: $dbAuthGroup->render());
+        }
+
+        return $userGroups;
     }
 }

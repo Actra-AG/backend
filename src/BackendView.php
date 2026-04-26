@@ -112,6 +112,10 @@ abstract class BackendView extends BaseView
             content: $actraBackend->siteName
         );
         $replacements->addEncodedText(
+            identifier: 'scriptsHref',
+            content: $actraBackend->scriptsHref
+        );
+        $replacements->addEncodedText(
             identifier: 'stylesHref',
             content: $actraBackend->stylesHref
         );

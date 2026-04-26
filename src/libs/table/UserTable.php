@@ -12,10 +12,11 @@ use actra\backend\libs\db\DB;
 use actra\backend\libs\form\UserSearchForm;
 use actra\backend\view\backend\php\user;
 use actra\yuf\db\DbQuery;
-use actra\yuf\table\column\ActionsColumn;
 use actra\yuf\table\column\BooleanColumn;
+use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
+use actra\yuf\table\TableItemModel;
 
 class UserTable extends AbstractTable
 {
@@ -30,7 +31,8 @@ class UserTable extends AbstractTable
 					       auth_user.active,
 					       (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\') FROM auth_group WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS rightGroups,
 					       auth_user.registered,
-					       auth_user.invited
+					       auth_user.invited,
+					       CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName
 					FROM auth_user
 				'
         );
@@ -60,27 +62,15 @@ class UserTable extends AbstractTable
             itemsPerPage: 100
         );
         $this->addColumn(
-            abstractTableColumn: new DefaultColumn(
-                identifier: 'ID',
-                label: 'ID',
+            abstractTableColumn: new CallbackColumn(
+                identifier: 'fullName',
+                label: 'Name',
                 isSortable: true,
-                sortAscendingByDefault: false
+                callbackFunction: function(TableItemModel $tableItemModel) {
+                    return '<a href="' . user::getPath(ID: '[ID]') . '">'.$tableItemModel->renderValue(name: 'fullName').'</a>';
+                }
             ),
             isDefaultSortColumn: true
-        );
-        $this->addColumn(
-            abstractTableColumn: new DefaultColumn(
-                identifier: 'firstName',
-                label: 'Vorname',
-                isSortable: true
-            )
-        );
-        $this->addColumn(
-            abstractTableColumn: new DefaultColumn(
-                identifier: 'lastName',
-                label: 'Nachname',
-                isSortable: true
-            )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
@@ -120,11 +110,5 @@ class UserTable extends AbstractTable
             )
         );
         $invitedColumn->format = 'd.m.Y';
-        $this->addColumn(abstractTableColumn: $detailsColumn = new ActionsColumn(label: 'Details'));
-        $detailsColumn->addCellCssClass(className: 'show');
-        $detailsColumn->addIndividualActionLink(
-            identifier: 'details',
-            linkHTML: '<a class="details" href="' . user::getPath(ID: '[ID]') . '">anzeigen</a>'
-        );
     }
 }

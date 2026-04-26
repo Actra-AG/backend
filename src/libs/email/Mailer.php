@@ -20,10 +20,11 @@ class Mailer
         string $textBody,
         ?string $replyTo = null,
     ): void {
+        $mailerSettings = ActraBackend::get()->mailerSettings;
         $textMail = new TextMail(
-            senderEmail: 'notification@actra.domains',
-            fromEmail: 'notification@actra.domains',
-            fromName: 'notification@actra.domains',
+            senderEmail: $mailerSettings->senderEmail,
+            fromEmail: $mailerSettings->senderEmail,
+            fromName: $mailerSettings->senderEmail,
             toEmail: $recipient,
             toName: $recipient,
             subject: $subject,
@@ -32,7 +33,6 @@ class Mailer
         if (!is_null(value: $replyTo)) {
             $textMail->addReplyTo(inputEmail: $replyTo);
         }
-        $mailerSettings = ActraBackend::get()->mailerSettings;
         $textMail->send(
             new SMTPMailer(
                 hostName: $mailerSettings->hostname,

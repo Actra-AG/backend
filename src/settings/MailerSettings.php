@@ -11,6 +11,7 @@ namespace actra\backend\settings;
 readonly class MailerSettings
 {
     public function __construct(
+        public string $senderEmail,
         public string $hostname,
         public string $username,
         public string $password,

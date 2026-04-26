@@ -96,6 +96,7 @@ abstract class BackendView extends BaseView
             }
         }
         $htmlDocument = HtmlDocument::get();
+        $htmlDocument->templateDirectory = __DIR__.'/view/backend/templates/';
         $this->prepareHtmlDocument(htmlDocument: $htmlDocument);
         foreach ($this->activeHtmlIdList as $key => $val) {
             $htmlDocument->setActiveHtmlId(key: $key, val: $val);

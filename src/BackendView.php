@@ -108,6 +108,10 @@ abstract class BackendView extends BaseView
         );
         $actraBackend = ActraBackend::get();
         $replacements->addEncodedText(
+            identifier: 'backendTitle',
+            content: strip_tags(string: $actraBackend->backendName)
+        );
+        $replacements->addEncodedText(
             identifier: 'backendName',
             content: $actraBackend->backendName
         );

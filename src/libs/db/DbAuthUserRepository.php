@@ -10,37 +10,30 @@ namespace actra\backend\libs\db;
 
 use actra\backend\libs\auth\MyAuthUser;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\db\DbQuery;
 use DateTimeImmutable;
 use stdClass;
 
 class DbAuthUserRepository
 {
-    public const string SELECT_QUERY = '
-		SELECT auth_user.ID,
-		       auth_user.registered,
- 		       auth_user.invited,
-		       (SELECT MAX(registered) FROM auth_login WHERE userID=auth_user.ID) AS lastLogin,
-		       auth_user.email,
-		       auth_user.active,
-		       auth_user.firstName,
-		       auth_user.lastName,
-		       (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights
-		FROM auth_user
-	';
-
-    public static function listByCond(string $whereCond, array $parameters): DbAuthUserCollection
+    public static function getDbQuery(): DbQuery
     {
-        $dbAuthUserCollection = new DbAuthUserCollection();
-        foreach (
-            DB::get()->select(
-                sql: DbAuthUserRepository::SELECT_QUERY . $whereCond . ' ORDER BY auth_user.firstName, auth_user.lastName',
-                parameters: $parameters
-            ) as $item
-        ) {
-            $dbAuthUserCollection->add(dbAuthUser: DbAuthUserRepository::createDbAuthUser(data: $item));
-        }
-
-        return $dbAuthUserCollection;
+        return DbQuery::createFromSqlQuery(
+            query: '
+                SELECT auth_user.ID,
+                       auth_user.registered,
+                       auth_user.invited,
+                       (SELECT MAX(registered) FROM auth_login WHERE userID=auth_user.ID) AS lastLogin,
+                       auth_user.email,
+                       auth_user.active,
+                       (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights,
+                       auth_user.firstName,
+                       auth_user.lastName,
+                       (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\') FROM auth_group WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS rightGroups,
+                       CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName
+                FROM auth_user
+            '
+        );
     }
 
     private static function createDbAuthUser(stdClass $data): DbAuthUser
@@ -63,31 +56,48 @@ class DbAuthUserRepository
         );
     }
 
+    public static function select(DbQuery $dbQuery): DbAuthUserCollection
+    {
+        $dbAuthUserCollection = new DbAuthUserCollection();
+        foreach (
+            $dbQuery->selectFromDb(
+                db: DB::get(),
+                offset: 0,
+                rowCount: 1000
+            ) as $item
+        ) {
+            $dbAuthUserCollection->add(
+                dbAuthUser: DbAuthUserRepository::createDbAuthUser(data: $item)
+            );
+        }
+
+        return $dbAuthUserCollection;
+    }
+
     public static function selectByID(int $ID): ?DbAuthUser
     {
-        return DbAuthUserRepository::selectByCond(
-            whereCond: 'WHERE auth_user.ID=?',
+        $dbQuery = DbAuthUserRepository::getDbQuery();
+        $dbQuery->addWherePart(
+            wherePart: 'auth_user.ID=?',
             parameters: [
                 $ID,
             ]
         );
-    }
-
-    private static function selectByCond(string $whereCond, array $parameters): ?DbAuthUser
-    {
-        $res = DB::get()->select(sql: DbAuthUserRepository::SELECT_QUERY . $whereCond, parameters: $parameters);
-
-        return (count(value: $res) === 1) ? DbAuthUserRepository::createDbAuthUser(data: $res[0]) : null;
+        $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
+        return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
     }
 
     public static function selectByEmail(string $email): ?DbAuthUser
     {
-        return DbAuthUserRepository::selectByCond(
-            whereCond: 'WHERE auth_user.email=?',
+        $dbQuery = DbAuthUserRepository::getDbQuery();
+        $dbQuery->addWherePart(
+            wherePart: 'auth_user.email=?',
             parameters: [
                 $email,
             ]
         );
+        $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
+        return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
     }
 
     public static function sentInvitation(int $ID): void

@@ -27,7 +27,12 @@ class DbAuthUserCollection
 
     public function isEmpty(): bool
     {
-        return count(value: $this->items) === 0;
+        return $this->items === [];
+    }
+
+    public function first(): DbAuthUser
+    {
+        return current(array: $this->items);
     }
 
     public function getFormOptions(): FormOptions

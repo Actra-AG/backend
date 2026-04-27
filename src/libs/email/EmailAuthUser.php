@@ -10,7 +10,7 @@ namespace actra\backend\libs\email;
 
 use actra\backend\libs\db\DbAuthUser;
 
-class EmailUserInvite
+class EmailAuthUser
 {
     public static function send(
         DbAuthUser $dbAuthUser,

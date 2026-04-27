@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\libs\db\DB;
+use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserSearchForm;
 use actra\backend\view\backend\php\user;
-use actra\yuf\db\DbQuery;
 use actra\yuf\table\column\BooleanColumn;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
@@ -22,22 +22,9 @@ class UserTable extends AbstractTable
 {
     public function __construct(UserSearchForm $userSearchForm)
     {
-        $dbQuery = DbQuery::createFromSqlQuery(
-            query: '
-					SELECT auth_user.ID,
-					       auth_user.firstName,
-					       auth_user.lastName,
-					       auth_user.email,
-					       auth_user.active,
-					       (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\') FROM auth_group WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS rightGroups,
-					       auth_user.registered,
-					       auth_user.invited,
-					       CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName
-					FROM auth_user
-				'
-        );
+        $dbQuery = DbAuthUserRepository::getDbQuery();
         $dbAuthGroup = $userSearchForm->dbAuthGroup;
-        if (!is_null(value: $dbAuthGroup)) {
+        if ($dbAuthGroup !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
                 parameters: [
@@ -65,10 +52,12 @@ class UserTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'fullName',
                 label: 'Name',
-                isSortable: true,
-                callbackFunction: function(TableItemModel $tableItemModel) {
-                    return '<a href="' . user::getPath(ID: '[ID]') . '">'.$tableItemModel->renderValue(name: 'fullName').'</a>';
-                }
+                callbackFunction: function (TableItemModel $tableItemModel) {
+                    return '<a href="' . user::getPath(
+                            ID: $tableItemModel->getRawValue(name: 'ID')
+                        ) . '">' . $tableItemModel->renderValue(name: 'fullName') . '</a>';
+                },
+                isSortable: true
             ),
             isDefaultSortColumn: true
         );

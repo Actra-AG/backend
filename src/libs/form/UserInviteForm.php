@@ -11,7 +11,7 @@ namespace actra\backend\libs\form;
 use actra\backend\ActraBackend;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
-use actra\backend\libs\email\EmailUserInvite;
+use actra\backend\libs\email\EmailAuthUser;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\TextAreaField;
@@ -72,7 +72,7 @@ class UserInviteForm extends Form
             return false;
         }
         $dbAuthUser = $this->dbAuthUser;
-        EmailUserInvite::send(
+        EmailAuthUser::send(
             dbAuthUser: $dbAuthUser,
             subject: $this->subjectField->getRawValue(),
             message: $this->bodyField->getRawValue()

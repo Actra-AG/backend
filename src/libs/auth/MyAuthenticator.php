@@ -40,16 +40,16 @@ class MyAuthenticator extends Authenticator
 
     public function createAndSendAuthToken(DbAuthUser $dbAuthUser): void
     {
-        $authTokenType = AuthTokenTypeEnum::LOGIN;
+        $authTokenTypeEnum = AuthTokenTypeEnum::LOGIN;
         $_SESSION['auth_token'] = DBAuthTokenRepository::createToken(
           dbAuthUser: $dbAuthUser,
-          authTokenType: $authTokenType
+          authTokenTypeEnum: $authTokenTypeEnum
         );
         $_SESSION['failedLoginAttempts'] = 0;
         EmailLoginToken::send(
           dbAuthUser: $dbAuthUser,
           loginCode: $_SESSION['auth_token'],
-          authTokenType: $authTokenType
+          authTokenTypeEnum: $authTokenTypeEnum
         );
     }
 

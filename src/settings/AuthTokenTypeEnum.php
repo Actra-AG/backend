@@ -19,9 +19,7 @@ enum AuthTokenTypeEnum: string
     public function getExpirationInMinutes(): int
     {
         return match ($this) {
-            AuthTokenTypeEnum::PASSWORD => 15,
-            AuthTokenTypeEnum::ACTIVATION => 2880,
-            AuthTokenTypeEnum::LOGIN => 10,
+            AuthTokenTypeEnum::PASSWORD, AuthTokenTypeEnum::ACTIVATION, AuthTokenTypeEnum::LOGIN => 15,
         };
     }
 

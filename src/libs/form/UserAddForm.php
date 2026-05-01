@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
@@ -34,50 +35,50 @@ class UserAddForm extends Form
         parent::__construct(name: 'UserAddForm');
         $this->addCssClass(className: 'form');
         $this->addField(
-            formField: $this->firstNameField = new TextField(
-                name: 'firstName',
-                label: HtmlText::encoded(textContent: 'Vorname'),
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Vornamen ein.')
-            )
+          formField: $this->firstNameField = new TextField(
+            name: 'firstName',
+            label: HtmlText::encoded(textContent: 'Vorname'),
+            requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Vornamen ein.')
+          )
         );
         $this->addField(
-            formField: $this->lastNameField = new TextField(
-                name: 'lastName',
-                label: HtmlText::encoded(textContent: 'Nachname'),
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Nachnamen ein.')
-            )
+          formField: $this->lastNameField = new TextField(
+            name: 'lastName',
+            label: HtmlText::encoded(textContent: 'Nachname'),
+            requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Nachnamen ein.')
+          )
         );
         $this->addField(
-            formField: $this->emailField = new EmailField(
-                name: 'email',
-                label: HtmlText::encoded(textContent: 'E-Mail'),
-                value: null,
-                invalidError: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.'),
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie die E-Mail-Adresse ein.')
-            )
+          formField: $this->emailField = new EmailField(
+            name: 'email',
+            label: HtmlText::encoded(textContent: 'E-Mail'),
+            value: null,
+            invalidError: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.'),
+            requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie die E-Mail-Adresse ein.')
+          )
         );
         $this->addField(
-            formField: $this->activeField = new BooleanField(
-                name: 'active',
-                label: HtmlText::encoded(textContent: 'aktiver Zugang'),
-                isCheckedByDefault: false
-            )
+          formField: $this->activeField = new BooleanField(
+            name: 'active',
+            label: HtmlText::encoded(textContent: 'aktiver Zugang'),
+            isCheckedByDefault: false
+          )
         );
         $this->addField(
-            formField: $this->userGroupsField = new CheckboxOptionsField(
-                name: 'userGroups',
-                label: HtmlText::encoded(textContent: 'Benutzergruppen'),
-                formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
-                initialValues: [],
-                requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.')
-            )
+          formField: $this->userGroupsField = new CheckboxOptionsField(
+            name: 'userGroups',
+            label: HtmlText::encoded(textContent: 'Benutzergruppen'),
+            formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
+            initialValues: [],
+            requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.')
+          )
         );
         $this->addComponent(
-            formComponent: new FormControl(
-                name: 'save',
-                submitLabel: HtmlText::encoded(textContent: 'speichern'),
-                cancelLink: users::getPath()
-            )
+          formComponent: new FormControl(
+            name: 'save',
+            submitLabel: HtmlText::encoded(textContent: 'speichern'),
+            cancelLink: users::getPath()
+          )
         );
     }
 
@@ -88,22 +89,23 @@ class UserAddForm extends Form
         }
         if (!is_null(value: DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue()))) {
             $this->addError(
-                errorMessage: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.',
-                isEncodedForRendering: true
+              errorMessage: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.',
+              isEncodedForRendering: true
             );
 
             return false;
         }
         $newUserID = DbAuthUserRepository::insert(
-            email: $this->emailField->getRawValue(),
-            active: $this->activeField->isChecked(),
-            firstName: $this->firstNameField->getRawValue(),
-            lastName: $this->lastNameField->getRawValue()
+          registeredById: MyAuthUser::get()->ID,
+          email: $this->emailField->getRawValue(),
+          active: $this->activeField->isChecked(),
+          firstName: $this->firstNameField->getRawValue(),
+          lastName: $this->lastNameField->getRawValue()
         );
         foreach ($this->userGroupsField->getRawValue() as $userGroupValue) {
             DbAuthUserGroupRepository::insert(
-                userID: $newUserID,
-                groupID: (int)$userGroupValue
+              userID: $newUserID,
+              groupID: (int)$userGroupValue
             );
         }
         $this->newUserID = $newUserID;

@@ -29,7 +29,7 @@ class MyAuthenticator extends Authenticator
     {
         MyAuthenticator::$instance = $this;
         parent::__construct(
-            maxAllowedWrongPasswordAttempts: ActraBackend::get()->maxAllowedLoginAttempts
+          maxAllowedWrongPasswordAttempts: ActraBackend::get()->maxAllowedLoginAttempts
         );
     }
 
@@ -40,14 +40,16 @@ class MyAuthenticator extends Authenticator
 
     public function createAndSendAuthToken(DbAuthUser $dbAuthUser): void
     {
+        $authTokenType = AuthTokenTypeEnum::LOGIN;
         $_SESSION['auth_token'] = DBAuthTokenRepository::createToken(
-            dbAuthUser: $dbAuthUser,
-            authTokenType: AuthTokenTypeEnum::LOGIN
+          dbAuthUser: $dbAuthUser,
+          authTokenType: $authTokenType
         );
         $_SESSION['failedLoginAttempts'] = 0;
         EmailLoginToken::send(
-            dbAuthUser: $dbAuthUser,
-            loginCode: $_SESSION['auth_token']
+          dbAuthUser: $dbAuthUser,
+          loginCode: $_SESSION['auth_token'],
+          authTokenType: $authTokenType
         );
     }
 
@@ -57,19 +59,19 @@ class MyAuthenticator extends Authenticator
             return false;
         }
         if (
-            !array_key_exists(
-                key: 'auth_token',
-                array: $_SESSION
-            )
-            || $_SESSION['auth_token'] !== $inputToken
+          !array_key_exists(
+            key: 'auth_token',
+            array: $_SESSION
+          )
+          || $_SESSION['auth_token'] !== $inputToken
         ) {
             $this->increaseFailedLoginAttempts();
             return false;
         }
         unset($_SESSION['auth_token']);
         $dbAuthToken = DBAuthTokenRepository::getClaimable(
-            authTokenType: AuthTokenTypeEnum::LOGIN,
-            token: $inputToken
+          authTokenType: AuthTokenTypeEnum::LOGIN,
+          token: $inputToken
         );
         if (is_null(value: $dbAuthToken)) {
             return false;
@@ -77,17 +79,17 @@ class MyAuthenticator extends Authenticator
         DBAuthTokenRepository::claim(dbAuthToken: $dbAuthToken);
 
         return $this->doLogin(
-            authMethod: AuthMethod::OTP,
-            userName: $dbAuthToken->email,
-            passwordToCheck: null
+          authMethod: AuthMethod::OTP,
+          userName: $dbAuthToken->email,
+          passwordToCheck: null
         );
     }
 
     private function getFailedLoginAttempts(): int
     {
         return array_key_exists(
-            key: 'failedLoginAttempts',
-            array: $_SESSION
+          key: 'failedLoginAttempts',
+          array: $_SESSION
         ) ? $_SESSION['failedLoginAttempts'] : 0;
     }
 
@@ -115,18 +117,18 @@ class MyAuthenticator extends Authenticator
     }
 
     protected function logAuthResult(
-        ?int $userID,
-        string $sessionID,
-        string $ip,
-        string $userName,
-        AuthResult $authResult
+      ?int $userID,
+      string $sessionID,
+      string $ip,
+      string $userName,
+      AuthResult $authResult
     ): void {
         DbAuthLoginRepository::insert(
-            userID: $userID,
-            sessionID: $sessionID,
-            ipAddress: $ip,
-            inputEmail: $userName,
-            authResult: $authResult
+          userID: $userID,
+          sessionID: $sessionID,
+          ipAddress: $ip,
+          inputEmail: $userName,
+          authResult: $authResult
         );
     }
 }

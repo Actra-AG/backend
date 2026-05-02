@@ -12,6 +12,7 @@ readonly class MailerSettings
 {
     public function __construct(
         public string $senderEmail,
+        public string $senderName,
         public string $hostname,
         public string $username,
         public string $password,

@@ -24,7 +24,7 @@ class Mailer
         $textMail = new TextMail(
             senderEmail: $mailerSettings->senderEmail,
             fromEmail: $mailerSettings->senderEmail,
-            fromName: $mailerSettings->senderEmail,
+            fromName: $mailerSettings->senderName,
             toEmail: $recipient,
             toName: $recipient,
             subject: $subject,

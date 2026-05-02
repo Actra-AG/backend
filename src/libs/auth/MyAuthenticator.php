@@ -29,27 +29,27 @@ class MyAuthenticator extends Authenticator
     {
         MyAuthenticator::$instance = $this;
         parent::__construct(
-          maxAllowedWrongPasswordAttempts: ActraBackend::get()->maxAllowedLoginAttempts
+            maxAllowedWrongPasswordAttempts: ActraBackend::get()->maxAllowedLoginAttempts
         );
     }
 
     public static function get(): MyAuthenticator
     {
-        return is_null(value: MyAuthenticator::$instance) ? new MyAuthenticator() : MyAuthenticator::$instance;
+        return MyAuthenticator::$instance === null ? new MyAuthenticator() : MyAuthenticator::$instance;
     }
 
     public function createAndSendAuthToken(DbAuthUser $dbAuthUser): void
     {
         $authTokenTypeEnum = AuthTokenTypeEnum::LOGIN;
         $_SESSION['auth_token'] = DBAuthTokenRepository::createToken(
-          dbAuthUser: $dbAuthUser,
-          authTokenTypeEnum: $authTokenTypeEnum
+            dbAuthUser: $dbAuthUser,
+            authTokenTypeEnum: $authTokenTypeEnum
         );
         $_SESSION['failedLoginAttempts'] = 0;
         EmailLoginToken::send(
-          dbAuthUser: $dbAuthUser,
-          loginCode: $_SESSION['auth_token'],
-          authTokenTypeEnum: $authTokenTypeEnum
+            dbAuthUser: $dbAuthUser,
+            loginCode: $_SESSION['auth_token'],
+            authTokenTypeEnum: $authTokenTypeEnum
         );
     }
 
@@ -59,37 +59,37 @@ class MyAuthenticator extends Authenticator
             return false;
         }
         if (
-          !array_key_exists(
-            key: 'auth_token',
-            array: $_SESSION
-          )
-          || $_SESSION['auth_token'] !== $inputToken
+            !array_key_exists(
+                key: 'auth_token',
+                array: $_SESSION
+            )
+            || $_SESSION['auth_token'] !== $inputToken
         ) {
             $this->increaseFailedLoginAttempts();
             return false;
         }
         unset($_SESSION['auth_token']);
         $dbAuthToken = DBAuthTokenRepository::getClaimable(
-          authTokenType: AuthTokenTypeEnum::LOGIN,
-          token: $inputToken
+            authTokenType: AuthTokenTypeEnum::LOGIN,
+            token: $inputToken
         );
-        if (is_null(value: $dbAuthToken)) {
+        if ($dbAuthToken === null) {
             return false;
         }
         DBAuthTokenRepository::claim(dbAuthToken: $dbAuthToken);
 
         return $this->doLogin(
-          authMethod: AuthMethod::OTP,
-          userName: $dbAuthToken->email,
-          passwordToCheck: null
+            authMethod: AuthMethod::OTP,
+            userName: $dbAuthToken->email,
+            passwordToCheck: null
         );
     }
 
     private function getFailedLoginAttempts(): int
     {
         return array_key_exists(
-          key: 'failedLoginAttempts',
-          array: $_SESSION
+            key: 'failedLoginAttempts',
+            array: $_SESSION
         ) ? $_SESSION['failedLoginAttempts'] : 0;
     }
 
@@ -109,7 +109,7 @@ class MyAuthenticator extends Authenticator
     protected function createAuthUserByUserName(string $userName): ?MyAuthUser
     {
         $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $userName);
-        if (is_null(value: $dbAuthUser)) {
+        if ($dbAuthUser === null) {
             return null;
         }
         $this->user = MyAuthUser::createFromDbAuthUser(dbAuthUser: $dbAuthUser);
@@ -117,18 +117,18 @@ class MyAuthenticator extends Authenticator
     }
 
     protected function logAuthResult(
-      ?int $userID,
-      string $sessionID,
-      string $ip,
-      string $userName,
-      AuthResult $authResult
+        ?int $userID,
+        string $sessionID,
+        string $ip,
+        string $userName,
+        AuthResult $authResult
     ): void {
         DbAuthLoginRepository::insert(
-          userID: $userID,
-          sessionID: $sessionID,
-          ipAddress: $ip,
-          inputEmail: $userName,
-          authResult: $authResult
+            userID: $userID,
+            sessionID: $sessionID,
+            ipAddress: $ip,
+            inputEmail: $userName,
+            authResult: $authResult
         );
     }
 }

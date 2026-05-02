@@ -47,7 +47,7 @@ class userInvite extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
-        if (is_null(value: $dbAuthUser)) {
+        if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
         $userInviteForm = new UserInviteForm(dbAuthUser: $dbAuthUser);

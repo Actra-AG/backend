@@ -30,7 +30,7 @@ class Mailer
             subject: $subject,
             textBody: $textBody
         );
-        if (!is_null(value: $replyTo)) {
+        if ($replyTo !== null) {
             $textMail->addReplyTo(inputEmail: $replyTo);
         }
         $textMail->send(

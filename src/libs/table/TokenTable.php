@@ -37,7 +37,7 @@ class TokenTable extends AbstractTable
 				    INNER JOIN auth_user ON auth_user.ID=auth_token.userID
 				'
         );
-        if (!is_null(value: $filterUserID)) {
+        if ($filterUserID !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_token.userID=?',
                 parameters: [
@@ -46,7 +46,7 @@ class TokenTable extends AbstractTable
             );
         }
         $authTokenTypeEnum = $tokenSearchForm->authTokenTypeEnum;
-        if (!is_null(value: $authTokenTypeEnum)) {
+        if ($authTokenTypeEnum !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_token.type=?',
                 parameters: [
@@ -131,7 +131,7 @@ class TokenTable extends AbstractTable
                 label: 'Eingelöst (Client)',
                 callbackFunction: function (TableItemModel $tableItemModel) {
                     $claimedClient = $tableItemModel->getRawValue(name: 'claimedClient');
-                    if (is_null(value: $claimedClient)) {
+                    if ($claimedClient === null) {
                         return '';
                     }
                     $list = [];

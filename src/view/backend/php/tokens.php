@@ -46,9 +46,7 @@ class tokens extends BackendView
 
     public static function getPath(?int $userID): string
     {
-        return ActraBackend::get()->path . (is_null(
-                value: $userID
-            ) ? 'tokens.html' : 'tokens-' . $userID . '.html');
+        return ActraBackend::get()->path . ($userID === null ? 'tokens.html' : 'tokens-' . $userID . '.html');
     }
 
     public static function getRequiredAccessRights(): AccessRightCollection
@@ -65,9 +63,10 @@ class tokens extends BackendView
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        if (!is_null(value: $this->getPathVar(nr: 1))) {
-            $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
-            if (is_null(value: $dbAuthUser)) {
+        $inputToken = $this->getPathVar(nr: 1);
+        if ($inputToken !== null) {
+            $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$inputToken);
+            if ($dbAuthUser === null) {
                 throw new NotFoundException();
             }
             $filterUserID = $dbAuthUser->ID;

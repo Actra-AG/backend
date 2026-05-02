@@ -79,11 +79,11 @@ class MyAuthUser extends AuthUser
 
     public static function get(): MyAuthUser
     {
-        if (!is_null(value: MyAuthUser::$instance)) {
+        if (MyAuthUser::$instance !== null) {
             return MyAuthUser::$instance;
         }
         $dbAuthSession = DbAuthSessionRepository::selectByID(ID: AuthSession::getAuthSessionID());
-        if (is_null(value: $dbAuthSession)) {
+        if ($dbAuthSession === null) {
             throw new UnauthorizedException();
         }
         return new MyAuthUser(

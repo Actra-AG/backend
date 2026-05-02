@@ -38,7 +38,7 @@ class VisitTable extends AbstractTable
 				    INNER JOIN auth_user ON auth_user.ID=auth_login.userID
 				'
         );
-        if (!is_null(value: $filterUserID)) {
+        if ($filterUserID !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_login.userID=?',
                 parameters: [

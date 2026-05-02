@@ -17,6 +17,7 @@ use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\BooleanField;
 use actra\yuf\form\component\field\CheckboxOptionsField;
 use actra\yuf\form\component\field\EmailField;
+use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
@@ -26,6 +27,7 @@ class UserModForm extends Form
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
     private readonly EmailField $emailField;
+    private readonly PhoneNumberField $phoneNumberField;
     private readonly CheckboxOptionsField $userGroupsField;
     private readonly BooleanField $activeField;
 
@@ -56,6 +58,14 @@ class UserModForm extends Form
                 value: $dbAuthUser->email,
                 invalidError: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.'),
                 requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie die E-Mail-Adresse ein.')
+            )
+        );
+        $this->addField(
+            formField: $this->phoneNumberField = new PhoneNumberField(
+                name: 'phone',
+                label: HtmlText::encoded(textContent: 'Telefon'),
+                value: $dbAuthUser->phone,
+                invalidErrorMessage: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige Telefonnummer ein.')
             )
         );
         $this->addField(
@@ -90,7 +100,7 @@ class UserModForm extends Form
         }
         if (
             $this->emailField->valueHasChanged()
-            && !is_null(value: DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue()))
+            && DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue()) !== null
         ) {
             $this->addError(
                 errorMessage: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.',
@@ -103,6 +113,7 @@ class UserModForm extends Form
         DbAuthUserRepository::update(
             ID: $userID,
             email: $this->emailField->getRawValue(),
+            phone: $this->phoneNumberField->getRawValue(),
             active: $this->activeField->isChecked(),
             firstName: $this->firstNameField->getRawValue(),
             lastName: $this->lastNameField->getRawValue()

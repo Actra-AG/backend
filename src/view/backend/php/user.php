@@ -77,7 +77,7 @@ class user extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
-        if (is_null(value: $dbAuthUser)) {
+        if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
         $this->pageTitle = HtmlText::unencoded(
@@ -85,13 +85,13 @@ class user extends BackendView
         );
         $authUser = MyAuthUser::get();
         $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUser);
-        if (!is_null(value: $this->getInputString(keyName: user::PARAM_REMOVE))) {
+        if ($this->getInputString(keyName: user::PARAM_REMOVE) !== null) {
             UserController::deleteUser(userID: $dbAuthUser->ID);
             HttpResponse::redirectAndExit(relativeOrAbsoluteUri: users::getPath() . '?' . users::PARAM_REMOVED);
         }
         if (
             $canImpersonate
-            && !is_null(value: $this->getInputString(keyName: user::PARAM_IMPERSONATE))
+            && $this->getInputString(keyName: user::PARAM_IMPERSONATE) !== null
         ) {
             AuthSession::logIn(
                 authSessionID: DbAuthSessionRepository::insert(
@@ -120,15 +120,15 @@ class user extends BackendView
         );
         $replacements->addBool(
             identifier: 'added',
-            booleanValue: !is_null(value: $this->getInputString(keyName: user::PARAM_ADDED))
+            booleanValue: $this->getInputString(keyName: user::PARAM_ADDED) !== null
         );
         $replacements->addBool(
             identifier: 'changed',
-            booleanValue: !is_null(value: $this->getInputString(keyName: user::PARAM_CHANGED))
+            booleanValue: $this->getInputString(keyName: user::PARAM_CHANGED) !== null
         );
         $replacements->addBool(
             identifier: 'invited',
-            booleanValue: !is_null(value: $this->getInputString(keyName: user::PARAM_INVITED))
+            booleanValue: $this->getInputString(keyName: user::PARAM_INVITED) !== null
         );
         $replacements->addBool(
             identifier: 'isInvited',
@@ -149,6 +149,10 @@ class user extends BackendView
         $replacements->addEncodedText(
             identifier: 'email',
             content: $dbAuthUser->email
+        );
+        $replacements->addEncodedText(
+            identifier: 'phone',
+            content: $dbAuthUser->renderPhone()
         );
         $replacements->addEncodedText(
             identifier: 'registered',

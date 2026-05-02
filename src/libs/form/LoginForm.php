@@ -51,7 +51,7 @@ class LoginForm extends Form
             return false;
         }
         $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue());
-        if (is_null(value: $dbAuthUser)) {
+        if ($dbAuthUser === null) {
             return true;
         }
         if (!DbAuthIpWhitelistRepository::listForUserId(userID: $dbAuthUser->ID)->check(

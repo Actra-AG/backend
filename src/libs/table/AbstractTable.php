@@ -34,7 +34,7 @@ abstract class AbstractTable extends DbResultTable
                 if ($i === 1) {
                     $headersList[] = $key;
                 }
-                if (!is_null(value: $val)) {
+                if ($val !== null) {
                     $item[] = preg_replace(
                         pattern: '/\s+/',
                         replacement: ' ',

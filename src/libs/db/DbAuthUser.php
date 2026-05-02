@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\phone\PhoneNumber;
+use actra\yuf\phone\PhoneRenderer;
 use DateTimeImmutable;
 
 readonly class DbAuthUser
@@ -19,6 +21,7 @@ readonly class DbAuthUser
         public ?DateTimeImmutable $invitedDate,
         private ?DateTimeImmutable $lastLogin,
         public string $email,
+        public string $phone,
         public bool $isActive,
         public AccessRightCollection $accessRightCollection,
         public string $firstName,
@@ -40,5 +43,18 @@ readonly class DbAuthUser
     public function renderActive(): string
     {
         return $this->isActive ? 'aktiv' : 'inaktiv';
+    }
+
+    public function renderPhone(): string
+    {
+        if ($this->phone === '') {
+            return '';
+        }
+        return PhoneRenderer::renderInternationalFormat(
+            phoneNumber: PhoneNumber::createFromString(
+                input: $this->phone,
+                defaultCountryCode: 'CH'
+            )
+        );
     }
 }

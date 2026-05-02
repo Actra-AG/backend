@@ -26,7 +26,7 @@ class DbAuthIpWhitelistCollection
 
     public function isEmpty(): bool
     {
-        return count(value: $this->items) === 0;
+        return $this->items === [];
     }
 
     public function check(

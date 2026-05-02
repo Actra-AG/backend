@@ -18,12 +18,13 @@ class DbAuthUserRepository
     public static function getDbQuery(): DbQuery
     {
         return DbQuery::createFromSqlQuery(
-          query: '
+            query: '
                 SELECT auth_user.ID,
                        auth_user.registered,
                        auth_user.invited,
                        (SELECT MAX(registered) FROM auth_login WHERE userID=auth_user.ID) AS lastLogin,
                        auth_user.email,
+                       auth_user.phone,
                        auth_user.active,
                        (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights,
                        auth_user.firstName,
@@ -38,20 +39,21 @@ class DbAuthUserRepository
     private static function createDbAuthUser(stdClass $data): DbAuthUser
     {
         return new DbAuthUser(
-          ID: $data->ID,
-          registered: new DateTimeImmutable(datetime: $data->registered),
-          invitedDate: is_null(value: $data->invited) ? null : new DateTimeImmutable(datetime: $data->invited),
-          lastLogin: is_null(value: $data->lastLogin) ? null : new DateTimeImmutable(datetime: $data->lastLogin),
-          email: $data->email,
-          isActive: ($data->active === 1),
-          accessRightCollection: AccessRightCollection::createFromStringArray(
-            input: explode(
-              separator: ',',
-              string: (string)$data->accessRights
-            )
-          ),
-          firstName: $data->firstName,
-          lastName: $data->lastName
+            ID: $data->ID,
+            registered: new DateTimeImmutable(datetime: $data->registered),
+            invitedDate: $data->invited === null ? null : new DateTimeImmutable(datetime: $data->invited),
+            lastLogin: $data->lastLogin === null ? null : new DateTimeImmutable(datetime: $data->lastLogin),
+            email: $data->email,
+            phone: $data->phone,
+            isActive: ($data->active === 1),
+            accessRightCollection: AccessRightCollection::createFromStringArray(
+                input: explode(
+                    separator: ',',
+                    string: (string)$data->accessRights
+                )
+            ),
+            firstName: $data->firstName,
+            lastName: $data->lastName
         );
     }
 
@@ -59,14 +61,14 @@ class DbAuthUserRepository
     {
         $dbAuthUserCollection = new DbAuthUserCollection();
         foreach (
-          $dbQuery->selectFromDb(
-            db: DB::get(),
-            offset: 0,
-            rowCount: 1000
-          ) as $item
+            $dbQuery->selectFromDb(
+                db: DB::get(),
+                offset: 0,
+                rowCount: 1000
+            ) as $item
         ) {
             $dbAuthUserCollection->add(
-              dbAuthUser: DbAuthUserRepository::createDbAuthUser(data: $item)
+                dbAuthUser: DbAuthUserRepository::createDbAuthUser(data: $item)
             );
         }
 
@@ -77,10 +79,10 @@ class DbAuthUserRepository
     {
         $dbQuery = DbAuthUserRepository::getDbQuery();
         $dbQuery->addWherePart(
-          wherePart: 'auth_user.ID=?',
-          parameters: [
-            $ID,
-          ]
+            wherePart: 'auth_user.ID=?',
+            parameters: [
+                $ID,
+            ]
         );
         $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
@@ -90,10 +92,10 @@ class DbAuthUserRepository
     {
         $dbQuery = DbAuthUserRepository::getDbQuery();
         $dbQuery->addWherePart(
-          wherePart: 'auth_user.email=?',
-          parameters: [
-            $email,
-          ]
+            wherePart: 'auth_user.email=?',
+            parameters: [
+                $email,
+            ]
         );
         $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
@@ -102,97 +104,103 @@ class DbAuthUserRepository
     public static function sentInvitation(int $ID): void
     {
         DB::get()->execute(
-          sql: '
+            sql: '
                     UPDATE auth_user
                     SET invited=NOW()
                     WHERE ID=?
                 ',
-          parameters: [
-            $ID,
-          ]
+            parameters: [
+                $ID,
+            ]
         );
     }
 
     public static function dbConfirmSuccessfulLogin(int $ID): void
     {
         DB::get()->execute(
-          sql: '
+            sql: '
                     UPDATE auth_user
                     SET lastSuccessfulLogin=NOW()
                     WHERE ID=?
                 ',
-          parameters: [
-            $ID,
-          ]
+            parameters: [
+                $ID,
+            ]
         );
     }
 
     public static function delete(int $ID): void
     {
         DB::get()->execute(
-          sql: '
+            sql: '
                         DELETE FROM auth_user
                                WHERE ID=?
                     ',
-          parameters: [
-            $ID,
-          ]
+            parameters: [
+                $ID,
+            ]
         );
     }
 
     public static function insert(
-      ?int $registeredById,
-      string $email,
-      bool $active,
-      string $firstName,
-      string $lastName
+        ?int $registeredById,
+        string $email,
+        string $phone,
+        bool $active,
+        string $firstName,
+        string $lastName
     ): int {
         $db = DB::get();
         $db->execute(
-          sql: '
+            sql: '
             INSERT INTO auth_user
             SET registeredByID=?,
                 email=?,
+                phone=?,
                 active=?,
                 firstName=?,
                 lastName=?
         ',
-          parameters: [
-            $registeredById,
-            $email,
-            $active ? 1 : 0,
-            $firstName,
-            $lastName,
-          ]
+            parameters: [
+                $registeredById,
+                $email,
+                $phone,
+                $active ? 1 : 0,
+                $firstName,
+                $lastName,
+            ]
         );
 
         return $db->lastInsertId();
     }
 
     public static function update(
-      int $ID,
-      string $email,
-      bool $active,
-      string $firstName,
-      string $lastName
+        int $ID,
+        string $email,
+        string $phone,
+        bool $active,
+        string $firstName,
+        string $lastName
     ): void {
         $db = DB::get();
         $db->execute(
-          sql: '
+            sql: '
                             UPDATE auth_user
                             SET email=?,
+                                phone=?,
                                 firstName=?,
                                 lastName=?,
                                 active=?
                             WHERE ID=?
                         ',
-          parameters: [
-            $email,
-            $firstName,
-            $lastName,
-            $active ? 1 : 0,
-            $ID,
-          ]
+            parameters: [
+                $email,
+                $phone,
+                $firstName,
+                $lastName,
+                $active ? 1 : 0,
+                $ID,
+            ]
         );
     }
 }

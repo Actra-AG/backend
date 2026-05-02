@@ -29,7 +29,7 @@ class DbAuthGroupRepository
 
     public static function listAll(): DbAuthGroupCollection
     {
-        if (is_null(value: DbAuthGroupRepository::$cache)) {
+        if (DbAuthGroupRepository::$cache === null) {
             DbAuthGroupRepository::$cache = DbAuthGroupRepository::listByCond(
                 whereCond: '',
                 parameters: []

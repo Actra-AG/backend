@@ -23,6 +23,7 @@ class DbAuthSessionRepository
 		       auth_user.invited,
 		       (SELECT MAX(registered) FROM auth_login WHERE userID=auth_user.ID) AS lastLogin,
 		       auth_user.email,
+		       auth_user.phone,
 		       auth_user.active,
 		       auth_user.firstName,
 		       auth_user.lastName,
@@ -64,7 +65,7 @@ class DbAuthSessionRepository
             ]
         );
 
-        return (count(value: $res) === 0) ? null : DbAuthSessionRepository::createDbAuthSession(data: $res[0]);
+        return $res === [] ? null : DbAuthSessionRepository::createDbAuthSession(data: $res[0]);
     }
 
     private static function createDbAuthSession(stdClass $data): DbAuthSession
@@ -75,9 +76,10 @@ class DbAuthSessionRepository
             dbAuthUser: new DbAuthUser(
                 ID: $data->userID,
                 registered: new DateTimeImmutable(datetime: $data->registered),
-                invitedDate: is_null(value: $data->invited) ? null : new DateTimeImmutable(datetime: $data->invited),
-                lastLogin: is_null(value: $data->lastLogin) ? null : new DateTimeImmutable(datetime: $data->lastLogin),
+                invitedDate: $data->invited === null ? null : new DateTimeImmutable(datetime: $data->invited),
+                lastLogin: $data->lastLogin === null ? null : new DateTimeImmutable(datetime: $data->lastLogin),
                 email: $data->email,
+                phone: $data->phone,
                 isActive: ($data->active === 1),
                 accessRightCollection: AccessRightCollection::createFromStringArray(
                     input: explode(

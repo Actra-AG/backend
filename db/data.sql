@@ -81,8 +81,8 @@ TRUNCATE TABLE `auth_user`;
 -- Daten für Tabelle `auth_user`
 --
 
-INSERT INTO `auth_user` (`ID`, `registeredByID`, `registered`, `invited`, `email`, `firstName`, `lastName`, `active`, `lastSuccessfulLogin`) VALUES
-    (1, NULL, '2026-04-25 19:59:10', '2026-04-25 19:59:10', 'admin@actra.ch', 'Admin', 'User', 1, NULL);
+INSERT INTO `auth_user` (`ID`, `registeredByID`, `registered`, `invited`, `email`, `phone`, `firstName`, `lastName`, `active`, `lastSuccessfulLogin`) VALUES
+    (1, NULL, '2026-04-25 19:59:10', '2026-04-25 19:59:10', 'admin@actra.ch', '', 'Admin', 'User', 1, NULL);
 
 --
 -- TRUNCATE Tabelle vor dem Einfügen `auth_user_group`

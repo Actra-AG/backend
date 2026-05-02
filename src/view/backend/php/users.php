@@ -78,7 +78,7 @@ class users extends BackendView
         );
         $replacements->addBool(
             identifier: 'removed',
-            booleanValue: !is_null(value: $this->getInputString(keyName: users::PARAM_REMOVED))
+            booleanValue: $this->getInputString(keyName: users::PARAM_REMOVED) !== null
         );
         $replacements->addEncodedText(
             identifier: 'searchForm',

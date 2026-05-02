@@ -121,6 +121,7 @@ CREATE TABLE `auth_user` (
                              `registered` timestamp NOT NULL DEFAULT current_timestamp(),
                              `invited` datetime DEFAULT NULL,
                              `email` varchar(200) NOT NULL,
+                             `phone` varchar(200) NOT NULL,
                              `firstName` varchar(200) NOT NULL,
                              `lastName` varchar(200) NOT NULL,
                              `active` tinyint(3) UNSIGNED NOT NULL,

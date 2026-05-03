@@ -136,11 +136,8 @@ class MyAuthUser extends AuthUser
 
     public function canManageUsers(): bool
     {
-        return (
-            $this->dbAuthUser->accessRightCollection->hasAccessRight(
-                accessRight: ActraBackend::RIGHT_MANAGE_USERS
-            )
-            || $this->isSessionChange()
+        return $this->dbAuthUser->accessRightCollection->hasAccessRight(
+            accessRight: ActraBackend::RIGHT_MANAGE_USERS
         );
     }
 }

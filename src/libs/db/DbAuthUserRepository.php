@@ -36,7 +36,7 @@ class DbAuthUserRepository
         );
     }
 
-    private static function createDbAuthUser(stdClass $data): DbAuthUser
+    private static function createItem(stdClass $data): DbAuthUser
     {
         return new DbAuthUser(
             ID: $data->ID,
@@ -68,7 +68,7 @@ class DbAuthUserRepository
             ) as $item
         ) {
             $dbAuthUserCollection->add(
-                dbAuthUser: DbAuthUserRepository::createDbAuthUser(data: $item)
+                dbAuthUser: DbAuthUserRepository::createItem(data: $item)
             );
         }
 
@@ -99,6 +99,18 @@ class DbAuthUserRepository
         );
         $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
+    }
+
+    public static function selectByUserGroup(int $groupID): DbAuthUserCollection
+    {
+        $dbQuery = DbAuthUserRepository::getDbQuery();
+        $dbQuery->addWherePart(
+            wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
+            parameters: [
+                $groupID,
+            ]
+        );
+        return DbAuthUserRepository::select(dbQuery: $dbQuery);
     }
 
     public static function sentInvitation(int $ID): void

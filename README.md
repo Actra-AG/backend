@@ -5,7 +5,8 @@ A comprehensive backend management library for the [YUF framework](https://githu
 ## Features
 
 - **One-Time Token Authentication**: Secure login without passwords, using tokens sent to the user's email.
-- **User Management**: Add, modify, and invite users to the system.
+- **User Management**: Add, modify, and invite users to the system, including phone number support.
+- **User Notifications**: Send email notifications to specific user groups directly from the backend.
 - **Role-Based Access Control**: Basic functionality to manage user permissions.
 - **IP Whitelisting**: Additional security layer to restrict backend access.
 - **Activity Monitoring**: Track visits and token usage.
@@ -49,9 +50,11 @@ use actra\yuf\db\DbSettingsModel;
 ActraBackend::init(
     routeCollection: $routeCollection,
     path: '/backend/', // The URL path where the backend will be accessible
+    isDefaultForLanguage: false,
     language: $language,
     ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
     backendName: 'My Project Backend',
+    scriptsHref: '/assets/js/backend.js',
     stylesHref: '/assets/css/backend.css',
     dbSettingsModel: new DbSettingsModel(
         hostname: 'localhost',
@@ -60,14 +63,19 @@ ActraBackend::init(
         database: 'my_database'
     ),
     mailerSettings: new MailerSettings(
+        senderEmail: 'noreply@example.com',
+        senderName: 'My Project',
         hostname: 'smtp.example.com',
         username: 'mailer@example.com',
         password: 'smtp_password',
         port: 587,
-        tls: true
+        tls: true,
+        signature: 'Best regards, Your Team'
     ),
     navigationItemCollection: $navigationItemCollection,
-    maxAllowedLoginAttempts: 5 // Optional, defaults to 5
+    maxAllowedLoginAttempts: 5, // Optional, defaults to 5
+    frontendHref: 'https://example.com', // Optional
+    frontendName: 'Go to Website' // Optional
 );
 ```
 

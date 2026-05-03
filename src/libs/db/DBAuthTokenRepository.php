@@ -11,10 +11,28 @@ namespace actra\backend\libs\db;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\common\StringUtils;
 use actra\yuf\core\HttpRequest;
+use actra\yuf\db\DbQuery;
 use actra\yuf\session\AbstractSessionHandler;
 
 class DBAuthTokenRepository
 {
+    public static function getDbQuery(): DbQuery
+    {
+        return DbQuery::createFromSqlQuery(
+            query: '
+				        SELECT auth_token.userID,
+				               auth_token.registered,
+				               auth_token.registeredClient,
+				               auth_token.type,
+				               auth_token.claimed,
+				               auth_token.claimedClient,
+				               auth_token.token
+				        FROM auth_token
+				            INNER JOIN auth_user ON auth_user.ID=auth_token.userID
+				    '
+        );
+    }
+
     public static function createToken(
       DbAuthUser $dbAuthUser,
       AuthTokenTypeEnum $authTokenTypeEnum

@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\libs\db\DB;
+use actra\backend\libs\db\DbAuthUserLoginRepository;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\yuf\auth\AuthResult;
-use actra\yuf\db\DbQuery;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
@@ -24,20 +24,7 @@ class VisitTable extends AbstractTable
         ?int $filterUserID,
         VisitSearchForm $tokenSearchForm
     ) {
-        $dbQuery = DbQuery::createFromSqlQuery(
-            query: '
-				SELECT auth_login.registered,
-				       auth_user.firstName,
-				       auth_user.lastName,
-				       auth_login.userID,
-				       auth_login.sessionId,
-				       auth_login.ipAddress,
-				       auth_login.email,
-				       auth_login.result
-				FROM auth_login
-				    INNER JOIN auth_user ON auth_user.ID=auth_login.userID
-				'
-        );
+        $dbQuery = DbAuthUserLoginRepository::getDbQuery();
         if ($filterUserID !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_login.userID=?',

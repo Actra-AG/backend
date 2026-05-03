@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db:3306
--- Erstellungszeit: 25. Apr 2026 um 20:04
--- Server-Version: 11.8.6-MariaDB-ubu2404-log
+-- Erstellungszeit: 03. Mai 2026 um 15:47
+-- Server-Version: 10.11.16-MariaDB-ubu2204-log
 -- PHP-Version: 8.3.26
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -140,6 +140,35 @@ CREATE TABLE `auth_user_group` (
                                    `groupID` mediumint(8) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `auth_user_notification`
+--
+
+CREATE TABLE `auth_user_notification` (
+                                          `ID` mediumint(8) UNSIGNED NOT NULL,
+                                          `authGroupID` mediumint(8) UNSIGNED NOT NULL,
+                                          `sentByID` mediumint(8) UNSIGNED NOT NULL,
+                                          `sentDate` timestamp NOT NULL DEFAULT current_timestamp(),
+                                          `subject` varchar(200) NOT NULL,
+                                          `message` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `auth_user_notification_recipient`
+--
+
+CREATE TABLE `auth_user_notification_recipient` (
+                                                    `ID` mediumint(8) UNSIGNED NOT NULL,
+                                                    `notificationID` mediumint(8) UNSIGNED NOT NULL,
+                                                    `authUserID` mediumint(8) UNSIGNED NOT NULL,
+                                                    `sentDate` timestamp NOT NULL DEFAULT current_timestamp(),
+                                                    `email` varchar(200) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Indizes der exportierten Tabellen
 --
@@ -212,6 +241,22 @@ ALTER TABLE `auth_user_group`
     ADD KEY `groupID` (`groupID`);
 
 --
+-- Indizes für die Tabelle `auth_user_notification`
+--
+ALTER TABLE `auth_user_notification`
+    ADD PRIMARY KEY (`ID`),
+    ADD KEY `authGroupID` (`authGroupID`),
+    ADD KEY `sentByID` (`sentByID`);
+
+--
+-- Indizes für die Tabelle `auth_user_notification_recipient`
+--
+ALTER TABLE `auth_user_notification_recipient`
+    ADD PRIMARY KEY (`ID`),
+    ADD KEY `notificationID` (`notificationID`),
+    ADD KEY `authUserID` (`authUserID`);
+
+--
 -- AUTO_INCREMENT für exportierte Tabellen
 --
 
@@ -264,6 +309,18 @@ ALTER TABLE `auth_user_group`
     MODIFY `ID` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT für Tabelle `auth_user_notification`
+--
+ALTER TABLE `auth_user_notification`
+    MODIFY `ID` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `auth_user_notification_recipient`
+--
+ALTER TABLE `auth_user_notification_recipient`
+    MODIFY `ID` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- Constraints der exportierten Tabellen
 --
 
@@ -305,4 +362,20 @@ ALTER TABLE `auth_user`
 ALTER TABLE `auth_user_group`
     ADD CONSTRAINT `auth_user_group_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION,
     ADD CONSTRAINT `auth_user_group_ibfk_2` FOREIGN KEY (`groupID`) REFERENCES `auth_group` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Constraints der Tabelle `auth_user_notification`
+--
+ALTER TABLE `auth_user_notification`
+    ADD CONSTRAINT `auth_user_notification_ibfk_1` FOREIGN KEY (`authGroupID`) REFERENCES `auth_group` (`ID`),
+    ADD CONSTRAINT `auth_user_notification_ibfk_2` FOREIGN KEY (`sentByID`) REFERENCES `auth_user` (`ID`),
+    ADD CONSTRAINT `auth_user_notification_ibfk_3` FOREIGN KEY (`authGroupID`) REFERENCES `auth_group` (`ID`),
+    ADD CONSTRAINT `auth_user_notification_ibfk_4` FOREIGN KEY (`sentByID`) REFERENCES `auth_user` (`ID`);
+
+--
+-- Constraints der Tabelle `auth_user_notification_recipient`
+--
+ALTER TABLE `auth_user_notification_recipient`
+    ADD CONSTRAINT `auth_user_notification_recipient_ibfk_1` FOREIGN KEY (`notificationID`) REFERENCES `auth_user_notification` (`ID`),
+    ADD CONSTRAINT `auth_user_notification_recipient_ibfk_2` FOREIGN KEY (`authUserID`) REFERENCES `auth_user` (`ID`);
 COMMIT;

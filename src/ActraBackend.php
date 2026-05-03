@@ -12,6 +12,7 @@ use actra\autoloader\Autoloader;
 use actra\autoloader\AutoloaderPath;
 use actra\backend\settings\MailerSettings;
 use actra\backend\view\backend\php\login;
+use actra\backend\view\backend\php\notifications;
 use actra\backend\view\backend\php\tokens;
 use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
@@ -98,6 +99,7 @@ class ActraBackend
         $childNavigation->addItem(navigationItem: users::getNavigationItem());
         $childNavigation->addItem(navigationItem: tokens::getNavigationItem());
         $childNavigation->addItem(navigationItem: visits::getNavigationItem());
+        $childNavigation->addItem(navigationItem: notifications::getNavigationItem());
         $navigationItemCollection->addItem(
             navigationItem: new NavigationItem(
                 navKey: 'users',

@@ -1,0 +1,16 @@
+# Ignore everything by default
+*
+
+# Allow core files
+!.gitignore
+!composer.json
+!LICENSE
+!README.md
+
+# Allow the db files
+!/db
+!/db/**
+
+# Allow the src files
+!/src
+!/src/**

@@ -101,8 +101,10 @@ class DbAuthUserRepository
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
     }
 
-    public static function selectByUserGroup(int $groupID): DbAuthUserCollection
-    {
+    public static function selectByUserGroup(
+        int $groupID,
+        bool $mustBeActive = true
+    ): DbAuthUserCollection {
         $dbQuery = DbAuthUserRepository::getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
@@ -110,6 +112,12 @@ class DbAuthUserRepository
                 $groupID,
             ]
         );
+        if ($mustBeActive) {
+            $dbQuery->addWherePart(
+                wherePart: 'auth_user.active=1',
+                parameters: []
+            );
+        }
         return DbAuthUserRepository::select(dbQuery: $dbQuery);
     }
 

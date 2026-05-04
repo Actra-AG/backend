@@ -54,7 +54,9 @@ ActraBackend::init(
     language: $language,
     ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
     backendName: 'My Project Backend',
-    scriptsHref: '/assets/js/backend.js',
+    javaScriptPaths: [
+        '/assets/js/backend.js'
+    ],
     stylesHref: '/assets/css/backend.css',
     dbSettingsModel: new DbSettingsModel(
         hostname: 'localhost',

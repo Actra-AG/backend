@@ -7,7 +7,9 @@
   <meta name="author" content="Actra AG Webagentur">
   <meta name="robots" content="noindex,nofollow">
   <script nonce="{tst:text value='cspNonce'}">document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';</script>
-  <script nonce="{tst:text value='cspNonce'}" src="{tst:text value='scriptsHref'}" defer></script>
+  <tst:for value="javaScriptPaths" var="path">
+    <script nonce="{tst:text value='cspNonce'}" src="{tst:text value='path.src'}" defer></script>
+  </tst:for>
   <link rel="stylesheet" href="{tst:text value='stylesHref'}">
 </head>
 <body class="{tst:text value='bodyClassName'}">

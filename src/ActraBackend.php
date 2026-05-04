@@ -22,6 +22,8 @@ use actra\yuf\core\Language;
 use actra\yuf\core\Route;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettingsModel;
+use actra\yuf\html\HtmlDataObject;
+use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
 
@@ -42,7 +44,7 @@ class ActraBackend
         public readonly string $path,
         public readonly array $ipWhitelist,
         public readonly string $backendName,
-        public readonly string $scriptsHref,
+        public readonly array $javaScriptPaths,
         public readonly string $stylesHref,
         public readonly DbSettingsModel $dbSettingsModel,
         public readonly int $maxAllowedLoginAttempts,
@@ -53,6 +55,20 @@ class ActraBackend
     ) {
     }
 
+    public function renderJavaScriptPaths(): HtmlDataObjectCollection {
+        $htmlDataObjectCollection = new HtmlDataObjectCollection();
+        foreach($this->javaScriptPaths as $path) {
+            $htmlDataObject = new HtmlDataObject();
+            $htmlDataObject->addTextElement(
+                propertyName: 'src',
+                content: $path,
+                isEncodedForRendering: true
+            );
+            $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
+        }
+        return $htmlDataObjectCollection;
+    }
+
     public static function init(
         RouteCollection $routeCollection,
         string $path,
@@ -60,7 +76,7 @@ class ActraBackend
         Language $language,
         array $ipWhitelist,
         string $backendName,
-        string $scriptsHref,
+        array $javaScriptPaths,
         string $stylesHref,
         DbSettingsModel $dbSettingsModel,
         MailerSettings $mailerSettings,
@@ -73,7 +89,7 @@ class ActraBackend
             path: $path,
             ipWhitelist: $ipWhitelist,
             backendName: $backendName,
-            scriptsHref: $scriptsHref,
+            javaScriptPaths: $javaScriptPaths,
             stylesHref: $stylesHref,
             dbSettingsModel: $dbSettingsModel,
             maxAllowedLoginAttempts: $maxAllowedLoginAttempts,

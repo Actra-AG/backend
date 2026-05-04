@@ -123,9 +123,9 @@ abstract class BackendView extends BaseView
           identifier: 'frontendName',
           content: $actraBackend->frontendName
         );
-        $replacements->addEncodedText(
-          identifier: 'scriptsHref',
-          content: $actraBackend->scriptsHref
+        $replacements->addHtmlDataObjectCollection(
+          identifier: 'javaScriptPaths',
+          htmlDataObjectCollection: $actraBackend->renderJavaScriptPaths()
         );
         $replacements->addEncodedText(
           identifier: 'stylesHref',

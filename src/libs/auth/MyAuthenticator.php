@@ -10,7 +10,7 @@ namespace actra\backend\libs\auth;
 
 use actra\backend\ActraBackend;
 use actra\backend\libs\db\DbAuthLoginRepository;
-use actra\backend\libs\db\DBAuthTokenRepository;
+use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\email\EmailLoginToken;
@@ -41,7 +41,7 @@ class MyAuthenticator extends Authenticator
     public function createAndSendAuthToken(DbAuthUser $dbAuthUser): void
     {
         $authTokenTypeEnum = AuthTokenTypeEnum::LOGIN;
-        $_SESSION['auth_token'] = DBAuthTokenRepository::createToken(
+        $_SESSION['auth_token'] = DbAuthTokenRepository::createToken(
             dbAuthUser: $dbAuthUser,
             authTokenTypeEnum: $authTokenTypeEnum
         );
@@ -69,14 +69,14 @@ class MyAuthenticator extends Authenticator
             return false;
         }
         unset($_SESSION['auth_token']);
-        $dbAuthToken = DBAuthTokenRepository::getClaimable(
+        $dbAuthToken = DbAuthTokenRepository::getClaimable(
             authTokenType: AuthTokenTypeEnum::LOGIN,
             token: $inputToken
         );
         if ($dbAuthToken === null) {
             return false;
         }
-        DBAuthTokenRepository::claim(dbAuthToken: $dbAuthToken);
+        DbAuthTokenRepository::claim(dbAuthToken: $dbAuthToken);
 
         return $this->doLogin(
             authMethod: AuthMethod::OTP,

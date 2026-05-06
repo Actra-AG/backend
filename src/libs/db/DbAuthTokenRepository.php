@@ -14,7 +14,7 @@ use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
 use actra\yuf\session\AbstractSessionHandler;
 
-class DBAuthTokenRepository
+class DbAuthTokenRepository
 {
     public static function getDbQuery(): DbQuery
     {
@@ -34,29 +34,29 @@ class DBAuthTokenRepository
     }
 
     public static function createToken(
-      DbAuthUser $dbAuthUser,
-      AuthTokenTypeEnum $authTokenTypeEnum
+        DbAuthUser $dbAuthUser,
+        AuthTokenTypeEnum $authTokenTypeEnum
     ): string {
         $token = strtoupper(
-          string: StringUtils::randomString(
-            requiredStringLength: 6,
-            noSpecialChars: true
-          )
+            string: StringUtils::randomString(
+                requiredStringLength: 6,
+                noSpecialChars: true
+            )
         );
         DB::get()->execute(
-          sql: '
+            sql: '
                 INSERT into auth_token
                 SET auth_token.userID=?,
                     auth_token.type=?,
                     auth_token.token=?,
                     auth_token.registeredClient=?
             ',
-          parameters: [
-            $dbAuthUser->ID,
-            $authTokenTypeEnum->value,
-            $token,
-            DBAuthTokenRepository::getClientData(),
-          ]
+            parameters: [
+                $dbAuthUser->ID,
+                $authTokenTypeEnum->value,
+                $token,
+                DbAuthTokenRepository::getClientData(),
+            ]
         );
 
         return $token;
@@ -65,18 +65,18 @@ class DBAuthTokenRepository
     private static function getClientData(): string
     {
         return json_encode(value: [
-          'userAgent' => HttpRequest::getUserAgent(),
-          'ipAddress' => HttpRequest::getRemoteAddress(),
-          'sessionId' => AbstractSessionHandler::getSessionHandler()->getID(),
+            'userAgent' => HttpRequest::getUserAgent(),
+            'ipAddress' => HttpRequest::getRemoteAddress(),
+            'sessionId' => AbstractSessionHandler::getSessionHandler()->getID(),
         ]);
     }
 
     public static function getClaimable(
-      AuthTokenTypeEnum $authTokenType,
-      string $token
+        AuthTokenTypeEnum $authTokenType,
+        string $token
     ): ?DbAuthToken {
         $res = DB::get()->select(
-          sql: '
+            sql: '
 				SELECT auth_token.ID,
 				       auth_token.userID,
 				       auth_user.email
@@ -94,11 +94,11 @@ class DBAuthTokenRepository
 				                        DESC LIMIT 1
 				  )
 			',
-          parameters: [
-            $authTokenType->value,
-            $token,
-            $authTokenType->getExpirationInMinutes(),
-          ]
+            parameters: [
+                $authTokenType->value,
+                $token,
+                $authTokenType->getExpirationInMinutes(),
+            ]
         );
         if ((count(value: $res) !== 1)) {
             return null;
@@ -106,38 +106,38 @@ class DBAuthTokenRepository
         $data = $res[0];
 
         return new DbAuthToken(
-          ID: $data->ID,
-          userID: $data->userID,
-          email: $data->email
+            ID: $data->ID,
+            userID: $data->userID,
+            email: $data->email
         );
     }
 
     public static function claim(DbAuthToken $dbAuthToken): void
     {
         DB::get()->execute(
-          sql: '
+            sql: '
                 UPDATE auth_token
                 SET auth_token.claimed=NOW(),
                     auth_token.claimedClient=?
                 WHERE auth_token.ID=?
             ',
-          parameters: [
-            DBAuthTokenRepository::getClientData(),
-            $dbAuthToken->ID,
-          ]
+            parameters: [
+                DbAuthTokenRepository::getClientData(),
+                $dbAuthToken->ID,
+            ]
         );
     }
 
     public static function deleteByUserID(int $userID): void
     {
         DB::get()->execute(
-          sql: '
+            sql: '
                 DELETE FROM auth_token
                        WHERE userID=?
             ',
-          parameters: [
-            $userID,
-          ]
+            parameters: [
+                $userID,
+            ]
         );
     }
 }

@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\libs\db\DB;
-use actra\backend\libs\db\DBAuthTokenRepository;
+use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\table\column\CallbackColumn;
@@ -24,7 +24,7 @@ class TokenTable extends AbstractTable
         ?int $filterUserID,
         TokenSearchForm $tokenSearchForm
     ) {
-        $dbQuery = DBAuthTokenRepository::getDbQuery();
+        $dbQuery = DbAuthTokenRepository::getDbQuery();
         if ($filterUserID !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_token.userID=?',

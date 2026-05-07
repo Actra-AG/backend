@@ -59,7 +59,14 @@ abstract class BackendView extends BaseView
         $ipWhitelist = ActraBackend::get()->ipWhitelist;
         if (AuthSession::isLoggedIn()) {
             $myAuthUser = MyAuthUser::get();
-            foreach ($myAuthUser->dbAuthUser->ipWhitelist as $ipAddress) {
+            if ($myAuthUser->isSessionChange()) {
+                $userIpWhitelist = DbAuthSessionRepository::selectByID(
+                    ID: $myAuthUser->parentSessionID
+                )->dbAuthUser->ipWhitelist;
+            } else {
+                $userIpWhitelist = $myAuthUser->dbAuthUser->ipWhitelist;
+            }
+            foreach ($userIpWhitelist as $ipAddress) {
                 if (!in_array(
                     needle: $ipAddress,
                     haystack: $ipWhitelist

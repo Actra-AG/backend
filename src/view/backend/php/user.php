@@ -170,13 +170,17 @@ class user extends BackendView
             identifier: 'visitsHref',
             content: visits::getPath(userID: $dbAuthUser->ID)
         );
+        $replacements->addEncodedText(
+            identifier: 'active',
+            content: $dbAuthUser->isActive ? 'ja' : 'nein'
+        );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
             htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->render()
         );
-        $replacements->addEncodedText(
-            identifier: 'active',
-            content: $dbAuthUser->isActive ? 'ja' : 'nein'
+        $replacements->addHtmlDataObjectCollection(
+            identifier: 'ipWhitelist',
+            htmlDataObjectCollection: $dbAuthUser->renderIpWhitelist()
         );
     }
 

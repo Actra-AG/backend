@@ -16,21 +16,22 @@ use stdClass;
 class DbAuthSessionRepository
 {
     private const string SELECT_QUERY = '
-		SELECT auth_session.ID,
-		       auth_session.parentID,
-		       auth_user.ID AS userID,
-		       auth_user.registered,
-		       auth_user.invited,
-		       (SELECT MAX(registered) FROM auth_login WHERE userID=auth_user.ID) AS lastLogin,
-		       auth_user.email,
-		       auth_user.phone,
-		       auth_user.active,
-		       auth_user.firstName,
-		       auth_user.lastName,
-		       (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights
-		FROM auth_session
-		    INNER JOIN auth_user ON auth_user.ID=auth_session.userID
-	';
+        SELECT auth_session.ID,
+               auth_session.parentID,
+               auth_user.ID AS userID,
+               auth_user.registered,
+               auth_user.invited,
+               (SELECT MAX(registered) FROM auth_login WHERE userID=auth_user.ID) AS lastLogin,
+               auth_user.email,
+               auth_user.phone,
+               auth_user.active,
+               auth_user.firstName,
+               auth_user.lastName,
+               (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights,
+               (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress) FROM auth_ipWhitelist WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
+        FROM auth_session
+            INNER JOIN auth_user ON auth_user.ID=auth_session.userID
+    ';
 
     public static function insert(
         ?int $parentID,
@@ -88,7 +89,8 @@ class DbAuthSessionRepository
                     )
                 ),
                 firstName: $data->firstName,
-                lastName: $data->lastName
+                lastName: $data->lastName,
+                rawIpWhitelist: (string)$data->ipWhitelist
             )
         );
     }

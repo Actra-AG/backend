@@ -9,12 +9,16 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\html\HtmlDataObject;
+use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\phone\PhoneNumber;
 use actra\yuf\phone\PhoneRenderer;
 use DateTimeImmutable;
 
 readonly class DbAuthUser
 {
+    public array $ipWhitelist;
+
     public function __construct(
         public int $ID,
         public DateTimeImmutable $registered,
@@ -25,9 +29,25 @@ readonly class DbAuthUser
         public bool $isActive,
         public AccessRightCollection $accessRightCollection,
         public string $firstName,
-        public string $lastName
+        public string $lastName,
+        string $rawIpWhitelist
     ) {
         $this->accessRightCollection->add(accessRight: AccessRightCollection::ACCESS_DO_PASSWORD_LOGIN);
+        $ipWhitelist = [];
+        if ($rawIpWhitelist !== '') {
+            foreach (
+                explode(
+                    separator: ',',
+                    string: $rawIpWhitelist
+                ) as $ipAddress
+            ) {
+                if ($ipAddress === '') {
+                    continue;
+                }
+                $ipWhitelist[] = $ipAddress;
+            }
+        }
+        $this->ipWhitelist = $ipWhitelist;
     }
 
     public function isInvited(): bool
@@ -56,5 +76,20 @@ readonly class DbAuthUser
                 defaultCountryCode: 'CH'
             )
         );
+    }
+
+    public function renderIpWhitelist(): HtmlDataObjectCollection
+    {
+        $htmlDataObjectCollection = new HtmlDataObjectCollection();
+        foreach ($this->ipWhitelist as $ip) {
+            $htmlDataObject = new HtmlDataObject();
+            $htmlDataObject->addTextElement(
+                propertyName: 'ipAddress',
+                content: $ip,
+                isEncodedForRendering: true
+            );
+            $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
+        }
+        return $htmlDataObjectCollection;
     }
 }

@@ -84,6 +84,20 @@ class UserTable extends AbstractTable
             )
         );
         $this->addColumn(
+            abstractTableColumn: new CallbackColumn(
+                identifier: 'ipWhitelist',
+                label: 'IP-Whitelist',
+                callbackFunction: function (TableItemModel $tableItemModel) {
+                    return str_replace(
+                        search: ',',
+                        replace: '<br>',
+                        subject: $tableItemModel->renderValue(name: 'ipWhitelist')
+                    );
+                },
+                isSortable: true
+            )
+        );
+        $this->addColumn(
             abstractTableColumn: $registeredColumn = new DateColumn(
                 identifier: 'registered',
                 label: 'erfasst',

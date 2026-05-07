@@ -332,6 +332,12 @@ ALTER TABLE `auth_group_right`
     ADD CONSTRAINT `auth_group_right_ibfk_2` FOREIGN KEY (`rightName`) REFERENCES `auth_right` (`name`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
+-- Constraints der Tabelle `auth_group_right`
+--
+ALTER TABLE `auth_ipWhitelist`
+    ADD CONSTRAINT `auth_ipWhitelist_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user`(`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
 -- Constraints der Tabelle `auth_login`
 --
 ALTER TABLE `auth_login`

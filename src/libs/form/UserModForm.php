@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\libs\db\DbAuthGroupRepository;
+use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\view\backend\php\user;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\BooleanField;
@@ -30,10 +32,12 @@ class UserModForm extends Form
     private readonly PhoneNumberField $phoneNumberField;
     private readonly CheckboxOptionsField $userGroupsField;
     private readonly BooleanField $activeField;
+    private readonly IpWhitelistField $ipWhitelistField;
 
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
-        parent::__construct(name: 'UserModForm-' . $this->dbAuthUser->ID);
+        $dbAuthUser = $this->dbAuthUser;
+        parent::__construct(name: 'UserModForm-' . $dbAuthUser->ID);
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->firstNameField = new TextField(
@@ -80,15 +84,24 @@ class UserModForm extends Form
                 name: 'userGroups',
                 label: HtmlText::encoded(textContent: 'Benutzergruppen'),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
-                initialValues: DbAuthGroupRepository::listByUserID(userID: $this->dbAuthUser->ID)->listIDs(),
+                initialValues: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->listIDs(),
                 requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.')
             )
         );
+        $this->addField(
+            formField: $this->ipWhitelistField = new IpWhitelistField(
+                name: 'ipWhitelistField',
+                label: HtmlText::encoded(textContent: 'IP-Whitelist'),
+                value: $dbAuthUser->ipWhitelist,
+                invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]')
+            )
+        );
+        $this->ipWhitelistField->fieldInfo = HtmlText::encoded(textContent: 'Eine IP-Adresse pro Zeile.');
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::encoded(textContent: 'Speichern'),
-                cancelLink: user::getPath(ID: $this->dbAuthUser->ID)
+                cancelLink: user::getPath(ID: $dbAuthUser->ID)
             )
         );
     }
@@ -129,6 +142,29 @@ class UserModForm extends Form
                 userID: $userID,
                 groupID: (int)$userGroupValue
             );
+        }
+        $newIpWhitelist = $this->ipWhitelistField->getRawValue();
+        foreach ($newIpWhitelist as $ip) {
+            if (!in_array(
+                needle: $ip,
+                haystack: $this->dbAuthUser->ipWhitelist
+            )) {
+                DbAuthIpWhitelistRepository::insert(
+                    userID: $userID,
+                    ipAddress: $ip
+                );
+            }
+        }
+        foreach ($this->dbAuthUser->ipWhitelist as $ip) {
+            if (!in_array(
+                needle: $ip,
+                haystack: $newIpWhitelist
+            )) {
+                DbAuthIpWhitelistRepository::delete(
+                    userID: $userID,
+                    ipAddress: $ip
+                );
+            }
         }
 
         return true;

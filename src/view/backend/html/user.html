@@ -83,6 +83,10 @@
         </tst:else>
       </dl>
       <dl>
+        <dt>Zugang aktiv?</dt>
+        <dd>{tst:text value='active'}</dd>
+      </dl>
+      <dl>
         <dt>Benutzergruppe(n)</dt>
         <dd>
           <tst:if compare="userGroups" operator="NE" against="null">
@@ -95,8 +99,16 @@
         </dd>
       </dl>
       <dl>
-        <dt>Zugang aktiv?</dt>
-        <dd>{tst:text value='active'}</dd>
+        <dt>IP-Whitelist</dt>
+        <dd>
+          <tst:if compare="ipWhitelist" operator="NE" against="null">
+            <ul class="user-group-list">
+              <tst:for value="ipWhitelist" var="item">
+                <li>{tst:text value='item.ipAddress'}</li>
+              </tst:for>
+            </ul>
+          </tst:if>
+        </dd>
       </dl>
     </div>
   </div>

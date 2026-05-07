@@ -10,8 +10,10 @@ namespace actra\backend\libs\form;
 
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\DbAuthGroupRepository;
+use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\view\backend\php\users;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\BooleanField;
@@ -31,6 +33,7 @@ class UserAddForm extends Form
     private readonly PhoneNumberField $phoneNumberField;
     private readonly CheckboxOptionsField $userGroupsField;
     private readonly BooleanField $activeField;
+    private readonly IpWhitelistField $ipWhitelistField;
 
     public function __construct()
     {
@@ -83,10 +86,18 @@ class UserAddForm extends Form
                 requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.')
             )
         );
+        $this->addField(
+            formField: $this->ipWhitelistField = new IpWhitelistField(
+                name: 'ipWhitelistField',
+                label: HtmlText::encoded(textContent: 'IP-Whitelist'),
+                value: [],
+                invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]')
+            )
+        );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::encoded(textContent: 'speichern'),
+                submitLabel: HtmlText::encoded(textContent: 'Speichern'),
                 cancelLink: users::getPath()
             )
         );
@@ -117,6 +128,12 @@ class UserAddForm extends Form
             DbAuthUserGroupRepository::insert(
                 userID: $newUserID,
                 groupID: (int)$userGroupValue
+            );
+        }
+        foreach ($this->ipWhitelistField->getRawValue() as $ip) {
+            DbAuthIpWhitelistRepository::insert(
+                userID: $newUserID,
+                ipAddress: $ip
             );
         }
         $this->newUserID = $newUserID;

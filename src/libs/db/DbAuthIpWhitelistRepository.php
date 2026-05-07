@@ -64,4 +64,14 @@ class DbAuthIpWhitelistRepository
             ]
         );
     }
+
+    public static function deleteByUserID(int $userID): void
+    {
+        DB::get()->execute(
+            sql: 'DELETE FROM auth_ipWhitelist WHERE userID=?',
+            parameters: [
+                $userID,
+            ]
+        );
+    }
 }

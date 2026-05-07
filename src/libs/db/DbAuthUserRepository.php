@@ -30,7 +30,8 @@ class DbAuthUserRepository
                        auth_user.firstName,
                        auth_user.lastName,
                        (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\') FROM auth_group WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS rightGroups,
-                       CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName
+                       CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName,
+                       (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress) FROM auth_ipWhitelist WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
                 FROM auth_user
             '
         );
@@ -53,7 +54,8 @@ class DbAuthUserRepository
                 )
             ),
             firstName: $data->firstName,
-            lastName: $data->lastName
+            lastName: $data->lastName,
+            rawIpWhitelist: (string)$data->ipWhitelist
         );
     }
 

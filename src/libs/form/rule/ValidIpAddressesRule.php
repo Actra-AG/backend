@@ -32,12 +32,7 @@ class ValidIpAddressesRule extends FormRule
             return true;
         }
         $validValues = [];
-        foreach (
-            explode(
-                separator: PHP_EOL,
-                string: $formField->getRawValue()
-            ) as $ip
-        ) {
+        foreach ($formField->getRawValue() as $ip) {
             $ip = trim(string: $ip);
             if ($ip === '') {
                 continue;

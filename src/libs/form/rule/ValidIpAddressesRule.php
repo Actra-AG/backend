@@ -29,6 +29,7 @@ class ValidIpAddressesRule extends FormRule
             throw new LogicException(message: 'Invalid form field type: ' . get_class(object: $formField));
         }
         if ($formField->isValueEmpty()) {
+            $formField->setValue(value: []);
             return true;
         }
         $validValues = [];

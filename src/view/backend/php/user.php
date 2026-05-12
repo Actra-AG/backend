@@ -101,7 +101,7 @@ class user extends BackendView
             );
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: ActraBackend::get()->navigationItemCollection->getFirst(
-                    authUser: MyAuthUser::get()
+                    accessRightCollection: $dbAuthUser->accessRightCollection
                 )->href
             );
         }

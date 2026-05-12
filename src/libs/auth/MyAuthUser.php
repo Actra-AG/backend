@@ -68,7 +68,7 @@ class MyAuthUser extends AuthUser
             unset($_SESSION['requestedPageAfterLogin']);
         } else {
             $target = ActraBackend::get()->navigationItemCollection->getFirst(
-                authUser: $this
+                accessRightCollection: $this->dbAuthUser->accessRightCollection
             )->href;
         }
         return $target . (str_contains(

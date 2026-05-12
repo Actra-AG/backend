@@ -170,11 +170,12 @@ abstract class BackendView extends BaseView
             return;
         }
         $myAuthUser = MyAuthUser::get();
+        $accessRightCollection = $myAuthUser->dbAuthUser->accessRightCollection;
         $navigationItemCollection = $actraBackend->navigationItemCollection;
         $replacements->addEncodedText(
             identifier: 'firstPageHref',
             content: $navigationItemCollection->getFirst(
-                authUser: $myAuthUser
+                accessRightCollection: $accessRightCollection
             )->href
         );
         $replacements->addHtmlDataObjectCollection(
@@ -184,7 +185,7 @@ abstract class BackendView extends BaseView
                     key: 1,
                     array: $this->activeHtmlIdList
                 ) ? $this->activeHtmlIdList[1] : '',
-                authUser: $myAuthUser
+                accessRightCollection: $accessRightCollection
             )
         );
         $replacements->addBool(

@@ -34,7 +34,7 @@ class Mailer
             $textMail->addReplyTo(inputEmail: $replyTo);
         }
         $textMail->send(
-            new SMTPMailer(
+            abstractMailer: new SMTPMailer(
                 hostName: $mailerSettings->hostname,
                 smtpUserName: $mailerSettings->username,
                 smtpPassword: $mailerSettings->password,

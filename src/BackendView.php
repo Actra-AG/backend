@@ -181,10 +181,9 @@ abstract class BackendView extends BaseView
         $replacements->addHtmlDataObjectCollection(
             identifier: 'mainNavigation',
             htmlDataObjectCollection: $navigationItemCollection->prepareForRenderer(
-                activeSubNavigationItem: array_key_exists(
-                    key: 1,
-                    array: $this->activeHtmlIdList
-                ) ? $this->activeHtmlIdList[1] : '',
+                activeSubNavigationItem: $htmlDocument->isActiveHtmlIdSet(key: 1) ? $htmlDocument->getActiveHtmlId(
+                    key: 1
+                ) : '',
                 accessRightCollection: $accessRightCollection
             )
         );
@@ -218,7 +217,7 @@ abstract class BackendView extends BaseView
         if ($this->useNavigator) {
             $oldNavigator = new OldNavigator(
                 pathVars: RequestHandler::get()->pathVars,
-                navigationLevels: $this->activeHtmlIdList
+                navigationLevels: $htmlDocument->listActiveHtmlIds()
             );
             if ($this->resetNavigator) {
                 $oldNavigator->resetBreadcrumb();

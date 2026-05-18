@@ -44,6 +44,16 @@ class DbAuthGroupCollection
         return array_keys(array: $this->items);
     }
 
+    public function hasOneOfIDs(array $authGroupIdList): bool
+    {
+        return count(value: array_intersect($authGroupIdList, $this->listIDs())) > 0;
+    }
+
+    public function get(int $ID): DbAuthGroup
+    {
+        return $this->items[$ID];
+    }
+
     public function render(): ?HtmlDataObjectCollection
     {
         $userGroups = new HtmlDataObjectCollection();

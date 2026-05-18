@@ -48,4 +48,14 @@ class DbAuthUserCollection
         }
         return $formOptions;
     }
+
+    public function has(int $userID): bool
+    {
+        return array_key_exists(key: $userID, array: $this->items);
+    }
+
+    public function get(int $userID): DbAuthUser
+    {
+        return $this->items[$userID];
+    }
 }

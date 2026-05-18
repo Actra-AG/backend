@@ -83,11 +83,9 @@ ActraBackend::init(
 
 Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`) and adds navigation items to your `NavigationItemCollection`.
 
-## Components
+## Documentation
 
-- **Authentication**: Handles login, token verification, and logout.
-- **User Management**: Interface for managing administrators and users.
-- **Audit Logs**: Visibility into user logins and system interactions.
+- [Upgrade Guide](UPGRADE.md) - Record of changes and migration instructions.
 
 ## License
 

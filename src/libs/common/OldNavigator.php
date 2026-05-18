@@ -16,7 +16,8 @@ class OldNavigator
     public function __construct(
         array $pathVars,
         private array $navigationLevels,
-        string $currentPage = ''
+        string $currentPage = '',
+        private readonly string $separator = ' '
     ) {
         if ($currentPage === '') {
             $this->currentPage = $pathVars[0];
@@ -83,7 +84,7 @@ class OldNavigator
                 }
             }
             $breadcrumb = "<p class=\"breadcrumb\">" . implode(
-                    separator: ' ',
+                    separator: $this->separator,
                     array: $xArr
                 ) . "</p>";
             if (count(value: $_SESSION['sess_breadcrumb']) <= 1) {

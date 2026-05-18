@@ -39,7 +39,8 @@ abstract class BackendView extends BaseView
         int $maxAllowedPathVars = 0,
         private readonly array $activeHtmlIdList = [],
         private readonly bool $useNavigator = false,
-        private readonly bool $resetNavigator = false
+        private readonly bool $resetNavigator = false,
+        private readonly string $legacyBreadcrumbSeparator = ' '
     ) {
         if ($forceLogout) {
             AuthSession::logOut();
@@ -115,8 +116,9 @@ abstract class BackendView extends BaseView
                 HttpResponse::redirectAndExit(relativeOrAbsoluteUri: user::getPath(ID: $impersonatedUserID));
             }
         }
+        $actraBackend = ActraBackend::get();
         $htmlDocument = HtmlDocument::get();
-        $htmlDocument->templateDirectory = __DIR__ . '/view/backend/templates/';
+        $htmlDocument->templateDirectory = $actraBackend->templateDirectory;
         $this->prepareHtmlDocument(htmlDocument: $htmlDocument);
         foreach ($this->activeHtmlIdList as $key => $val) {
             $htmlDocument->setActiveHtmlId(key: $key, val: $val);
@@ -126,7 +128,6 @@ abstract class BackendView extends BaseView
             identifier: 'pageTitle',
             htmlText: $this->getPageTitle()
         );
-        $actraBackend = ActraBackend::get();
         $replacements->addEncodedText(
             identifier: 'backendTitle',
             content: strip_tags(string: $actraBackend->backendName)
@@ -217,7 +218,8 @@ abstract class BackendView extends BaseView
         if ($this->useNavigator) {
             $oldNavigator = new OldNavigator(
                 pathVars: RequestHandler::get()->pathVars,
-                navigationLevels: $htmlDocument->listActiveHtmlIds()
+                navigationLevels: $htmlDocument->listActiveHtmlIds(),
+                separator: $this->legacyBreadcrumbSeparator
             );
             if ($this->resetNavigator) {
                 $oldNavigator->resetBreadcrumb();

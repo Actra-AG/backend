@@ -19,6 +19,8 @@ class Mailer
         string $subject,
         string $textBody,
         ?string $replyTo = null,
+        array $cc = [],
+        array $bcc = []
     ): void {
         $mailerSettings = ActraBackend::get()->mailerSettings;
         $textMail = new TextMail(
@@ -32,6 +34,12 @@ class Mailer
         );
         if ($replyTo !== null) {
             $textMail->addReplyTo(inputEmail: $replyTo);
+        }
+        foreach ($cc as $ccEmail) {
+            $textMail->addCc(inputEmail: $ccEmail);
+        }
+        foreach ($bcc as $bccEmail) {
+            $textMail->addBcc(inputEmail: $bccEmail);
         }
         $textMail->send(
             abstractMailer: new SMTPMailer(

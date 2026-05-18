@@ -51,13 +51,15 @@ class ActraBackend
         public readonly MailerSettings $mailerSettings,
         public readonly NavigationItemCollection $navigationItemCollection,
         public readonly string $frontendHref,
-        public readonly string $frontendName
+        public readonly string $frontendName,
+        public readonly string $templateDirectory
     ) {
     }
 
-    public function renderJavaScriptPaths(): HtmlDataObjectCollection {
+    public function renderJavaScriptPaths(): HtmlDataObjectCollection
+    {
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
-        foreach($this->javaScriptPaths as $path) {
+        foreach ($this->javaScriptPaths as $path) {
             $htmlDataObject = new HtmlDataObject();
             $htmlDataObject->addTextElement(
                 propertyName: 'src',
@@ -83,7 +85,8 @@ class ActraBackend
         NavigationItemCollection $navigationItemCollection,
         int $maxAllowedLoginAttempts = 5,
         ?string $frontendHref = '',
-        ?string $frontendName = ''
+        ?string $frontendName = '',
+        ?string $templateDirectory = __DIR__ . '/view/backend/templates/',
     ): void {
         ActraBackend::$instance = new ActraBackend(
             path: $path,
@@ -96,7 +99,8 @@ class ActraBackend
             mailerSettings: $mailerSettings,
             navigationItemCollection: $navigationItemCollection,
             frontendHref: $frontendHref,
-            frontendName: $frontendName
+            frontendName: $frontendName,
+            templateDirectory: $templateDirectory
         );
         $routeCollection->addRoute(
             route: new Route(

@@ -24,12 +24,12 @@ class visits extends BackendView
     public function __construct()
     {
         parent::__construct(
+            maxAllowedPathVars: 1,
             activeHtmlIdList: [
                 'users',
                 'visits',
             ],
-            useNavigator: true,
-            maxAllowedPathVars: 1
+            useNavigator: true
         );
     }
 

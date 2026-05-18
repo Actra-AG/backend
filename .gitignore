@@ -6,6 +6,7 @@
 !composer.json
 !LICENSE
 !README.md
+!UPGRADE.md
 
 # Allow the db files
 !/db

@@ -38,7 +38,8 @@ TRUNCATE TABLE `auth_group_right`;
 --
 
 INSERT INTO `auth_group_right` (`ID`, `groupID`, `rightName`)
-VALUES (1, 1, 'manage_users');
+VALUES (1, 1, 'backend_access'),
+       (2, 1, 'manage_users');
 
 --
 -- TRUNCATE Tabelle vor dem Einfügen `auth_ipWhitelist`
@@ -65,7 +66,8 @@ TRUNCATE TABLE `auth_right`;
 --
 
 INSERT INTO `auth_right` (`name`, `title`)
-VALUES ('manage_users', 'Benutzer verwalten');
+VALUES ('backend_access', 'Zugriff ins Backend'),
+       ('manage_users', 'Benutzer verwalten');
 
 --
 -- TRUNCATE Tabelle vor dem Einfügen `auth_session`

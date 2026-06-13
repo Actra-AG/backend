@@ -13,6 +13,7 @@ use actra\backend\libs\common\OldNavigator;
 use actra\backend\libs\db\DbAuthSessionRepository;
 use actra\backend\view\backend\php\login;
 use actra\backend\view\backend\php\logout;
+use actra\backend\view\backend\php\profile;
 use actra\backend\view\backend\php\user;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\AuthSession;
@@ -207,6 +208,10 @@ abstract class BackendView extends BaseView
                 content: ''
             );
         }
+        $replacements->addEncodedText(
+            identifier: 'profileHref',
+            content: profile::getPath()
+        );
         $replacements->addEncodedText(
             identifier: 'logoutHref',
             content: logout::getPath()

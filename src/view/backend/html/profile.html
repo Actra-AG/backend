@@ -1,0 +1,43 @@
+<div class="wrapper-sm flow-layout-m">
+    <h1>{tst:text value='pageTitle'}</h1>
+
+    <tst:if compare="changed" operator="EQ" against="true">
+        <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Die Änderungen wurden
+            gespeichert.</p>
+    </tst:if>
+
+    <tst:if compare="generatedApiKey" operator="NE" against="">
+        <div class="msg msg-success | flow-layout-xs" role="status" aria-live="polite">
+            <p>Der neue API-Key wurde generiert. Er wird später nicht erneut angezeigt.</p>
+            <p><strong>API-Key:</strong> <code>{tst:text value='generatedApiKey'}</code></p>
+        </div>
+    </tst:if>
+
+    {tst:text value='form'}
+
+    <div class="card | flow-layout-m">
+        <div class="card-header">
+            <h2>API-Key</h2>
+        </div>
+        <div class="details">
+            <dl>
+                <dt>API-Key</dt>
+                <dd>
+                    <tst:if compare="generateApiKeyHref" operator="NE" against="">
+                        <tst:if compare="apiKey" operator="NE" against="">
+                            {tst:text value='apiKey'}
+                            [<a href="{tst:text value='removeApiKeyHref'}">Entfernen</a>]
+                        </tst:if>
+                        <tst:else>
+                            keiner
+                        </tst:else>
+                        [<a href="{tst:text value='generateApiKeyHref'}">Neu generieren</a>]
+                    </tst:if>
+                    <tst:else>
+                        API-Keys können erst generiert werden, wenn eine IP-Whitelist hinterlegt ist.
+                    </tst:else>
+                </dd>
+            </dl>
+        </div>
+    </div>
+</div>

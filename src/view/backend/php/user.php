@@ -33,6 +33,7 @@ class user extends BackendView
     public const string PARAM_CHANGED = 'mod';
     public const string PARAM_INVITED = 'invited';
     public const string PARAM_GENERATE_API_KEY = 'generateApiKey';
+    public const string PARAM_REMOVE_API_KEY = 'removeApiKey';
 
     private readonly HtmlText $pageTitle;
 
@@ -72,6 +73,12 @@ class user extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_GENERATE_API_KEY,
+                isRequired: false
+            )
+        );
+        $inputParameterCollection->add(
+            inputParameter: new InputParameter(
+                name: user::PARAM_REMOVE_API_KEY,
                 isRequired: false
             )
         );
@@ -130,8 +137,15 @@ class user extends BackendView
             );
         }
         $generatedApiKey = '';
-        if ($this->getInputString(keyName: user::PARAM_GENERATE_API_KEY) !== null) {
+        $canGenerateApiKey = $dbAuthUser->ipWhitelist !== [];
+        if (
+            $canGenerateApiKey
+            && $this->getInputString(keyName: user::PARAM_GENERATE_API_KEY) !== null
+        ) {
             $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
+        }
+        if ($this->getInputString(keyName: user::PARAM_REMOVE_API_KEY) !== null) {
+            DbAuthApiKeyRepository::deleteByUserID(userID: $dbAuthUser->ID);
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
@@ -212,7 +226,11 @@ class user extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'generateApiKeyHref',
-            content: '?' . user::PARAM_GENERATE_API_KEY
+            content: $canGenerateApiKey ? '?' . user::PARAM_GENERATE_API_KEY : ''
+        );
+        $replacements->addEncodedText(
+            identifier: 'removeApiKeyHref',
+            content: '?' . user::PARAM_REMOVE_API_KEY
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',

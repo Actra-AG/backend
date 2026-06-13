@@ -8,6 +8,7 @@ tokens sent via email.
 
 - **One-Time Token Authentication**: Secure login without passwords, using tokens sent to the user's email.
 - **User Management**: Add, modify, and invite users to the system, including phone number support.
+- **User Profile Management**: Logged-in users can update their own profile details, IP whitelist, and API key.
 - **API Key Management**: Generate hashed API keys for users and validate bearer tokens for API access.
 - **User Notifications**: Send email notifications to specific user groups directly from the backend.
 - **Role-Based Access Control**: Basic functionality to manage user permissions.
@@ -94,8 +95,14 @@ and adds navigation items to your `NavigationItemCollection`.
 
 ### API Key Authentication
 
-Users with management access can generate or replace a user's API key on the user detail page. The generated key is
-shown only once and stored hashed with a salt.
+Users with management access can generate, replace, or remove a user's API key on the user detail page. Logged-in users
+can
+also manage their own API key on their profile page.
+
+API keys can only be generated if an IP whitelist is configured for the user. If an API key exists, the user's IP
+whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored hashed
+with
+a salt.
 
 API clients should send the generated key as a bearer token:
 

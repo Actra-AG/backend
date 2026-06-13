@@ -37,6 +37,7 @@ Autoloader::get()->addPath(
 class ActraBackend
 {
     public const string viewGroup = 'backend';
+    public const string RIGHT_BACKEND_ACCESS = 'backend_access';
     public const string RIGHT_MANAGE_USERS = 'manage_users';
     private static ActraBackend $instance;
 

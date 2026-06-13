@@ -95,10 +95,19 @@
             <dl>
                 <dt>API-Key</dt>
                 <dd>
-                    <tst:if compare="apiKey" operator="NE" against="">
-                        {tst:text value='apiKey'}
+                    <tst:if compare="generateApiKeyHref" operator="NE" against="">
+                        <tst:if compare="apiKey" operator="NE" against="">
+                            {tst:text value='apiKey'}
+                            [<a href="{tst:text value='removeApiKeyHref'}">Entfernen</a>]
+                        </tst:if>
+                        <tst:else>
+                            keiner
+                        </tst:else>
+                        [<a href="{tst:text value='generateApiKeyHref'}">Neu generieren</a>]
                     </tst:if>
-                    [<a href="{tst:text value='generateApiKeyHref'}">Neu generieren</a>]
+                    <tst:else>
+                        API-Keys können erst generiert werden, wenn eine IP-Whitelist hinterlegt ist.
+                    </tst:else>
                 </dd>
             </dl>
             <dl>

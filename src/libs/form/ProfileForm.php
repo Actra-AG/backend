@@ -9,38 +9,30 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\libs\db\DbAuthApiKeyRepository;
-use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\component\IpWhitelistField;
-use actra\backend\view\backend\php\user;
+use actra\yuf\core\HttpRequest;
+use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
-use actra\yuf\form\component\field\BooleanField;
-use actra\yuf\form\component\field\CheckboxOptionsField;
 use actra\yuf\form\component\field\CsrfTokenField;
-use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\component\FormField;
 use actra\yuf\html\HtmlText;
 
-class UserModForm extends Form
+class ProfileForm extends Form
 {
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
-    private readonly EmailField $emailField;
     private readonly PhoneNumberField $phoneNumberField;
-    private readonly CheckboxOptionsField $userGroupsField;
-    private readonly BooleanField $activeField;
     private readonly IpWhitelistField $ipWhitelistField;
 
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
-        $dbAuthUser = $this->dbAuthUser;
-        parent::__construct(name: 'UserModForm-' . $dbAuthUser->ID);
+        parent::__construct(name: 'ProfileForm');
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->firstNameField = new TextField(
@@ -59,36 +51,11 @@ class UserModForm extends Form
             )
         );
         $this->addField(
-            formField: $this->emailField = new EmailField(
-                name: 'email',
-                label: HtmlText::encoded(textContent: 'E-Mail'),
-                value: $dbAuthUser->email,
-                invalidError: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.'),
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie die E-Mail-Adresse ein.')
-            )
-        );
-        $this->addField(
             formField: $this->phoneNumberField = new PhoneNumberField(
                 name: 'phone',
                 label: HtmlText::encoded(textContent: 'Telefon'),
                 value: $dbAuthUser->phone,
                 invalidErrorMessage: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige Telefonnummer ein.')
-            )
-        );
-        $this->addField(
-            formField: $this->activeField = new BooleanField(
-                name: 'active',
-                label: HtmlText::encoded(textContent: 'aktiver Zugang'),
-                isCheckedByDefault: $dbAuthUser->isActive
-            )
-        );
-        $this->addField(
-            formField: $this->userGroupsField = new CheckboxOptionsField(
-                name: 'userGroups',
-                label: HtmlText::encoded(textContent: 'Benutzergruppen'),
-                formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
-                initialValues: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->listIDs(),
-                requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.')
             )
         );
         $this->addField(
@@ -99,12 +66,13 @@ class UserModForm extends Form
                 invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]')
             )
         );
-        $this->ipWhitelistField->fieldInfo = HtmlText::encoded(textContent: 'Eine IP-Adresse pro Zeile.');
+        $this->ipWhitelistField->fieldInfo = HtmlText::encoded(
+            textContent: 'Eine IP-Adresse pro Zeile. Achten Sie darauf, Ihre aktuelle IP-Adresse nicht auszuschliessen.'
+        );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::encoded(textContent: 'Speichern'),
-                cancelLink: user::getPath(ID: $dbAuthUser->ID)
+                submitLabel: HtmlText::encoded(textContent: 'Speichern')
             )
         );
     }
@@ -122,6 +90,7 @@ class UserModForm extends Form
 
             return false;
         }
+        $currentIpAddress = HttpRequest::getRemoteAddress();
         $newIpWhitelist = $this->ipWhitelistField->getRawValue();
         if (
             $newIpWhitelist === []
@@ -134,12 +103,12 @@ class UserModForm extends Form
 
             return false;
         }
-        if (
-            $this->emailField->valueHasChanged()
-            && DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue()) !== null
-        ) {
+        if (!$this->currentIpIsAllowed(
+            currentIpAddress: $currentIpAddress,
+            ipWhitelist: $newIpWhitelist
+        )) {
             $this->addError(
-                errorMessage: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.',
+                errorMessage: 'Die IP-Whitelist muss Ihre aktuelle IP-Adresse ' . $currentIpAddress . ' erlauben.',
                 isEncodedForRendering: true
             );
 
@@ -148,24 +117,12 @@ class UserModForm extends Form
         $userID = $this->dbAuthUser->ID;
         DbAuthUserRepository::update(
             ID: $userID,
-            email: $this->emailField->getRawValue(),
+            email: $this->dbAuthUser->email,
             phone: $this->phoneNumberField->getRawValue(),
-            active: $this->activeField->isChecked(),
+            active: $this->dbAuthUser->isActive,
             firstName: $this->firstNameField->getRawValue(),
             lastName: $this->lastNameField->getRawValue()
         );
-        foreach ($this->userGroupsField->getAddedValues() as $userGroupValue) {
-            DbAuthUserGroupRepository::insert(
-                userID: $userID,
-                groupID: (int)$userGroupValue
-            );
-        }
-        foreach ($this->userGroupsField->getRemovedValues() as $userGroupValue) {
-            DbAuthUserGroupRepository::delete(
-                userID: $userID,
-                groupID: (int)$userGroupValue
-            );
-        }
         foreach ($newIpWhitelist as $ip) {
             if (!in_array(
                 needle: $ip,
@@ -202,6 +159,22 @@ class UserModForm extends Form
                 }
                 return $field->valueHasChanged();
             }
+        );
+    }
+
+    private function currentIpIsAllowed(
+        string $currentIpAddress,
+        array $ipWhitelist
+    ): bool {
+        if ($ipWhitelist === []) {
+            return true;
+        }
+        return array_any(
+            array: $ipWhitelist,
+            callback: fn(string $ipAddress) => IpValidator::isInWhitelist(
+                whiteList: [$ipAddress],
+                ipAddressToCheck: $currentIpAddress
+            )
         );
     }
 }

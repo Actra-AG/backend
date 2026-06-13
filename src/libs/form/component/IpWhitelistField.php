@@ -50,4 +50,13 @@ class IpWhitelistField extends TextAreaField
     {
         return parent::getRawValue();
     }
+
+    public function valueHasChanged(): bool
+    {
+        $value = $this->getValue();
+        $originalValue = $this->getOriginalValue();
+        sort(array: $value);
+        sort(array: $originalValue);
+        return ($value !== $originalValue);
+    }
 }

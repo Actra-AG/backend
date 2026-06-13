@@ -25,6 +25,7 @@ use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\core\RequestHandler;
+use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -60,7 +61,16 @@ abstract class BackendView extends BaseView
         );
         $ipWhitelist = ActraBackend::get()->ipWhitelist;
         if (AuthSession::isLoggedIn()) {
-            $myAuthUser = MyAuthUser::get();
+            try {
+                $myAuthUser = MyAuthUser::get();
+            } catch (UnauthorizedException) {
+                $myAuthUser = null;
+                AuthSession::logOut();
+            }
+        } else {
+            $myAuthUser = null;
+        }
+        if ($myAuthUser !== null) {
             if ($myAuthUser->isSessionChange()) {
                 $userIpWhitelist = DbAuthSessionRepository::selectByID(
                     ID: $myAuthUser->parentSessionID
@@ -76,8 +86,6 @@ abstract class BackendView extends BaseView
                     $ipWhitelist[] = $ipAddress;
                 }
             }
-        } else {
-            $myAuthUser = null;
         }
         try {
             parent::__construct(

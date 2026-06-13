@@ -12,6 +12,7 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\UserController;
+use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthSessionRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
@@ -31,6 +32,7 @@ class user extends BackendView
     public const string PARAM_ADDED = 'add';
     public const string PARAM_CHANGED = 'mod';
     public const string PARAM_INVITED = 'invited';
+    public const string PARAM_GENERATE_API_KEY = 'generateApiKey';
 
     private readonly HtmlText $pageTitle;
 
@@ -43,13 +45,35 @@ class user extends BackendView
                 isRequired: false
             )
         );
-        $inputParameterCollection->add(inputParameter: new InputParameter(name: user::PARAM_REMOVE, isRequired: false));
-        $inputParameterCollection->add(inputParameter: new InputParameter(name: user::PARAM_ADDED, isRequired: false));
         $inputParameterCollection->add(
-            inputParameter: new InputParameter(name: user::PARAM_CHANGED, isRequired: false)
+            inputParameter: new InputParameter(
+                name: user::PARAM_REMOVE,
+                isRequired: false
+            )
         );
         $inputParameterCollection->add(
-            inputParameter: new InputParameter(name: user::PARAM_INVITED, isRequired: false)
+            inputParameter: new InputParameter(
+                name: user::PARAM_ADDED,
+                isRequired: false
+            )
+        );
+        $inputParameterCollection->add(
+            inputParameter: new InputParameter(
+                name: user::PARAM_CHANGED,
+                isRequired: false
+            )
+        );
+        $inputParameterCollection->add(
+            inputParameter: new InputParameter(
+                name: user::PARAM_INVITED,
+                isRequired: false
+            )
+        );
+        $inputParameterCollection->add(
+            inputParameter: new InputParameter(
+                name: user::PARAM_GENERATE_API_KEY,
+                isRequired: false
+            )
         );
         parent::__construct(
             inputParameterCollection: $inputParameterCollection,
@@ -105,6 +129,10 @@ class user extends BackendView
                 )->href
             );
         }
+        $generatedApiKey = '';
+        if ($this->getInputString(keyName: user::PARAM_GENERATE_API_KEY) !== null) {
+            $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
+        }
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
             identifier: 'userModHref',
@@ -129,6 +157,10 @@ class user extends BackendView
         $replacements->addBool(
             identifier: 'invited',
             booleanValue: $this->getInputString(keyName: user::PARAM_INVITED) !== null
+        );
+        $replacements->addEncodedText(
+            identifier: 'generatedApiKey',
+            content: $generatedApiKey
         );
         $replacements->addBool(
             identifier: 'isInvited',
@@ -173,6 +205,14 @@ class user extends BackendView
         $replacements->addEncodedText(
             identifier: 'active',
             content: $dbAuthUser->isActive ? 'ja' : 'nein'
+        );
+        $replacements->addEncodedText(
+            identifier: 'apiKey',
+            content: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : ''
+        );
+        $replacements->addEncodedText(
+            identifier: 'generateApiKeyHref',
+            content: '?' . user::PARAM_GENERATE_API_KEY
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',

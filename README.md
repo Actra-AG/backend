@@ -1,11 +1,14 @@
 # Actra Backend
 
-A comprehensive backend management library for the [YUF framework](https://github.com/Actra-AG/yuf). This library provides a ready-to-use administrative interface with user account management and secure authentication using one-time tokens sent via email.
+A comprehensive backend management library for the [YUF framework](https://github.com/Actra-AG/yuf). This library
+provides a ready-to-use administrative interface with user account management and secure authentication using one-time
+tokens sent via email.
 
 ## Features
 
 - **One-Time Token Authentication**: Secure login without passwords, using tokens sent to the user's email.
 - **User Management**: Add, modify, and invite users to the system, including phone number support.
+- **API Key Management**: Generate hashed API keys for users and validate bearer tokens for API access.
 - **User Notifications**: Send email notifications to specific user groups directly from the backend.
 - **Role-Based Access Control**: Basic functionality to manage user permissions.
 - **IP Whitelisting**: Additional security layer to restrict backend access.
@@ -29,14 +32,19 @@ composer require actra/backend
 
 ### 2. Database Setup
 
-The library requires several database tables to function. You must import the provided SQL files into your database:
+The library requires several database tables to function. For new installations, import the provided SQL files into your
+database:
 
 1. Import `db/schema.sql` to create the required table structure.
 2. Import `db/data.sql` to populate the tables with initial data, including a test user account.
 
+For existing installations, apply the incremental SQL update files from `db/updates/` as documented
+in [UPGRADE.md](UPGRADE.md).
+
 ## Usage
 
-To integrate the backend into your YUF-based application, you need to call `ActraBackend::init()` during your application's bootstrap process.
+To integrate the backend into your YUF-based application, you need to call `ActraBackend::init()` during your
+application's bootstrap process.
 
 ### Basic Initialization
 
@@ -81,7 +89,28 @@ ActraBackend::init(
 );
 ```
 
-Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`) and adds navigation items to your `NavigationItemCollection`.
+Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`)
+and adds navigation items to your `NavigationItemCollection`.
+
+### API Key Authentication
+
+Users with management access can generate or replace a user's API key on the user detail page. The generated key is
+shown only once and stored hashed with a salt.
+
+API clients should send the generated key as a bearer token:
+
+```http
+Authorization: Bearer api_key_<public-id>_<secret>
+```
+
+To validate the bearer token and retrieve the authenticated user ID, use:
+
+```php
+use actra\backend\libs\db\DbAuthApiKeyRepository;
+$userID = DbAuthApiKeyRepository::getUserIDForBearerOrThrow();
+```
+
+If the bearer token is missing, malformed, unknown, or invalid, an `UnauthorizedException` is thrown.
 
 ## Documentation
 

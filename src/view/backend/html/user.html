@@ -1,115 +1,130 @@
 <div class="main-header-action">
-  <h1>{tst:text value='pageTitle'}</h1>
-  <div class="btn-group">
-    <a href="{tst:text value='userModHref'}" class="btn btn-secondary"><span>Benutzer bearbeiten</span></a>
-    <tst:if compare="impersonateHref" operator="NE" against="">
-      <a href="{tst:text value='impersonateHref'}" class="btn btn-secondary">Benutzer verkörpern</a>
-    </tst:if>
-    <a href="{tst:text value='removeHref'}" class="btn btn-secondary btn-danger" data-action="confirm-deletion"
-       data-confirm="{tst:text value='pageTitle'} wirklich löschen?">Benutzer löschen</a>
-  </div>
+    <h1>{tst:text value='pageTitle'}</h1>
+    <div class="btn-group">
+        <a href="{tst:text value='userModHref'}" class="btn btn-secondary"><span>Benutzer bearbeiten</span></a>
+        <tst:if compare="impersonateHref" operator="NE" against="">
+            <a href="{tst:text value='impersonateHref'}" class="btn btn-secondary">Benutzer verkörpern</a>
+        </tst:if>
+        <a href="{tst:text value='removeHref'}" class="btn btn-secondary btn-danger" data-action="confirm-deletion"
+           data-confirm="{tst:text value='pageTitle'} wirklich löschen?">Benutzer löschen</a>
+    </div>
 </div>
 
 <tst:if compare="added" operator="EQ" against="true">
-  <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Der Eintrag wurde
-    hinzugefügt.</p>
+    <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Der Eintrag wurde
+        hinzugefügt.</p>
 </tst:if>
 <tst:if compare="changed" operator="EQ" against="true">
-  <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Die Änderungen wurden
-    gespeichert.</p>
+    <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Die Änderungen wurden
+        gespeichert.</p>
 </tst:if>
 <tst:if compare="invited" operator="EQ" against="true">
-  <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Die Willkommens-E-Mail
-    wurde verschickt.</p>
+    <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Die Willkommens-E-Mail
+        wurde verschickt.</p>
+</tst:if>
+<tst:if compare="generatedApiKey" operator="NE" against="">
+    <div class="msg msg-success | flow-layout-xs" role="status" aria-live="polite">
+        <p>Der neue API-Key wurde generiert. Er wird später nicht erneut angezeigt.</p>
+        <p><strong>API-Key:</strong> <code>{tst:text value='generatedApiKey'}</code></p>
+    </div>
 </tst:if>
 <tst:if compare="isInvited" operator="EQ" against="false">
-  <div class="msg msg-note | flow-layout-xs" role="status" aria-live="polite">
-    <p><strong>Hinweis:</strong> Dieser Benutzer hat noch keine
-      Willkommens-E-Mail erhalten.</p> <a href="{tst:text value='inviteHref'}"
-                                          class="btn btn-primary">Willkommens-E-Mail senden</a>
-  </div>
+    <div class="msg msg-note | flow-layout-xs" role="status" aria-live="polite">
+        <p><strong>Hinweis:</strong> Dieser Benutzer hat noch keine
+            Willkommens-E-Mail erhalten.</p> <a href="{tst:text value='inviteHref'}"
+                                                class="btn btn-primary">Willkommens-E-Mail senden</a>
+    </div>
 </tst:if>
 
 <div class="grid-half">
-  <div class="card | flow-layout-m">
-    <div class="card-header">
-      <h2>Persönliche Daten</h2>
+    <div class="card | flow-layout-m">
+        <div class="card-header">
+            <h2>Persönliche Daten</h2>
+        </div>
+        <div class="details">
+            <dl>
+                <dt>Vorname</dt>
+                <dd>{tst:text value='firstName'}</dd>
+            </dl>
+            <dl>
+                <dt>Nachname</dt>
+                <dd>{tst:text value='lastName'}</dd>
+            </dl>
+            <dl>
+                <dt>E-Mail</dt>
+                <dd>{tst:text value='email'}</dd>
+            </dl>
+            <dl>
+                <dt>Telefon</dt>
+                <dd>{tst:text value='phone'}</dd>
+            </dl>
+        </div>
     </div>
-    <div class="details">
-      <dl>
-        <dt>Vorname</dt>
-        <dd>{tst:text value='firstName'}</dd>
-      </dl>
-      <dl>
-        <dt>Nachname</dt>
-        <dd>{tst:text value='lastName'}</dd>
-      </dl>
-      <dl>
-        <dt>E-Mail</dt>
-        <dd>{tst:text value='email'}</dd>
-      </dl>
-      <dl>
-        <dt>Telefon</dt>
-        <dd>{tst:text value='phone'}</dd>
-      </dl>
-    </div>
-  </div>
 
-  <div class="card | flow-layout-m">
-    <div class="card-header">
-      <h2>Zugriffseinstellungen</h2>
+    <div class="card | flow-layout-m">
+        <div class="card-header">
+            <h2>Zugriffseinstellungen</h2>
+        </div>
+        <div class="details">
+            <dl>
+                <dt>Registriert</dt>
+                <dd>{tst:text value='registered'}</dd>
+            </dl>
+            <dl>
+                <dt>Willkommens-E-Mail verschickt</dt>
+                <dd>
+                    {tst:text value='invitedDate'}
+                    <tst:if compare="isInvited" operator="EQ" against="true">
+                        [<a href="{tst:text value='inviteHref'}">Erneut senden</a>]
+                    </tst:if>
+                </dd>
+            </dl>
+            <dl>
+                <dt>Letzte Anmeldung</dt>
+                <tst:if compare="lastLogin" operator="EQ" against="">
+                    <dd>noch nie</dd>
+                </tst:if>
+                <tst:else>
+                    <dd><a href="{tst:text value='visitsHref'}">{tst:text value='lastLogin'}</a></dd>
+                </tst:else>
+            </dl>
+            <dl>
+                <dt>Zugang aktiv?</dt>
+                <dd>{tst:text value='active'}</dd>
+            </dl>
+            <dl>
+                <dt>API-Key</dt>
+                <dd>
+                    <tst:if compare="apiKey" operator="NE" against="">
+                        {tst:text value='apiKey'}
+                    </tst:if>
+                    [<a href="{tst:text value='generateApiKeyHref'}">Neu generieren</a>]
+                </dd>
+            </dl>
+            <dl>
+                <dt>Benutzergruppe(n)</dt>
+                <dd>
+                    <tst:if compare="userGroups" operator="NE" against="null">
+                        <ul class="user-group-list">
+                            <tst:for value="userGroups" var="userGroup">
+                                <li>{tst:text value='userGroup.name'}</li>
+                            </tst:for>
+                        </ul>
+                    </tst:if>
+                </dd>
+            </dl>
+            <dl>
+                <dt>IP-Whitelist</dt>
+                <dd>
+                    <tst:if compare="ipWhitelist" operator="NE" against="null">
+                        <ul class="user-group-list">
+                            <tst:for value="ipWhitelist" var="item">
+                                <li>{tst:text value='item.ipAddress'}</li>
+                            </tst:for>
+                        </ul>
+                    </tst:if>
+                </dd>
+            </dl>
+        </div>
     </div>
-    <div class="details">
-      <dl>
-        <dt>Registriert</dt>
-        <dd>{tst:text value='registered'}</dd>
-      </dl>
-      <dl>
-        <dt>Willkommens-E-Mail verschickt</dt>
-        <dd>
-          {tst:text value='invitedDate'}
-          <tst:if compare="isInvited" operator="EQ" against="true">
-            [<a href="{tst:text value='inviteHref'}">Erneut senden</a>]
-          </tst:if>
-        </dd>
-      </dl>
-      <dl>
-        <dt>Letzte Anmeldung</dt>
-        <tst:if compare="lastLogin" operator="EQ" against="">
-          <dd>noch nie</dd>
-        </tst:if>
-        <tst:else>
-          <dd><a href="{tst:text value='visitsHref'}">{tst:text value='lastLogin'}</a></dd>
-        </tst:else>
-      </dl>
-      <dl>
-        <dt>Zugang aktiv?</dt>
-        <dd>{tst:text value='active'}</dd>
-      </dl>
-      <dl>
-        <dt>Benutzergruppe(n)</dt>
-        <dd>
-          <tst:if compare="userGroups" operator="NE" against="null">
-            <ul class="user-group-list">
-              <tst:for value="userGroups" var="userGroup">
-                <li>{tst:text value='userGroup.name'}</li>
-              </tst:for>
-            </ul>
-          </tst:if>
-        </dd>
-      </dl>
-      <dl>
-        <dt>IP-Whitelist</dt>
-        <dd>
-          <tst:if compare="ipWhitelist" operator="NE" against="null">
-            <ul class="user-group-list">
-              <tst:for value="ipWhitelist" var="item">
-                <li>{tst:text value='item.ipAddress'}</li>
-              </tst:for>
-            </ul>
-          </tst:if>
-        </dd>
-      </dl>
-    </div>
-  </div>
 </div>

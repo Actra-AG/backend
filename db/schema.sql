@@ -21,10 +21,13 @@ SET time_zone = "+00:00";
 -- Tabellenstruktur für Tabelle `auth_group`
 --
 
-CREATE TABLE `auth_group` (
-                              `ID` mediumint(8) UNSIGNED NOT NULL,
-                              `title` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_group`
+(
+    `ID`    mediumint(8) UNSIGNED NOT NULL,
+    `title` varchar(200)          NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -32,11 +35,14 @@ CREATE TABLE `auth_group` (
 -- Tabellenstruktur für Tabelle `auth_group_right`
 --
 
-CREATE TABLE `auth_group_right` (
-                                    `ID` mediumint(8) UNSIGNED NOT NULL,
-                                    `groupID` mediumint(8) UNSIGNED NOT NULL,
-                                    `rightName` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_group_right`
+(
+    `ID`        mediumint(8) UNSIGNED NOT NULL,
+    `groupID`   mediumint(8) UNSIGNED NOT NULL,
+    `rightName` varchar(200)          NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -44,11 +50,31 @@ CREATE TABLE `auth_group_right` (
 -- Tabellenstruktur für Tabelle `auth_ipWhitelist`
 --
 
-CREATE TABLE `auth_ipWhitelist` (
-                                    `ID` mediumint(8) UNSIGNED NOT NULL,
-                                    `userID` mediumint(8) UNSIGNED NOT NULL,
-                                    `ipAddress` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_ipWhitelist`
+(
+    `ID`        mediumint(8) UNSIGNED NOT NULL,
+    `userID`    mediumint(8) UNSIGNED NOT NULL,
+    `ipAddress` varchar(200)          NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `auth_api_key`
+--
+
+CREATE TABLE `auth_api_key`
+(
+    `userID`     mediumint(8) UNSIGNED NOT NULL,
+    `publicID`   char(6)               NOT NULL,
+    `apiKey`     varchar(200)          NOT NULL,
+    `salt`       char(16)              NOT NULL,
+    `registered` timestamp             NOT NULL DEFAULT current_timestamp()
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -56,15 +82,18 @@ CREATE TABLE `auth_ipWhitelist` (
 -- Tabellenstruktur für Tabelle `auth_login`
 --
 
-CREATE TABLE `auth_login` (
-                              `ID` mediumint(8) UNSIGNED NOT NULL,
-                              `userID` mediumint(8) UNSIGNED DEFAULT NULL,
-                              `registered` timestamp NOT NULL DEFAULT current_timestamp(),
-                              `sessionId` varchar(200) NOT NULL,
-                              `ipAddress` varchar(200) NOT NULL,
-                              `email` varchar(200) NOT NULL,
-                              `result` tinyint(3) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_login`
+(
+    `ID`         mediumint(8) UNSIGNED NOT NULL,
+    `userID`     mediumint(8) UNSIGNED          DEFAULT NULL,
+    `registered` timestamp             NOT NULL DEFAULT current_timestamp(),
+    `sessionId`  varchar(200)          NOT NULL,
+    `ipAddress`  varchar(200)          NOT NULL,
+    `email`      varchar(200)          NOT NULL,
+    `result`     tinyint(3) UNSIGNED   NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -72,10 +101,13 @@ CREATE TABLE `auth_login` (
 -- Tabellenstruktur für Tabelle `auth_right`
 --
 
-CREATE TABLE `auth_right` (
-                              `name` varchar(200) NOT NULL,
-                              `title` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_right`
+(
+    `name`  varchar(200) NOT NULL,
+    `title` varchar(200) NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -83,14 +115,17 @@ CREATE TABLE `auth_right` (
 -- Tabellenstruktur für Tabelle `auth_session`
 --
 
-CREATE TABLE `auth_session` (
-                                `ID` mediumint(8) UNSIGNED NOT NULL,
-                                `parentID` mediumint(8) UNSIGNED DEFAULT NULL,
-                                `userID` mediumint(8) UNSIGNED NOT NULL,
-                                `lastAction` datetime DEFAULT NULL,
-                                `sessionId` varchar(200) NOT NULL,
-                                `ipAddress` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_session`
+(
+    `ID`         mediumint(8) UNSIGNED NOT NULL,
+    `parentID`   mediumint(8) UNSIGNED DEFAULT NULL,
+    `userID`     mediumint(8) UNSIGNED NOT NULL,
+    `lastAction` datetime              DEFAULT NULL,
+    `sessionId`  varchar(200)          NOT NULL,
+    `ipAddress`  varchar(200)          NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -98,16 +133,19 @@ CREATE TABLE `auth_session` (
 -- Tabellenstruktur für Tabelle `auth_token`
 --
 
-CREATE TABLE `auth_token` (
-                              `ID` mediumint(8) UNSIGNED NOT NULL,
-                              `userID` mediumint(8) UNSIGNED NOT NULL,
-                              `registered` timestamp NOT NULL DEFAULT current_timestamp(),
-                              `registeredClient` text NOT NULL,
-                              `type` varchar(200) NOT NULL,
-                              `claimed` datetime DEFAULT NULL,
-                              `claimedClient` text DEFAULT NULL,
-                              `token` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_token`
+(
+    `ID`               mediumint(8) UNSIGNED NOT NULL,
+    `userID`           mediumint(8) UNSIGNED NOT NULL,
+    `registered`       timestamp             NOT NULL DEFAULT current_timestamp(),
+    `registeredClient` text                  NOT NULL,
+    `type`             varchar(200)          NOT NULL,
+    `claimed`          datetime                       DEFAULT NULL,
+    `claimedClient`    text                           DEFAULT NULL,
+    `token`            varchar(200)          NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -115,18 +153,21 @@ CREATE TABLE `auth_token` (
 -- Tabellenstruktur für Tabelle `auth_user`
 --
 
-CREATE TABLE `auth_user` (
-                             `ID` mediumint(8) UNSIGNED NOT NULL,
-                             `registeredByID` mediumint(8) UNSIGNED DEFAULT NULL,
-                             `registered` timestamp NOT NULL DEFAULT current_timestamp(),
-                             `invited` datetime DEFAULT NULL,
-                             `email` varchar(200) NOT NULL,
-                             `phone` varchar(200) NOT NULL,
-                             `firstName` varchar(200) NOT NULL,
-                             `lastName` varchar(200) NOT NULL,
-                             `active` tinyint(3) UNSIGNED NOT NULL,
-                             `lastSuccessfulLogin` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_user`
+(
+    `ID`                  mediumint(8) UNSIGNED NOT NULL,
+    `registeredByID`      mediumint(8) UNSIGNED          DEFAULT NULL,
+    `registered`          timestamp             NOT NULL DEFAULT current_timestamp(),
+    `invited`             datetime                       DEFAULT NULL,
+    `email`               varchar(200)          NOT NULL,
+    `phone`               varchar(200)          NOT NULL,
+    `firstName`           varchar(200)          NOT NULL,
+    `lastName`            varchar(200)          NOT NULL,
+    `active`              tinyint(3) UNSIGNED   NOT NULL,
+    `lastSuccessfulLogin` datetime                       DEFAULT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -134,11 +175,14 @@ CREATE TABLE `auth_user` (
 -- Tabellenstruktur für Tabelle `auth_user_group`
 --
 
-CREATE TABLE `auth_user_group` (
-                                   `ID` mediumint(8) UNSIGNED NOT NULL,
-                                   `userID` mediumint(8) UNSIGNED NOT NULL,
-                                   `groupID` mediumint(8) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_user_group`
+(
+    `ID`      mediumint(8) UNSIGNED NOT NULL,
+    `userID`  mediumint(8) UNSIGNED NOT NULL,
+    `groupID` mediumint(8) UNSIGNED NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -146,14 +190,17 @@ CREATE TABLE `auth_user_group` (
 -- Tabellenstruktur für Tabelle `auth_user_notification`
 --
 
-CREATE TABLE `auth_user_notification` (
-                                          `ID` mediumint(8) UNSIGNED NOT NULL,
-                                          `authGroupID` mediumint(8) UNSIGNED NOT NULL,
-                                          `sentByID` mediumint(8) UNSIGNED NOT NULL,
-                                          `sentDate` timestamp NOT NULL DEFAULT current_timestamp(),
-                                          `subject` varchar(200) NOT NULL,
-                                          `message` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_user_notification`
+(
+    `ID`          mediumint(8) UNSIGNED NOT NULL,
+    `authGroupID` mediumint(8) UNSIGNED NOT NULL,
+    `sentByID`    mediumint(8) UNSIGNED NOT NULL,
+    `sentDate`    timestamp             NOT NULL DEFAULT current_timestamp(),
+    `subject`     varchar(200)          NOT NULL,
+    `message`     text                  NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -161,13 +208,16 @@ CREATE TABLE `auth_user_notification` (
 -- Tabellenstruktur für Tabelle `auth_user_notification_recipient`
 --
 
-CREATE TABLE `auth_user_notification_recipient` (
-                                                    `ID` mediumint(8) UNSIGNED NOT NULL,
-                                                    `notificationID` mediumint(8) UNSIGNED NOT NULL,
-                                                    `authUserID` mediumint(8) UNSIGNED NOT NULL,
-                                                    `sentDate` timestamp NOT NULL DEFAULT current_timestamp(),
-                                                    `email` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `auth_user_notification_recipient`
+(
+    `ID`             mediumint(8) UNSIGNED NOT NULL,
+    `notificationID` mediumint(8) UNSIGNED NOT NULL,
+    `authUserID`     mediumint(8) UNSIGNED NOT NULL,
+    `sentDate`       timestamp             NOT NULL DEFAULT current_timestamp(),
+    `email`          varchar(200)          NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 --
 -- Indizes der exportierten Tabellen
@@ -193,6 +243,14 @@ ALTER TABLE `auth_group_right`
 ALTER TABLE `auth_ipWhitelist`
     ADD PRIMARY KEY (`ID`),
     ADD KEY `userID` (`userID`);
+
+--
+-- Indizes für die Tabelle `auth_api_key`
+--
+ALTER TABLE `auth_api_key`
+    ADD PRIMARY KEY `userID` (`userID`),
+    ADD UNIQUE KEY `publicID` (`publicID`),
+    ADD KEY `apiKey` (`apiKey`);
 
 --
 -- Indizes für die Tabelle `auth_login`
@@ -335,7 +393,13 @@ ALTER TABLE `auth_group_right`
 -- Constraints der Tabelle `auth_group_right`
 --
 ALTER TABLE `auth_ipWhitelist`
-    ADD CONSTRAINT `auth_ipWhitelist_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user`(`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+    ADD CONSTRAINT `auth_ipWhitelist_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Constraints der Tabelle `auth_api_key`
+--
+ALTER TABLE `auth_api_key`
+    ADD CONSTRAINT `auth_api_key_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints der Tabelle `auth_login`

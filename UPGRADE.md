@@ -2,6 +2,12 @@
 
 This document tracks relevant changes for both frontend and backend developers.
 
+## HTML & CSS (Frontend)
+
+### v0.10.2 – June 18, 2026
+
+* Added the `nav-user-logout` CSS class to the logout item in the user dropdown.
+
 ## Backend & API
 
 ### 0.10.0 – June 13, 2026

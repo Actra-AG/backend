@@ -8,11 +8,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\DetailDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
-use actra\yuf\phone\PhoneNumber;
-use actra\yuf\phone\PhoneRenderer;
 use DateTimeImmutable;
 
 readonly class DbAuthUserNotification
@@ -30,8 +27,9 @@ readonly class DbAuthUserNotification
         public int $recipients
     ) {
     }
-    
-    public function render(): HtmlDataObjectCollection {
+
+    public function render(): HtmlDataObjectCollection
+    {
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         $htmlDataObjectCollection->add(
             htmlDataObject: new DetailDataObject(
@@ -57,7 +55,7 @@ readonly class DbAuthUserNotification
         $htmlDataObjectCollection->add(
             htmlDataObject: new DetailDataObject(
                 name: 'Absender',
-                value: $this->firstName.' '.$this->lastName,
+                value: $this->firstName . ' ' . $this->lastName,
                 isEncodedForRendering: true
             )
         );

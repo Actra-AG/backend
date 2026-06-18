@@ -24,12 +24,12 @@ class tokens extends BackendView
     public function __construct()
     {
         parent::__construct(
+            maxAllowedPathVars: 1,
             activeHtmlIdList: [
                 'users',
                 'tokens',
             ],
-            useNavigator: true,
-            maxAllowedPathVars: 1
+            useNavigator: true
         );
     }
 

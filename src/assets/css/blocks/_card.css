@@ -1,0 +1,19 @@
+.card {
+  padding: var(--space-m);
+  border-radius: var(--br-l);
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.05);
+  border: 1px solid var(--border-clr);
+}
+
+.card-header-action {
+  display: flex;
+  flex-flow: column wrap;
+  gap: var(--r-space-m);
+
+  @media (--sm) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

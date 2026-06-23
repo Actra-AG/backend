@@ -15,3 +15,7 @@
 # Allow the src files
 !/src
 !/src/**
+
+# GLOBAL OS FILTERS (Master Rule)
+**/.DS_Store
+/.DS_Store

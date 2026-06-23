@@ -1,0 +1,9 @@
+.content-wrap {
+  @media (--sm) {
+    margin-inline-start: var(--site-header-width-sm);
+  }
+
+  @media (--md) {
+    margin-inline-start: var(--site-header-width-md);
+  }
+}

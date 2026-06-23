@@ -1,0 +1,27 @@
+.toc {
+  padding: var(--space-m);
+  background: var(--surface-1);
+  border-radius: var(--br-m);
+}
+
+.toc-headline {
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.toc-list {
+  & li {
+    position: relative;
+
+    &::before {
+      content: "";
+      width: 1.25em;
+      height: calc(var(--lh-body) * 1rem);
+      flex-shrink: 0;
+      background-image: var(--icon-toc-list);
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: 1em;
+    }
+  }
+}

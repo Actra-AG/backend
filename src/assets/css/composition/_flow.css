@@ -1,0 +1,72 @@
+.flow > * + * {
+  margin-block-start: var(--r-space-m);
+}
+
+.flow-xxs > * + * {
+  margin-block-start: var(--r-space-xxs);
+}
+
+.flow-xs > * + * {
+  margin-block-start: var(--r-space-xs);
+}
+
+.flow-s > * + * {
+  margin-block-start: var(--r-space-s);
+}
+
+.flow-l > * + * {
+  margin-block-start: var(--r-space-m);
+
+  @media (--sm) {
+    margin-block-start: var(--r-space-l);
+  }
+}
+
+.flow-xl > * + * {
+  margin-block-start: var(--r-space-m);
+
+  @media (--sm) {
+    margin-block-start: var(--r-space-xl);
+  }
+}
+
+.flow-xxl > * + * {
+  margin-block-start: var(--r-space-m);
+
+  @media (--sm) {
+    margin-block-start: var(--r-space-xxl);
+  }
+}
+
+.flow-xxxl > * + * {
+  margin-block-start: var(--r-space-xxxl);
+}
+
+/* flow-layout */
+.flow-layout-xxxs > * + * {
+  margin-block-start: var(--space-xxxs);
+}
+
+.flow-layout-xxs > * + * {
+  margin-block-start: var(--space-xxs);
+}
+
+.flow-layout-xs > * + * {
+  margin-block-start: var(--space-xs);
+}
+
+.flow-layout-s > * + * {
+  margin-block-start: var(--space-s);
+}
+
+.flow-layout-m > * + * {
+  margin-block-start: var(--space-m);
+}
+
+.flow-layout-l > * + * {
+  margin-block-start: var(--space-l);
+}
+
+.flow-layout-xl > * + * {
+  margin-block-start: var(--space-xl);
+}

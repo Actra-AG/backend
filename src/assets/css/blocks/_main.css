@@ -1,0 +1,25 @@
+main {
+  margin-inline: auto;
+  padding: var(--space-m);
+  max-width: var(--max-width-base);
+
+  @media (--sm) {
+    padding-block-end: var(--space-xxl);
+  }
+}
+
+main > * + * {
+  margin-block-start: var(--space-m);
+}
+
+.main-header-action {
+  display: flex;
+  flex-flow: column wrap;
+  gap: var(--r-space-m);
+
+  @media (--sm) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

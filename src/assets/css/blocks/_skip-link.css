@@ -1,0 +1,14 @@
+.skip-link:focus {
+  padding: 0.5rem 1rem;
+  clip: auto !important;
+  clip-path: none;
+  color: var(--element-1);
+  background-color: #fff;
+  display: block;
+  left: 5px;
+  top: 5px;
+  text-decoration: none;
+  height: auto;
+  width: auto;
+  z-index: 99;
+}

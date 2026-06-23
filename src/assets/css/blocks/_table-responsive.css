@@ -1,0 +1,45 @@
+.scroll-hint {
+  padding: var(--space-xxs);
+  text-align: center;
+  border-block-end: 1px solid var(--border-clr);
+  border-radius: var(--br-m) var(--br-m) 0 0;
+  font-size: var(--fs-s);
+  line-height: var(--lh-s);
+
+  .box & {
+    border-radius: var(--br-s) var(--br-s) 0 0;
+  }
+}
+
+.scrollable {
+  position: relative;
+  overflow: hidden;
+}
+
+.scrollable-inner {
+  overflow-x: auto;
+}
+
+.scrollable.has-scroll-left::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 0 6px 2px 0 / 0 50% 50% 0;
+  box-shadow: 2px 0 10px rgb(0 0 0 / 0.2);
+}
+
+.scrollable.has-scroll-right::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 6px 0 0 2px / 50% 0 0 50%;
+  box-shadow: -2px 0 10px rgb(0 0 0 / 0.2);
+}

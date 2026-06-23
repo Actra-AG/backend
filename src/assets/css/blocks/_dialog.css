@@ -1,0 +1,99 @@
+.dialog::backdrop {
+  background: rgb(48 48 49 / 0.4);
+  animation: modal-overlay-animation 0.2s ease-out;
+}
+
+.dialog {
+  padding: 0;
+  max-width: 36ch;
+  background: #fff;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.2);
+  border-radius: var(--br-l);
+  border: 0;
+  animation: modal-animation 0.2s ease-out;
+
+  @media (--sm) {
+    min-width: 40ch;
+  }
+}
+
+.dialog p {
+  padding: var(--space-m);
+}
+
+.dialog-control {
+  padding: var(--space-m);
+  background: var(--surface-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+
+  @media (--md) {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.dialog-submit,
+.dialog-cancel {
+  padding: var(--space-xxs) var(--space-m);
+  display: block;
+  border: 0;
+  border-radius: var(--br-s);
+  color: #fff;
+  cursor: pointer;
+}
+
+.dialog-submit {
+  background-color: var(--clr-error-400);
+}
+
+.dialog-submit:hover,
+.dialog-submit:focus {
+  background-color: var(--clr-error-500);
+}
+
+.dialog-submit:focus-visible {
+  outline: 2px solid var(--clr-error-400);
+  outline-offset: 2px;
+  background-color: var(--clr-error-400);
+}
+
+.dialog-cancel {
+  color: var(--element-2);
+  background: var(--surface-3);
+}
+
+.dialog-cancel:hover,
+.dialog-cancel:focus {
+  outline: 0;
+  color: var(--element-1);
+  background: var(--surface-4);
+}
+
+.dialog-cancel:focus-visible {
+  outline: 2px solid #c7c8c9;
+  outline-offset: 2px;
+}
+
+@keyframes modal-animation {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.8);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modal-overlay-animation {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}

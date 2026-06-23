@@ -1,0 +1,8 @@
+.search-result {
+  font-size: var(--fs-s);
+  line-height: var(--lh-s);
+}
+
+.search-result + .table-wrap {
+  margin-block-start: var(--r-space-m);
+}

@@ -1,0 +1,160 @@
+:root {
+  interpolate-size: allow-keywords;
+}
+
+html {
+  font-size: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  text-rendering: optimizespeed;
+  font-family: var(--ff-primary);
+  font-size: 0.875rem;
+  line-height: var(--lh-body);
+  color: var(--element-1);
+  background: var(--bg-body);
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+
+  /* &::before {
+    @media (--xl) {
+      content: "";
+      width: 50px;
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background: #f0f2f5;
+    }
+  }
+
+  &::after {
+    @media (--xl) {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 50px;
+      bottom: 0;
+      width: 1px;
+      background: transparent;
+
+      box-shadow: 0 0 12px rgba(72 73 74 / 0.4);
+      
+    }
+  }
+
+  @media (--xl) {
+    padding-right: 50px;
+  } */
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+}
+
+a {
+  color: var(--clr-primary-400);
+  text-decoration-line: none;
+  text-decoration-thickness: from-font;
+
+  &:hover,
+  &:focus {
+    color: var(--clr-primary-300);
+    text-decoration-line: none;
+  }
+}
+
+b,
+strong {
+  font-weight: var(--bold);
+}
+
+code {
+  font-family:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  font-size: var(--fs-s);
+  line-height: var(--lh-s);
+}
+
+/* ios safari */
+input,
+textarea {
+  border-radius: 0;
+  appearance: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+  font-family: var(--ff-secondary);
+  font-weight: var(--bold);
+}
+
+h1,
+.heading-1 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-xl);
+
+  @media (--sm) {
+    font-size: var(--fs-xxl);
+    line-height: var(--lh-xxl);
+  }
+}
+
+h2,
+.heading-2 {
+  font-size: var(--fs-l);
+  line-height: var(--lh-l);
+
+  @media (--sm) {
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+  }
+}
+
+h3,
+.heading-3 {
+  font-size: var(--fs-m);
+  line-height: var(--lh-l);
+
+  @media (--sm) {
+    font-size: var(--fs-l);
+    line-height: var(--lh-l);
+  }
+}
+
+h4,
+h5,
+h6,
+.heading-4,
+.heading-5,
+.heading-6 {
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.fs-small {
+  font-size: var(--fs-s);
+  line-height: var(--lh-s);
+}
+
+.fs-x-small {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-xs);
+}
+
+.heading-base {
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}

@@ -1,0 +1,37 @@
+.form-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+
+  @media (--sm) {
+    flex-flow: wrap row;
+  }
+
+  & > div label {
+    margin-block-end: var(--space-xxs);
+    display: inline-block;
+  }
+
+  & [type="text"],
+  & [type="password"],
+  & [type="email"],
+  & [type="tel"],
+  & [type="url"],
+  & [type="date"],
+  & [type="time"],
+  & select {
+    @media (--sm) {
+      padding-block: var(--space-xxxs);
+    }
+  }
+
+  & .form-control {
+    flex-basis: 100%;
+
+    & [type="submit"] {
+      @media (--sm) {
+        padding-block: var(--space-xxxs);
+      }
+    }
+  }
+}

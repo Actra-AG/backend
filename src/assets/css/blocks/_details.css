@@ -1,0 +1,42 @@
+.details {
+  container-type: inline-size;
+
+  & dl {
+    @container (min-width: 50ch) {
+      display: flex;
+      gap: var(--space-m);
+    }
+  }
+
+  & dl + dl {
+    margin-block-start: var(--r-space-s);
+
+    &:last-child {
+      padding-block-end: 0;
+    }
+  }
+
+  & dt {
+    width: 13em;
+    margin-inline-end: 1em;
+    flex-shrink: 0;
+    font-weight: var(--semi-bold);
+    hyphens: auto;
+  }
+
+  & dd {
+    hyphens: auto;
+    max-width: 70ch;
+  }
+
+  & .user-group-list {
+    padding-inline-start: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+
+    & > li + li::before {
+      content: ", ";
+    }
+  }
+}

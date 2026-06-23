@@ -1,0 +1,29 @@
+.divider-m,
+.divider-l,
+.divider-xl,
+.divider-xxl {
+  --margin-block: var(--r-space-m);
+
+  margin-block: var(--margin-block);
+  height: 1px;
+  background: var(--border-clr);
+  width: 100%;
+}
+
+.divider-l {
+  @media (--sm) {
+    --margin-block: var(--r-space-l);
+  }
+}
+
+.divider-xl {
+  @media (--sm) {
+    --margin-block: var(--r-space-xl);
+  }
+}
+
+.divider-xxl {
+  @media (--sm) {
+    --margin-block: var(--r-space-xxl);
+  }
+}

@@ -1,0 +1,12 @@
+.grid-half {
+  --gap-y: var(--space-m);
+  --gap-x: var(--space-m);
+
+  display: grid;
+  gap: var(--gap-y) var(--gap-x);
+  grid-template-columns: minmax(0, 1fr);
+
+  @media (--md) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

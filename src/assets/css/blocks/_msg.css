@@ -1,0 +1,19 @@
+.msg {
+  padding: var(--space-m);
+  border-radius: var(--br-m);
+}
+
+.msg-error {
+  background: var(--clr-error-50);
+  color: var(--clr-error-400);
+}
+
+.msg-success {
+  background: var(--clr-success-50);
+  color: var(--clr-success-400);
+}
+
+.msg-note {
+  background: var(--clr-primary-100);
+  color: var(--clr-primary-900);
+}

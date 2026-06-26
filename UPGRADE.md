@@ -4,6 +4,15 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## HTML & CSS (Frontend)
 
+### v0.10.3 – June 26, 2026
+
+* Added default assets under `src/assets`.
+* Added the default CSS entrypoint at `src/assets/css/backend.css`.
+* Added the default JavaScript entrypoint at `src/assets/js/backend.js`.
+* Added JavaScript modules for navigation toggles, dialogs, dropdowns, and responsive tables.
+* Projects should integrate these assets into their own asset build or publishing process and reference the resulting
+  public URLs via `ActraBackend::init()` using `stylesHref` and `javaScriptPaths`.
+
 ### v0.10.2 – June 18, 2026
 
 * Added the `nav-user-logout` CSS class to the logout item in the user dropdown.

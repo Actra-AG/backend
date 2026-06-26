@@ -14,7 +14,7 @@ tokens sent via email.
 - **Role-Based Access Control**: Basic functionality to manage user permissions.
 - **IP Whitelisting**: Additional security layer to restrict backend access.
 - **Activity Monitoring**: Track visits and token usage.
-- **Responsive UI**: Built-in HTML templates for common backend tasks.
+- **Responsive UI**: Built-in HTML templates and frontend assets for common backend tasks.
 
 ## Requirements
 
@@ -31,7 +31,27 @@ Add the library to your project via Composer:
 composer require actra/backend
 ```
 
-### 2. Database Setup
+### 2. Assets
+
+The package ships default assets in `src/assets`.
+
+Projects using this library should include these assets in their own build or asset publishing process. Depending
+on the project setup, this can mean importing them into a npm, Grunt, or other asset pipeline, bundling and minifying
+them together with project-specific assets, or publishing them directly as static files.
+
+The main entrypoints are:
+
+- `src/assets/css/backend.css`
+- `src/assets/js/backend.js`
+
+After the assets are available through the application's public asset URLs, reference them when initializing the
+backend:
+
+```php
+ActraBackend::init();
+```
+
+### 3. Database Setup
 
 The library requires several database tables to function. For new installations, import the provided SQL files into your
 database:

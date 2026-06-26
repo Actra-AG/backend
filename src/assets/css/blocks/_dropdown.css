@@ -1,0 +1,11 @@
+.js [data-dropdown="content"] {
+  display: none;
+
+  &.open {
+    display: block;
+  }
+}
+
+.no-js [data-dropdown="toggle"] {
+  display: none;
+}

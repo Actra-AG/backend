@@ -1,0 +1,44 @@
+.breadcrumb {
+  --gap: var(--space-xxs);
+
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--gap);
+  scroll-snap-type: x;
+  scroll-padding: 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  & a {
+    text-decoration-line: none;
+    color: var(--element-2);
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    white-space: nowrap;
+
+    &::after {
+      content: "";
+      width: 1em;
+      height: 1em;
+      display: block;
+      background-image: var(--icon-arrow-right-s-line);
+      background-size: 1rem;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.6;
+    }
+
+    &:hover,
+    &:focus {
+      color: var(--element-1);
+    }
+  }
+
+  & strong {
+    font-weight: 400;
+    color: var(--element-1);
+    white-space: nowrap;
+  }
+}

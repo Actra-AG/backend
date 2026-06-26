@@ -1,0 +1,16 @@
+.form-context {
+  dl {
+    & + dl {
+      margin-block-start: var(--space-xxxs);
+    }
+
+    dt {
+      display: inline;
+    }
+
+    dd {
+      font-weight: var(--bold);
+      display: inline;
+    }
+  }
+}

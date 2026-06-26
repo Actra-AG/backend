@@ -1,0 +1,15 @@
+.wrapper-sm {
+  max-width: var(--max-width-sm);
+}
+
+.wrapper {
+  max-width: var(--max-width-base);
+}
+
+.wrapper-lg {
+  max-width: var(--max-width-lg);
+}
+
+.wrapper-xl {
+  max-width: var(--max-width-xl);
+}

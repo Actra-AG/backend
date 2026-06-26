@@ -5,13 +5,8 @@
 }
 
 html {
-  /* color-scheme: dark light; */
   hanging-punctuation: first last;
   text-size-adjust: none;
-}
-
-body {
-  min-height: 100svh;
 }
 
 img,
@@ -69,28 +64,4 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
-}
-
-textarea {
-  min-height: 24em;
-  display: block;
-}
-
-:target {
-  scroll-margin-block: 1ex;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
 }

@@ -1,0 +1,8 @@
+.delete {
+  color: var(--clr-error-400);
+
+  &:hover,
+  &:focus {
+    color: var(--clr-error-300);
+  }
+}

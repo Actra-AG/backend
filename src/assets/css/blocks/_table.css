@@ -13,7 +13,11 @@
   width: 100%;
 
   & tr {
-    border-block-end: 1px solid var(--border-clr);
+    border-block-end: 1px solid var(--border-lighter-clr);
+  }
+
+  & thead tr {
+    border-color: var(--border-clr);
   }
 
   & th,
@@ -60,27 +64,11 @@
     gap: var(--space-xs);
   }
 
-  & td {
-    .delete {
-      color: var(--clr-error-400);
-
-      &:hover,
-      &:focus {
-        color: var(--clr-error-300);
-      }
-    }
-  }
-
   & tbody tr:last-child {
     border-block-end: 0;
   }
 
   & tbody {
-    & tr:hover th,
-    & tr:hover td {
-      background: var(--clr-primary-50);
-    }
-
     & tr:last-child:hover th:first-child,
     & tr:last-child:hover td:first-child {
       border-end-start-radius: var(--br-m);

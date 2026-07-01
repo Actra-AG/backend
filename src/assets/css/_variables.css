@@ -9,8 +9,6 @@
   /* max-width */
   --max-width-sm: 680px;
   --max-width-base: 1920px;
-  --max-width-lg: 1920px;
-  --max-width-xl: 2200px;
 
   /* border-radius */
   --br-s: 4px;
@@ -121,6 +119,7 @@
   --form-input-border-clr-focus: var(--clr-primary-400);
 
   /* border-clr */
+  --border-lighter-clr: #f1f1f3;
   --border-clr: #e2e3e6;
   --border-darker-clr: #ced0d3;
 

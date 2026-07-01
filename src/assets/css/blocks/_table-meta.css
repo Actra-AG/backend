@@ -1,0 +1,16 @@
+.table-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.table-meta-header {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.table-meta-footer {
+  & .pagination {
+    margin-inline-start: auto;
+  }
+}

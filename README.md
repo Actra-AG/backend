@@ -44,6 +44,14 @@ The main entrypoints are:
 - `src/assets/css/backend.css`
 - `src/assets/js/backend.js`
 
+The default CSS expects the bundled backend fonts to be available below the public font path:
+
+- `/fonts/backend/`
+
+For example, when publishing the package assets directly, publish the backend font files so that
+`/fonts/backend/inter-v18-latin-regular.woff2`, `/fonts/backend/inter-v18-latin-italic.woff2`, and the used bold
+weights are reachable by the browser.
+
 After the assets are available through the application's public asset URLs, reference them when initializing the
 backend:
 

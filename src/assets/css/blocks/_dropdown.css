@@ -1,11 +1,36 @@
+[data-dropdown="container"] {
+  position: relative;
+}
+
+.no-js [data-dropdown="toggle"] {
+  display: none;
+}
+
 .js [data-dropdown="content"] {
+  position: absolute;
   display: none;
 
   &.open {
     display: block;
   }
-}
 
-.no-js [data-dropdown="toggle"] {
-  display: none;
+  &.dropdown-content-top-left {
+    bottom: calc(100% + var(--space-xxs));
+    right: 0;
+  }
+
+  &.dropdown-content-top-right {
+    bottom: calc(100% + var(--space-xxs));
+    left: 0;
+  }
+
+  &.dropdown-content-bottom-left {
+    top: calc(100% + var(--space-xxs));
+    right: 0;
+  }
+
+  &.dropdown-content-bottom-right {
+    top: calc(100% + var(--space-xxs));
+    left: 0;
+  }
 }

@@ -18,7 +18,6 @@ body {
   line-height: var(--lh-body);
   color: var(--element-1);
   background: var(--bg-body);
-  /* min-height: 100svh; */
 }
 
 table {

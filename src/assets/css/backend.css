@@ -22,6 +22,7 @@
 @import url("blocks/_site-footer.css");
 @import url("blocks/_skip-link.css");
 @import url("blocks/_table.css");
+@import url("blocks/_table-meta.css");
 @import url("blocks/_breadcrumb.css");
 @import url("blocks/_form.css");
 @import url("blocks/_buttons.css");
@@ -34,12 +35,13 @@
 @import url("blocks/_authenticaction.css");
 @import url("blocks/_sort.css");
 @import url("blocks/_dropdown.css");
+@import url("blocks/_dropdown-content.css");
 @import url("blocks/_code.css");
 @import url("blocks/_table-responsive.css");
 @import url("blocks/_divider.css");
 @import url("blocks/_toc.css");
 @import url("blocks/_search-result.css");
 @import url("blocks/_card.css");
-@import url("blocks/_table-control.css");
 @import url("blocks/_error.css");
 @import url("blocks/_form-context.css");
+@import url("blocks/_delete.css");

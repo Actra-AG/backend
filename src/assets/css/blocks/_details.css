@@ -9,11 +9,9 @@
   }
 
   & dl + dl {
-    margin-block-start: var(--r-space-s);
-
-    &:last-child {
-      padding-block-end: 0;
-    }
+    margin-block-start: var(--space-xs);
+    padding-block-start: var(--space-xs);
+    border-block-start: 1px solid var(--border-lighter-clr);
   }
 
   & dt {

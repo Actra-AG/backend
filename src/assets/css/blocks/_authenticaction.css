@@ -1,7 +1,10 @@
 .body-authentication {
   padding: var(--space-l) var(--space-m);
   background: var(--surface-3);
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  min-height: 100dvh;
 
   @media (--sm) {
     justify-content: center;
@@ -35,13 +38,13 @@
   background: #fff;
   box-shadow: 0 15px 40px rgb(72 73 74 / 0.2);
   border-radius: var(--br-m);
-  width: min(100%, 520px);
+  width: min(100%, 360px);
 
   @media (--sm) {
+    padding: var(--space-l);
     min-width: unset;
     width: 29em;
     align-self: auto;
-    padding: var(--space-l);
   }
 
   & h1 {

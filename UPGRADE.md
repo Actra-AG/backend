@@ -4,6 +4,17 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## HTML & CSS (Frontend)
 
+### v0.10.4 – July 1, 2026
+
+* Refined the default backend CSS assets.
+* Reduced the bundled Inter font declarations to the weights used by the backend UI.
+* Updated backend font references to use the `/fonts/backend/` public path.
+* Added reusable dropdown content styles in `src/assets/css/blocks/_dropdown-content.css`.
+* Added reusable delete action styles in `src/assets/css/blocks/_delete.css`.
+* Replaced the table control block with the table meta block in `src/assets/css/blocks/_table-meta.css`.
+* Improved styling for buttons, icon-only buttons, tables, detail lists, authentication pages, and user dropdowns.
+* Projects publishing the default assets should make sure the backend font files are available below `/fonts/backend/`.
+
 ### v0.10.3 – June 26, 2026
 
 * Added default assets under `src/assets`.

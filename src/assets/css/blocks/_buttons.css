@@ -13,7 +13,9 @@
 .btn {
   padding: var(--space-xxs) var(--space-s);
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: var(--space-xxxs);
   border-radius: var(--br-s);
   border: 1px solid;
   text-decoration-line: none;
@@ -21,8 +23,35 @@
   white-space: nowrap;
 
   @media (--sm) {
-    padding: var(--space-xxxs) var(--space-xxs);
+    padding: var(--space-xxxs) var(--space-xs);
     width: max-content;
+  }
+
+  > svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentcolor;
+    flex-shrink: 0;
+  }
+
+  &.icon-only {
+    padding: 0;
+    align-items: center;
+    height: calc(
+      (var(--lh-body) * 1em) + var(--space-xxs) + var(--space-xxs) + 2px
+    );
+    width: calc(
+      (var(--lh-body) * 1em) + var(--space-xxs) + var(--space-xxs) + 2px
+    );
+
+    @media (--sm) {
+      height: calc(
+        (var(--lh-body) * 1em) + var(--space-xxxs) + var(--space-xxxs) + 2px
+      );
+      width: calc(
+        (var(--lh-body) * 1em) + var(--space-xxxs) + var(--space-xxxs) + 2px
+      );
+    }
   }
 }
 

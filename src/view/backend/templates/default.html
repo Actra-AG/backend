@@ -11,7 +11,9 @@
   <tst:for value="javaScriptPaths" var="path">
     <script nonce="{tst:text value='cspNonce'}" src="{tst:text value='path.src'}" defer></script>
   </tst:for>
-  <link rel="stylesheet" href="{tst:text value='stylesHref'}">
+  <tst:for value="stylesPaths" var="path">
+    <link rel="stylesheet" href="{tst:text value='path.src'}">
+  </tst:for>
 </head>
 <body class="{tst:text value='bodyClassName'}">
 <a class="skip-link visuallyhidden" href="#content">Direkt zum Inhalt</a>

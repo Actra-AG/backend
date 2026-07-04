@@ -30,6 +30,18 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v0.11.0 – July 4, 2026
+
+* **Breaking Change:** `ActraBackend::init()` now expects an `ActraBackendSettings` object instead of individual
+  configuration arguments such as language, IP whitelist, backend name, JavaScript paths, style path, login attempt
+  limit, and frontend link settings.
+* **Breaking Change:** The former single `stylesHref` configuration has been replaced by `stylesPaths`, allowing
+  multiple stylesheet paths.
+* **Feature:** Added `ActraBackendSettings` as the central configuration object for backend initialization.
+* **Feature:** Added `ActraBackendSettings::$hasApi` to explicitly enable API-key functionality.
+* **Logic Change:** API-key controls on profile and user detail pages are only rendered when API support is enabled.
+* **Migration:** Update calls to `ActraBackend::init()` by creating and passing an `ActraBackendSettings` instance.
+
 ### 0.10.0 – June 13, 2026
 
 * **Feature:** Added a profile page for logged-in backend users.

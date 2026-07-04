@@ -79,6 +79,7 @@ application's bootstrap process.
 
 ```php
 use actra\backend\ActraBackend;
+use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
 use actra\yuf\db\DbSettingsModel;
 
@@ -88,21 +89,24 @@ ActraBackend::init(
     routeCollection: $routeCollection,
     path: '/backend/', // The URL path where the backend will be accessible
     isDefaultForLanguage: false,
-    language: $language,
-    ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
-    backendName: 'My Project Backend',
-    javaScriptPaths: [
-        '/assets/js/backend.js'
-    ],
-    stylesHref: '/assets/css/backend.css',
-    dbSettingsModel: new DbSettingsModel(
-        hostname: 'localhost',
-        username: 'db_user',
-        password: 'db_password',
-        database: 'my_database'
+    actraBackendSettings: new ActraBackendSettings(
+        language: $language,
+        ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
+        backendName: 'My Project Backend',
+        javaScriptPaths: [
+            '/assets/js/backend.js'
+        ],
+        stylesPaths: [
+            '/assets/css/backend.css',
+        ],
+        maxAllowedLoginAttempts: 5, // Optional, defaults to 5
+        frontendHref: 'https://example.com', // Optional
+        frontendName: 'Go to Website', // Optional
+        hasApi: false // Optional, defaults to false
     ),
+    dbSettingsModel: new DbSettingsModel,
     mailerSettings: new MailerSettings(
-        senderEmail: 'noreply@example.com',
+    senderEmail: 'noreply@example.com',
         senderName: 'My Project',
         hostname: 'smtp.example.com',
         username: 'mailer@example.com',
@@ -111,10 +115,7 @@ ActraBackend::init(
         tls: true,
         signature: 'Best regards, Your Team'
     ),
-    navigationItemCollection: $navigationItemCollection,
-    maxAllowedLoginAttempts: 5, // Optional, defaults to 5
-    frontendHref: 'https://example.com', // Optional
-    frontendName: 'Go to Website' // Optional
+    navigationItemCollection: $navigationItemCollection
 );
 ```
 
@@ -123,9 +124,17 @@ and adds navigation items to your `NavigationItemCollection`.
 
 ### API Key Authentication
 
+API-key functionality is optional and must be enabled through `ActraBackendSettings`:
+
+```php
+new ActraBackendSettings(
+    ...
+    hasApi: true
+);
+```
+
 Users with management access can generate, replace, or remove a user's API key on the user detail page. Logged-in users
-can
-also manage their own API key on their profile page.
+can also manage their own API key on their profile page.
 
 API keys can only be generated if an IP whitelist is configured for the user. If an API key exists, the user's IP
 whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored hashed

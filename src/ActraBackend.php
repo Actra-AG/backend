@@ -10,6 +10,7 @@ namespace actra\backend;
 
 use actra\autoloader\Autoloader;
 use actra\autoloader\AutoloaderPath;
+use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
 use actra\backend\view\backend\php\login;
 use actra\backend\view\backend\php\notifications;
@@ -18,7 +19,6 @@ use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\ContentType;
-use actra\yuf\core\Language;
 use actra\yuf\core\Route;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettingsModel;
@@ -26,6 +26,7 @@ use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
+use RuntimeException;
 
 Autoloader::get()->addPath(
     autoloaderPath: new AutoloaderPath(
@@ -39,69 +40,38 @@ class ActraBackend
     public const string viewGroup = 'backend';
     public const string RIGHT_BACKEND_ACCESS = 'backend_access';
     public const string RIGHT_MANAGE_USERS = 'manage_users';
-    private static ActraBackend $instance;
+    private static ?ActraBackend $instance = null;
 
     private function __construct(
         public readonly string $path,
-        public readonly array $ipWhitelist,
-        public readonly string $backendName,
-        public readonly array $javaScriptPaths,
-        public readonly string $stylesHref,
+        public readonly ActraBackendSettings $actraBackendSettings,
         public readonly DbSettingsModel $dbSettingsModel,
-        public readonly int $maxAllowedLoginAttempts,
         public readonly MailerSettings $mailerSettings,
         public readonly NavigationItemCollection $navigationItemCollection,
-        public readonly string $frontendHref,
-        public readonly string $frontendName,
         public readonly string $templateDirectory
     ) {
-    }
-
-    public function renderJavaScriptPaths(): HtmlDataObjectCollection
-    {
-        $htmlDataObjectCollection = new HtmlDataObjectCollection();
-        foreach ($this->javaScriptPaths as $path) {
-            $htmlDataObject = new HtmlDataObject();
-            $htmlDataObject->addTextElement(
-                propertyName: 'src',
-                content: $path,
-                isEncodedForRendering: true
-            );
-            $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
-        }
-        return $htmlDataObjectCollection;
     }
 
     public static function init(
         RouteCollection $routeCollection,
         string $path,
         bool $isDefaultForLanguage,
-        Language $language,
-        array $ipWhitelist,
-        string $backendName,
-        array $javaScriptPaths,
-        string $stylesHref,
+        ActraBackendSettings $actraBackendSettings,
         DbSettingsModel $dbSettingsModel,
         MailerSettings $mailerSettings,
         NavigationItemCollection $navigationItemCollection,
-        int $maxAllowedLoginAttempts = 5,
-        ?string $frontendHref = '',
-        ?string $frontendName = '',
-        ?string $templateDirectory = __DIR__ . '/view/backend/templates/',
+        ?string $templateDirectory = null,
     ): void {
+        if (ActraBackend::$instance !== null) {
+            throw new RuntimeException(message: 'ActraBackend is already initialized');
+        }
         ActraBackend::$instance = new ActraBackend(
             path: $path,
-            ipWhitelist: $ipWhitelist,
-            backendName: $backendName,
-            javaScriptPaths: $javaScriptPaths,
-            stylesHref: $stylesHref,
+            actraBackendSettings: $actraBackendSettings,
             dbSettingsModel: $dbSettingsModel,
-            maxAllowedLoginAttempts: $maxAllowedLoginAttempts,
             mailerSettings: $mailerSettings,
             navigationItemCollection: $navigationItemCollection,
-            frontendHref: $frontendHref,
-            frontendName: $frontendName,
-            templateDirectory: $templateDirectory
+            templateDirectory: $templateDirectory !== null ? $templateDirectory : __DIR__ . '/view/backend/templates/',
         );
         $routeCollection->addRoute(
             route: new Route(
@@ -112,7 +82,7 @@ class ActraBackend
                 defaultFileName: login::getPath(prependPath: false),
                 isDefaultForLanguage: $isDefaultForLanguage,
                 defaultContentType: ContentType::createHtml(),
-                language: $language,
+                language: $actraBackendSettings->language,
                 acceptedExtension: ContentType::HTML
             )
         );
@@ -136,5 +106,30 @@ class ActraBackend
     public static function get(): ActraBackend
     {
         return ActraBackend::$instance;
+    }
+
+    public function renderJavaScriptPaths(): HtmlDataObjectCollection
+    {
+        return $this->renderPaths(paths: $this->actraBackendSettings->javaScriptPaths);
+    }
+
+    private function renderPaths(array $paths): HtmlDataObjectCollection
+    {
+        $htmlDataObjectCollection = new HtmlDataObjectCollection();
+        foreach ($paths as $path) {
+            $htmlDataObject = new HtmlDataObject();
+            $htmlDataObject->addTextElement(
+                propertyName: 'src',
+                content: $path,
+                isEncodedForRendering: true
+            );
+            $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
+        }
+        return $htmlDataObjectCollection;
+    }
+
+    public function renderStylesPaths(): HtmlDataObjectCollection
+    {
+        return $this->renderPaths(paths: $this->actraBackendSettings->stylesPaths);
     }
 }

@@ -136,16 +136,21 @@ class user extends BackendView
                 )->href
             );
         }
+        $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
         $generatedApiKey = '';
-        $canGenerateApiKey = $dbAuthUser->ipWhitelist !== [];
-        if (
-            $canGenerateApiKey
-            && $this->getInputString(keyName: user::PARAM_GENERATE_API_KEY) !== null
-        ) {
-            $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
-        }
-        if ($this->getInputString(keyName: user::PARAM_REMOVE_API_KEY) !== null) {
-            DbAuthApiKeyRepository::deleteByUserID(userID: $dbAuthUser->ID);
+        if ($hasApi) {
+            $canGenerateApiKey = $dbAuthUser->ipWhitelist !== [];
+            if (
+                $canGenerateApiKey
+                && $this->getInputString(keyName: user::PARAM_GENERATE_API_KEY) !== null
+            ) {
+                $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
+            }
+            if ($this->getInputString(keyName: user::PARAM_REMOVE_API_KEY) !== null) {
+                DbAuthApiKeyRepository::deleteByUserID(userID: $dbAuthUser->ID);
+            }
+        } else {
+            $canGenerateApiKey = false;
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
@@ -171,10 +176,6 @@ class user extends BackendView
         $replacements->addBool(
             identifier: 'invited',
             booleanValue: $this->getInputString(keyName: user::PARAM_INVITED) !== null
-        );
-        $replacements->addEncodedText(
-            identifier: 'generatedApiKey',
-            content: $generatedApiKey
         );
         $replacements->addBool(
             identifier: 'isInvited',
@@ -220,6 +221,21 @@ class user extends BackendView
             identifier: 'active',
             content: $dbAuthUser->isActive ? 'ja' : 'nein'
         );
+        $replacements->addHtmlDataObjectCollection(
+            identifier: 'userGroups',
+            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->render()
+        );
+        $replacements->addHtmlDataObjectCollection(
+            identifier: 'ipWhitelist',
+            htmlDataObjectCollection: $dbAuthUser->renderIpWhitelist()
+        );
+        if (!$hasApi) {
+            return;
+        }
+        $replacements->addEncodedText(
+            identifier: 'generatedApiKey',
+            content: $generatedApiKey
+        );
         $replacements->addEncodedText(
             identifier: 'apiKey',
             content: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : ''
@@ -231,14 +247,6 @@ class user extends BackendView
         $replacements->addEncodedText(
             identifier: 'removeApiKeyHref',
             content: '?' . user::PARAM_REMOVE_API_KEY
-        );
-        $replacements->addHtmlDataObjectCollection(
-            identifier: 'userGroups',
-            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->render()
-        );
-        $replacements->addHtmlDataObjectCollection(
-            identifier: 'ipWhitelist',
-            htmlDataObjectCollection: $dbAuthUser->renderIpWhitelist()
         );
     }
 

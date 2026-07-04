@@ -70,18 +70,22 @@ class profile extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = MyAuthUser::get()->dbAuthUser;
+        $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
         $generatedApiKey = '';
-        $canGenerateApiKey = $dbAuthUser->ipWhitelist !== [];
-        if (
-            $canGenerateApiKey
-            && $this->getInputString(keyName: profile::PARAM_GENERATE_API_KEY) !== null
-        ) {
-            $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
+        if ($hasApi) {
+            $canGenerateApiKey = $dbAuthUser->ipWhitelist !== [];
+            if (
+                $canGenerateApiKey
+                && $this->getInputString(keyName: profile::PARAM_GENERATE_API_KEY) !== null
+            ) {
+                $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
+            }
+            if ($this->getInputString(keyName: profile::PARAM_REMOVE_API_KEY) !== null) {
+                DbAuthApiKeyRepository::deleteByUserID(userID: $dbAuthUser->ID);
+            }
+        } else {
+            $canGenerateApiKey = false;
         }
-        if ($this->getInputString(keyName: profile::PARAM_REMOVE_API_KEY) !== null) {
-            DbAuthApiKeyRepository::deleteByUserID(userID: $dbAuthUser->ID);
-        }
-
         $profileForm = new ProfileForm(dbAuthUser: $dbAuthUser);
         if ($profileForm->process()) {
             HttpResponse::redirectAndExit(
@@ -97,6 +101,9 @@ class profile extends BackendView
             identifier: 'form',
             content: $profileForm->render()
         );
+        if (!$hasApi) {
+            return;
+        }
         $replacements->addEncodedText(
             identifier: 'apiKey',
             content: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : ''

@@ -29,7 +29,7 @@ class MyAuthenticator extends Authenticator
     {
         MyAuthenticator::$instance = $this;
         parent::__construct(
-            maxAllowedWrongPasswordAttempts: ActraBackend::get()->maxAllowedLoginAttempts
+            maxAllowedWrongPasswordAttempts: ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts
         );
     }
 

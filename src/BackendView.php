@@ -59,7 +59,7 @@ abstract class BackendView extends BaseView
                 isRequired: false
             )
         );
-        $ipWhitelist = ActraBackend::get()->ipWhitelist;
+        $ipWhitelist = ActraBackend::get()->actraBackendSettings->ipWhitelist;
         if (AuthSession::isLoggedIn()) {
             try {
                 $myAuthUser = MyAuthUser::get();
@@ -112,6 +112,8 @@ abstract class BackendView extends BaseView
         }
     }
 
+    abstract protected static function getRequiredAccessRights(): AccessRightCollection;
+
     public function execute(): void
     {
         if (AuthSession::isLoggedIn()) {
@@ -126,6 +128,7 @@ abstract class BackendView extends BaseView
             }
         }
         $actraBackend = ActraBackend::get();
+        $actraBackendSettings = $actraBackend->actraBackendSettings;
         $htmlDocument = HtmlDocument::get();
         $htmlDocument->templateDirectory = $actraBackend->templateDirectory;
         $this->prepareHtmlDocument(htmlDocument: $htmlDocument);
@@ -139,27 +142,27 @@ abstract class BackendView extends BaseView
         );
         $replacements->addEncodedText(
             identifier: 'backendTitle',
-            content: strip_tags(string: $actraBackend->backendName)
+            content: strip_tags(string: $actraBackendSettings->backendName)
         );
         $replacements->addEncodedText(
             identifier: 'backendName',
-            content: $actraBackend->backendName
+            content: $actraBackendSettings->backendName
         );
         $replacements->addEncodedText(
             identifier: 'frontendHref',
-            content: $actraBackend->frontendHref
+            content: $actraBackendSettings->frontendHref
         );
         $replacements->addEncodedText(
             identifier: 'frontendName',
-            content: $actraBackend->frontendName
+            content: $actraBackendSettings->frontendName
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'javaScriptPaths',
             htmlDataObjectCollection: $actraBackend->renderJavaScriptPaths()
         );
-        $replacements->addEncodedText(
-            identifier: 'stylesHref',
-            content: $actraBackend->stylesHref
+        $replacements->addHtmlDataObjectCollection(
+            identifier: 'stylesPaths',
+            htmlDataObjectCollection: $actraBackend->renderStylesPaths()
         );
         $this->renderLegacyBreadcrumb(
             htmlDocument: $htmlDocument
@@ -224,7 +227,15 @@ abstract class BackendView extends BaseView
             identifier: 'logoutHref',
             content: logout::getPath()
         );
+        $replacements->addBool(
+            identifier: 'hasApi',
+            booleanValue: $actraBackendSettings->hasApi
+        );
     }
+
+    abstract protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void;
+
+    abstract protected function getPageTitle(): HtmlText;
 
     private function renderLegacyBreadcrumb(HtmlDocument $htmlDocument): void
     {
@@ -250,10 +261,4 @@ abstract class BackendView extends BaseView
             content: $breadcrumb
         );
     }
-
-    abstract protected static function getRequiredAccessRights(): AccessRightCollection;
-
-    abstract protected function getPageTitle(): HtmlText;
-
-    abstract protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void;
 }

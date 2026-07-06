@@ -10,37 +10,36 @@ namespace actra\backend\libs\email;
 
 use actra\backend\ActraBackend;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\settings\AuthTokenTypeEnum;
 
 class EmailLoginToken
 {
     public static function send(
-      DbAuthUser $dbAuthUser,
-      string $loginCode,
-      AuthTokenTypeEnum $authTokenTypeEnum
+        DbAuthUser $dbAuthUser,
+        string $token,
+        int $expirationInMinutes,
+        bool $usedPasswordLogin
     ): void {
         Mailer::sendTextMail(
-          recipient: $dbAuthUser->email,
-          subject: 'Backend - ' . $loginCode . ' ist ihr Bestätigungscode',
-          textBody: implode(
-            separator: PHP_EOL,
-            array: [
-              'Grüezi',
-              '',
-              'Mit dem nachfolgenden Bestätigungscode können Sie sich ohne Passwort sicher im Backend anmelden:',
-              '',
-              $loginCode,
-              '',
-              'Bitte beachten Sie, dass dieser Code nur einmal verwendet werden kann und nach ' . $authTokenTypeEnum->getExpirationInMinutes(
-              ) . ' Minuten verfällt.',
-              '',
-              'Wenn Sie keinen Bestätigungscode für die E-Mail-Adresse ' . $dbAuthUser->email . ' angefordert haben, können Sie diese E-Mail ignorieren.',
-              '',
-              'Freundliche Grüsse',
-              '',
-              ActraBackend::get()->mailerSettings->signature,
-            ]
-          )
+            recipient: $dbAuthUser->email,
+            subject: $token . ' ist ihr Bestätigungscode',
+            textBody: implode(
+                separator: PHP_EOL,
+                array: [
+                    'Grüezi',
+                    '',
+                    'Mit dem nachfolgenden Bestätigungscode können Sie sich ' . ($usedPasswordLogin ? '' : 'ohne Passwort ') . 'sicher im Backend anmelden:',
+                    '',
+                    $token,
+                    '',
+                    'Bitte beachten Sie, dass dieser Code nur einmal verwendet werden kann und nach ' . $expirationInMinutes . ' Minuten verfällt.',
+                    '',
+                    'Wenn Sie keinen Bestätigungscode für die E-Mail-Adresse ' . $dbAuthUser->email . ' angefordert haben, können Sie diese E-Mail ignorieren.',
+                    '',
+                    'Freundliche Grüsse',
+                    '',
+                    ActraBackend::get()->mailerSettings->signature,
+                ]
+            )
         );
     }
 }

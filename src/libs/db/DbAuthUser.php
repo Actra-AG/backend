@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\auth\Password;
 use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\phone\PhoneNumber;
@@ -30,9 +31,13 @@ readonly class DbAuthUser
         public AccessRightCollection $accessRightCollection,
         public string $firstName,
         public string $lastName,
+        public ?Password $password,
+        public int $wrongLoginAttempts,
         string $rawIpWhitelist
     ) {
-        $this->accessRightCollection->add(accessRight: AccessRightCollection::ACCESS_DO_PASSWORD_LOGIN);
+        if ($this->password !== null) {
+            $this->accessRightCollection->add(accessRight: AccessRightCollection::ACCESS_DO_PASSWORD_LOGIN);
+        }
         $ipWhitelist = [];
         if ($rawIpWhitelist !== '') {
             foreach (

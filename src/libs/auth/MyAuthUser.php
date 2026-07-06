@@ -34,9 +34,12 @@ class MyAuthUser extends AuthUser
                 $dbAuthUser->isActive
                 && !$dbAuthUser->accessRightCollection->isEmpty()
             ),
-            wrongPasswordAttempts: 0,
+            wrongPasswordAttempts: $dbAuthUser->wrongLoginAttempts,
             accessRightCollection: $dbAuthUser->accessRightCollection,
-            password: Password::generateNew(rawPassword: 'unused')
+            password: $dbAuthUser->password === null ? Password::generateNew(
+                rawPassword: 'unused'
+            ) : $dbAuthUser->password,
+            ipWhitelist: $dbAuthUser->ipWhitelist
         );
     }
 
@@ -122,6 +125,7 @@ class MyAuthUser extends AuthUser
 
     protected function dbIncreaseWrongPasswordAttempts(): void
     {
+        DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $this->ID);
     }
 
     protected function dbConfirmSuccessfulLogin(): int

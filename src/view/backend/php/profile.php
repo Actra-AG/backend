@@ -14,6 +14,7 @@ use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\form\ProfileForm;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\core\HttpRequest;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
@@ -101,6 +102,29 @@ class profile extends BackendView
             identifier: 'form',
             content: $profileForm->render()
         );
+        if ($dbAuthUser->password === null) {
+            $replacements->addEncodedText(
+                identifier: 'createPasswordHref',
+                content: profileCreatePassword::getPath()
+            );
+        } else {
+            $replacements->addEncodedText(
+                identifier: 'createPasswordHref',
+                content: ''
+            );
+            $replacements->addEncodedText(
+                identifier: 'loginPasswordHref',
+                content: HttpRequest::getProtocol() . '://' . HttpRequest::getHost() . loginPassword::getPath()
+            );
+            $replacements->addEncodedText(
+                identifier: 'changePasswordHref',
+                content: profileChangePassword::getPath()
+            );
+            $replacements->addEncodedText(
+                identifier: 'removePasswordHref',
+                content: profileRemovePassword::getPath()
+            );
+        }
         if (!$hasApi) {
             return;
         }

@@ -10,10 +10,7 @@ namespace actra\backend\libs\auth;
 
 use actra\backend\ActraBackend;
 use actra\backend\libs\db\DbAuthLoginRepository;
-use actra\backend\libs\db\DbAuthTokenRepository;
-use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
-use actra\backend\libs\email\EmailLoginToken;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\Authenticator;
 use actra\yuf\auth\AuthMethod;
@@ -38,67 +35,17 @@ class MyAuthenticator extends Authenticator
         return MyAuthenticator::$instance === null ? new MyAuthenticator() : MyAuthenticator::$instance;
     }
 
-    public function createAndSendAuthToken(DbAuthUser $dbAuthUser): void
-    {
-        $authTokenTypeEnum = AuthTokenTypeEnum::LOGIN;
-        $_SESSION['auth_token'] = DbAuthTokenRepository::createToken(
-            dbAuthUser: $dbAuthUser,
-            authTokenTypeEnum: $authTokenTypeEnum
-        );
-        $_SESSION['failedLoginAttempts'] = 0;
-        EmailLoginToken::send(
-            dbAuthUser: $dbAuthUser,
-            loginCode: $_SESSION['auth_token'],
-            authTokenTypeEnum: $authTokenTypeEnum
-        );
-    }
-
     public function tokenLogin(string $inputToken): bool
     {
-        if ($this->getFailedLoginAttempts() > 5) {
-            return false;
-        }
-        if (
-            !array_key_exists(
-                key: 'auth_token',
-                array: $_SESSION
-            )
-            || $_SESSION['auth_token'] !== $inputToken
-        ) {
-            $this->increaseFailedLoginAttempts();
-            return false;
-        }
-        unset($_SESSION['auth_token']);
-        $dbAuthToken = DbAuthTokenRepository::getClaimable(
-            authTokenType: AuthTokenTypeEnum::LOGIN,
-            token: $inputToken
-        );
+        $dbAuthToken = AuthTokenTypeEnum::LOGIN->claim(inputToken: $inputToken);
         if ($dbAuthToken === null) {
             return false;
         }
-        DbAuthTokenRepository::claim(dbAuthToken: $dbAuthToken);
-
         return $this->doLogin(
             authMethod: AuthMethod::OTP,
             userName: $dbAuthToken->email,
             passwordToCheck: null
         );
-    }
-
-    private function getFailedLoginAttempts(): int
-    {
-        return array_key_exists(
-            key: 'failedLoginAttempts',
-            array: $_SESSION
-        ) ? $_SESSION['failedLoginAttempts'] : 0;
-    }
-
-    private function increaseFailedLoginAttempts(): void
-    {
-        if (!array_key_exists(key: 'failedLoginAttempts', array: $_SESSION)) {
-            $_SESSION['failedLoginAttempts'] = 0;
-        }
-        $_SESSION['failedLoginAttempts']++;
     }
 
     protected function checkLoginCredentials(AuthUser $authUser): bool
@@ -116,7 +63,7 @@ class MyAuthenticator extends Authenticator
         return $this->user;
     }
 
-    protected function logAuthResult(
+    public function logAuthResult(
         ?int $userID,
         string $sessionID,
         string $ip,

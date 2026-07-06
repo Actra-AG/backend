@@ -8,25 +8,29 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\auth\MyAuthenticator;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\settings\AuthTokenTypeEnum;
+use actra\backend\view\backend\php\passwordForgotten;
 use actra\yuf\auth\AuthResult;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
+use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 use actra\yuf\session\AbstractSessionHandler;
 
-class LoginForm extends Form
+class LoginPasswordForm extends Form
 {
     private readonly EmailField $emailField;
+    private readonly PasswordField $passwordField;
 
     public function __construct()
     {
-        parent::__construct(name: 'LoginForm');
+        parent::__construct(name: 'LoginPasswordForm');
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
@@ -40,10 +44,20 @@ class LoginForm extends Form
         );
         $this->emailField->autoFocus = true;
         $this->emailField->renderRequiredAbbr = false;
+        $this->addField(
+            formField: $this->passwordField = new PasswordField(
+                name: 'password',
+                label: HtmlText::encoded(textContent: 'Passwort'),
+                requiredError: HtmlText::encoded(textContent: 'Geben Sie Ihr Passwort ein.'),
+            )
+        );
+        $this->passwordField->renderRequiredAbbr = false;
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
-                submitLabel: HtmlText::encoded(textContent: 'weiter'),
+                submitLabel: HtmlText::encoded(textContent: 'Weiter'),
+                cancelLink: passwordForgotten::getPath(),
+                cancelLabel: HtmlText::encoded(textContent: 'Passwort vergessen?')
             )
         );
     }
@@ -53,7 +67,15 @@ class LoginForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        return $this->checkCredentials();
+        if (!$this->checkCredentials()) {
+            $this->addError(
+                errorMessage: 'Die eingegebenen Zugangsdaten sind ungültig.',
+                isEncodedForRendering: true
+            );
+            return false;
+        }
+
+        return true;
     }
 
     private function checkCredentials(): bool
@@ -71,7 +93,7 @@ class LoginForm extends Form
                 userName: $inputEmail,
                 authResult: AuthResult::ERROR_UNKNOWN_USER_NAME
             );
-            return true;
+            return false;
         }
         if (
             $dbAuthUser->ipWhitelist !== []
@@ -87,7 +109,7 @@ class LoginForm extends Form
                 userName: $inputEmail,
                 authResult: AuthResult::ERROR_IP_NOT_ALLOWED
             );
-            return true;
+            return false;
         }
         if ($dbAuthUser->isActive === false
             || $dbAuthUser->accessRightCollection->isEmpty()
@@ -99,21 +121,42 @@ class LoginForm extends Form
                 userName: $inputEmail,
                 authResult: AuthResult::ERROR_INACTIVE
             );
-            return true;
+            return false;
         }
-        if ($dbAuthUser->password !== null) {
+        if ($dbAuthUser->password === null) {
             $myAuthenticator->logAuthResult(
                 userID: $dbAuthUser->ID,
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_NO_PASSWORD
+                authResult: AuthResult::ERROR_NO_PASSWORD_LOGIN_ACTIVE
             );
-            return true;
+            return false;
+        }
+        if ($dbAuthUser->wrongLoginAttempts >= ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts) {
+            $myAuthenticator->logAuthResult(
+                userID: $dbAuthUser->ID,
+                sessionID: $sessionID,
+                ip: $ipAddress,
+                userName: $inputEmail,
+                authResult: AuthResult::ERROR_OUT_TRIED
+            );
+            return false;
+        }
+        if (!$dbAuthUser->password->isValid(rawPassword: $this->passwordField->getRawValue())) {
+            DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $dbAuthUser->ID);
+            $myAuthenticator->logAuthResult(
+                userID: $dbAuthUser->ID,
+                sessionID: $sessionID,
+                ip: $ipAddress,
+                userName: $inputEmail,
+                authResult: AuthResult::ERROR_WRONG_PASSWORD
+            );
+            return false;
         }
         AuthTokenTypeEnum::LOGIN->createAndSend(
             dbAuthUser: $dbAuthUser,
-            usedPasswordLogin: false
+            usedPasswordLogin: true
         );
         return true;
     }

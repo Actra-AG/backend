@@ -30,6 +30,18 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### 0.12.0 – July 6, 2026
+
+* **Feature:** Added password-based backend login using email address and password.
+* **Feature:** Added a forgotten-password flow for requesting a password reset link.
+* **Feature:** Added a password-reset form for setting a new password through a claimable reset token.
+* **Security:** Password login still requires token confirmation after successful credential validation.
+* **Security:** Login attempts respect user status, access rights, IP whitelist, missing password state, and the
+  configured maximum number of wrong login attempts.
+* **Database:** Added `passwordSalt`, `passwordHash`, and `wrongLoginAttempts` columns to `auth_user`.
+* **Database:** Installations upgrading from an earlier version must apply `db/updates/0.12.0.sql` before using
+  password login or password reset functionality.
+
 ### v0.11.0 – July 4, 2026
 
 * **Breaking Change:** `ActraBackend::init()` now expects an `ActraBackendSettings` object instead of individual

@@ -11,7 +11,8 @@
   ],
   "require": {
     "php": ">=8.5",
-    "actra/yuf": "*"
+    "actra/yuf": "*",
+    "ext-mbstring": "*"
   },
   "autoload": {
     "psr-4": {

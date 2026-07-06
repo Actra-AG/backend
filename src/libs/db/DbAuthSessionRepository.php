@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\auth\Password;
 use actra\yuf\core\HttpRequest;
 use DateTimeImmutable;
 use stdClass;
@@ -27,6 +28,9 @@ class DbAuthSessionRepository
                auth_user.active,
                auth_user.firstName,
                auth_user.lastName,
+               auth_user.passwordSalt,
+               auth_user.passwordHash,
+               auth_user.wrongLoginAttempts,
                (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights,
                (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress) FROM auth_ipWhitelist WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
         FROM auth_session
@@ -90,6 +94,10 @@ class DbAuthSessionRepository
                 ),
                 firstName: $data->firstName,
                 lastName: $data->lastName,
+                password: $data->passwordSalt === null ? null : new Password(
+                    salt: $data->passwordSalt, hash: $data->passwordHash
+                ),
+                wrongLoginAttempts: $data->wrongLoginAttempts,
                 rawIpWhitelist: (string)$data->ipWhitelist
             )
         );

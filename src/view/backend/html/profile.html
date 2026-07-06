@@ -14,17 +14,46 @@
       </div>
     </tst:if>
   </tst:if>
-  {tst:text value='form'}
+  <div class="card | flow-layout-m">
+    {tst:text value='form'}
+  </div>
+
+  <div class="card | flow-layout-m">
+    <div class="card-header">
+      <h2>Passwortschutz</h2>
+    </div>
+    <tst:if compare="createPasswordHref" operator="NE" against="">
+      <p>Zusätzlich zum per E-Mail verschickten Einmalcode können Sie Ihren Zugang ins GUI mit einem Passwort
+        schützen.</p>
+      <p><a href="{tst:text value='createPasswordHref'}">Passwort erstellen</a></p>
+    </tst:if>
+    <tst:else>
+      <p>Die Anmeldung mit Passwort erfolgt über eine separate Anmeldemaske:<br><a
+          href="{tst:text value='loginPasswordHref'}">{tst:text value='loginPasswordHref'}</a></p>
+      <div class="details">
+        <dl>
+          <dt>Passwort</dt>
+          <dd>
+            ***
+            [<a href="{tst:text value='changePasswordHref'}">Ändern</a>]
+            [<a href="{tst:text value='removePasswordHref'}">Entfernen</a>]
+          </dd>
+        </dl>
+      </div>
+    </tst:else>
+  </div>
+
+
   <tst:if compare="hasApi" operator="EQ" against="true">
     <div class="card | flow-layout-m">
       <div class="card-header">
         <h2>API-Key</h2>
       </div>
-      <div class="details">
-        <dl>
-          <dt>API-Key</dt>
-          <dd>
-            <tst:if compare="generateApiKeyHref" operator="NE" against="">
+      <tst:if compare="generateApiKeyHref" operator="NE" against="">
+        <div class="details">
+          <dl>
+            <dt>API-Key</dt>
+            <dd>
               <tst:if compare="apiKey" operator="NE" against="">
                 {tst:text value='apiKey'}
                 [<a href="{tst:text value='removeApiKeyHref'}">Entfernen</a>]
@@ -33,13 +62,13 @@
                 keiner
               </tst:else>
               [<a href="{tst:text value='generateApiKeyHref'}">Neu generieren</a>]
-            </tst:if>
-            <tst:else>
-              API-Keys können erst generiert werden, wenn eine IP-Whitelist hinterlegt ist.
-            </tst:else>
-          </dd>
-        </dl>
-      </div>
+            </dd>
+          </dl>
+        </div>
+      </tst:if>
+      <tst:else>
+        <p>API-Keys können erst generiert werden, wenn eine IP-Whitelist hinterlegt ist.</p>
+      </tst:else>
     </div>
   </tst:if>
 </div>

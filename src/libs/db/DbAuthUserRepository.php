@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\auth\Password;
 use actra\yuf\db\DbQuery;
 use DateTimeImmutable;
 use stdClass;
@@ -29,6 +30,9 @@ class DbAuthUserRepository
                        (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights,
                        auth_user.firstName,
                        auth_user.lastName,
+                       auth_user.passwordSalt,
+                       auth_user.passwordHash,
+                       auth_user.wrongLoginAttempts,
                        (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\') FROM auth_group WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS rightGroups,
                        CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName,
                        (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress) FROM auth_ipWhitelist WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
@@ -55,6 +59,10 @@ class DbAuthUserRepository
             ),
             firstName: $data->firstName,
             lastName: $data->lastName,
+            password: $data->passwordSalt === null ? null : new Password(
+                salt: $data->passwordSalt, hash: $data->passwordHash
+            ),
+            wrongLoginAttempts: $data->wrongLoginAttempts,
             rawIpWhitelist: (string)$data->ipWhitelist
         );
     }
@@ -221,6 +229,40 @@ class DbAuthUserRepository
                 $firstName,
                 $lastName,
                 $active ? 1 : 0,
+                $ID,
+            ]
+        );
+    }
+
+    public static function increaseWrongPasswordAttempts(int $ID): void
+    {
+        DB::get()->execute(
+            sql: 'UPDATE auth_user SET wrongLoginAttempts=wrongLoginAttempts+1 WHERE ID=?',
+            parameters: [$ID]
+        );
+    }
+
+    public static function setPassword(
+        int $ID,
+        Password $newPassword
+    ): void {
+        DB::get()->execute(
+            sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=?, wrongLoginAttempts=0 WHERE ID=?',
+            parameters: [
+                $newPassword->salt,
+                $newPassword->hash,
+                $ID,
+            ]
+        );
+    }
+
+    public static function removePassword(int $ID): void
+    {
+        DB::get()->execute(
+            sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=?, wrongLoginAttempts=0 WHERE ID=?',
+            parameters: [
+                null,
+                null,
                 $ID,
             ]
         );

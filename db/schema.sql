@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db:3306
--- Erstellungszeit: 03. Mai 2026 um 15:47
--- Server-Version: 10.11.16-MariaDB-ubu2204-log
--- PHP-Version: 8.3.26
+-- Erstellungszeit: 06. Jul 2026 um 17:53
+-- Server-Version: 11.8.6-MariaDB-ubu2404-log
+-- PHP-Version: 8.3.31
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -14,6 +14,23 @@ SET time_zone = "+00:00";
 --
 -- Datenbank: `db`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `auth_api_key`
+--
+
+CREATE TABLE `auth_api_key`
+(
+    `userID`     mediumint(8) UNSIGNED NOT NULL,
+    `publicID`   char(6)               NOT NULL,
+    `apiKey`     varchar(200)          NOT NULL,
+    `salt`       char(16)              NOT NULL,
+    `registered` timestamp             NOT NULL DEFAULT current_timestamp()
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -55,23 +72,6 @@ CREATE TABLE `auth_ipWhitelist`
     `ID`        mediumint(8) UNSIGNED NOT NULL,
     `userID`    mediumint(8) UNSIGNED NOT NULL,
     `ipAddress` varchar(200)          NOT NULL
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `auth_api_key`
---
-
-CREATE TABLE `auth_api_key`
-(
-    `userID`     mediumint(8) UNSIGNED NOT NULL,
-    `publicID`   char(6)               NOT NULL,
-    `apiKey`     varchar(200)          NOT NULL,
-    `salt`       char(16)              NOT NULL,
-    `registered` timestamp             NOT NULL DEFAULT current_timestamp()
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
@@ -164,7 +164,10 @@ CREATE TABLE `auth_user`
     `firstName`           varchar(200)          NOT NULL,
     `lastName`            varchar(200)          NOT NULL,
     `active`              tinyint(3) UNSIGNED   NOT NULL,
-    `lastSuccessfulLogin` datetime                       DEFAULT NULL
+    `lastSuccessfulLogin` datetime                       DEFAULT NULL,
+    `passwordSalt`        char(16)                       DEFAULT NULL,
+    `passwordHash`        varchar(200)                   DEFAULT NULL,
+    `wrongLoginAttempts`  tinyint(3) UNSIGNED   NOT NULL DEFAULT 0
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
@@ -224,6 +227,14 @@ CREATE TABLE `auth_user_notification_recipient`
 --
 
 --
+-- Indizes für die Tabelle `auth_api_key`
+--
+ALTER TABLE `auth_api_key`
+    ADD PRIMARY KEY (`userID`),
+    ADD UNIQUE KEY `publicID` (`publicID`),
+    ADD KEY `apiKey` (`apiKey`);
+
+--
 -- Indizes für die Tabelle `auth_group`
 --
 ALTER TABLE `auth_group`
@@ -243,14 +254,6 @@ ALTER TABLE `auth_group_right`
 ALTER TABLE `auth_ipWhitelist`
     ADD PRIMARY KEY (`ID`),
     ADD KEY `userID` (`userID`);
-
---
--- Indizes für die Tabelle `auth_api_key`
---
-ALTER TABLE `auth_api_key`
-    ADD PRIMARY KEY `userID` (`userID`),
-    ADD UNIQUE KEY `publicID` (`publicID`),
-    ADD KEY `apiKey` (`apiKey`);
 
 --
 -- Indizes für die Tabelle `auth_login`
@@ -383,6 +386,12 @@ ALTER TABLE `auth_user_notification_recipient`
 --
 
 --
+-- Constraints der Tabelle `auth_api_key`
+--
+ALTER TABLE `auth_api_key`
+    ADD CONSTRAINT `auth_api_key_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
 -- Constraints der Tabelle `auth_group_right`
 --
 ALTER TABLE `auth_group_right`
@@ -390,16 +399,10 @@ ALTER TABLE `auth_group_right`
     ADD CONSTRAINT `auth_group_right_ibfk_2` FOREIGN KEY (`rightName`) REFERENCES `auth_right` (`name`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
--- Constraints der Tabelle `auth_group_right`
+-- Constraints der Tabelle `auth_ipWhitelist`
 --
 ALTER TABLE `auth_ipWhitelist`
     ADD CONSTRAINT `auth_ipWhitelist_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Constraints der Tabelle `auth_api_key`
---
-ALTER TABLE `auth_api_key`
-    ADD CONSTRAINT `auth_api_key_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `auth_user` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints der Tabelle `auth_login`

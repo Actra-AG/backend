@@ -10,6 +10,35 @@ namespace actra\backend\libs\db;
 
 class DbAuthIpWhitelistRepository
 {
+    public static function listForUserId(int $userID): DbAuthIpWhitelistCollection
+    {
+        $dbAuthIpWhitelistCollection = new DbAuthIpWhitelistCollection();
+        foreach (
+            DB::get()->select(
+                sql: '
+                   SELECT ID,
+                          userID,
+                          ipAddress
+                   FROM auth_ipWhitelist
+                   WHERE userID=?
+               ',
+                parameters: [
+                    $userID,
+                ]
+            ) as $item
+        ) {
+            $dbAuthIpWhitelistCollection->add(
+                dbAuthIpWhitelist: new DbAuthIpWhitelist(
+                    ID: $item->ID,
+                    userID: $item->userID,
+                    ipAddress: $item->ipAddress
+                )
+            );
+        }
+
+        return $dbAuthIpWhitelistCollection;
+    }
+    
     public static function insert(
         int $userID,
         string $ipAddress

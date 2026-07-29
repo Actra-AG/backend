@@ -38,9 +38,9 @@ composer require actra/backend
 
 The package ships default assets in `src/assets`.
 
-Projects using this library should include these assets in their own build or asset publishing process. Depending
-on the project setup, this can mean importing them into a npm, Grunt, or other asset pipeline, bundling and minifying
-them together with project-specific assets, or publishing them directly as static files.
+Projects using this library should include these assets in their own build or asset publishing process. Depending on the
+project setup, this can mean importing them into a npm, Grunt, or other asset pipeline, bundling and minifying them
+together with project-specific assets, or publishing them directly as static files.
 
 The main entrypoints are:
 
@@ -52,8 +52,8 @@ The default CSS expects the bundled backend fonts to be available below the publ
 - `/fonts/backend/`
 
 For example, when publishing the package assets directly, publish the backend font files so that
-`/fonts/backend/inter-v18-latin-regular.woff2`, `/fonts/backend/inter-v18-latin-italic.woff2`, and the used bold
-weights are reachable by the browser.
+`/fonts/backend/inter-v18-latin-regular.woff2`, `/fonts/backend/inter-v18-latin-italic.woff2`, and the used bold weights
+are reachable by the browser.
 
 After the assets are available through the application's public asset URLs, reference them when initializing the
 backend:
@@ -125,6 +125,39 @@ ActraBackend::init(
 Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`)
 and adds navigation items to your `NavigationItemCollection`.
 
+### User Deletion Handler
+
+When a backend user is deleted, the library removes its own user-related records first and then deletes the row from
+`auth_user`. Projects that store additional foreign-key references to `auth_user.ID` can register a delete handler to
+remove or update their project-specific records before the user itself is deleted.
+
+In the consuming project, register the handler during application bootstrap, for example in the same `index.php` or
+bootstrap file where `ActraBackend::init()` is called:
+
+```php
+use actra\backend\libs\auth\UserController;
+use actra\backend\libs\auth\UserDeleteHandlerInterface;
+
+final class ProjectUserDeleteHandler implements UserDeleteHandlerInterface {
+    public function beforeDeleteUser(int $userID): void {
+        ProjectUserProfileRepository::deleteByUserID(userID: $userID);
+        ProjectUserSettingsRepository::deleteByUserID(userID: $userID);
+    }
+}
+UserController::registerUserDeleteHandler(
+    userDeleteHandler: new ProjectUserDeleteHandler()
+);
+```
+
+The delete handler is executed inside the same database transaction as the built-in user cleanup and before `auth_user`
+is deleted. If the handler throws an exception, the transaction is rolled back and the user is not deleted.
+
+Only one delete handler can be registered. Calling `UserController::registerUserDeleteHandler()` again replaces the
+previously registered handler.
+
+For simple database relations, projects can alternatively use foreign keys with `ON DELETE CASCADE` or
+`ON DELETE SET NULL`, depending on whether related rows should be removed or preserved without the user reference.
+
 ### API Key Authentication
 
 API-key functionality is optional and must be enabled through `ActraBackendSettings`:
@@ -141,8 +174,7 @@ can also manage their own API key on their profile page.
 
 API keys can only be generated if an IP whitelist is configured for the user. If an API key exists, the user's IP
 whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored hashed
-with
-a salt.
+with a salt.
 
 API clients should send the generated key as a bearer token:
 

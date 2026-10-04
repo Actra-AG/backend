@@ -12,7 +12,6 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\auth\MyAuthUser;
-use actra\backend\libs\auth\UserController;
 use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthGroupRepository;
@@ -32,12 +31,10 @@ use LogicException;
 class user extends BackendView
 {
     public const string PARAM_IMPERSONATE = 'impersonate';
-    public const string PARAM_REMOVE = 'remove';
     public const string PARAM_ADDED = 'add';
     public const string PARAM_CHANGED = 'mod';
     public const string PARAM_INVITED = 'invited';
     public const string PARAM_GENERATE_API_KEY = 'generateApiKey';
-    public const string PARAM_REMOVE_API_KEY = 'removeApiKey';
 
     private ?HtmlText $pageTitle = null;
 
@@ -47,12 +44,6 @@ class user extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_IMPERSONATE,
-                isRequired: false
-            )
-        );
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                name: user::PARAM_REMOVE,
                 isRequired: false
             )
         );
@@ -77,12 +68,6 @@ class user extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_GENERATE_API_KEY,
-                isRequired: false
-            )
-        );
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                name: user::PARAM_REMOVE_API_KEY,
                 isRequired: false
             )
         );
@@ -120,10 +105,6 @@ class user extends BackendView
         );
         $authUser = MyAuthUser::get();
         $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUser);
-        if ($this->getInputString(keyName: user::PARAM_REMOVE) !== null) {
-            UserController::deleteUser(userID: $dbAuthUser->ID);
-            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: users::getPath() . '?' . users::PARAM_REMOVED);
-        }
         if (
             $canImpersonate
             && $this->getInputString(keyName: user::PARAM_IMPERSONATE) !== null
@@ -154,9 +135,6 @@ class user extends BackendView
                 && $this->getInputString(keyName: user::PARAM_GENERATE_API_KEY) !== null
             ) {
                 $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
-            }
-            if ($this->getInputString(keyName: user::PARAM_REMOVE_API_KEY) !== null) {
-                DbAuthApiKeyRepository::deleteByUserID(userID: $dbAuthUser->ID);
             }
         } else {
             $canGenerateApiKey = false;
@@ -219,7 +197,7 @@ class user extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'removeHref',
-            content: '?' . user::PARAM_REMOVE
+            content: userDelete::getPath(ID: $dbAuthUser->ID)
         );
         $replacements->addBool(
             identifier: 'added',
@@ -312,7 +290,11 @@ class user extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'removeApiKeyHref',
-            content: '?' . user::PARAM_REMOVE_API_KEY
+            content: userRemoveApiKey::getPath(ID: $dbAuthUser->ID)
+        );
+        $replacements->addHtmlText(
+            identifier: 'removeApiKeyConfirm',
+            htmlText: HtmlText::unencoded(textContent: $common->removeApiKeyConfirm)
         );
     }
 

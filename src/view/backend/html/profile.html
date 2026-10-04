@@ -54,7 +54,8 @@
             <dd>
               <tst:if compare="apiKey" operator="NE" against="">
                 {tst:text value='apiKey'}
-                [<a href="{tst:text value='removeApiKeyHref'}">{tst:text value='removeLink'}</a>]
+                [<a href="{tst:text value='removeApiKeyHref'}" data-action="confirm-deletion" data-form="main form"
+                 data-confirm="{tst:text value='removeApiKeyConfirm'}">{tst:text value='removeLink'}</a>]
               </tst:if>
               <tst:else>
                 {tst:text value='apiKeyNone'}

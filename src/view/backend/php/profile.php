@@ -26,7 +26,6 @@ class profile extends BackendView
 {
     public const string PARAM_CHANGED = 'changed';
     public const string PARAM_GENERATE_API_KEY = 'generateApiKey';
-    public const string PARAM_REMOVE_API_KEY = 'removeApiKey';
 
     public function __construct()
     {
@@ -40,12 +39,6 @@ class profile extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: profile::PARAM_GENERATE_API_KEY,
-                isRequired: false
-            )
-        );
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                name: profile::PARAM_REMOVE_API_KEY,
                 isRequired: false
             )
         );
@@ -81,9 +74,6 @@ class profile extends BackendView
                 && $this->getInputString(keyName: profile::PARAM_GENERATE_API_KEY) !== null
             ) {
                 $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
-            }
-            if ($this->getInputString(keyName: profile::PARAM_REMOVE_API_KEY) !== null) {
-                DbAuthApiKeyRepository::deleteByUserID(userID: $dbAuthUser->ID);
             }
         } else {
             $canGenerateApiKey = false;
@@ -140,7 +130,7 @@ class profile extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'removeApiKeyHref',
-            content: '?' . profile::PARAM_REMOVE_API_KEY
+            content: profileRemoveApiKey::getPath()
         );
         $replacements->addEncodedText(
             identifier: 'generatedApiKey',
@@ -159,6 +149,7 @@ class profile extends BackendView
                 'changedLabel' => $common->successLabel,
                 'changedText' => $common->changesSaved,
                 'apiKeyGeneratedText' => $common->apiKeyGenerated,
+                'removeApiKeyConfirm' => $common->removeApiKeyConfirm,
                 'generatedApiKeyLabel' => $common->apiKeyValueLabel,
                 'passwordProtectionHeading' => $profileMessages->passwordProtectionHeading,
                 'passwordProtectionIntro' => $profileMessages->passwordProtectionIntro,

@@ -68,7 +68,9 @@ final readonly class CommonMessages
         public string $paginationPrevious = 'Previous',
         public string $paginationNext = 'Next',
         public string $dateFormat = 'Y-m-d',
-        public string $dateTimeFormat = 'Y-m-d H:i:s'
+        public string $dateTimeFormat = 'Y-m-d H:i:s',
+        public string $removeApiKeyTitle = 'Remove API key',
+        public string $removeApiKeyConfirm = 'Really remove the API key?'
     ) {
     }
 
@@ -126,7 +128,9 @@ final readonly class CommonMessages
             paginationPrevious: 'Zurück',
             paginationNext: 'Vor',
             dateFormat: 'd.m.Y',
-            dateTimeFormat: 'd.m.Y H:i:s'
+            dateTimeFormat: 'd.m.Y H:i:s',
+            removeApiKeyTitle: 'API-Key entfernen',
+            removeApiKeyConfirm: 'Den API-Key wirklich entfernen?'
         );
     }
 }

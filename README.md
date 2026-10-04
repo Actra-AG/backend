@@ -236,6 +236,29 @@ previously registered handler.
 For simple database relations, projects can alternatively use foreign keys with `ON DELETE CASCADE` or
 `ON DELETE SET NULL`, depending on whether related rows should be removed or preserved without the user reference.
 
+### Confirmation Dialog for Destructive Actions
+
+Destructive actions run only on POST. The backend JavaScript (`initDialog()`, `src/assets/js/modules/dialog.js`)
+enhances a link to a server-side confirmation page: without JavaScript the link opens the confirmation page with the
+POST form; with JavaScript the `#dialog` modal opens, and on confirm the script fetches that page, submits its form
+by POST and follows the redirect of the server. No form is needed on the page with the link.
+
+```html
+<!-- href = confirmation page, data-form = CSS selector of its POST form -->
+<a href="/backend/userDelete-5.html" class="btn btn-danger" data-action="confirm-deletion"
+   data-form="main form" data-confirm="Really delete Jane Doe?">Delete</a>
+```
+
+The confirmation page (`userDelete-5.html`) shows the message and a normal (yuf) POST form with CSRF token and a
+submit button. Its processing redirects after success.
+
+- The script submits the fields of the form, including the CSRF token and the name of the first named submit button.
+- Success is a redirect of the server. Any other result (no form found, network error, a re-rendered page with an
+  error) navigates to the confirmation page, where the user sees the result.
+- Without `data-form`, the previous behaviour stays: a confirmation navigates to the `href` (GET, legacy).
+- The `#dialog` element (`.dialog-message`, `[data-action="modal-submit"]`, `[data-action="modal-cancel"]`) is part of
+  the default page template. `data-confirm` sets the message.
+
 ### API Key Authentication
 
 API-key functionality is optional and must be enabled through `ActraBackendSettings`:

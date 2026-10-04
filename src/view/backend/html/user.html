@@ -5,7 +5,7 @@
     <tst:if compare="impersonateHref" operator="NE" against="">
       <a href="{tst:text value='impersonateHref'}" class="btn btn-secondary">{tst:text value='impersonateButton'}</a>
     </tst:if>
-    <a href="{tst:text value='removeHref'}" class="btn btn-secondary btn-danger" data-action="confirm-deletion"
+    <a href="{tst:text value='removeHref'}" class="btn btn-secondary btn-danger" data-action="confirm-deletion" data-form="main form"
        data-confirm="{tst:text value='deleteConfirm'}">{tst:text value='deleteButton'}</a>
   </div>
 </div>
@@ -127,7 +127,8 @@
             <tst:if compare="generateApiKeyHref" operator="NE" against="">
               <tst:if compare="apiKey" operator="NE" against="">
                 {tst:text value='apiKey'}
-                [<a href="{tst:text value='removeApiKeyHref'}">{tst:text value='removeLink'}</a>]
+                [<a href="{tst:text value='removeApiKeyHref'}" data-action="confirm-deletion" data-form="main form"
+                 data-confirm="{tst:text value='removeApiKeyConfirm'}">{tst:text value='removeLink'}</a>]
               </tst:if>
               <tst:else>
                 {tst:text value='noApiKey'}

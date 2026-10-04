@@ -4,6 +4,20 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## HTML & CSS (Frontend)
 
+### v1.4.0 – October 4, 2026
+
+* **Feature:** The confirmation dialog (`dialog.js`) supports POST forms: a link with `data-action="confirm-deletion"`
+  and `data-form="{CSS selector}"` fetches its `href` (a confirmation page) on confirm, submits the form found by the
+  selector by POST and follows the redirect. Without `data-form` the behaviour is unchanged. The listeners are
+  registered once (before, they were added again on every click). See README "Confirmation Dialog for Destructive
+  Actions".
+* **Migration:** Projects must rebuild their JavaScript bundle (or republish `backend.js`/`modules/dialog.js`).
+* `user.html`: the delete link got `data-form="main form"` and points to the new confirmation page
+  `userDelete-{ID}.html`. The "remove API key" links in `user.html` and `profile.html` got `data-action="confirm-deletion"`,
+  `data-form="main form"` and `data-confirm` (new text `removeApiKeyConfirm`) and point to the new confirmation pages
+  `userRemoveApiKey-{ID}.html` and `profileRemoveApiKey.html`. Projects with their own `user.html`/`profile.html`
+  copy these attributes and the replacement.
+
 ### v1.1.0 – October 4, 2026
 
 * All texts of the views and page templates come from the message classes (see "Backend & API"). For a German route
@@ -51,6 +65,19 @@ This document tracks relevant changes for both frontend and backend developers.
 * Added the `nav-user-logout` CSS class to the logout item in the user dropdown.
 
 ## Backend & API
+
+### v1.4.0 – October 4, 2026
+
+* **Feature:** Deleting a user and removing an API key run only on POST. New views `userDelete`
+  (`userDelete-{ID}.html`), `userRemoveApiKey` (`userRemoveApiKey-{ID}.html`) and `profileRemoveApiKey`
+  (confirmation pages) and the forms `UserDeleteForm` and `ApiKeyRemoveForm` (CSRF protected).
+* **Feature:** New texts `CommonMessages::$removeApiKeyTitle` and `$removeApiKeyConfirm` (English and German).
+* **Logic Change:** The GET parameters `?remove` (`user`) and `?removeApiKey` (`user`, `profile`) are removed and no
+  longer delete; the constants `user::PARAM_REMOVE`, `user::PARAM_REMOVE_API_KEY` and `profile::PARAM_REMOVE_API_KEY`
+  are removed. Projects with own links to them link to the confirmation pages `userDelete::getPath()`,
+  `userRemoveApiKey::getPath()` and `profileRemoveApiKey::getPath()` instead.
+* **Follow-up (not in this release):** the GET links `?generateApiKey` (`user`, `profile`) still run on GET.
+* No breaking change, no database changes.
 
 ### v1.3.0 – October 4, 2026
 

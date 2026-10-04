@@ -52,6 +52,15 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v1.3.0 – October 4, 2026
+
+* **Feature:** New `DB::useConnection(DbSettingsModel)`: sets the connection returned by `DB::get()` without
+  `ActraBackend::init()` (integration tests, see README "Integration Tests"). Throws a `LogicException` if the
+  connection already exists. No breaking change, `DB::get()` stays lazy.
+* **Migration:** requires `actra/yuf` `^4.4` (was `^4.3`); yuf 4.4.0 has no breaking changes.
+* **Migration:** Projects that inject `DB::$instance` with `ReflectionProperty` in their tests replace it with
+  `DB::useConnection(dbSettingsModel: ...)` (once, e.g. in `tests/bootstrap.php`).
+
 ### v1.2.1 – October 4, 2026
 
 * **Logic Change:** The repositories read database rows with the typed yuf `DbRow` (`selectRows()`, `selectRow()`)

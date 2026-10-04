@@ -22,7 +22,7 @@ password login, and one-time tokens sent via email.
 ## Requirements
 
 - PHP >= 8.5
-- `actra/yuf` framework `^4.3` (since `actra/backend` v1.2.1; v1.1.0 requires `^4.1`; v1.0.0 requires `^4.0`).
+- `actra/yuf` framework `^4.4` (since `actra/backend` v1.3.0; v1.2.1 requires `^4.3`; v1.1.0 requires `^4.1`; v1.0.0 requires `^4.0`).
   Projects with own forms must migrate them as described in yuf's [UPGRADE.md](https://github.com/Actra-AG/yuf/blob/main/UPGRADE.md).
 
 ## Installation
@@ -268,6 +268,44 @@ $userID = DbAuthApiKeyRepository::getUserIDForBearerOrThrow();
 ```
 
 If the bearer token is missing, malformed, unknown, or invalid, an `UnauthorizedException` is thrown.
+
+### Integration Tests
+
+`DB::get()` creates its connection from `ActraBackend::get()->dbSettingsModel`. Integration tests that run without
+`ActraBackend::init()` set the connection explicitly with `DB::useConnection()`, once per process, before the first
+`DB::get()`. It returns the same instance as `DB::get()`, so all repositories use it. A second call throws a
+`LogicException`.
+
+```php
+// tests/bootstrap.php
+DB::useConnection(
+    dbSettingsModel: new DbSettingsModel(
+        identifier: 'test',
+        hostName: 'db',
+        databaseName: 'app_test',
+        userName: 'db',
+        password: 'db'
+    )
+);
+```
+
+```php
+abstract class DatabaseTestCase extends TestCase
+{
+    protected function setUp(): void
+    {
+        DB::get()->beginTransaction();
+    }
+
+    protected function tearDown(): void
+    {
+        DB::get()->rollBack();
+    }
+}
+```
+
+Everything the repositories write inside the test is rolled back. DDL statements (`CREATE`, `ALTER`, `DROP`,
+`TRUNCATE`) cause an implicit commit in MariaDB/MySQL and end the transaction, so do not use them in these tests.
 
 ## Documentation
 

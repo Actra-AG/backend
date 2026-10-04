@@ -11,7 +11,10 @@ namespace actra\backend\libs\db;
 use actra\backend\ActraBackend;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
+use actra\yuf\db\DbSettingsModel;
 use actra\yuf\db\FrameworkDB;
+use LogicException;
+use PDOException;
 
 class DB extends FrameworkDB
 {
@@ -23,6 +26,21 @@ class DB extends FrameworkDB
             return DB::$instance;
         }
         return DB::$instance = new DB(dbSettingsModel: ActraBackend::get()->dbSettingsModel);
+    }
+
+    /**
+     * Makes DB::get() return a connection created from the given settings (e.g. a test database in integration
+     * tests, where ActraBackend::init() is not called). Must be called before the first DB::get().
+     *
+     * @throws LogicException if the connection has already been created
+     * @throws PDOException if the database cannot be reached
+     */
+    public static function useConnection(DbSettingsModel $dbSettingsModel): DB
+    {
+        if (DB::$instance !== null) {
+            throw new LogicException(message: 'The database connection has already been created.');
+        }
+        return DB::$instance = new DB(dbSettingsModel: $dbSettingsModel);
     }
 
     /**

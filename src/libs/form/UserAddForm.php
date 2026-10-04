@@ -22,11 +22,12 @@ use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
-class UserAddForm extends Form
+final class UserAddForm extends Form
 {
-    public readonly int $newUserID;
+    private(set) int $newUserID;
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
     private readonly EmailField $emailField;
@@ -37,7 +38,7 @@ class UserAddForm extends Form
 
     public function __construct()
     {
-        parent::__construct(name: 'UserAddForm');
+        parent::__construct(name: 'UserAddForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->firstNameField = new TextField(
@@ -108,29 +109,28 @@ class UserAddForm extends Form
         if (!parent::validate()) {
             return false;
         }
-        if (DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue()) !== null) {
+        if (DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString()) !== null) {
             $this->addError(
-                errorMessage: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.')
             );
 
             return false;
         }
         $newUserID = DbAuthUserRepository::insert(
             registeredById: MyAuthUser::get()->ID,
-            email: $this->emailField->getRawValue(),
-            phone: $this->phoneNumberField->getRawValue(),
+            email: $this->emailField->getValueAsString(),
+            phone: $this->phoneNumberField->getValueAsString(),
             active: $this->activeField->isChecked(),
-            firstName: $this->firstNameField->getRawValue(),
-            lastName: $this->lastNameField->getRawValue()
+            firstName: $this->firstNameField->getValueAsString(),
+            lastName: $this->lastNameField->getValueAsString()
         );
-        foreach ($this->userGroupsField->getRawValue() as $userGroupValue) {
+        foreach ($this->userGroupsField->getValues() as $userGroupValue) {
             DbAuthUserGroupRepository::insert(
                 userID: $newUserID,
                 groupID: (int)$userGroupValue
             );
         }
-        foreach ($this->ipWhitelistField->getRawValue() as $ip) {
+        foreach ($this->ipWhitelistField->getValues() as $ip) {
             DbAuthIpWhitelistRepository::insert(
                 userID: $newUserID,
                 ipAddress: $ip

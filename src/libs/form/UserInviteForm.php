@@ -17,16 +17,17 @@ use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
-class UserInviteForm extends Form
+final class UserInviteForm extends Form
 {
     private readonly TextField $subjectField;
     private readonly TextAreaField $bodyField;
 
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
-        parent::__construct(name: 'UserInviteForm');
+        parent::__construct(name: 'UserInviteForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->subjectField = new TextField(
@@ -74,8 +75,8 @@ class UserInviteForm extends Form
         $dbAuthUser = $this->dbAuthUser;
         EmailAuthUser::send(
             dbAuthUser: $dbAuthUser,
-            subject: $this->subjectField->getRawValue(),
-            message: $this->bodyField->getRawValue()
+            subject: $this->subjectField->getValueAsString(),
+            message: $this->bodyField->getValueAsString()
         );
         DbAuthUserRepository::sentInvitation(ID: $dbAuthUser->ID);
 

@@ -8,13 +8,22 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form\component;
 
-use actra\backend\libs\form\rule\ValidIpAddressesRule;
+use actra\backend\libs\form\rule\ValidIpAddressRule;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\html\HtmlText;
-use RuntimeException;
 
-class IpWhitelistField extends TextAreaField
+/**
+ * One IP address per line. `getValues()` returns the addresses (trimmed, without empty lines).
+ */
+final class IpWhitelistField extends TextAreaField
 {
+    /** @var list<string> */
+    private readonly array $initialIpAddresses;
+
+    /**
+     * @param list<string> $value The initial IP addresses
+     * @param HtmlText $invalidErrorMessage `[ipAddress]` is replaced by the invalid address
+     */
     public function __construct(
         string $name,
         HtmlText $label,
@@ -25,38 +34,24 @@ class IpWhitelistField extends TextAreaField
         parent::__construct(
             name: $name,
             label: $label,
-            value: $value,
+            value: implode(separator: PHP_EOL, array: $value),
             requiredError: $requiredError
         );
+        $this->initialIpAddresses = $this->getValues();
         $this->fieldInfo = HtmlText::encoded(textContent: 'Eine IP-Adresse pro Zeile.');
-        $this->addRule(formRule: new ValidIpAddressesRule(errorMessage: $invalidErrorMessage));
+        $this->addEachRule(formRule: new ValidIpAddressRule(errorMessage: $invalidErrorMessage));
     }
 
-    public function setValue($value): void
-    {
-        if (is_string(value: $value)) {
-            $value = explode(
-                separator: PHP_EOL,
-                string: $value
-            );
-        }
-        if (!is_array(value: $value)) {
-            throw new RuntimeException(message: 'Value is not an array.');
-        }
-        parent::setValue(value: $value);
-    }
-
-    public function getValue(): array
-    {
-        return parent::getRawValue();
-    }
-
+    /**
+     * The order of the addresses, empty lines and surrounding whitespace do not matter.
+     */
     public function valueHasChanged(): bool
     {
-        $value = $this->getValue();
-        $originalValue = $this->getOriginalValue();
-        sort(array: $value);
-        sort(array: $originalValue);
-        return ($value !== $originalValue);
+        $ipAddresses = $this->getValues();
+        $initialIpAddresses = $this->initialIpAddresses;
+        sort(array: $ipAddresses);
+        sort(array: $initialIpAddresses);
+
+        return $ipAddresses !== $initialIpAddresses;
     }
 }

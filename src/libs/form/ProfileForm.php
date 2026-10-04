@@ -21,9 +21,10 @@ use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\component\FormField;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
-class ProfileForm extends Form
+final class ProfileForm extends Form
 {
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
@@ -32,7 +33,7 @@ class ProfileForm extends Form
 
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
-        parent::__construct(name: 'ProfileForm');
+        parent::__construct(name: 'ProfileForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->firstNameField = new TextField(
@@ -84,21 +85,21 @@ class ProfileForm extends Form
         }
         if (!$this->hasChanges()) {
             $this->addError(
-                errorMessage: 'Es wurden keine Änderungen vorgenommen.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Es wurden keine Änderungen vorgenommen.')
             );
 
             return false;
         }
         $currentIpAddress = HttpRequest::getRemoteAddress();
-        $newIpWhitelist = $this->ipWhitelistField->getRawValue();
+        $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
             $newIpWhitelist === []
             && DbAuthApiKeyRepository::hasByUserID(userID: $this->dbAuthUser->ID)
         ) {
             $this->addError(
-                errorMessage: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden kann.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(
+                    textContent: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden kann.'
+                )
             );
 
             return false;
@@ -108,8 +109,9 @@ class ProfileForm extends Form
             ipWhitelist: $newIpWhitelist
         )) {
             $this->addError(
-                errorMessage: 'Die IP-Whitelist muss Ihre aktuelle IP-Adresse ' . $currentIpAddress . ' erlauben.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::unencoded(
+                    textContent: 'Die IP-Whitelist muss Ihre aktuelle IP-Adresse ' . $currentIpAddress . ' erlauben.'
+                )
             );
 
             return false;
@@ -118,15 +120,16 @@ class ProfileForm extends Form
         DbAuthUserRepository::update(
             ID: $userID,
             email: $this->dbAuthUser->email,
-            phone: $this->phoneNumberField->getRawValue(),
+            phone: $this->phoneNumberField->getValueAsString(),
             active: $this->dbAuthUser->isActive,
-            firstName: $this->firstNameField->getRawValue(),
-            lastName: $this->lastNameField->getRawValue()
+            firstName: $this->firstNameField->getValueAsString(),
+            lastName: $this->lastNameField->getValueAsString()
         );
         foreach ($newIpWhitelist as $ip) {
             if (!in_array(
                 needle: $ip,
-                haystack: $this->dbAuthUser->ipWhitelist
+                haystack: $this->dbAuthUser->ipWhitelist,
+                strict: true
             )) {
                 DbAuthIpWhitelistRepository::insert(
                     userID: $userID,
@@ -137,7 +140,8 @@ class ProfileForm extends Form
         foreach ($this->dbAuthUser->ipWhitelist as $ip) {
             if (!in_array(
                 needle: $ip,
-                haystack: $newIpWhitelist
+                haystack: $newIpWhitelist,
+                strict: true
             )) {
                 DbAuthIpWhitelistRepository::delete(
                     userID: $userID,
@@ -153,7 +157,7 @@ class ProfileForm extends Form
     {
         return array_any(
             array: $this->getAllFields(),
-            callback: function (FormField $field) {
+            callback: function (FormField $field): bool {
                 if ($field instanceof CsrfTokenField) {
                     return false;
                 }
@@ -162,6 +166,9 @@ class ProfileForm extends Form
         );
     }
 
+    /**
+     * @param list<string> $ipWhitelist
+     */
     private function currentIpIsAllowed(
         string $currentIpAddress,
         array $ipWhitelist
@@ -171,7 +178,7 @@ class ProfileForm extends Form
         }
         return array_any(
             array: $ipWhitelist,
-            callback: fn(string $ipAddress) => IpValidator::isInWhitelist(
+            callback: fn(string $ipAddress): bool => IpValidator::isInWhitelist(
                 whiteList: [$ipAddress],
                 ipAddressToCheck: $currentIpAddress
             )

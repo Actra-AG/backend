@@ -13,6 +13,7 @@ use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\NullField;
 use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextField;
+use actra\yuf\form\FormMessages;
 
 abstract class AbstractSearchForm extends Form
 {
@@ -21,27 +22,28 @@ abstract class AbstractSearchForm extends Form
     public function __construct(string $name)
     {
         $this->searchHelper = SearchHelper::getInstance(instanceName: $name);
-        parent::__construct(name: $name);
+        parent::__construct(name: $name, messages: FormMessages::german());
     }
 
+    /**
+     * Reads the search value from the request or the session (SearchHelper) and shows it in the field.
+     */
     protected function validateSearchField(NullField|SelectOptionsField|TextField $searchField): string
     {
         if ($searchField instanceof NullField) {
             return '';
         }
         $searchHelper = $this->searchHelper;
-        $value = '';
         if ($searchField instanceof TextField) {
             $value = $searchHelper->checkString(
                 fieldName: $searchField->name,
-                default: (string)$searchField->getRawValue()
+                default: $searchField->getValueAsString()
             );
-        }
-        if ($searchField instanceof SelectOptionsField) {
+        } else {
             $value = $searchHelper->checkFilter(
                 array: ['' => 'all'] + $searchField->formOptions->data,
                 fieldName: $searchField->name,
-                default: $searchField->getRawValue()
+                default: $searchField->getValueAsString()
             );
         }
         $searchField->setValue(value: $value);

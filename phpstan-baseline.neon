@@ -1,0 +1,625 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method actra\\backend\\ActraBackend\:\:get\(\) should return actra\\backend\\ActraBackend but returns actra\\backend\\ActraBackend\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/ActraBackend.php
+
+		-
+			message: '#^Method actra\\backend\\ActraBackend\:\:renderPaths\(\) has parameter \$paths with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/ActraBackend.php
+
+		-
+			message: '#^Parameter \$content of method actra\\yuf\\html\\HtmlDataObject\:\:addTextElement\(\) expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ActraBackend.php
+
+		-
+			message: '#^Cannot access property \$dbAuthUser on actra\\backend\\libs\\db\\DbAuthSession\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: src/BackendView.php
+
+		-
+			message: '#^Cannot access property \$href on actra\\yuf\\layout\\NavigationItem\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: src/BackendView.php
+
+		-
+			message: '#^Method actra\\backend\\BackendView\:\:__construct\(\) has parameter \$activeHtmlIdList with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/BackendView.php
+
+		-
+			message: '#^Parameter \$ID of static method actra\\backend\\libs\\db\\DbAuthSessionRepository\:\:selectByID\(\) expects int, int\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/BackendView.php
+
+		-
+			message: '#^Parameter \$authSessionID of static method actra\\yuf\\auth\\AuthSession\:\:logIn\(\) expects int, int\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/BackendView.php
+
+		-
+			message: '#^Parameter \$val of method actra\\yuf\\html\\HtmlDocument\:\:setActiveHtmlId\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/BackendView.php
+
+		-
+			message: '#^Binary operation "\." between mixed and ''&''\|''\?'' results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/libs/auth/MyAuthUser.php
+
+		-
+			message: '#^Cannot access property \$href on actra\\yuf\\layout\\NavigationItem\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: src/libs/auth/MyAuthUser.php
+
+		-
+			message: '#^Parameter \$haystack of function str_contains expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/auth/MyAuthUser.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 2
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Cannot access offset ''link'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Cannot access offset mixed on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Cannot access offset string on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:__construct\(\) has parameter \$navigationLevels with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:__construct\(\) has parameter \$pathVars with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:addBreadcrumb\(\) has parameter \$title with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:setNavistufe\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Parameter \$array of function implode expects array\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Parameter \$string of function explode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Parameter \$value of function count expects array\|Countable, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Part \$val\[''link''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Part \$val\[''title''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 2
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Property actra\\backend\\libs\\common\\OldNavigator\:\:\$currentPage \(string\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\db\\DbAuthApiKeyCollection\:\:getFirst\(\) should return actra\\backend\\libs\\db\\DbAuthApiKey but returns actra\\backend\\libs\\db\\DbAuthApiKey\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/libs/db/DbAuthApiKeyCollection.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\db\\DbAuthApiKeyRepository\:\:parseBearer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			message: '#^Parameter \$hash of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			message: '#^Parameter \$publicID of class actra\\backend\\libs\\db\\DbAuthApiKey constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			message: '#^Parameter \$publicID of static method actra\\backend\\libs\\db\\DbAuthApiKeyRepository\:\:selectByPublicID\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			message: '#^Parameter \$rawPassword of method actra\\yuf\\auth\\Password\:\:isValid\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			message: '#^Parameter \$salt of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			message: '#^Parameter \$userID of class actra\\backend\\libs\\db\\DbAuthApiKey constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\db\\DbAuthGroupRepository\:\:listByCond\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/libs/db/DbAuthGroupRepository.php
+
+		-
+			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthGroup constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthGroupRepository.php
+
+		-
+			message: '#^Parameter \$title of class actra\\backend\\libs\\db\\DbAuthGroup constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthGroupRepository.php
+
+		-
+			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthIpWhitelist constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthIpWhitelistRepository.php
+
+		-
+			message: '#^Parameter \$ipAddress of class actra\\backend\\libs\\db\\DbAuthIpWhitelist constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthIpWhitelistRepository.php
+
+		-
+			message: '#^Parameter \$userID of class actra\\backend\\libs\\db\\DbAuthIpWhitelist constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthIpWhitelistRepository.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthSession constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthUser constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$datetime of class DateTimeImmutable constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$email of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$firstName of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$hash of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$lastName of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$parentID of class actra\\backend\\libs\\db\\DbAuthSession constructor expects int\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$phone of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$salt of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Parameter \$wrongLoginAttempts of class actra\\backend\\libs\\db\\DbAuthUser constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthSessionRepository.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\db\\DbAuthTokenRepository\:\:getClientData\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/libs/db/DbAuthTokenRepository.php
+
+		-
+			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthToken constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthTokenRepository.php
+
+		-
+			message: '#^Parameter \$email of class actra\\backend\\libs\\db\\DbAuthToken constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthTokenRepository.php
+
+		-
+			message: '#^Parameter \$userID of class actra\\backend\\libs\\db\\DbAuthToken constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthTokenRepository.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\db\\DbAuthUserCollection\:\:first\(\) should return actra\\backend\\libs\\db\\DbAuthUser but returns actra\\backend\\libs\\db\\DbAuthUser\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/libs/db/DbAuthUserCollection.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\db\\DbAuthUserNotificationCollection\:\:first\(\) should return actra\\backend\\libs\\db\\DbAuthUserNotification but returns actra\\backend\\libs\\db\\DbAuthUserNotification\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationCollection.php
+
+		-
+			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$authGroupID of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$datetime of class DateTimeImmutable constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$firstName of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$groupName of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$lastName of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$message of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$recipients of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$sentByID of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Parameter \$subject of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserNotificationRepository.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthUser constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$datetime of class DateTimeImmutable constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$email of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$firstName of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$hash of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$lastName of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$phone of class actra\\backend\\libs\\db\\DbAuthUser constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$salt of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Parameter \$wrongLoginAttempts of class actra\\backend\\libs\\db\\DbAuthUser constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/db/DbAuthUserRepository.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\email\\Mailer\:\:sendTextMail\(\) has parameter \$bcc with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/libs/email/Mailer.php
+
+		-
+			message: '#^Method actra\\backend\\libs\\email\\Mailer\:\:sendTextMail\(\) has parameter \$cc with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/libs/email/Mailer.php
+
+		-
+			message: '#^Parameter \$inputEmail of method actra\\yuf\\mailer\\AbstractMail\:\:addBCC\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/email/Mailer.php
+
+		-
+			message: '#^Parameter \$inputEmail of method actra\\yuf\\mailer\\AbstractMail\:\:addCC\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/email/Mailer.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/libs/table/AbstractTable.php
+
+		-
+			message: '#^Parameter \$ID of static method actra\\backend\\view\\backend\\php\\notification\:\:getPath\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/table/NotificationTable.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: src/libs/table/TokenTable.php
+
+		-
+			message: '#^Parameter \$json of function json_decode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/libs/table/TokenTable.php
+
+		-
+			message: '#^Parameter \$object of function get_object_vars expects object, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/libs/table/TokenTable.php
+
+		-
+			message: '#^Parameter \$value of static method actra\\backend\\settings\\AuthTokenTypeEnum\:\:from\(\) expects int\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/table/TokenTable.php
+
+		-
+			message: '#^Parameter \$ID of static method actra\\backend\\view\\backend\\php\\user\:\:getPath\(\) expects int\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/table/UserTable.php
+
+		-
+			message: '#^Parameter \$value of static method actra\\yuf\\auth\\AuthResult\:\:from\(\) expects int\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/libs/table/VisitTable.php
+
+		-
+			message: '#^Method actra\\backend\\settings\\ActraBackendSettings\:\:__construct\(\) has parameter \$ipWhitelist with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/settings/ActraBackendSettings.php
+
+		-
+			message: '#^Method actra\\backend\\settings\\ActraBackendSettings\:\:__construct\(\) has parameter \$javaScriptPaths with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/settings/ActraBackendSettings.php
+
+		-
+			message: '#^Method actra\\backend\\settings\\ActraBackendSettings\:\:__construct\(\) has parameter \$stylesPaths with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/settings/ActraBackendSettings.php
+
+		-
+			message: '#^Cannot use \+\+ on mixed\.$#'
+			identifier: postInc.type
+			count: 1
+			path: src/settings/AuthTokenTypeEnum.php
+
+		-
+			message: '#^Method actra\\backend\\settings\\AuthTokenTypeEnum\:\:getFailedAttempts\(\) should return int but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/settings/AuthTokenTypeEnum.php
+
+		-
+			message: '#^Class actra\\backend\\view\\backend\\php\\notification has an uninitialized readonly property \$pageTitle\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/view/backend/php/notification.php
+
+		-
+			message: '#^Readonly property actra\\backend\\view\\backend\\php\\notification\:\:\$pageTitle is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/view/backend/php/notification.php
+
+		-
+			message: '#^Cannot access property \$href on actra\\yuf\\layout\\NavigationItem\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: src/view/backend/php/user.php
+
+		-
+			message: '#^Cannot call method format\(\) on DateTimeImmutable\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/view/backend/php/user.php
+
+		-
+			message: '#^Cannot call method render\(\) on actra\\backend\\libs\\db\\DbAuthGroupCollection\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/view/backend/php/user.php
+
+		-
+			message: '#^Class actra\\backend\\view\\backend\\php\\user has an uninitialized readonly property \$pageTitle\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/view/backend/php/user.php
+
+		-
+			message: '#^Readonly property actra\\backend\\view\\backend\\php\\user\:\:\$pageTitle is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/view/backend/php/user.php

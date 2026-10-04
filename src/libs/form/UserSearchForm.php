@@ -15,7 +15,7 @@ use actra\backend\libs\form\component\SearchSelectOptionsField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
-class UserSearchForm extends AbstractSearchForm
+final class UserSearchForm extends AbstractSearchForm
 {
     public readonly ?DbAuthGroup $dbAuthGroup;
     public readonly string $searchQuery;

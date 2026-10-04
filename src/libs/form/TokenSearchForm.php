@@ -15,7 +15,7 @@ use actra\yuf\form\component\FormControl;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlText;
 
-class TokenSearchForm extends AbstractSearchForm
+final class TokenSearchForm extends AbstractSearchForm
 {
     public readonly ?AuthTokenTypeEnum $authTokenTypeEnum;
     public readonly string $searchQuery;

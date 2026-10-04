@@ -25,9 +25,10 @@ use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\component\FormField;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
-class UserModForm extends Form
+final class UserModForm extends Form
 {
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
@@ -40,7 +41,7 @@ class UserModForm extends Form
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
         $dbAuthUser = $this->dbAuthUser;
-        parent::__construct(name: 'UserModForm-' . $dbAuthUser->ID);
+        parent::__construct(name: 'UserModForm-' . $dbAuthUser->ID, messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->firstNameField = new TextField(
@@ -87,7 +88,9 @@ class UserModForm extends Form
                 name: 'userGroups',
                 label: HtmlText::encoded(textContent: 'Benutzergruppen'),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
-                initialValues: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->listIDs(),
+                initialValues: DbAuthGroupRepository::listByUserID(
+                    userID: $dbAuthUser->ID
+                )?->listFormOptionKeys() ?? [],
                 requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.')
             )
         );
@@ -116,31 +119,30 @@ class UserModForm extends Form
         }
         if (!$this->hasChanges()) {
             $this->addError(
-                errorMessage: 'Es wurden keine Änderungen vorgenommen.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Es wurden keine Änderungen vorgenommen.')
             );
 
             return false;
         }
-        $newIpWhitelist = $this->ipWhitelistField->getRawValue();
+        $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
             $newIpWhitelist === []
             && DbAuthApiKeyRepository::hasByUserID(userID: $this->dbAuthUser->ID)
         ) {
             $this->addError(
-                errorMessage: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden kann.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(
+                    textContent: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden kann.'
+                )
             );
 
             return false;
         }
         if (
             $this->emailField->valueHasChanged()
-            && DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue()) !== null
+            && DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString()) !== null
         ) {
             $this->addError(
-                errorMessage: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.')
             );
 
             return false;
@@ -148,11 +150,11 @@ class UserModForm extends Form
         $userID = $this->dbAuthUser->ID;
         DbAuthUserRepository::update(
             ID: $userID,
-            email: $this->emailField->getRawValue(),
-            phone: $this->phoneNumberField->getRawValue(),
+            email: $this->emailField->getValueAsString(),
+            phone: $this->phoneNumberField->getValueAsString(),
             active: $this->activeField->isChecked(),
-            firstName: $this->firstNameField->getRawValue(),
-            lastName: $this->lastNameField->getRawValue()
+            firstName: $this->firstNameField->getValueAsString(),
+            lastName: $this->lastNameField->getValueAsString()
         );
         foreach ($this->userGroupsField->getAddedValues() as $userGroupValue) {
             DbAuthUserGroupRepository::insert(
@@ -169,7 +171,8 @@ class UserModForm extends Form
         foreach ($newIpWhitelist as $ip) {
             if (!in_array(
                 needle: $ip,
-                haystack: $this->dbAuthUser->ipWhitelist
+                haystack: $this->dbAuthUser->ipWhitelist,
+                strict: true
             )) {
                 DbAuthIpWhitelistRepository::insert(
                     userID: $userID,
@@ -180,7 +183,8 @@ class UserModForm extends Form
         foreach ($this->dbAuthUser->ipWhitelist as $ip) {
             if (!in_array(
                 needle: $ip,
-                haystack: $newIpWhitelist
+                haystack: $newIpWhitelist,
+                strict: true
             )) {
                 DbAuthIpWhitelistRepository::delete(
                     userID: $userID,
@@ -196,7 +200,7 @@ class UserModForm extends Form
     {
         return array_any(
             array: $this->getAllFields(),
-            callback: function (FormField $field) {
+            callback: function (FormField $field): bool {
                 if ($field instanceof CsrfTokenField) {
                     return false;
                 }

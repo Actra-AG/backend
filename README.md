@@ -22,7 +22,8 @@ password login, and one-time tokens sent via email.
 ## Requirements
 
 - PHP >= 8.5
-- `actra/yuf` framework
+- `actra/yuf` framework `^4.0` (since `actra/backend` v1.0.0; projects with own forms must migrate them as
+  described in yuf's [UPGRADE.md](https://github.com/Actra-AG/yuf/blob/main/UPGRADE.md))
 
 ## Installation
 
@@ -194,6 +195,11 @@ If the bearer token is missing, malformed, unknown, or invalid, an `Unauthorized
 ## Documentation
 
 - [Upgrade Guide](UPGRADE.md) - Record of changes and migration instructions.
+
+## Development
+
+See [AGENTS.md](AGENTS.md) and [docs/code-quality.md](docs/code-quality.md). Run `composer check` (PHPStan level 10 and
+PHPUnit; with DDEV: `ddev composer check`) before every commit.
 
 ## License
 

@@ -12,15 +12,16 @@ use actra\backend\libs\auth\MyAuthenticator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
-class LoginTokenForm extends Form
+final class LoginTokenForm extends Form
 {
     private readonly TextField $tokenField;
 
     public function __construct()
     {
-        parent::__construct(name: 'LoginTokenForm');
+        parent::__construct(name: 'LoginTokenForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
@@ -46,10 +47,9 @@ class LoginTokenForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        if (!MyAuthenticator::get()->tokenLogin(inputToken: $this->tokenField->getRawValue())) {
+        if (!MyAuthenticator::get()->tokenLogin(inputToken: $this->tokenField->getValueAsString())) {
             $this->tokenField->addError(
-                errorMessage: 'Sie haben einen ungültigen Code eingegeben.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Sie haben einen ungültigen Code eingegeben.')
             );
             return false;
         }

@@ -16,15 +16,16 @@ use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
-class PasswordForgottenForm extends Form
+final class PasswordForgottenForm extends Form
 {
     private readonly EmailField $emailField;
 
     public function __construct()
     {
-        parent::__construct(name: 'PasswordForgottenForm');
+        parent::__construct(name: 'PasswordForgottenForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
@@ -52,7 +53,7 @@ class PasswordForgottenForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $this->emailField->getRawValue());
+        $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString());
         if (
             $dbAuthUser === null
             || $dbAuthUser->isActive === false

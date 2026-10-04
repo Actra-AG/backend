@@ -14,30 +14,34 @@ use actra\yuf\auth\Password;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
+use actra\yuf\form\settings\PasswordPurposeEnum;
 use actra\yuf\html\HtmlText;
 
-class PasswordResetForm extends Form
+final class PasswordResetForm extends Form
 {
-    private readonly ?PasswordField $newPasswordField;
-    private readonly ?PasswordField $newPasswordConfirmField;
+    private readonly PasswordField $newPasswordField;
+    private readonly PasswordField $newPasswordConfirmField;
 
     public function __construct(private readonly DbAuthToken $dbAuthToken)
     {
-        parent::__construct(name: 'PasswordResetForm');
+        parent::__construct(name: 'PasswordResetForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
             formField: $this->newPasswordField = new PasswordField(
                 name: 'newPassword',
                 label: HtmlText::encoded(textContent: 'Neues Passwort'),
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie das neue Passwort ein.')
+                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie das neue Passwort ein.'),
+                purpose: PasswordPurposeEnum::NEW
             )
         );
         $this->addField(
             formField: $this->newPasswordConfirmField = new PasswordField(
                 name: 'newPasswordConfirm',
                 label: HtmlText::encoded(textContent: 'Neues Passwort bestätigen'),
-                requiredError: HtmlText::encoded(textContent: 'Bitte bestätigen Sie das neue Passwort.')
+                requiredError: HtmlText::encoded(textContent: 'Bitte bestätigen Sie das neue Passwort.'),
+                purpose: PasswordPurposeEnum::NEW
             )
         );
         $this->addComponent(
@@ -54,23 +58,21 @@ class PasswordResetForm extends Form
             return false;
         }
         $newPasswordField = $this->newPasswordField;
-        if (mb_strlen(string: $newPasswordField->getRawValue()) < 8) {
+        if (mb_strlen(string: $newPasswordField->getValueAsString()) < 8) {
             $newPasswordField->addError(
-                errorMessage: 'Das neue Passwort muss mindestens 8 Zeichen lang sein.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Das neue Passwort muss mindestens 8 Zeichen lang sein.')
             );
             return false;
         }
-        if ($newPasswordField->getRawValue() !== $this->newPasswordConfirmField->getRawValue()) {
+        if ($newPasswordField->getValueAsString() !== $this->newPasswordConfirmField->getValueAsString()) {
             $this->newPasswordConfirmField->addError(
-                errorMessage: 'Die neuen Passwörter stimmen nicht überein.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Die neuen Passwörter stimmen nicht überein.')
             );
             return false;
         }
         DbAuthUserRepository::setPassword(
             ID: $this->dbAuthToken->userID,
-            newPassword: Password::generateNew(rawPassword: $newPasswordField->getRawValue())
+            newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString())
         );
 
         return true;

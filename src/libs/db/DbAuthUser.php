@@ -18,6 +18,7 @@ use DateTimeImmutable;
 
 readonly class DbAuthUser
 {
+    /** @var list<string> */
     public array $ipWhitelist;
 
     public function __construct(

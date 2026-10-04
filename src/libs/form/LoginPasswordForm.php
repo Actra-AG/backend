@@ -20,17 +20,19 @@ use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
+use actra\yuf\form\settings\PasswordPurposeEnum;
 use actra\yuf\html\HtmlText;
 use actra\yuf\session\AbstractSessionHandler;
 
-class LoginPasswordForm extends Form
+final class LoginPasswordForm extends Form
 {
     private readonly EmailField $emailField;
     private readonly PasswordField $passwordField;
 
     public function __construct()
     {
-        parent::__construct(name: 'LoginPasswordForm');
+        parent::__construct(name: 'LoginPasswordForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
@@ -49,6 +51,7 @@ class LoginPasswordForm extends Form
                 name: 'password',
                 label: HtmlText::encoded(textContent: 'Passwort'),
                 requiredError: HtmlText::encoded(textContent: 'Geben Sie Ihr Passwort ein.'),
+                purpose: PasswordPurposeEnum::CURRENT
             )
         );
         $this->passwordField->renderRequiredAbbr = false;
@@ -69,8 +72,7 @@ class LoginPasswordForm extends Form
         }
         if (!$this->checkCredentials()) {
             $this->addError(
-                errorMessage: 'Die eingegebenen Zugangsdaten sind ungültig.',
-                isEncodedForRendering: true
+                errorMessage: HtmlText::encoded(textContent: 'Die eingegebenen Zugangsdaten sind ungültig.')
             );
             return false;
         }
@@ -83,7 +85,7 @@ class LoginPasswordForm extends Form
         $myAuthenticator = MyAuthenticator::get();
         $sessionID = AbstractSessionHandler::getSessionHandler()->getID();
         $ipAddress = HttpRequest::getRemoteAddress();
-        $inputEmail = $this->emailField->getRawValue();
+        $inputEmail = $this->emailField->getValueAsString();
         $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $inputEmail);
         if ($dbAuthUser === null) {
             $myAuthenticator->logAuthResult(
@@ -143,7 +145,7 @@ class LoginPasswordForm extends Form
             );
             return false;
         }
-        if (!$dbAuthUser->password->isValid(rawPassword: $this->passwordField->getRawValue())) {
+        if (!$dbAuthUser->password->isValid(rawPassword: $this->passwordField->getValueAsString())) {
             DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $dbAuthUser->ID);
             $myAuthenticator->logAuthResult(
                 userID: $dbAuthUser->ID,

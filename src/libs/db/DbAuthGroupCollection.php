@@ -14,7 +14,7 @@ use actra\yuf\html\HtmlText;
 
 class DbAuthGroupCollection
 {
-    /** @var DbAuthGroup[] $items */
+    /** @var array<int, DbAuthGroup> */
     private(set) array $items = [];
 
     public function __construct()
@@ -39,14 +39,30 @@ class DbAuthGroupCollection
         return $formOptions;
     }
 
+    /**
+     * @return list<int>
+     */
     public function listIDs(): array
     {
         return array_keys(array: $this->items);
     }
 
+    /**
+     * The keys of `getFormOptions()`, e.g. as initial values of an options field.
+     *
+     * @return list<string>
+     */
+    public function listFormOptionKeys(): array
+    {
+        return array_map(callback: static fn(int $ID): string => (string)$ID, array: $this->listIDs());
+    }
+
+    /**
+     * @param list<int> $authGroupIdList
+     */
     public function hasOneOfIDs(array $authGroupIdList): bool
     {
-        return count(value: array_intersect($authGroupIdList, $this->listIDs())) > 0;
+        return array_intersect($authGroupIdList, $this->listIDs()) !== [];
     }
 
     public function get(int $ID): DbAuthGroup

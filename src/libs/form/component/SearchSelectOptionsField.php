@@ -12,7 +12,7 @@ use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\html\HtmlTag;
 use actra\yuf\html\HtmlTagAttribute;
 
-class SearchSelectOptionsField extends SelectOptionsField
+final class SearchSelectOptionsField extends SelectOptionsField
 {
     public function getHtmlTag(): HtmlTag
     {
@@ -21,9 +21,7 @@ class SearchSelectOptionsField extends SelectOptionsField
         $labelTag = new HtmlTag(name: 'label', selfClosing: false, htmlTagAttributes: $labelAttributes);
         $labelTag->addText(htmlText: $this->label);
         $divTag->addTag(htmlTag: $labelTag);
-        $defaultFormFieldRenderer = $this->getDefaultRenderer();
-        $defaultFormFieldRenderer->prepare();
-        $divTag->addTag(htmlTag: $defaultFormFieldRenderer->getHtmlTag());
+        $divTag->addTag(htmlTag: $this->getDefaultRenderer()->prepareHtmlTag());
 
         return $divTag;
     }

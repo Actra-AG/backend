@@ -2,19 +2,35 @@
 *
 
 # Allow core files
-!.gitignore
-!composer.json
-!LICENSE
-!README.md
-!UPGRADE.md
+!/.ddev/
+!/.ddev/config.yaml
+!/.gitattributes
+!/.gitignore
+!/AGENTS.md
+!/CLAUDE.md
+!/composer.json
+!/LICENSE
+!/phpstan.neon
+!/phpstan-baseline.neon
+!/phpunit.xml
+!/README.md
+!/UPGRADE.md
 
 # Allow the db files
 !/db
 !/db/**
 
+# Allow the docs
+!/docs
+!/docs/**
+
 # Allow the src files
 !/src
 !/src/**
+
+# Allow the tests
+!/tests
+!/tests/**
 
 # GLOBAL OS FILTERS (Master Rule)
 **/.DS_Store

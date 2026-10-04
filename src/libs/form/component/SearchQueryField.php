@@ -13,7 +13,7 @@ use actra\yuf\html\HtmlTag;
 use actra\yuf\html\HtmlTagAttribute;
 use actra\yuf\html\HtmlText;
 
-class SearchQueryField extends TextField
+final class SearchQueryField extends TextField
 {
     public function __construct()
     {
@@ -30,9 +30,7 @@ class SearchQueryField extends TextField
         $labelTag = new HtmlTag(name: 'label', selfClosing: false, htmlTagAttributes: $labelAttributes);
         $labelTag->addText(htmlText: $this->label);
         $divTag->addTag(htmlTag: $labelTag);
-        $defaultFormFieldRenderer = $this->getDefaultRenderer();
-        $defaultFormFieldRenderer->prepare();
-        $divTag->addTag(htmlTag: $defaultFormFieldRenderer->getHtmlTag());
+        $divTag->addTag(htmlTag: $this->getDefaultRenderer()->prepareHtmlTag());
 
         return $divTag;
     }

@@ -17,16 +17,17 @@ use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 use actra\yuf\session\AbstractSessionHandler;
 
-class LoginForm extends Form
+final class LoginForm extends Form
 {
     private readonly EmailField $emailField;
 
     public function __construct()
     {
-        parent::__construct(name: 'LoginForm');
+        parent::__construct(name: 'LoginForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
@@ -61,7 +62,7 @@ class LoginForm extends Form
         $myAuthenticator = MyAuthenticator::get();
         $sessionID = AbstractSessionHandler::getSessionHandler()->getID();
         $ipAddress = HttpRequest::getRemoteAddress();
-        $inputEmail = $this->emailField->getRawValue();
+        $inputEmail = $this->emailField->getValueAsString();
         $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $inputEmail);
         if ($dbAuthUser === null) {
             $myAuthenticator->logAuthResult(

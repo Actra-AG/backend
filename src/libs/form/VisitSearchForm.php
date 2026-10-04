@@ -15,7 +15,7 @@ use actra\yuf\form\component\FormControl;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlText;
 
-class VisitSearchForm extends AbstractSearchForm
+final class VisitSearchForm extends AbstractSearchForm
 {
     public readonly int $status;
     public readonly string $searchQuery;

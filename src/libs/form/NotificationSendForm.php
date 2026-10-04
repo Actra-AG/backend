@@ -20,18 +20,19 @@ use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
+use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
-class NotificationSendForm extends Form
+final class NotificationSendForm extends Form
 {
     private readonly SelectOptionsField $authUserGroupField;
     private readonly TextField $subjectField;
     private readonly TextAreaField $messageField;
-    public readonly int $notificationID;
+    private(set) int $notificationID;
 
     public function __construct()
     {
-        parent::__construct(name: 'NotificationSendForm');
+        parent::__construct(name: 'NotificationSendForm', messages: FormMessages::german());
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->authUserGroupField = new SelectOptionsField(
@@ -83,9 +84,9 @@ class NotificationSendForm extends Form
         if (!parent::validate()) {
             return false;
         }
-        $authGroupID = (int)$this->authUserGroupField->getRawValue();
-        $subject = $this->subjectField->getRawValue();
-        $message = $this->messageField->getRawValue();
+        $authGroupID = (int)$this->authUserGroupField->getValueAsString();
+        $subject = $this->subjectField->getValueAsString();
+        $message = $this->messageField->getValueAsString();
         $this->notificationID = DbAuthUserNotificationRepository::insert(
             authGroupID: $authGroupID,
             subject: $subject,

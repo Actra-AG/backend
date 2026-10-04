@@ -51,7 +51,7 @@ class userRemoveApiKey extends BackendView
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
+        $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
         if (
             $dbAuthUser === null
             || !ActraBackend::get()->actraBackendSettings->hasApi

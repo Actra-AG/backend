@@ -59,7 +59,7 @@ class notification extends BackendView
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUserNotification = DbAuthUserNotificationRepository::selectByID(ID: (int)$this->getPathVar(nr: 1));
+        $dbAuthUserNotification = DbAuthUserNotificationRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
         if ($dbAuthUserNotification === null) {
             throw new NotFoundException();
         }

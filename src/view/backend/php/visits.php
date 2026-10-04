@@ -63,9 +63,8 @@ class visits extends BackendView
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $inputId = $this->getPathVar(nr: 1);
-        if ($inputId !== null) {
-            $dbAuthUser = DbAuthUserRepository::selectByID(ID: (int)$inputId);
+        if ($this->getPathVar(nr: 1) !== null) {
+            $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
             if ($dbAuthUser === null) {
                 throw new NotFoundException();
             }

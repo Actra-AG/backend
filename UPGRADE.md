@@ -66,6 +66,15 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v1.4.1 – October 4, 2026
+
+* **Logic Change:** The views read IDs from the URL with the typed yuf getters (`getRequiredPathVarAsInt()`,
+  `getRequiredPathVarAsString()`). A path variable that is not strictly an integer (e.g. `user-12abc.html`,
+  `user-+12.html`) now answers with a 404; before, the `(int)` cast opened the user with the leading number.
+  `visits-{ID}.html` and `tokens-{ID}.html` with an invalid ID still answer with a 404.
+* **Migration:** requires `actra/yuf` `^4.5` (was `^4.4`); yuf 4.5.0 has no breaking changes.
+* No breaking change, no database changes.
+
 ### v1.4.0 – October 4, 2026
 
 * **Feature:** Deleting a user and removing an API key run only on POST. New views `userDelete`

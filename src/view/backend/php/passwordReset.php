@@ -42,13 +42,9 @@ class passwordReset extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         AuthSession::logOut();
-        $inputToken = $this->getPathVar(nr: 1);
-        if ($inputToken === null) {
-            throw new NotFoundException();
-        }
         $dbAuthToken = DbAuthTokenRepository::getClaimable(
             authTokenType: AuthTokenTypeEnum::PASSWORD,
-            token: $inputToken
+            token: $this->getRequiredPathVarAsString(nr: 1)
         );
         if ($dbAuthToken === null) {
             throw new NotFoundException();

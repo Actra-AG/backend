@@ -14,7 +14,7 @@ class DbAuthIpWhitelistRepository
     {
         $dbAuthIpWhitelistCollection = new DbAuthIpWhitelistCollection();
         foreach (
-            DB::get()->select(
+            DB::get()->selectRows(
                 sql: '
                    SELECT ID,
                           userID,
@@ -25,13 +25,13 @@ class DbAuthIpWhitelistRepository
                 parameters: [
                     $userID,
                 ]
-            ) as $item
+            ) as $row
         ) {
             $dbAuthIpWhitelistCollection->add(
                 dbAuthIpWhitelist: new DbAuthIpWhitelist(
-                    ID: $item->ID,
-                    userID: $item->userID,
-                    ipAddress: $item->ipAddress
+                    ID: $row->getInt(column: 'ID'),
+                    userID: $row->getInt(column: 'userID'),
+                    ipAddress: $row->getString(column: 'ipAddress')
                 )
             );
         }

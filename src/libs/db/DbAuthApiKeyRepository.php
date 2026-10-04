@@ -12,7 +12,7 @@ use actra\yuf\auth\Password;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
 use actra\yuf\exception\UnauthorizedException;
-use stdClass;
+use actra\yuf\db\DbRow;
 
 class DbAuthApiKeyRepository
 {
@@ -34,14 +34,14 @@ class DbAuthApiKeyRepository
         );
     }
 
-    private static function createItem(stdClass $data): DbAuthApiKey
+    private static function createItem(DbRow $row): DbAuthApiKey
     {
         return new DbAuthApiKey(
-            userID: $data->userID,
-            publicID: $data->publicID,
+            userID: $row->getInt(column: 'userID'),
+            publicID: $row->getString(column: 'publicID'),
             key: new Password(
-                salt: $data->salt,
-                hash: $data->apiKey
+                salt: $row->getString(column: 'salt'),
+                hash: $row->getString(column: 'apiKey')
             )
         );
     }
@@ -50,14 +50,14 @@ class DbAuthApiKeyRepository
     {
         $dbAuthApiKeyCollection = new DbAuthApiKeyCollection();
         foreach (
-            $dbQuery->selectFromDb(
-                db: DB::get(),
+            DB::get()->selectRowsFromQuery(
+                dbQuery: $dbQuery,
                 offset: 0,
                 rowCount: 1000
             ) as $row
         ) {
             $dbAuthApiKeyCollection->add(
-                dbAuthApiKey: DbAuthApiKeyRepository::createItem(data: $row)
+                dbAuthApiKey: DbAuthApiKeyRepository::createItem(row: $row)
             );
         }
         return $dbAuthApiKeyCollection;

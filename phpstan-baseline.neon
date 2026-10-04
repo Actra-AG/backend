@@ -109,18 +109,6 @@ parameters:
 			path: src/libs/db/DbAuthApiKeyRepository.php
 
 		-
-			message: '#^Parameter \$hash of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
-			message: '#^Parameter \$publicID of class actra\\backend\\libs\\db\\DbAuthApiKey constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
 			message: '#^Parameter \$publicID of static method actra\\backend\\libs\\db\\DbAuthApiKeyRepository\:\:selectByPublicID\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -133,74 +121,8 @@ parameters:
 			path: src/libs/db/DbAuthApiKeyRepository.php
 
 		-
-			message: '#^Parameter \$salt of class actra\\yuf\\auth\\Password constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
-			message: '#^Parameter \$userID of class actra\\backend\\libs\\db\\DbAuthApiKey constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
-			message: '#^Method actra\\backend\\libs\\db\\DbAuthGroupRepository\:\:listByCond\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/libs/db/DbAuthGroupRepository.php
-
-		-
-			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthGroup constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthGroupRepository.php
-
-		-
-			message: '#^Parameter \$title of class actra\\backend\\libs\\db\\DbAuthGroup constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthGroupRepository.php
-
-		-
-			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthIpWhitelist constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthIpWhitelistRepository.php
-
-		-
-			message: '#^Parameter \$ipAddress of class actra\\backend\\libs\\db\\DbAuthIpWhitelist constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthIpWhitelistRepository.php
-
-		-
-			message: '#^Parameter \$userID of class actra\\backend\\libs\\db\\DbAuthIpWhitelist constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthIpWhitelistRepository.php
-
-		-
 			message: '#^Method actra\\backend\\libs\\db\\DbAuthTokenRepository\:\:getClientData\(\) should return string but returns string\|false\.$#'
 			identifier: return.type
-			count: 1
-			path: src/libs/db/DbAuthTokenRepository.php
-
-		-
-			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthToken constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthTokenRepository.php
-
-		-
-			message: '#^Parameter \$email of class actra\\backend\\libs\\db\\DbAuthToken constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthTokenRepository.php
-
-		-
-			message: '#^Parameter \$userID of class actra\\backend\\libs\\db\\DbAuthToken constructor expects int, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: src/libs/db/DbAuthTokenRepository.php
 
@@ -215,66 +137,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/libs/db/DbAuthUserNotificationCollection.php
-
-		-
-			message: '#^Parameter \$ID of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$authGroupID of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$datetime of class DateTimeImmutable constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$firstName of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$groupName of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$lastName of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$message of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$recipients of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$sentByID of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
-
-		-
-			message: '#^Parameter \$subject of class actra\\backend\\libs\\db\\DbAuthUserNotification constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthUserNotificationRepository.php
 
 		-
 			message: '#^Method actra\\backend\\libs\\email\\Mailer\:\:sendTextMail\(\) has parameter \$bcc with no value type specified in iterable type array\.$#'

@@ -81,7 +81,7 @@ class DbAuthTokenRepository
         string $token,
         Clock $clock = new SystemClock()
     ): ?DbAuthToken {
-        $res = DB::get()->select(
+        $rows = DB::get()->selectRows(
             sql: '
 				SELECT auth_token.ID,
 				       auth_token.userID,
@@ -107,15 +107,15 @@ class DbAuthTokenRepository
                 $authTokenType->getExpirationInMinutes(),
             ]
         );
-        if ((count(value: $res) !== 1)) {
+        if (count(value: $rows) !== 1) {
             return null;
         }
-        $data = $res[0];
+        $row = $rows[0];
 
         return new DbAuthToken(
-            ID: $data->ID,
-            userID: $data->userID,
-            email: $data->email
+            ID: $row->getInt(column: 'ID'),
+            userID: $row->getInt(column: 'userID'),
+            email: $row->getString(column: 'email')
         );
     }
 

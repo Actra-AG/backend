@@ -52,6 +52,18 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v1.2.1 – October 4, 2026
+
+* **Logic Change:** The repositories read database rows with the typed yuf `DbRow` (`selectRows()`, `selectRow()`)
+  instead of untyped `stdClass` objects. A missing column, `NULL` in a non-nullable field or a wrong type now throws a
+  `DbRowValueException`. `DbAuthUserRepository::createItem()` and the other private row mappers changed their
+  signature (private, no impact).
+* **Feature:** New `DB::selectRowsFromQuery()` (a `DbQuery` as `list<DbRow>`).
+* **Breaking Change (internal class):** `actra\backend\libs\db\DbRowReader` is removed, use
+  `actra\yuf\db\DbRow` (`getDateTime()` → `getDateTimeImmutable()`, `getNullableDateTime()` →
+  `getNullableDateTimeImmutable()`, `getStringOrEmpty()` → `getNullableString() ?? ''`).
+* **Migration:** requires `actra/yuf` `^4.3` (was `^4.2`). The database session time zone must match the PHP time zone.
+
 ### v1.2.0 – October 4, 2026
 
 * **Feature:** All "now" timestamps come from the yuf `Clock` (`actra\yuf\clock\Clock`, default `SystemClock`)

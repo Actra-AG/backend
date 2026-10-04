@@ -22,8 +22,8 @@ password login, and one-time tokens sent via email.
 ## Requirements
 
 - PHP >= 8.5
-- `actra/yuf` framework `^4.1` (since `actra/backend` v1.1.0; v1.0.0 requires `^4.0`). Projects with own forms must
-  migrate them as described in yuf's [UPGRADE.md](https://github.com/Actra-AG/yuf/blob/main/UPGRADE.md).
+- `actra/yuf` framework `^4.3` (since `actra/backend` v1.2.1; v1.1.0 requires `^4.1`; v1.0.0 requires `^4.0`).
+  Projects with own forms must migrate them as described in yuf's [UPGRADE.md](https://github.com/Actra-AG/yuf/blob/main/UPGRADE.md).
 
 ## Installation
 

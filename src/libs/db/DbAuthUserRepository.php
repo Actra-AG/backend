@@ -13,7 +13,7 @@ use actra\yuf\auth\Password;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbQuery;
-use stdClass;
+use actra\yuf\db\DbRow;
 
 class DbAuthUserRepository
 {
@@ -43,23 +43,22 @@ class DbAuthUserRepository
         );
     }
 
-    private static function createItem(stdClass $data): DbAuthUser
+    private static function createItem(DbRow $row): DbAuthUser
     {
-        $row = new DbRowReader(row: $data);
         $passwordSalt = $row->getNullableString(column: 'passwordSalt');
 
         return new DbAuthUser(
             ID: $row->getInt(column: 'ID'),
-            registered: $row->getDateTime(column: 'registered'),
-            invitedDate: $row->getNullableDateTime(column: 'invited'),
-            lastLogin: $row->getNullableDateTime(column: 'lastLogin'),
+            registered: $row->getDateTimeImmutable(column: 'registered'),
+            invitedDate: $row->getNullableDateTimeImmutable(column: 'invited'),
+            lastLogin: $row->getNullableDateTimeImmutable(column: 'lastLogin'),
             email: $row->getString(column: 'email'),
             phone: $row->getString(column: 'phone'),
             isActive: $row->getBool(column: 'active'),
             accessRightCollection: AccessRightCollection::createFromStringArray(
                 input: explode(
                     separator: ',',
-                    string: $row->getStringOrEmpty(column: 'accessRights')
+                    string: $row->getNullableString(column: 'accessRights') ?? ''
                 )
             ),
             firstName: $row->getString(column: 'firstName'),
@@ -69,7 +68,7 @@ class DbAuthUserRepository
                 salt: $passwordSalt, hash: $row->getString(column: 'passwordHash')
             ),
             wrongLoginAttempts: $row->getInt(column: 'wrongLoginAttempts'),
-            rawIpWhitelist: $row->getStringOrEmpty(column: 'ipWhitelist')
+            rawIpWhitelist: $row->getNullableString(column: 'ipWhitelist') ?? ''
         );
     }
 
@@ -77,14 +76,14 @@ class DbAuthUserRepository
     {
         $dbAuthUserCollection = new DbAuthUserCollection();
         foreach (
-            $dbQuery->selectFromDb(
-                db: DB::get(),
+            DB::get()->selectRowsFromQuery(
+                dbQuery: $dbQuery,
                 offset: 0,
                 rowCount: 1000
-            ) as $item
+            ) as $row
         ) {
             $dbAuthUserCollection->add(
-                dbAuthUser: DbAuthUserRepository::createItem(data: $item)
+                dbAuthUser: DbAuthUserRepository::createItem(row: $row)
             );
         }
 

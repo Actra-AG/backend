@@ -10,8 +10,7 @@ namespace actra\backend\libs\db;
 
 use actra\backend\libs\auth\MyAuthUser;
 use actra\yuf\db\DbQuery;
-use DateTimeImmutable;
-use stdClass;
+use actra\yuf\db\DbRow;
 
 class DbAuthUserNotificationRepository
 {
@@ -36,19 +35,19 @@ class DbAuthUserNotificationRepository
         );
     }
 
-    private static function createItem(stdClass $data): DbAuthUserNotification
+    private static function createItem(DbRow $row): DbAuthUserNotification
     {
         return new DbAuthUserNotification(
-            ID: $data->ID,
-            authGroupID: $data->authGroupID,
-            sentByID: $data->sentByID,
-            sentDate: new DateTimeImmutable(datetime: $data->sentDate),
-            subject: $data->subject,
-            message: $data->message,
-            groupName: $data->groupName,
-            firstName: $data->firstName,
-            lastName: $data->lastName,
-            recipients: $data->recipients
+            ID: $row->getInt(column: 'ID'),
+            authGroupID: $row->getInt(column: 'authGroupID'),
+            sentByID: $row->getInt(column: 'sentByID'),
+            sentDate: $row->getDateTimeImmutable(column: 'sentDate'),
+            subject: $row->getString(column: 'subject'),
+            message: $row->getString(column: 'message'),
+            groupName: $row->getString(column: 'groupName'),
+            firstName: $row->getString(column: 'firstName'),
+            lastName: $row->getString(column: 'lastName'),
+            recipients: $row->getInt(column: 'recipients')
         );
     }
 
@@ -69,14 +68,14 @@ class DbAuthUserNotificationRepository
     {
         $dbAuthUserNotificationCollection = new DbAuthUserNotificationCollection();
         foreach (
-            $dbQuery->selectFromDb(
-                db: DB::get(),
+            DB::get()->selectRowsFromQuery(
+                dbQuery: $dbQuery,
                 offset: 0,
                 rowCount: 1000
-            ) as $item
+            ) as $row
         ) {
             $dbAuthUserNotificationCollection->add(
-                dbAuthUserNotification: DbAuthUserNotificationRepository::createItem(data: $item)
+                dbAuthUserNotification: DbAuthUserNotificationRepository::createItem(row: $row)
             );
         }
 

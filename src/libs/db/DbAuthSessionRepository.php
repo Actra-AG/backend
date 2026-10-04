@@ -13,7 +13,7 @@ use actra\yuf\auth\Password;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\core\HttpRequest;
-use stdClass;
+use actra\yuf\db\DbRow;
 
 class DbAuthSessionRepository
 {
@@ -65,19 +65,18 @@ class DbAuthSessionRepository
 
     public static function selectByID(int $ID): ?DbAuthSession
     {
-        $res = DB::get()->select(
+        $row = DB::get()->selectRow(
             sql: DbAuthSessionRepository::SELECT_QUERY . ' WHERE auth_session.ID=?',
             parameters: [
                 $ID,
             ]
         );
 
-        return $res === [] ? null : DbAuthSessionRepository::createDbAuthSession(data: $res[0]);
+        return $row === null ? null : DbAuthSessionRepository::createDbAuthSession(row: $row);
     }
 
-    private static function createDbAuthSession(stdClass $data): DbAuthSession
+    private static function createDbAuthSession(DbRow $row): DbAuthSession
     {
-        $row = new DbRowReader(row: $data);
         $passwordSalt = $row->getNullableString(column: 'passwordSalt');
 
         return new DbAuthSession(
@@ -85,16 +84,16 @@ class DbAuthSessionRepository
             parentID: $row->getNullableInt(column: 'parentID'),
             dbAuthUser: new DbAuthUser(
                 ID: $row->getInt(column: 'userID'),
-                registered: $row->getDateTime(column: 'registered'),
-                invitedDate: $row->getNullableDateTime(column: 'invited'),
-                lastLogin: $row->getNullableDateTime(column: 'lastLogin'),
+                registered: $row->getDateTimeImmutable(column: 'registered'),
+                invitedDate: $row->getNullableDateTimeImmutable(column: 'invited'),
+                lastLogin: $row->getNullableDateTimeImmutable(column: 'lastLogin'),
                 email: $row->getString(column: 'email'),
                 phone: $row->getString(column: 'phone'),
                 isActive: $row->getBool(column: 'active'),
                 accessRightCollection: AccessRightCollection::createFromStringArray(
                     input: explode(
                         separator: ',',
-                        string: $row->getStringOrEmpty(column: 'accessRights')
+                        string: $row->getNullableString(column: 'accessRights') ?? ''
                     )
                 ),
                 firstName: $row->getString(column: 'firstName'),
@@ -104,7 +103,7 @@ class DbAuthSessionRepository
                     salt: $passwordSalt, hash: $row->getString(column: 'passwordHash')
                 ),
                 wrongLoginAttempts: $row->getInt(column: 'wrongLoginAttempts'),
-                rawIpWhitelist: $row->getStringOrEmpty(column: 'ipWhitelist')
+                rawIpWhitelist: $row->getNullableString(column: 'ipWhitelist') ?? ''
             )
         );
     }

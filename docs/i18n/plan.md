@@ -1,6 +1,6 @@
 # Plan: English base texts with selectable German (i18n)
 
-Status: v1.1.0 ready for release; T8 dropped
+Status: released as v1.1.0 (2026-10-04, commit 42e6f45); T8 dropped
 
 ## 1. Goal
 

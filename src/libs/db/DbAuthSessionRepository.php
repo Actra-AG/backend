@@ -10,6 +10,8 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
+use actra\yuf\clock\Clock;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\core\HttpRequest;
 use stdClass;
 
@@ -107,15 +109,15 @@ class DbAuthSessionRepository
         );
     }
 
-    public static function updateLastAction(int $ID): void
+    public static function updateLastAction(int $ID, Clock $clock = new SystemClock()): void
     {
         DB::get()->execute(
             sql: '
                     UPDATE auth_session
-                    SET lastAction=NOW()
+                    SET lastAction=?
                     WHERE ID=?
                 ',
-            parameters: [$ID]
+            parameters: [$clock->now()->format(format: 'Y-m-d H:i:s'), $ID]
         );
     }
 

@@ -10,6 +10,8 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
+use actra\yuf\clock\Clock;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbQuery;
 use stdClass;
 
@@ -135,29 +137,31 @@ class DbAuthUserRepository
         return DbAuthUserRepository::select(dbQuery: $dbQuery);
     }
 
-    public static function sentInvitation(int $ID): void
+    public static function sentInvitation(int $ID, Clock $clock = new SystemClock()): void
     {
         DB::get()->execute(
             sql: '
                     UPDATE auth_user
-                    SET invited=NOW()
+                    SET invited=?
                     WHERE ID=?
                 ',
             parameters: [
+                $clock->now()->format(format: 'Y-m-d H:i:s'),
                 $ID,
             ]
         );
     }
 
-    public static function dbConfirmSuccessfulLogin(int $ID): void
+    public static function dbConfirmSuccessfulLogin(int $ID, Clock $clock = new SystemClock()): void
     {
         DB::get()->execute(
             sql: '
                     UPDATE auth_user
-                    SET lastSuccessfulLogin=NOW()
+                    SET lastSuccessfulLogin=?
                     WHERE ID=?
                 ',
             parameters: [
+                $clock->now()->format(format: 'Y-m-d H:i:s'),
                 $ID,
             ]
         );

@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\backend\settings\AuthTokenTypeEnum;
+use actra\yuf\clock\Clock;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\common\StringUtils;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
@@ -35,7 +37,8 @@ class DbAuthTokenRepository
 
     public static function createToken(
         DbAuthUser $dbAuthUser,
-        AuthTokenTypeEnum $authTokenTypeEnum
+        AuthTokenTypeEnum $authTokenTypeEnum,
+        Clock $clock = new SystemClock()
     ): string {
         $token = strtoupper(
             string: StringUtils::randomString(
@@ -49,12 +52,14 @@ class DbAuthTokenRepository
                 SET auth_token.userID=?,
                     auth_token.type=?,
                     auth_token.token=?,
+                    auth_token.registered=?,
                     auth_token.registeredClient=?
             ',
             parameters: [
                 $dbAuthUser->ID,
                 $authTokenTypeEnum->value,
                 $token,
+                $clock->now()->format(format: 'Y-m-d H:i:s'),
                 DbAuthTokenRepository::getClientData(),
             ]
         );
@@ -73,7 +78,8 @@ class DbAuthTokenRepository
 
     public static function getClaimable(
         AuthTokenTypeEnum $authTokenType,
-        string $token
+        string $token,
+        Clock $clock = new SystemClock()
     ): ?DbAuthToken {
         $res = DB::get()->select(
             sql: '
@@ -84,7 +90,7 @@ class DbAuthTokenRepository
 				    INNER JOIN auth_user ON auth_token.userID = auth_user.ID
 				WHERE auth_token.type=?
 				  AND auth_token.token=?
-				  AND auth_token.registered>=DATE_SUB(NOW(), INTERVAL ? MINUTE)
+				  AND auth_token.registered>=DATE_SUB(?, INTERVAL ? MINUTE)
 				  AND auth_token.claimed IS NULL
 				  AND auth_token.token=(SELECT last.token
 				                        FROM auth_token last
@@ -97,6 +103,7 @@ class DbAuthTokenRepository
             parameters: [
                 $authTokenType->value,
                 $token,
+                $clock->now()->format(format: 'Y-m-d H:i:s'),
                 $authTokenType->getExpirationInMinutes(),
             ]
         );
@@ -112,16 +119,17 @@ class DbAuthTokenRepository
         );
     }
 
-    public static function claim(DbAuthToken $dbAuthToken): void
+    public static function claim(DbAuthToken $dbAuthToken, Clock $clock = new SystemClock()): void
     {
         DB::get()->execute(
             sql: '
                 UPDATE auth_token
-                SET auth_token.claimed=NOW(),
+                SET auth_token.claimed=?,
                     auth_token.claimedClient=?
                 WHERE auth_token.ID=?
             ',
             parameters: [
+                $clock->now()->format(format: 'Y-m-d H:i:s'),
                 DbAuthTokenRepository::getClientData(),
                 $dbAuthToken->ID,
             ]

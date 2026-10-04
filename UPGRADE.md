@@ -52,6 +52,17 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v1.2.0 – October 4, 2026
+
+* **Feature:** All "now" timestamps come from the yuf `Clock` (`actra\yuf\clock\Clock`, default `SystemClock`)
+  instead of the database or PHP default: `DbAuthSessionRepository::updateLastAction()`,
+  `DbAuthUserRepository::sentInvitation()` and `dbConfirmSuccessfulLogin()`, `DbAuthTokenRepository::createToken()`,
+  `getClaimable()` and `claim()`, and the CSV file name of `AbstractTable` (new optional last constructor argument).
+  All new parameters are optional, existing calls keep working.
+* **Logic Change:** Those timestamps (and the token expiry check) are now written/compared in the PHP time zone instead
+  of the database session time zone. Make sure both are the same (usual setup).
+* **Migration:** requires `actra/yuf` `^4.2` (was `^4.1`).
+
 ### v1.1.0 – October 4, 2026
 
 * **Migration:** Requires `actra/yuf` `^4.1` (configurable table pagination titles); Composer updates yuf within v4.

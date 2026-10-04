@@ -10,6 +10,8 @@ namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
 use actra\backend\i18n\MessageTemplate;
+use actra\yuf\clock\Clock;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\common\CSVFile;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\FrameworkDB;
@@ -17,12 +19,16 @@ use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\renderer\TablePaginationRenderer;
 use actra\yuf\table\table\DbResultTable;
 use actra\yuf\table\table\SmartTable;
-use DateTimeImmutable;
 
 abstract class AbstractTable extends DbResultTable
 {
-    public function __construct(string $identifier, FrameworkDB $db, DbQuery $dbQuery, int $itemsPerPage = 25)
-    {
+    public function __construct(
+        string $identifier,
+        FrameworkDB $db,
+        DbQuery $dbQuery,
+        int $itemsPerPage = 25,
+        private readonly Clock $clock = new SystemClock()
+    ) {
         $common = ActraBackend::messages()->common;
         parent::__construct(
             identifier: $identifier,
@@ -67,7 +73,7 @@ abstract class AbstractTable extends DbResultTable
             $list[] = $item;
         }
         $csvFile = new CSVFile(
-            fileName: new DateTimeImmutable()->format(format: 'Y-m-d-H-i-s') . '-' . $name . '.csv',
+            fileName: $this->clock->now()->format(format: 'Y-m-d-H-i-s') . '-' . $name . '.csv',
             headersList: $headersList
         );
         foreach ($list as $item) {

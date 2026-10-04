@@ -4,6 +4,24 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## HTML & CSS (Frontend)
 
+### v1.5.0 – October 5, 2026
+
+* **Feature:** The confirmation dialog (`dialog.js`) supports `data-confirm-label` on the link: the confirm button
+  (`[data-action="modal-submit"]`) shows this text while the dialog is open and gets its template text back on close
+  or cancel. Set as plain text. Without the attribute the behaviour is unchanged. See README "Confirmation Dialog for
+  Destructive Actions".
+* **Feature:** New message variant `msg-warning` (new variables `--clr-warning-50` and `--clr-warning-400` in
+  `_variables.css`) next to the existing `msg-success`, `msg-note` and `msg-error` (now documented, see README
+  "Assets"). All variants have a contrast of at least 4.5:1. In print, `.msg` gets a border in the text colour,
+  because browsers do not print backgrounds by default.
+* `user.html` and `profile.html`: the "generate API key" link points to the new confirmation pages
+  `userGenerateApiKey-{ID}.html` / `profileGenerateApiKey.html` and got `data-action="confirm-deletion"`,
+  `data-form="main form"`, `data-confirm` and `data-confirm-label` (new replacements `generateApiKeyConfirm` and
+  `generateApiKeyConfirmLabel`). Projects with their own `user.html`/`profile.html` copy these attributes and
+  replacements; the old link `?generateApiKey` no longer generates a key.
+* **Migration:** Projects must rebuild their JavaScript and CSS bundles (or republish `backend.js`,
+  `modules/dialog.js`, `backend.css`, `_variables.css` and `blocks/_msg.css`).
+
 ### v1.4.0 – October 4, 2026
 
 * **Feature:** The confirmation dialog (`dialog.js`) supports POST forms: a link with `data-action="confirm-deletion"`
@@ -65,6 +83,28 @@ This document tracks relevant changes for both frontend and backend developers.
 * Added the `nav-user-logout` CSS class to the logout item in the user dropdown.
 
 ## Backend & API
+
+### v1.5.0 – October 5, 2026
+
+* **Security:** Generating an API key runs only on POST (CSRF protected). New views `userGenerateApiKey`
+  (`userGenerateApiKey-{ID}.html`) and `profileGenerateApiKey` (confirmation pages), new form `ApiKeyGenerateForm`
+  and `actra\backend\libs\auth\GeneratedApiKeyFlash`, which keeps the new key in the session until the user or
+  profile page has shown it once (it is never put into a URL).
+* **Logic Change:** The GET parameter `?generateApiKey` (`user`, `profile`) is removed and no longer generates a key;
+  the constants `user::PARAM_GENERATE_API_KEY` and `profile::PARAM_GENERATE_API_KEY` are removed. Projects with own
+  links to it link to `userGenerateApiKey::getPath()` / `profileGenerateApiKey::getPath()` instead.
+* **Feature:** New texts `CommonMessages::$generateApiKeyTitle`, `$generateApiKeyConfirm` and
+  `$generateApiKeyConfirmLabel` (English and German).
+* **Logic Change:** The callback columns of `UserTable`, `NotificationTable`, `TokenTable` and `VisitTable` read their
+  values with the typed getters of yuf's `TableItemModel::getRow()`. An unexpected database value (e.g. `NULL` as ID,
+  an unknown token type or visit result) throws a `DbRowValueException` naming the column instead of an
+  `UnexpectedValueException`, `ValueError` or a link to ID 0.
+* **Migration:** requires `actra/yuf` `^4.7` (was `^4.6`); yuf 4.7.0 has no breaking changes.
+* Still on GET (they only switch or end the login session, no user data is changed): `?impersonate` (`user`),
+  `?cancelSessionChange` (all views) and the `logout` view.
+* Known issue: after jumping directly (bookmark, typed URL) from one detail page to another, the breadcrumb can still
+  show the entries of the first page. Cause and proposal: `docs/breadcrumb/analysis.md` in the repository.
+* No breaking change, no database changes.
 
 ### v1.4.2 – October 5, 2026
 

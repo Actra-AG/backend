@@ -8,6 +8,8 @@
  *   (CSS selector in data-form) is taken from it and submitted by POST; afterwards the browser goes to the page the
  *   server redirected to. If anything fails, the browser navigates to the href (the confirmation page).
  * - Without data-form, a confirmation navigates to the href (GET, legacy).
+ * - data-confirm sets the message, data-confirm-label the text of the confirm button (e.g. "Yes, generate") while the
+ *   dialog is open. Without them, the texts of the #dialog template are used.
  *
  * Without JavaScript, or without <dialog> support, the links simply open their href.
  */
@@ -28,6 +30,7 @@ export function initDialog() {
   }
 
   const defaultMessage = message.textContent;
+  const defaultSubmitLabel = buttonSubmit.textContent;
   let currentLink = null;
 
   const navigate = url => {
@@ -86,6 +89,7 @@ export function initDialog() {
   });
   modal.addEventListener('close', () => {
     currentLink = null;
+    buttonSubmit.textContent = defaultSubmitLabel;
   });
 
   document
@@ -95,6 +99,8 @@ export function initDialog() {
         e.preventDefault();
         currentLink = link;
         message.textContent = link.dataset.confirm || defaultMessage;
+        buttonSubmit.textContent =
+          link.dataset.confirmLabel || defaultSubmitLabel;
         modal.showModal();
       });
     });

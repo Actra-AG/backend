@@ -76,8 +76,8 @@ class TokenTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'registeredClient',
                 label: $messages->log->tokenCreatedClientColumn,
-                callbackFunction: fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
-                    clientJson: $tableItemModel->getRawValue(name: 'registeredClient')
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
+                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'registeredClient')
                 ),
                 isSortable: true
             )
@@ -86,16 +86,12 @@ class TokenTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'type',
                 label: $messages->log->typeLabel,
-                callbackFunction: function (TableItemModel $tableItemModel) use ($messages): string {
-                    $type = $tableItemModel->getRawValue(name: 'type');
-                    if (!is_string(value: $type)) {
-                        throw new UnexpectedValueException(message: 'The token type must be a string.');
-                    }
-
-                    return HtmlEncoder::encode(
-                        value: AuthTokenTypeEnum::from(value: $type)->render(messages: $messages->log)
-                    );
-                },
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => HtmlEncoder::encode(
+                    value: $tableItemModel->getRow()->getEnum(
+                        column: 'type',
+                        enumClass: AuthTokenTypeEnum::class
+                    )->render(messages: $messages->log)
+                ),
                 isSortable: true
             )
         );
@@ -110,8 +106,8 @@ class TokenTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'claimedClient',
                 label: $messages->log->tokenClaimedClientColumn,
-                callbackFunction: fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
-                    clientJson: $tableItemModel->getRawValue(name: 'claimedClient')
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
+                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'claimedClient')
                 ),
                 isSortable: true
             )
@@ -128,13 +124,10 @@ class TokenTable extends AbstractTable
     /**
      * Lists the JSON client data as "key: value" lines. The values are output as stored (legacy behaviour).
      */
-    private static function renderClient(mixed $clientJson): string
+    private static function renderClient(?string $clientJson): string
     {
         if ($clientJson === null || $clientJson === '') {
             return '';
-        }
-        if (!is_string(value: $clientJson)) {
-            throw new UnexpectedValueException(message: 'The client data must be a JSON string.');
         }
         $client = json_decode(json: $clientJson);
         if (!is_object(value: $client)) {

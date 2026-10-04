@@ -60,7 +60,9 @@
               <tst:else>
                 {tst:text value='apiKeyNone'}
               </tst:else>
-              [<a href="{tst:text value='generateApiKeyHref'}">{tst:text value='generateApiKeyLink'}</a>]
+              [<a href="{tst:text value='generateApiKeyHref'}" data-action="confirm-deletion" data-form="main form"
+                 data-confirm="{tst:text value='generateApiKeyConfirm'}"
+                 data-confirm-label="{tst:text value='generateApiKeyConfirmLabel'}">{tst:text value='generateApiKeyLink'}</a>]
             </dd>
           </dl>
         </div>

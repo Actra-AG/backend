@@ -108,6 +108,10 @@
   --clr-error-400: #ca0b00;
   --clr-error-500: #a20900;
 
+  /* clr-warning */
+  --clr-warning-50: #fff4e0;
+  --clr-warning-400: #8a4b00;
+
   /* clr-success */
   --clr-success-50: #dff0d8;
   --clr-success-400: #3c763d;

@@ -8,6 +8,11 @@
   color: var(--clr-error-400);
 }
 
+.msg-warning {
+  background: var(--clr-warning-50);
+  color: var(--clr-warning-400);
+}
+
 .msg-success {
   background: var(--clr-success-50);
   color: var(--clr-success-400);
@@ -16,4 +21,11 @@
 .msg-note {
   background: var(--clr-primary-100);
   color: var(--clr-primary-900);
+}
+
+/* Browsers do not print backgrounds by default: a border keeps the message box visible */
+@media print {
+  .msg {
+    border: 1px solid currentcolor;
+  }
 }

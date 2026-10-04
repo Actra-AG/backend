@@ -56,6 +56,17 @@ For example, when publishing the package assets directly, publish the backend fo
 `/fonts/backend/inter-v18-latin-regular.woff2`, `/fonts/backend/inter-v18-latin-italic.woff2`, and the used bold weights
 are reachable by the browser.
 
+Messages use the `msg` block (`src/assets/css/blocks/_msg.css`) with one variant: `msg-success`, `msg-note`,
+`msg-warning` or `msg-error`. Use `role="status"` for success and notes, `role="alert"` for errors that need
+attention:
+
+```html
+<p class="msg msg-error" role="alert"><strong>Error:</strong> This event has subscriptions and cannot be deleted.</p>
+<p class="msg msg-warning" role="status"><strong>Warning:</strong> The event is fully booked.</p>
+```
+
+After changing the version of `actra/backend`, rebuild (or republish) the CSS and JavaScript bundles of the project.
+
 After the assets are available through the application's public asset URLs, reference them when initializing the
 backend:
 
@@ -258,6 +269,18 @@ submit button. Its processing redirects after success.
 - Without `data-form`, the previous behaviour stays: a confirmation navigates to the `href` (GET, legacy).
 - The `#dialog` element (`.dialog-message`, `[data-action="modal-submit"]`, `[data-action="modal-cancel"]`) is part of
   the default page template. `data-confirm` sets the message.
+- `data-confirm-label` (optional) sets the text of the confirm button while the dialog is open (as plain text, no
+  HTML); on close or cancel the button gets its template text back ("Yes, delete" / "Ja, löschen"). Use it for actions
+  that are not a deletion:
+
+```html
+<a href="/backend/subscriptionCancel-42.html" class="btn btn-danger" data-action="confirm-deletion"
+   data-form="main form" data-confirm="Really cancel the subscription?"
+   data-confirm-label="Yes, cancel">Cancel subscription</a>
+```
+
+The same pattern also protects state-changing actions that are not deletions, e.g. generating an API key
+(`userGenerateApiKey-5.html`, `profileGenerateApiKey.html`).
 
 ### API Key Authentication
 
@@ -276,6 +299,11 @@ can also manage their own API key on their profile page.
 API keys can only be generated if an IP whitelist is configured for the user. If an API key exists, the user's IP
 whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored hashed
 with a salt.
+
+Generating and removing a key run only on POST, through the confirmation pages `userGenerateApiKey-{ID}.html`,
+`userRemoveApiKey-{ID}.html`, `profileGenerateApiKey.html` and `profileRemoveApiKey.html` (see "Confirmation Dialog
+for Destructive Actions"). After generating, the new key is kept in the session until the user or profile page has
+shown it once.
 
 API clients should send the generated key as a bearer token:
 

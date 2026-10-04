@@ -57,9 +57,9 @@ class UserTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'fullName',
                 label: $messages->nameColumn,
-                callbackFunction: function (TableItemModel $tableItemModel) {
+                callbackFunction: static function (TableItemModel $tableItemModel): string {
                     return '<a href="' . user::getPath(
-                            ID: $tableItemModel->getRawValue(name: 'ID')
+                            ID: $tableItemModel->getRow()->getInt(column: 'ID')
                         ) . '">' . $tableItemModel->renderValue(name: 'fullName') . '</a>';
                 },
                 isSortable: true
@@ -92,7 +92,7 @@ class UserTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'ipWhitelist',
                 label: $common->ipWhitelistLabel,
-                callbackFunction: function (TableItemModel $tableItemModel) {
+                callbackFunction: static function (TableItemModel $tableItemModel): string {
                     return str_replace(
                         search: ',',
                         replace: '<br>',

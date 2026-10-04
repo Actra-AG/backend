@@ -19,7 +19,6 @@ use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItemModel;
-use UnexpectedValueException;
 
 class VisitTable extends AbstractTable
 {
@@ -111,16 +110,11 @@ class VisitTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'result',
                 label: $messages->log->statusLabel,
-                callbackFunction: function (TableItemModel $tableItemModel) use ($messages): string {
-                    $result = $tableItemModel->getRawValue(name: 'result');
-                    if (!is_int(value: $result) && !(is_string(value: $result) && ctype_digit(text: $result))) {
-                        throw new UnexpectedValueException(message: 'The visit result must be an integer.');
-                    }
-
-                    return HtmlEncoder::encode(
-                        value: $messages->log->authResult(authResult: AuthResult::from(value: (int)$result))
-                    );
-                }
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => HtmlEncoder::encode(
+                    value: $messages->log->authResult(
+                        authResult: $tableItemModel->getRow()->getEnum(column: 'result', enumClass: AuthResult::class)
+                    )
+                )
             )
         );
     }

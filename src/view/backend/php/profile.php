@@ -10,6 +10,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\libs\auth\GeneratedApiKeyFlash;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\form\ProfileForm;
@@ -25,7 +26,6 @@ use actra\yuf\html\HtmlText;
 class profile extends BackendView
 {
     public const string PARAM_CHANGED = 'changed';
-    public const string PARAM_GENERATE_API_KEY = 'generateApiKey';
 
     public function __construct()
     {
@@ -33,12 +33,6 @@ class profile extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: profile::PARAM_CHANGED,
-                isRequired: false
-            )
-        );
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                name: profile::PARAM_GENERATE_API_KEY,
                 isRequired: false
             )
         );
@@ -66,18 +60,6 @@ class profile extends BackendView
     {
         $dbAuthUser = MyAuthUser::get()->dbAuthUser;
         $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
-        $generatedApiKey = '';
-        if ($hasApi) {
-            $canGenerateApiKey = $dbAuthUser->ipWhitelist !== [];
-            if (
-                $canGenerateApiKey
-                && $this->getInputString(keyName: profile::PARAM_GENERATE_API_KEY) !== null
-            ) {
-                $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
-            }
-        } else {
-            $canGenerateApiKey = false;
-        }
         $profileForm = new ProfileForm(dbAuthUser: $dbAuthUser);
         if ($profileForm->process()) {
             HttpResponse::redirectAndExit(
@@ -126,7 +108,7 @@ class profile extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'generateApiKeyHref',
-            content: $canGenerateApiKey ? '?' . profile::PARAM_GENERATE_API_KEY : ''
+            content: $dbAuthUser->ipWhitelist !== [] ? profileGenerateApiKey::getPath() : ''
         );
         $replacements->addEncodedText(
             identifier: 'removeApiKeyHref',
@@ -134,7 +116,7 @@ class profile extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'generatedApiKey',
-            content: $generatedApiKey
+            content: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? ''
         );
     }
 
@@ -150,6 +132,8 @@ class profile extends BackendView
                 'changedText' => $common->changesSaved,
                 'apiKeyGeneratedText' => $common->apiKeyGenerated,
                 'removeApiKeyConfirm' => $common->removeApiKeyConfirm,
+                'generateApiKeyConfirm' => $common->generateApiKeyConfirm,
+                'generateApiKeyConfirmLabel' => $common->generateApiKeyConfirmLabel,
                 'generatedApiKeyLabel' => $common->apiKeyValueLabel,
                 'passwordProtectionHeading' => $profileMessages->passwordProtectionHeading,
                 'passwordProtectionIntro' => $profileMessages->passwordProtectionIntro,

@@ -45,12 +45,8 @@ class NotificationTable extends AbstractTable
                 identifier: 'subject',
                 label: $messages->common->subjectLabel,
                 callbackFunction: static function (TableItemModel $tableItemModel): string {
-                    $notificationID = $tableItemModel->getRawValue(name: 'ID');
-
                     return '<a href="' . HtmlEncoder::encode(
-                            value: notification::getPath(
-                                ID: is_numeric(value: $notificationID) ? (int)$notificationID : 0
-                            )
+                            value: notification::getPath(ID: $tableItemModel->getRow()->getInt(column: 'ID'))
                         ) . '">' . $tableItemModel->renderValue(name: 'subject') . '</a>';
                 }
             )

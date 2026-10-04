@@ -70,7 +70,10 @@ final readonly class CommonMessages
         public string $dateFormat = 'Y-m-d',
         public string $dateTimeFormat = 'Y-m-d H:i:s',
         public string $removeApiKeyTitle = 'Remove API key',
-        public string $removeApiKeyConfirm = 'Really remove the API key?'
+        public string $removeApiKeyConfirm = 'Really remove the API key?',
+        public string $generateApiKeyTitle = 'Generate API key',
+        public string $generateApiKeyConfirm = 'Generate a new API key? An existing API key is replaced and stops working.',
+        public string $generateApiKeyConfirmLabel = 'Yes, generate'
     ) {
     }
 
@@ -130,7 +133,10 @@ final readonly class CommonMessages
             dateFormat: 'd.m.Y',
             dateTimeFormat: 'd.m.Y H:i:s',
             removeApiKeyTitle: 'API-Key entfernen',
-            removeApiKeyConfirm: 'Den API-Key wirklich entfernen?'
+            removeApiKeyConfirm: 'Den API-Key wirklich entfernen?',
+            generateApiKeyTitle: 'API-Key generieren',
+            generateApiKeyConfirm: 'Einen neuen API-Key generieren? Ein bestehender API-Key wird ersetzt und funktioniert nicht mehr.',
+            generateApiKeyConfirmLabel: 'Ja, generieren'
         );
     }
 }

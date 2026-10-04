@@ -163,12 +163,6 @@ parameters:
 			path: src/libs/email/Mailer.php
 
 		-
-			message: '#^Parameter \$ID of static method actra\\backend\\view\\backend\\php\\user\:\:getPath\(\) expects int\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/libs/table/UserTable.php
-
-		-
 			message: '#^Cannot use \+\+ on mixed\.$#'
 			identifier: postInc.type
 			count: 1

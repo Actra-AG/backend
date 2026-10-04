@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\i18n\MessageTemplate;
+use actra\backend\libs\auth\GeneratedApiKeyFlash;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
@@ -34,7 +35,6 @@ class user extends BackendView
     public const string PARAM_ADDED = 'add';
     public const string PARAM_CHANGED = 'mod';
     public const string PARAM_INVITED = 'invited';
-    public const string PARAM_GENERATE_API_KEY = 'generateApiKey';
 
     private ?HtmlText $pageTitle = null;
 
@@ -62,12 +62,6 @@ class user extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_INVITED,
-                isRequired: false
-            )
-        );
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                name: user::PARAM_GENERATE_API_KEY,
                 isRequired: false
             )
         );
@@ -127,18 +121,6 @@ class user extends BackendView
             HttpResponse::redirectAndExit(relativeOrAbsoluteUri: $firstNavigationItem->href);
         }
         $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
-        $generatedApiKey = '';
-        if ($hasApi) {
-            $canGenerateApiKey = $dbAuthUser->ipWhitelist !== [];
-            if (
-                $canGenerateApiKey
-                && $this->getInputString(keyName: user::PARAM_GENERATE_API_KEY) !== null
-            ) {
-                $generatedApiKey = DbAuthApiKeyRepository::createForUserID(userID: $dbAuthUser->ID);
-            }
-        } else {
-            $canGenerateApiKey = false;
-        }
         $messages = ActraBackend::messages()->user;
         $common = ActraBackend::messages()->common;
         $dateTimeFormat = $common->dateTimeFormat;
@@ -278,7 +260,7 @@ class user extends BackendView
         }
         $replacements->addEncodedText(
             identifier: 'generatedApiKey',
-            content: $generatedApiKey
+            content: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? ''
         );
         $replacements->addEncodedText(
             identifier: 'apiKey',
@@ -286,15 +268,19 @@ class user extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'generateApiKeyHref',
-            content: $canGenerateApiKey ? '?' . user::PARAM_GENERATE_API_KEY : ''
+            content: $dbAuthUser->ipWhitelist !== [] ? userGenerateApiKey::getPath(ID: $dbAuthUser->ID) : ''
         );
         $replacements->addEncodedText(
             identifier: 'removeApiKeyHref',
             content: userRemoveApiKey::getPath(ID: $dbAuthUser->ID)
         );
-        $replacements->addHtmlText(
-            identifier: 'removeApiKeyConfirm',
-            htmlText: HtmlText::unencoded(textContent: $common->removeApiKeyConfirm)
+        $this->addTexts(
+            replacements: $replacements,
+            texts: [
+                'removeApiKeyConfirm' => $common->removeApiKeyConfirm,
+                'generateApiKeyConfirm' => $common->generateApiKeyConfirm,
+                'generateApiKeyConfirmLabel' => $common->generateApiKeyConfirmLabel,
+            ]
         );
     }
 

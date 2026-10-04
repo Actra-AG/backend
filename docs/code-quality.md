@@ -106,7 +106,20 @@ Every task and every commit must end with a green `composer check`.
 - Field checks are typed rules (`StringRule`, `StringListRule`, …, per line with `addEachRule()`), not overrides of
   the field's validation. Error messages are `HtmlText`; user input in a message is always encoded.
 
-### 4.5 Security
+### 4.5 Texts (i18n)
+
+- No hard-coded user-visible text in views, templates, forms, tables or emails: every text is a property of a message
+  class in `src/i18n/` (English default, German in `german()`), shared texts in `CommonMessages`. Read them with
+  `ActraBackend::messages()`.
+- Messages are plain text without HTML and are always encoded (`HtmlText::unencoded()`, `BackendView::addTexts()`).
+  Markup is built around them; punctuation that follows a label (`Success:`) belongs into the message.
+- Dynamic parts are `[placeholder]`s filled with `MessageTemplate::fill()`; the English and German text use the same
+  placeholders (`tests/Unit/i18n/MessagesTest.php`).
+- The backend can run under several routes, one per language. `ActraBackend::messages()` and `ActraBackend::path()`
+  return the texts and the path of the current route: never cache texts or build links from a fixed path. Text for
+  another user (e.g. an email) uses that user's route: `ActraBackend::get()->getRouteForLanguage()`.
+
+### 4.6 Security
 
 - All output is HTML-escaped by default. Unescaped output must be explicit (e.g. `HtmlText::encoded()` only for text
   that is already safe HTML).
@@ -114,7 +127,7 @@ Every task and every commit must end with a green `composer check`.
 - Keep the existing security features (CSRF tokens, IP whitelists, login attempt limits, token confirmation, hashed
   API keys and passwords) working.
 
-### 4.6 HTML output, CSS and JavaScript
+### 4.7 HTML output, CSS and JavaScript
 
 - The backend works without JavaScript: views, forms and tables are valid, accessible HTML (labels, `aria-*` where
   needed). JavaScript in `src/assets/js/` is progressive enhancement only.

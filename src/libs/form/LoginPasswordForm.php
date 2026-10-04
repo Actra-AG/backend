@@ -20,7 +20,6 @@ use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
-use actra\yuf\form\FormMessages;
 use actra\yuf\form\settings\PasswordPurposeEnum;
 use actra\yuf\html\HtmlText;
 use actra\yuf\session\AbstractSessionHandler;
@@ -32,16 +31,17 @@ final class LoginPasswordForm extends Form
 
     public function __construct()
     {
-        parent::__construct(name: 'LoginPasswordForm', messages: FormMessages::german());
+        $messages = ActraBackend::messages();
+        parent::__construct(name: 'LoginPasswordForm', messages: $messages->form);
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
             formField: $this->emailField = new EmailField(
                 name: 'email',
-                label: HtmlText::encoded(textContent: 'E-Mail'),
+                label: HtmlText::unencoded(textContent: $messages->common->emailLabel),
                 value: null,
-                invalidError: HtmlText::encoded(textContent: 'Sie haben eine ungültige E-Mail-Adresse eingegeben.'),
-                requiredError: HtmlText::encoded(textContent: 'Geben Sie Ihre E-Mail-Adresse ein.'),
+                invalidError: HtmlText::unencoded(textContent: $messages->auth->emailInvalid),
+                requiredError: HtmlText::unencoded(textContent: $messages->auth->emailRequired),
             )
         );
         $this->emailField->autoFocus = true;
@@ -49,8 +49,8 @@ final class LoginPasswordForm extends Form
         $this->addField(
             formField: $this->passwordField = new PasswordField(
                 name: 'password',
-                label: HtmlText::encoded(textContent: 'Passwort'),
-                requiredError: HtmlText::encoded(textContent: 'Geben Sie Ihr Passwort ein.'),
+                label: HtmlText::unencoded(textContent: $messages->auth->passwordLabel),
+                requiredError: HtmlText::unencoded(textContent: $messages->auth->passwordRequired),
                 purpose: PasswordPurposeEnum::CURRENT
             )
         );
@@ -58,9 +58,9 @@ final class LoginPasswordForm extends Form
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
-                submitLabel: HtmlText::encoded(textContent: 'Weiter'),
+                submitLabel: HtmlText::unencoded(textContent: $messages->auth->loginPasswordSubmitLabel),
                 cancelLink: passwordForgotten::getPath(),
-                cancelLabel: HtmlText::encoded(textContent: 'Passwort vergessen?')
+                cancelLabel: HtmlText::unencoded(textContent: $messages->auth->passwordForgottenLinkLabel)
             )
         );
     }
@@ -72,7 +72,7 @@ final class LoginPasswordForm extends Form
         }
         if (!$this->checkCredentials()) {
             $this->addError(
-                errorMessage: HtmlText::encoded(textContent: 'Die eingegebenen Zugangsdaten sind ungültig.')
+                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->auth->credentialsInvalid)
             );
             return false;
         }

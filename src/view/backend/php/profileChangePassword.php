@@ -39,7 +39,7 @@ class profileChangePassword extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Passwort ändern');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->profile->changePasswordPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -66,6 +66,6 @@ class profileChangePassword extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'profileChangePassword.html';
+        return ActraBackend::path() . 'profileChangePassword.html';
     }
 }

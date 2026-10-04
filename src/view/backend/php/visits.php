@@ -39,14 +39,14 @@ class visits extends BackendView
             navKey: 'visits',
             href: visits::getPath(userID: null) . '?reset',
             svgPath: '',
-            title: 'Anmeldeversuche',
+            title: ActraBackend::messages()->log->visitsNavigationTitle,
             requiredAccessRights: visits::getRequiredAccessRights()
         );
     }
 
     public static function getPath(?int $userID): string
     {
-        return ActraBackend::get()->path . ($userID === null ? 'visits.html' : 'visits-' . $userID . '.html');
+        return ActraBackend::path() . ($userID === null ? 'visits.html' : 'visits-' . $userID . '.html');
     }
 
     public static function getRequiredAccessRights(): AccessRightCollection
@@ -58,7 +58,7 @@ class visits extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Besuche');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->log->visitsPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void

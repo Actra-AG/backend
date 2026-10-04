@@ -8,13 +8,16 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\form\component\IpWhitelistField;
+use actra\backend\libs\form\component\LanguageField;
 use actra\backend\view\backend\php\user;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\BooleanField;
@@ -25,7 +28,6 @@ use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\component\FormField;
-use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
 final class UserModForm extends Form
@@ -37,76 +39,88 @@ final class UserModForm extends Form
     private readonly CheckboxOptionsField $userGroupsField;
     private readonly BooleanField $activeField;
     private readonly IpWhitelistField $ipWhitelistField;
+    private readonly ?LanguageField $languageField;
 
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
         $dbAuthUser = $this->dbAuthUser;
-        parent::__construct(name: 'UserModForm-' . $dbAuthUser->ID, messages: FormMessages::german());
+        parent::__construct(name: 'UserModForm-' . $dbAuthUser->ID, messages: ActraBackend::messages()->form);
         $this->addCssClass(className: 'form');
+        $common = ActraBackend::messages()->common;
+        $userMessages = ActraBackend::messages()->user;
         $this->addField(
             formField: $this->firstNameField = new TextField(
                 name: 'firstName',
-                label: HtmlText::encoded(textContent: 'Vorname'),
+                label: HtmlText::unencoded(textContent: $common->firstNameLabel),
                 value: $dbAuthUser->firstName,
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Vornamen ein.')
+                requiredError: HtmlText::unencoded(textContent: $common->firstNameRequired)
             )
         );
         $this->addField(
             formField: $this->lastNameField = new TextField(
                 name: 'lastName',
-                label: HtmlText::encoded(textContent: 'Nachname'),
+                label: HtmlText::unencoded(textContent: $common->lastNameLabel),
                 value: $dbAuthUser->lastName,
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Nachnamen ein.')
+                requiredError: HtmlText::unencoded(textContent: $common->lastNameRequired)
             )
         );
         $this->addField(
             formField: $this->emailField = new EmailField(
                 name: 'email',
-                label: HtmlText::encoded(textContent: 'E-Mail'),
+                label: HtmlText::unencoded(textContent: $common->emailLabel),
                 value: $dbAuthUser->email,
-                invalidError: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.'),
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie die E-Mail-Adresse ein.')
+                invalidError: HtmlText::unencoded(textContent: $common->emailInvalid),
+                requiredError: HtmlText::unencoded(textContent: $common->emailRequired)
             )
         );
         $this->addField(
             formField: $this->phoneNumberField = new PhoneNumberField(
                 name: 'phone',
-                label: HtmlText::encoded(textContent: 'Telefon'),
+                label: HtmlText::unencoded(textContent: $common->phoneLabel),
                 value: $dbAuthUser->phone,
-                invalidErrorMessage: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige Telefonnummer ein.')
+                invalidErrorMessage: HtmlText::unencoded(textContent: $common->phoneInvalid)
             )
         );
+        $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
+        $languageField = null;
+        if ($userLanguageOptions->isSelectable()) {
+            $languageField = new LanguageField(
+                userLanguageOptions: $userLanguageOptions,
+                initialValue: $dbAuthUser->languageCode
+            );
+            $this->addField(formField: $languageField);
+        }
+        $this->languageField = $languageField;
         $this->addField(
             formField: $this->activeField = new BooleanField(
                 name: 'active',
-                label: HtmlText::encoded(textContent: 'aktiver Zugang'),
+                label: HtmlText::unencoded(textContent: $userMessages->activeAccessLabel),
                 isCheckedByDefault: $dbAuthUser->isActive
             )
         );
         $this->addField(
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
-                label: HtmlText::encoded(textContent: 'Benutzergruppen'),
+                label: HtmlText::unencoded(textContent: $common->userGroupsLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValues: DbAuthGroupRepository::listByUserID(
                     userID: $dbAuthUser->ID
                 )?->listFormOptionKeys() ?? [],
-                requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.')
+                requiredError: HtmlText::unencoded(textContent: $userMessages->userGroupsRequired)
             )
         );
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
                 name: 'ipWhitelistField',
-                label: HtmlText::encoded(textContent: 'IP-Whitelist'),
+                label: HtmlText::unencoded(textContent: $common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
-                invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]')
+                invalidErrorMessage: HtmlText::unencoded(textContent: $common->ipWhitelistInvalid)
             )
         );
-        $this->ipWhitelistField->fieldInfo = HtmlText::encoded(textContent: 'Eine IP-Adresse pro Zeile.');
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::encoded(textContent: 'Speichern'),
+                submitLabel: HtmlText::unencoded(textContent: $common->save),
                 cancelLink: user::getPath(ID: $dbAuthUser->ID)
             )
         );
@@ -119,7 +133,7 @@ final class UserModForm extends Form
         }
         if (!$this->hasChanges()) {
             $this->addError(
-                errorMessage: HtmlText::encoded(textContent: 'Es wurden keine Änderungen vorgenommen.')
+                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->common->noChanges)
             );
 
             return false;
@@ -130,8 +144,8 @@ final class UserModForm extends Form
             && DbAuthApiKeyRepository::hasByUserID(userID: $this->dbAuthUser->ID)
         ) {
             $this->addError(
-                errorMessage: HtmlText::encoded(
-                    textContent: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden kann.'
+                errorMessage: HtmlText::unencoded(
+                    textContent: ActraBackend::messages()->common->apiKeyBlocksEmptyIpWhitelist
                 )
             );
 
@@ -142,7 +156,7 @@ final class UserModForm extends Form
             && DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString()) !== null
         ) {
             $this->addError(
-                errorMessage: HtmlText::encoded(textContent: 'Die eingegebene E-Mail-Adresse wird bereits verwendet.')
+                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->common->emailAlreadyInUse)
             );
 
             return false;
@@ -154,7 +168,10 @@ final class UserModForm extends Form
             phone: $this->phoneNumberField->getValueAsString(),
             active: $this->activeField->isChecked(),
             firstName: $this->firstNameField->getValueAsString(),
-            lastName: $this->lastNameField->getValueAsString()
+            lastName: $this->lastNameField->getValueAsString(),
+            languageCode: $this->languageField === null
+                ? $this->dbAuthUser->languageCode
+                : $this->languageField->getLanguageCode()
         );
         foreach ($this->userGroupsField->getAddedValues() as $userGroupValue) {
             DbAuthUserGroupRepository::insert(

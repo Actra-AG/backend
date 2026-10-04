@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthUserNotificationRecipientRepository;
 use actra\yuf\table\column\DateColumn;
@@ -28,33 +29,36 @@ class NotificationRecipientTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100
         );
+        $messages = ActraBackend::messages();
+        $sentDateColumn = new DateColumn(
+            identifier: 'sentDate',
+            label: $messages->notification->dateLabel,
+            isSortable: true,
+            sortAscendingByDefault: false
+        );
+        $sentDateColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(
-            abstractTableColumn: new DateColumn(
-                identifier: 'sentDate',
-                label: 'Datum',
-                isSortable: true,
-                sortAscendingByDefault: false
-            ),
+            abstractTableColumn: $sentDateColumn,
             isDefaultSortColumn: true
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
-                label: 'E-Mail',
+                label: $messages->common->emailLabel,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'firstName',
-                label: 'Vorname',
+                label: $messages->common->firstNameLabel,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'lastName',
-                label: 'Nachname',
+                label: $messages->common->lastNameLabel,
                 isSortable: true
             )
         );

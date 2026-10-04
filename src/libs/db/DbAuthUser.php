@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\backend\ActraBackend;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\html\HtmlDataObject;
@@ -32,6 +33,7 @@ readonly class DbAuthUser
         public AccessRightCollection $accessRightCollection,
         public string $firstName,
         public string $lastName,
+        public ?string $languageCode,
         public ?Password $password,
         public int $wrongLoginAttempts,
         string $rawIpWhitelist
@@ -63,12 +65,18 @@ readonly class DbAuthUser
 
     public function renderLastLogin(): string
     {
-        return $this->lastLogin === null ? '' : $this->lastLogin->format(format: 'd.m.Y H:i:s');
+        if ($this->lastLogin === null) {
+            return '';
+        }
+
+        return $this->lastLogin->format(format: ActraBackend::messages()->common->dateTimeFormat);
     }
 
     public function renderActive(): string
     {
-        return $this->isActive ? 'aktiv' : 'inaktiv';
+        return $this->isActive
+            ? ActraBackend::messages()->user->statusActive
+            : ActraBackend::messages()->user->statusInactive;
     }
 
     public function renderPhone(): string

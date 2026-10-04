@@ -26,14 +26,31 @@ class loginPasswordToken extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Anmelden');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->loginPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         AuthSession::logOut();
         $htmlDocument->templateName = 'authentication';
+        $messages = ActraBackend::messages()->auth;
         $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'introText',
+            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenIntro)
+        );
+        $replacements->addHtmlText(
+            identifier: 'tipLabel',
+            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipLabel)
+        );
+        $replacements->addHtmlText(
+            identifier: 'tipText',
+            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipText)
+        );
+        $replacements->addHtmlText(
+            identifier: 'backToLoginText',
+            htmlText: HtmlText::unencoded(textContent: $messages->backToLogin)
+        );
         $loginTokenForm = new LoginTokenForm();
         if ($loginTokenForm->process()) {
             MyAuthUser::get()->redirectToFirstAllowedPage();
@@ -50,6 +67,6 @@ class loginPasswordToken extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'loginPasswordToken.html';
+        return ActraBackend::path() . 'loginPasswordToken.html';
     }
 }

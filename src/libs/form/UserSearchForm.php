@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DbAuthGroup;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\form\component\SearchQueryField;
@@ -25,15 +26,16 @@ final class UserSearchForm extends AbstractSearchForm
     public function __construct()
     {
         parent::__construct(name: 'UserSearchForm');
+        $common = ActraBackend::messages()->common;
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
         $this->addField(
             formField: $this->userGroupField = new SearchSelectOptionsField(
                 name: 'userGroup',
-                label: HtmlText::encoded(textContent: 'Benutzergruppe'),
+                label: HtmlText::unencoded(textContent: $common->userGroupLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::encoded(textContent: 'alle')
+                individualEmptyValueLabel: HtmlText::unencoded(textContent: $common->filterAll)
             )
         );
         $this->dbAuthGroup = DbAuthGroupRepository::selectByID(
@@ -46,7 +48,7 @@ final class UserSearchForm extends AbstractSearchForm
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::encoded(textContent: 'anzeigen')
+                submitLabel: HtmlText::unencoded(textContent: $common->searchButton)
             )
         );
     }

@@ -9,12 +9,12 @@ declare(strict_types=1);
 namespace actra\backend\settings;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\LogMessages;
 use actra\backend\libs\db\DbAuthToken;
 use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\email\EmailLoginToken;
 use actra\backend\libs\email\EmailPasswordResetLink;
-use actra\yuf\html\HtmlText;
 use Exception;
 
 enum AuthTokenTypeEnum: string
@@ -30,13 +30,14 @@ enum AuthTokenTypeEnum: string
         };
     }
 
-    public function render(): string
+    /**
+     * Plain text label (not encoded).
+     *
+     * @param ?LogMessages $messages Default: the messages of the backend
+     */
+    public function render(?LogMessages $messages = null): string
     {
-        return (match ($this) {
-            AuthTokenTypeEnum::PASSWORD => HtmlText::encoded(textContent: 'Passwort-Reset'),
-            AuthTokenTypeEnum::ACTIVATION => HtmlText::encoded(textContent: 'Aktivierung'),
-            AuthTokenTypeEnum::LOGIN => HtmlText::encoded(textContent: 'Anmeldung'),
-        })->render();
+        return ($messages ?? ActraBackend::messages()->log)->authTokenType(authTokenType: $this);
     }
 
     public function createAndSend(

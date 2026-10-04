@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\email\EmailAuthUser;
@@ -17,7 +18,6 @@ use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
-use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
 final class UserInviteForm extends Form
@@ -27,42 +27,55 @@ final class UserInviteForm extends Form
 
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
-        parent::__construct(name: 'UserInviteForm', messages: FormMessages::german());
+        parent::__construct(name: 'UserInviteForm', messages: ActraBackend::messages()->form);
         $this->addCssClass(className: 'form');
+        $common = ActraBackend::messages()->common;
+        $messages = ActraBackend::messages()->user;
+        $recipientRoute = ActraBackend::get()->getRouteForLanguage(languageCode: $dbAuthUser->languageCode);
+        $recipientMessages = $recipientRoute->messages;
         $this->addField(
             formField: $this->subjectField = new TextField(
                 name: 'subjectField',
-                label: HtmlText::encoded(textContent: 'Betreff'),
-                value: 'Zugang zum passwortgeschützten Bereich',
-                requiredError: HtmlText::encoded(textContent: 'Geben Sie bitte ein Betreff ein.')
+                label: HtmlText::unencoded(textContent: $common->subjectLabel),
+                value: $recipientMessages->user->inviteDefaultSubject,
+                requiredError: HtmlText::unencoded(textContent: $common->subjectRequired)
             )
         );
         $this->addField(
             formField: $this->bodyField = new TextAreaField(
                 name: 'bodyField',
-                label: HtmlText::encoded(textContent: 'Textinhalt'),
+                label: HtmlText::unencoded(textContent: $common->messageBodyLabel),
                 value: implode(
                     separator: PHP_EOL,
                     array: [
-                        'Guten Tag ' . $this->dbAuthUser->firstName . ' ' . $this->dbAuthUser->lastName,
+                        MessageTemplate::fill(
+                            template: $recipientMessages->user->inviteGreeting,
+                            values: [
+                                'firstName' => $dbAuthUser->firstName,
+                                'lastName' => $dbAuthUser->lastName,
+                            ]
+                        ),
                         '',
-                        'Wir haben Ihnen einen Zugang in unser Backend eingerichtet:',
-                        HttpRequest::getProtocol() . '://' . HttpRequest::getHost() . ActraBackend::get()->path,
+                        $recipientMessages->user->inviteAccessCreated,
+                        HttpRequest::getProtocol() . '://' . HttpRequest::getHost() . $recipientRoute->path,
                         '',
-                        'Geben Sie zur Anmeldung Ihre E-Mail-Adresse ' . $this->dbAuthUser->email . ' und beim nächsten Schritt den erhaltenen Bestätigungscode ein, um sich anzumelden.',
+                        MessageTemplate::fill(
+                            template: $recipientMessages->user->inviteLoginInstructions,
+                            values: ['email' => $dbAuthUser->email]
+                        ),
                         '',
-                        'Freundliche Grüsse',
+                        $recipientMessages->common->closingGreeting,
                         '',
                         ActraBackend::get()->mailerSettings->signature,
                     ]
                 ),
-                requiredError: HtmlText::encoded(textContent: 'Geben Sie bitte den gewünschten Text ein.')
+                requiredError: HtmlText::unencoded(textContent: $common->messageBodyRequired)
             )
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
-                submitLabel: HtmlText::encoded(textContent: 'senden')
+                submitLabel: HtmlText::unencoded(textContent: $messages->inviteSubmitButton)
             )
         );
     }

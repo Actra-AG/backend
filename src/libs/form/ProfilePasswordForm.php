@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\view\backend\php\profile;
@@ -15,7 +16,6 @@ use actra\yuf\auth\Password;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
-use actra\yuf\form\FormMessages;
 use actra\yuf\form\settings\PasswordPurposeEnum;
 use actra\yuf\html\HtmlText;
 
@@ -29,14 +29,15 @@ final class ProfilePasswordForm extends Form
         private readonly DbAuthUser $dbAuthUser,
         bool $removePassword
     ) {
-        parent::__construct(name: 'ProfilePasswordForm', messages: FormMessages::german());
+        $messages = ActraBackend::messages();
+        parent::__construct(name: 'ProfilePasswordForm', messages: $messages->form);
         $this->addCssClass(className: 'form');
         if ($dbAuthUser->password !== null) {
             $this->addField(
                 formField: $this->currentPasswordField = new PasswordField(
                     name: 'oldPassword',
-                    label: HtmlText::encoded(textContent: 'Aktuelles Passwort'),
-                    requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie das aktuelle Passwort ein.'),
+                    label: HtmlText::unencoded(textContent: $messages->profile->currentPasswordLabel),
+                    requiredError: HtmlText::unencoded(textContent: $messages->profile->currentPasswordRequired),
                     purpose: PasswordPurposeEnum::CURRENT
                 )
             );
@@ -47,16 +48,16 @@ final class ProfilePasswordForm extends Form
             $this->addField(
                 formField: $this->newPasswordField = new PasswordField(
                     name: 'newPassword',
-                    label: HtmlText::encoded(textContent: 'Neues Passwort'),
-                    requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie das neue Passwort ein.'),
+                    label: HtmlText::unencoded(textContent: $messages->common->newPasswordLabel),
+                    requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordRequired),
                     purpose: PasswordPurposeEnum::NEW
                 )
             );
             $this->addField(
                 formField: $this->newPasswordConfirmField = new PasswordField(
                     name: 'newPasswordConfirm',
-                    label: HtmlText::encoded(textContent: 'Neues Passwort bestätigen'),
-                    requiredError: HtmlText::encoded(textContent: 'Bitte bestätigen Sie das neue Passwort.'),
+                    label: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmLabel),
+                    requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmRequired),
                     purpose: PasswordPurposeEnum::NEW
                 )
             );
@@ -67,7 +68,7 @@ final class ProfilePasswordForm extends Form
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::encoded(textContent: 'Speichern'),
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->save),
                 cancelLink: profile::getPath()
             )
         );
@@ -78,6 +79,7 @@ final class ProfilePasswordForm extends Form
         if (!parent::validate()) {
             return false;
         }
+        $messages = ActraBackend::messages();
         $currentPassword = $this->dbAuthUser->password;
         if (
             $currentPassword !== null
@@ -85,7 +87,7 @@ final class ProfilePasswordForm extends Form
             && !$currentPassword->isValid(rawPassword: $this->currentPasswordField->getValueAsString())
         ) {
             $this->currentPasswordField->addError(
-                errorMessage: HtmlText::encoded(textContent: 'Das aktuelle Passwort ist nicht korrekt.')
+                errorMessage: HtmlText::unencoded(textContent: $messages->profile->currentPasswordIncorrect)
             );
             return false;
         }
@@ -96,16 +98,11 @@ final class ProfilePasswordForm extends Form
             DbAuthUserRepository::removePassword(ID: $userID);
             return true;
         }
-        if (mb_strlen(string: $newPasswordField->getValueAsString()) < 8) {
-            $newPasswordField->addError(
-                errorMessage: HtmlText::encoded(textContent: 'Das neue Passwort muss mindestens 8 Zeichen lang sein.')
-            );
-            return false;
-        }
-        if ($newPasswordField->getValueAsString() !== $newPasswordConfirmField->getValueAsString()) {
-            $newPasswordConfirmField->addError(
-                errorMessage: HtmlText::encoded(textContent: 'Die neuen Passwörter stimmen nicht überein.')
-            );
+        $newPasswordCheck = new NewPasswordCheck(messages: $messages->common);
+        if (!$newPasswordCheck->isValid(
+            newPasswordField: $newPasswordField,
+            newPasswordConfirmField: $newPasswordConfirmField
+        )) {
             return false;
         }
         DbAuthUserRepository::setPassword(

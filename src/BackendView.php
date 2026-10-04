@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend;
 
 use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\common\LanguageSwitcher;
 use actra\backend\libs\common\OldNavigator;
 use actra\backend\libs\db\DbAuthSessionRepository;
 use actra\backend\view\backend\php\login;
@@ -27,6 +28,7 @@ use actra\yuf\core\InputParameterCollection;
 use actra\yuf\core\RequestHandler;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
+use actra\yuf\html\HtmlReplacementCollection;
 use actra\yuf\html\HtmlText;
 
 abstract class BackendView extends BaseView
@@ -34,6 +36,9 @@ abstract class BackendView extends BaseView
     public const string PARAM_FROM_LOGIN = 'fromLogin';
     public const string PARAM_CANCEL_SESSION_CHANGE = 'cancelSessionChange';
 
+    /**
+     * @param array<int, string> $activeHtmlIdList
+     */
     public function __construct(
         bool $forceLogout = false,
         InputParameterCollection $inputParameterCollection = new InputParameterCollection(),
@@ -44,6 +49,8 @@ abstract class BackendView extends BaseView
         private readonly bool $resetNavigator = false,
         private readonly string $legacyBreadcrumbSeparator = ' '
     ) {
+        // Texts and links of this request follow the language of its route
+        ActraBackend::get()->activateRoute(route: RequestHandler::get()->route);
         if ($forceLogout) {
             AuthSession::logOut();
         }
@@ -71,10 +78,13 @@ abstract class BackendView extends BaseView
             $myAuthUser = null;
         }
         if ($myAuthUser !== null) {
-            if ($myAuthUser->isSessionChange()) {
-                $userIpWhitelist = DbAuthSessionRepository::selectByID(
-                    ID: $myAuthUser->parentSessionID
-                )->dbAuthUser->ipWhitelist;
+            $parentSessionID = $myAuthUser->parentSessionID;
+            if ($parentSessionID !== null) {
+                $parentSession = DbAuthSessionRepository::selectByID(ID: $parentSessionID);
+                if ($parentSession === null) {
+                    throw new UnauthorizedException();
+                }
+                $userIpWhitelist = $parentSession->dbAuthUser->ipWhitelist;
             } else {
                 $userIpWhitelist = $myAuthUser->dbAuthUser->ipWhitelist;
             }
@@ -118,12 +128,13 @@ abstract class BackendView extends BaseView
     {
         if (AuthSession::isLoggedIn()) {
             $myAuthUser = MyAuthUser::get();
+            $parentSessionID = $myAuthUser->parentSessionID;
             if (
-                $myAuthUser->isSessionChange()
+                $parentSessionID !== null
                 && $this->getInputString(keyName: BackendView::PARAM_CANCEL_SESSION_CHANGE) !== null
             ) {
                 $impersonatedUserID = $myAuthUser->ID;
-                AuthSession::logIn(authSessionID: $myAuthUser->parentSessionID);
+                AuthSession::logIn(authSessionID: $parentSessionID);
                 HttpResponse::redirectAndExit(relativeOrAbsoluteUri: user::getPath(ID: $impersonatedUserID));
             }
         }
@@ -136,6 +147,8 @@ abstract class BackendView extends BaseView
             $htmlDocument->setActiveHtmlId(key: $key, val: $val);
         }
         $replacements = $htmlDocument->replacements;
+        $this->addLayoutTexts(replacements: $replacements);
+        $this->addLanguageSwitcher(replacements: $replacements);
         $replacements->addHtmlText(
             identifier: 'pageTitle',
             htmlText: $this->getPageTitle()
@@ -185,11 +198,13 @@ abstract class BackendView extends BaseView
         $myAuthUser = MyAuthUser::get();
         $accessRightCollection = $myAuthUser->dbAuthUser->accessRightCollection;
         $navigationItemCollection = $actraBackend->navigationItemCollection;
+        $firstNavigationItem = $navigationItemCollection->getFirst(accessRightCollection: $accessRightCollection);
+        if ($firstNavigationItem === null) {
+            throw new UnauthorizedException();
+        }
         $replacements->addEncodedText(
             identifier: 'firstPageHref',
-            content: $navigationItemCollection->getFirst(
-                accessRightCollection: $accessRightCollection
-            )->href
+            content: $firstNavigationItem->href
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'mainNavigation',
@@ -233,6 +248,54 @@ abstract class BackendView extends BaseView
         );
     }
 
+    private function addLayoutTexts(HtmlReplacementCollection $replacements): void
+    {
+        $messages = ActraBackend::messages();
+        $layoutMessages = $messages->layout;
+        $texts = [
+            'skipLink' => $layoutMessages->skipLink,
+            'openMenu' => $layoutMessages->openMenu,
+            'closeMenu' => $layoutMessages->closeMenu,
+            'languageSwitcherLabel' => $layoutMessages->languageSwitcherLabel,
+            'cancelSessionChange' => $layoutMessages->cancelSessionChange,
+            'myProfile' => $layoutMessages->myProfile,
+            'logout' => $layoutMessages->logout,
+            'deleteConfirmation' => $layoutMessages->deleteConfirmation,
+            'dialogCancel' => $layoutMessages->dialogCancel,
+            'dialogConfirmDelete' => $layoutMessages->dialogConfirmDelete,
+        ];
+        $this->addTexts(replacements: $replacements, texts: $texts);
+    }
+
+    private function addLanguageSwitcher(HtmlReplacementCollection $replacements): void
+    {
+        $languageSwitcher = new LanguageSwitcher(
+            backendRouteCollection: ActraBackend::get()->backendRouteCollection,
+            currentRoute: ActraBackend::get()->currentRoute,
+            currentUri: HttpRequest::getURI()
+        );
+        $replacements->addBool(identifier: 'hasLanguageSwitcher', booleanValue: $languageSwitcher->isAvailable());
+        $replacements->addHtmlDataObjectCollection(
+            identifier: 'languageSwitcher',
+            htmlDataObjectCollection: $languageSwitcher->render()
+        );
+    }
+
+    /**
+     * Adds plain texts (e.g. messages) as template replacements; they are encoded when rendered.
+     *
+     * @param array<string, string> $texts The texts by replacement identifier
+     */
+    protected function addTexts(HtmlReplacementCollection $replacements, array $texts): void
+    {
+        foreach ($texts as $identifier => $text) {
+            $replacements->addHtmlText(
+                identifier: $identifier,
+                htmlText: HtmlText::unencoded(textContent: $text)
+            );
+        }
+    }
+
     abstract protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void;
 
     abstract protected function getPageTitle(): HtmlText;
@@ -250,7 +313,9 @@ abstract class BackendView extends BaseView
             }
             $oldNavigator->addBreadcrumb(title: $this->getPageTitle()->render());
             foreach ($oldNavigator->setNavistufe() as $key => $val) {
-                $htmlDocument->setActiveHtmlId(key: $key, val: $val);
+                if (is_int(value: $key) && is_string(value: $val)) {
+                    $htmlDocument->setActiveHtmlId(key: $key, val: $val);
+                }
             }
             $breadcrumb = $oldNavigator->getBreadcrumb();
         } else {

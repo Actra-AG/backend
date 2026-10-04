@@ -1,12 +1,12 @@
 <h1>{tst:text value='pageTitle'}</h1>
 
 <tst:if compare="sent" operator="EQ" against="true">
-  <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Die Benachrichtigung wurde verschickt.
+  <p class="msg msg-success" role="status" aria-live="polite"><strong>{tst:text value='successLabel'}</strong> {tst:text value='sentSuccess'}
   </p>
 </tst:if>
 
 <div class="card | flow-layout-m">
-  <h2>Details</h2>
+  <h2>{tst:text value='detailsHeading'}</h2>
   <div class="details">
     <tst:for value="detailFields" var="field">
       <dl>
@@ -17,6 +17,6 @@
   </div>
 </div>
 <div class="card | flow-layout-m">
-  <h2>Empfänger</h2>
+  <h2>{tst:text value='recipientsLabel'}</h2>
   {tst:text value='recipients'}
 </div>

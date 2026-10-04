@@ -10,8 +10,10 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\UserController;
+use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthSessionRepository;
@@ -22,8 +24,10 @@ use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\exception\NotFoundException;
+use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
+use LogicException;
 
 class user extends BackendView
 {
@@ -35,7 +39,7 @@ class user extends BackendView
     public const string PARAM_GENERATE_API_KEY = 'generateApiKey';
     public const string PARAM_REMOVE_API_KEY = 'removeApiKey';
 
-    private readonly HtmlText $pageTitle;
+    private ?HtmlText $pageTitle = null;
 
     public function __construct()
     {
@@ -102,7 +106,7 @@ class user extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return $this->pageTitle;
+        return $this->pageTitle ?? HtmlText::unencoded(textContent: '');
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -130,11 +134,16 @@ class user extends BackendView
                     userID: $dbAuthUser->ID
                 )
             );
-            HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: ActraBackend::get()->navigationItemCollection->getFirst(
-                    accessRightCollection: $dbAuthUser->accessRightCollection
-                )->href
+            $firstNavigationItem = ActraBackend::get()->navigationItemCollection->getFirst(
+                accessRightCollection: $dbAuthUser->accessRightCollection
             );
+            if ($firstNavigationItem === null) {
+                throw new LogicException(
+                    message: 'The user has no accessible navigation item, so there is no page to redirect to after '
+                    . 'impersonation.'
+                );
+            }
+            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: $firstNavigationItem->href);
         }
         $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
         $generatedApiKey = '';
@@ -152,7 +161,54 @@ class user extends BackendView
         } else {
             $canGenerateApiKey = false;
         }
+        $messages = ActraBackend::messages()->user;
+        $common = ActraBackend::messages()->common;
+        $dateTimeFormat = $common->dateTimeFormat;
         $replacements = $htmlDocument->replacements;
+        $this->addTexts(
+            replacements: $replacements,
+            texts: [
+                'editUserTitle' => $messages->editUserTitle,
+                'impersonateButton' => $messages->impersonateButton,
+                'deleteButton' => $messages->deleteButton,
+                'successLabel' => $common->successLabel,
+                'addedMessage' => $messages->addedMessage,
+                'changedMessage' => $common->changesSaved,
+                'invitedMessage' => $messages->invitedMessage,
+                'apiKeyGeneratedMessage' => $common->apiKeyGenerated,
+                'apiKeyLabel' => $common->apiKeyLabel,
+                'apiKeyValueLabel' => $common->apiKeyValueLabel,
+                'noteLabel' => $common->noteLabel,
+                'notInvitedNote' => $messages->notInvitedNote,
+                'inviteTitle' => $messages->inviteTitle,
+                'personalDataHeading' => $messages->personalDataHeading,
+                'accessSettingsHeading' => $messages->accessSettingsHeading,
+                'registeredLabel' => $messages->registeredLabel,
+                'welcomeEmailSentLabel' => $messages->welcomeEmailSentLabel,
+                'resendLink' => $messages->resendLink,
+                'lastLoginLabel' => $messages->lastLoginLabel,
+                'neverLabel' => $messages->neverLabel,
+                'accessActiveLabel' => $messages->accessActiveLabel,
+                'userGroupsDetailLabel' => $messages->userGroupsDetailLabel,
+                'removeLink' => $common->removeLink,
+                'noApiKey' => $common->apiKeyNone,
+                'generateApiKeyLink' => $common->generateApiKeyLink,
+                'apiKeyNeedsIpWhitelist' => $common->apiKeyNeedsIpWhitelist,
+                'firstNameLabel' => $common->firstNameLabel,
+                'lastNameLabel' => $common->lastNameLabel,
+                'emailLabel' => $common->emailLabel,
+                'phoneLabel' => $common->phoneLabel,
+                'languageLabel' => $common->languageLabel,
+                'ipWhitelistLabel' => $common->ipWhitelistLabel,
+            ]
+        );
+        $replacements->addHtmlText(
+            identifier: 'deleteConfirm',
+            htmlText: HtmlText::unencoded(textContent: MessageTemplate::fill(
+                template: $messages->deleteConfirm,
+                values: ['name' => $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName]
+            ))
+        );
         $replacements->addEncodedText(
             identifier: 'userModHref',
             content: userMod::getPath(ID: $dbAuthUser->ID)
@@ -203,11 +259,11 @@ class user extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'registered',
-            content: $dbAuthUser->registered->format(format: 'd.m.Y H:i:s')
+            content: $dbAuthUser->registered->format(format: $dateTimeFormat)
         );
         $replacements->addEncodedText(
             identifier: 'invitedDate',
-            content: $dbAuthUser->isInvited() ? $dbAuthUser->invitedDate->format(format: 'd.m.Y H:i:s') : ''
+            content: $dbAuthUser->invitedDate?->format(format: $dateTimeFormat) ?? ''
         );
         $replacements->addEncodedText(
             identifier: 'lastLogin',
@@ -217,13 +273,23 @@ class user extends BackendView
             identifier: 'visitsHref',
             content: visits::getPath(userID: $dbAuthUser->ID)
         );
+        $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
+        $replacements->addBool(
+            identifier: 'hasMultipleLanguages',
+            booleanValue: $userLanguageOptions->isSelectable()
+        );
+        $replacements->addEncodedText(
+            identifier: 'language',
+            content: $userLanguageOptions->render(languageCode: $dbAuthUser->languageCode)
+        );
         $replacements->addEncodedText(
             identifier: 'active',
-            content: $dbAuthUser->isActive ? 'ja' : 'nein'
+            content: $dbAuthUser->isActive ? $messages->yes : $messages->no
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
-            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->render()
+            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)?->render()
+                ?? new HtmlDataObjectCollection()
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'ipWhitelist',
@@ -252,6 +318,6 @@ class user extends BackendView
 
     public static function getPath(int|string $ID): string
     {
-        return ActraBackend::get()->path . 'user-' . $ID . '.html';
+        return ActraBackend::path() . 'user-' . $ID . '.html';
     }
 }

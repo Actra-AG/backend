@@ -16,6 +16,23 @@
 <body class="body-authentication">
 <header class="auth-header">
   <div class="auth-logo">{tst:text value='backendName'}</div>
+  <tst:if compare="hasLanguageSwitcher" operator="EQ" against="true">
+  <nav class="language-switcher" aria-label="{tst:text value='languageSwitcherLabel'}">
+    <ul class="language-switcher-list">
+      <tst:for value="languageSwitcher" var="language">
+        <li>
+          <tst:if compare="language.isCurrent" operator="EQ" against="true">
+            <span lang="{tst:text value='language.languageCode'}" aria-current="true">{tst:text value='language.label'}</span>
+          </tst:if>
+          <tst:else>
+            <a href="{tst:text value='language.href'}" lang="{tst:text value='language.languageCode'}"
+               hreflang="{tst:text value='language.languageCode'}">{tst:text value='language.label'}</a>
+          </tst:else>
+        </li>
+      </tst:for>
+    </ul>
+  </nav>
+  </tst:if>
 </header>
 <main class="auth-main | flow">
   <tst:loadSubTpl tplfile="{this}"/>

@@ -26,12 +26,18 @@ class passwordForgotten extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Passwort vergessen?');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->passwordForgottenPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';
+        $messages = ActraBackend::messages()->auth;
+        $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'introText',
+            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenIntro)
+        );
         AuthSession::logOut();
 
         $passwordForgottenForm = new PasswordForgottenForm();
@@ -40,7 +46,6 @@ class passwordForgotten extends BackendView
                 relativeOrAbsoluteUri: passwordForgottenRes::getPath()
             );
         }
-        $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
             identifier: 'form',
             content: $passwordForgottenForm->render()
@@ -49,6 +54,6 @@ class passwordForgotten extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'passwordForgotten.html';
+        return ActraBackend::path() . 'passwordForgotten.html';
     }
 }

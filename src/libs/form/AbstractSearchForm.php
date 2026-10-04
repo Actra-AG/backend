@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\yuf\common\SearchHelper;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\NullField;
 use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextField;
-use actra\yuf\form\FormMessages;
 
 abstract class AbstractSearchForm extends Form
 {
@@ -22,7 +22,7 @@ abstract class AbstractSearchForm extends Form
     public function __construct(string $name)
     {
         $this->searchHelper = SearchHelper::getInstance(instanceName: $name);
-        parent::__construct(name: $name, messages: FormMessages::german());
+        parent::__construct(name: $name, messages: ActraBackend::messages()->form);
     }
 
     /**

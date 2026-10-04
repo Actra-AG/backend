@@ -11,7 +11,6 @@ namespace actra\backend\libs\db;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\core\HttpRequest;
-use DateTimeImmutable;
 use stdClass;
 
 class DbAuthSessionRepository
@@ -28,6 +27,7 @@ class DbAuthSessionRepository
                auth_user.active,
                auth_user.firstName,
                auth_user.lastName,
+               auth_user.language,
                auth_user.passwordSalt,
                auth_user.passwordHash,
                auth_user.wrongLoginAttempts,
@@ -75,30 +75,34 @@ class DbAuthSessionRepository
 
     private static function createDbAuthSession(stdClass $data): DbAuthSession
     {
+        $row = new DbRowReader(row: $data);
+        $passwordSalt = $row->getNullableString(column: 'passwordSalt');
+
         return new DbAuthSession(
-            ID: $data->ID,
-            parentID: $data->parentID,
+            ID: $row->getInt(column: 'ID'),
+            parentID: $row->getNullableInt(column: 'parentID'),
             dbAuthUser: new DbAuthUser(
-                ID: $data->userID,
-                registered: new DateTimeImmutable(datetime: $data->registered),
-                invitedDate: $data->invited === null ? null : new DateTimeImmutable(datetime: $data->invited),
-                lastLogin: $data->lastLogin === null ? null : new DateTimeImmutable(datetime: $data->lastLogin),
-                email: $data->email,
-                phone: $data->phone,
-                isActive: ($data->active === 1),
+                ID: $row->getInt(column: 'userID'),
+                registered: $row->getDateTime(column: 'registered'),
+                invitedDate: $row->getNullableDateTime(column: 'invited'),
+                lastLogin: $row->getNullableDateTime(column: 'lastLogin'),
+                email: $row->getString(column: 'email'),
+                phone: $row->getString(column: 'phone'),
+                isActive: $row->getBool(column: 'active'),
                 accessRightCollection: AccessRightCollection::createFromStringArray(
                     input: explode(
                         separator: ',',
-                        string: (string)$data->accessRights
+                        string: $row->getStringOrEmpty(column: 'accessRights')
                     )
                 ),
-                firstName: $data->firstName,
-                lastName: $data->lastName,
-                password: $data->passwordSalt === null ? null : new Password(
-                    salt: $data->passwordSalt, hash: $data->passwordHash
+                firstName: $row->getString(column: 'firstName'),
+                lastName: $row->getString(column: 'lastName'),
+                languageCode: $row->getNullableString(column: 'language'),
+                password: $passwordSalt === null ? null : new Password(
+                    salt: $passwordSalt, hash: $row->getString(column: 'passwordHash')
                 ),
-                wrongLoginAttempts: $data->wrongLoginAttempts,
-                rawIpWhitelist: (string)$data->ipWhitelist
+                wrongLoginAttempts: $row->getInt(column: 'wrongLoginAttempts'),
+                rawIpWhitelist: $row->getStringOrEmpty(column: 'ipWhitelist')
             )
         );
     }

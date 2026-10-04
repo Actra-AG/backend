@@ -20,7 +20,6 @@ use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
-use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
 final class NotificationSendForm extends Form
@@ -32,48 +31,49 @@ final class NotificationSendForm extends Form
 
     public function __construct()
     {
-        parent::__construct(name: 'NotificationSendForm', messages: FormMessages::german());
+        $messages = ActraBackend::messages();
+        parent::__construct(name: 'NotificationSendForm', messages: ActraBackend::messages()->form);
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->authUserGroupField = new SelectOptionsField(
                 name: 'authUserGroupField',
-                label: HtmlText::encoded(textContent: 'Benutzergruppe'),
+                label: HtmlText::unencoded(textContent: $messages->common->userGroupLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValue: null,
-                requiredError: HtmlText::encoded(textContent: 'Bitte wählen Sie eine Benutzergruppe aus.')
+                requiredError: HtmlText::unencoded(textContent: $messages->notification->userGroupRequired)
             )
         );
         $this->addField(
             formField: $this->subjectField = new TextField(
                 name: 'subjectField',
-                label: HtmlText::encoded(textContent: 'Betreff'),
+                label: HtmlText::unencoded(textContent: $messages->common->subjectLabel),
                 value: '',
-                requiredError: HtmlText::encoded(textContent: 'Geben Sie bitte ein Betreff ein.')
+                requiredError: HtmlText::unencoded(textContent: $messages->common->subjectRequired)
             )
         );
         $this->addField(
             formField: $this->messageField = new TextAreaField(
                 name: 'messageField',
-                label: HtmlText::encoded(textContent: 'Textinhalt'),
+                label: HtmlText::unencoded(textContent: $messages->common->messageBodyLabel),
                 value: implode(
                     separator: PHP_EOL,
                     array: [
-                        'Guten Tag [firstName] [lastName]',
+                        $messages->notification->defaultGreeting,
                         '',
-                        'Nachricht...',
+                        $messages->notification->defaultMessage,
                         '',
-                        'Freundliche Grüsse',
+                        $messages->common->closingGreeting,
                         '',
                         ActraBackend::get()->mailerSettings->signature,
                     ]
                 ),
-                requiredError: HtmlText::encoded(textContent: 'Geben Sie bitte den gewünschten Text ein.')
+                requiredError: HtmlText::unencoded(textContent: $messages->common->messageBodyRequired)
             )
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::encoded(textContent: 'Senden'),
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->send),
                 cancelLink: notifications::getPath()
             )
         );

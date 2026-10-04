@@ -8,14 +8,17 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthUserLoginRepository;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\yuf\auth\AuthResult;
+use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItemModel;
+use UnexpectedValueException;
 
 class VisitTable extends AbstractTable
 {
@@ -58,56 +61,63 @@ class VisitTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100
         );
-        $this->addColumn(
-            abstractTableColumn: new DateColumn(
-                identifier: 'registered',
-                label: 'Datum',
-                isSortable: true,
-                sortAscendingByDefault: false
-            ),
-            isDefaultSortColumn: true
+        $messages = ActraBackend::messages();
+        $dateColumn = new DateColumn(
+            identifier: 'registered',
+            label: $messages->log->visitDateColumn,
+            isSortable: true,
+            sortAscendingByDefault: false
         );
+        $dateColumn->format = $messages->common->dateTimeFormat;
+        $this->addColumn(abstractTableColumn: $dateColumn, isDefaultSortColumn: true);
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'firstName',
-                label: 'Vorname',
+                label: $messages->common->firstNameLabel,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'lastName',
-                label: 'Nachname',
+                label: $messages->common->lastNameLabel,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'sessionId',
-                label: 'SessionID',
+                label: $messages->log->visitSessionIdColumn,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'ipAddress',
-                label: 'IP-Adresse',
+                label: $messages->log->visitIpAddressColumn,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
-                label: 'E-Mail-Adresse',
+                label: $messages->log->visitEmailColumn,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'result',
-                label: 'Status',
-                callbackFunction: function (TableItemModel $tableItemModel) {
-                    return AuthResult::from(value: $tableItemModel->getRawValue(name: 'result'))->render();
+                label: $messages->log->statusLabel,
+                callbackFunction: function (TableItemModel $tableItemModel) use ($messages): string {
+                    $result = $tableItemModel->getRawValue(name: 'result');
+                    if (!is_int(value: $result) && !(is_string(value: $result) && ctype_digit(text: $result))) {
+                        throw new UnexpectedValueException(message: 'The visit result must be an integer.');
+                    }
+
+                    return HtmlEncoder::encode(
+                        value: $messages->log->authResult(authResult: AuthResult::from(value: (int)$result))
+                    );
                 }
             )
         );

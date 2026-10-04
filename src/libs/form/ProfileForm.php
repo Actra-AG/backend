@@ -8,11 +8,15 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\form\component\IpWhitelistField;
+use actra\backend\libs\form\component\LanguageField;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
@@ -21,7 +25,6 @@ use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\component\FormField;
-use actra\yuf\form\FormMessages;
 use actra\yuf\html\HtmlText;
 
 final class ProfileForm extends Form
@@ -30,50 +33,62 @@ final class ProfileForm extends Form
     private readonly TextField $lastNameField;
     private readonly PhoneNumberField $phoneNumberField;
     private readonly IpWhitelistField $ipWhitelistField;
+    private readonly ?LanguageField $languageField;
 
     public function __construct(private readonly DbAuthUser $dbAuthUser)
     {
-        parent::__construct(name: 'ProfileForm', messages: FormMessages::german());
+        $messages = ActraBackend::messages();
+        parent::__construct(name: 'ProfileForm', messages: $messages->form);
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->firstNameField = new TextField(
                 name: 'firstName',
-                label: HtmlText::encoded(textContent: 'Vorname'),
+                label: HtmlText::unencoded(textContent: $messages->common->firstNameLabel),
                 value: $dbAuthUser->firstName,
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Vornamen ein.')
+                requiredError: HtmlText::unencoded(textContent: $messages->common->firstNameRequired)
             )
         );
         $this->addField(
             formField: $this->lastNameField = new TextField(
                 name: 'lastName',
-                label: HtmlText::encoded(textContent: 'Nachname'),
+                label: HtmlText::unencoded(textContent: $messages->common->lastNameLabel),
                 value: $dbAuthUser->lastName,
-                requiredError: HtmlText::encoded(textContent: 'Bitte geben Sie den Nachnamen ein.')
+                requiredError: HtmlText::unencoded(textContent: $messages->common->lastNameRequired)
             )
         );
         $this->addField(
             formField: $this->phoneNumberField = new PhoneNumberField(
                 name: 'phone',
-                label: HtmlText::encoded(textContent: 'Telefon'),
+                label: HtmlText::unencoded(textContent: $messages->common->phoneLabel),
                 value: $dbAuthUser->phone,
-                invalidErrorMessage: HtmlText::encoded(textContent: 'Bitte geben Sie eine gültige Telefonnummer ein.')
+                invalidErrorMessage: HtmlText::unencoded(textContent: $messages->common->phoneInvalid)
             )
         );
+        $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
+        $languageField = null;
+        if ($userLanguageOptions->isSelectable()) {
+            $languageField = new LanguageField(
+                userLanguageOptions: $userLanguageOptions,
+                initialValue: $dbAuthUser->languageCode
+            );
+            $this->addField(formField: $languageField);
+        }
+        $this->languageField = $languageField;
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
                 name: 'ipWhitelistField',
-                label: HtmlText::encoded(textContent: 'IP-Whitelist'),
+                label: HtmlText::unencoded(textContent: $messages->common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
-                invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]')
+                invalidErrorMessage: HtmlText::unencoded(textContent: $messages->common->ipWhitelistInvalid)
             )
         );
-        $this->ipWhitelistField->fieldInfo = HtmlText::encoded(
-            textContent: 'Eine IP-Adresse pro Zeile. Achten Sie darauf, Ihre aktuelle IP-Adresse nicht auszuschliessen.'
+        $this->ipWhitelistField->fieldInfo = HtmlText::unencoded(
+            textContent: $messages->profile->ipWhitelistInfo
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::encoded(textContent: 'Speichern')
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->save)
             )
         );
     }
@@ -83,9 +98,10 @@ final class ProfileForm extends Form
         if (!parent::validate()) {
             return false;
         }
+        $messages = ActraBackend::messages();
         if (!$this->hasChanges()) {
             $this->addError(
-                errorMessage: HtmlText::encoded(textContent: 'Es wurden keine Änderungen vorgenommen.')
+                errorMessage: HtmlText::unencoded(textContent: $messages->common->noChanges)
             );
 
             return false;
@@ -97,8 +113,8 @@ final class ProfileForm extends Form
             && DbAuthApiKeyRepository::hasByUserID(userID: $this->dbAuthUser->ID)
         ) {
             $this->addError(
-                errorMessage: HtmlText::encoded(
-                    textContent: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden kann.'
+                errorMessage: HtmlText::unencoded(
+                    textContent: $messages->common->apiKeyBlocksEmptyIpWhitelist
                 )
             );
 
@@ -110,7 +126,10 @@ final class ProfileForm extends Form
         )) {
             $this->addError(
                 errorMessage: HtmlText::unencoded(
-                    textContent: 'Die IP-Whitelist muss Ihre aktuelle IP-Adresse ' . $currentIpAddress . ' erlauben.'
+                    textContent: MessageTemplate::fill(
+                        template: $messages->profile->currentIpMustBeAllowed,
+                        values: ['ipAddress' => $currentIpAddress]
+                    )
                 )
             );
 
@@ -123,7 +142,10 @@ final class ProfileForm extends Form
             phone: $this->phoneNumberField->getValueAsString(),
             active: $this->dbAuthUser->isActive,
             firstName: $this->firstNameField->getValueAsString(),
-            lastName: $this->lastNameField->getValueAsString()
+            lastName: $this->lastNameField->getValueAsString(),
+            languageCode: $this->languageField === null
+                ? $this->dbAuthUser->languageCode
+                : $this->languageField->getLanguageCode()
         );
         foreach ($newIpWhitelist as $ip) {
             if (!in_array(

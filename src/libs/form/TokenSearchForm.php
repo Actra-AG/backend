@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\form\component\SearchQueryField;
 use actra\backend\libs\form\component\SearchSelectOptionsField;
 use actra\backend\settings\AuthTokenTypeEnum;
@@ -27,22 +28,23 @@ final class TokenSearchForm extends AbstractSearchForm
         parent::__construct(name: $name);
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
+        $messages = ActraBackend::messages();
         $typeFilterOptions = new FormOptions();
         foreach (AuthTokenTypeEnum::cases() as $authTokenTypeEnum) {
             $typeFilterOptions->addItem(
                 key: 'option_' . $authTokenTypeEnum->value,
-                htmlText: HtmlText::encoded(
-                    textContent: $authTokenTypeEnum->render()
+                htmlText: HtmlText::unencoded(
+                    textContent: $authTokenTypeEnum->render(messages: $messages->log)
                 )
             );
         }
         $this->addField(
             formField: $this->typeFilterField = new SearchSelectOptionsField(
                 name: 'typeFilterField',
-                label: HtmlText::encoded(textContent: 'Typ'),
+                label: HtmlText::unencoded(textContent: $messages->log->typeLabel),
                 formOptions: $typeFilterOptions,
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::encoded(textContent: 'alle')
+                individualEmptyValueLabel: HtmlText::unencoded(textContent: $messages->common->filterAll)
             )
         );
         $this->authTokenTypeEnum = AuthTokenTypeEnum::tryFrom(
@@ -56,7 +58,7 @@ final class TokenSearchForm extends AbstractSearchForm
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::encoded(textContent: 'anzeigen')
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->searchButton)
             )
         );
     }

@@ -8,10 +8,23 @@ declare(strict_types=1);
 
 namespace actra\backend\settings;
 
+use actra\backend\i18n\BackendMessages;
 use actra\yuf\core\Language;
 
 readonly class ActraBackendSettings
 {
+    /** The texts of the main route (path of `ActraBackend::init()` in `$language`) */
+    public BackendMessages $messages;
+
+    /**
+     * @param Language $language The language of the main route
+     * @param list<string> $ipWhitelist
+     * @param list<string> $javaScriptPaths
+     * @param list<string> $stylesPaths
+     * @param ?BackendMessages $messages Texts of the main route; default: `BackendMessages::forLanguageCode()`
+     * @param list<BackendRoute> $additionalRoutes The backend in further languages, one route per language
+     * @param ?BackendNavigationInterface $projectNavigation Adds the project's navigation items per route language
+     */
     public function __construct(
         public Language $language,
         public array $ipWhitelist,
@@ -21,7 +34,11 @@ readonly class ActraBackendSettings
         public int $maxAllowedLoginAttempts = 5,
         public string $frontendHref = '',
         public string $frontendName = '',
-        public bool $hasApi = false
+        public bool $hasApi = false,
+        ?BackendMessages $messages = null,
+        public array $additionalRoutes = [],
+        public ?BackendNavigationInterface $projectNavigation = null
     ) {
+        $this->messages = $messages ?? BackendMessages::forLanguageCode(languageCode: $language->code);
     }
 }

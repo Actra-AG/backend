@@ -24,17 +24,23 @@ class passwordForgottenRes extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Passwort vergessen?');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->passwordForgottenPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';
+        $messages = ActraBackend::messages()->auth;
+        $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'resultText',
+            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenResult)
+        );
         AuthSession::logOut();
     }
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'passwordForgottenRes.html';
+        return ActraBackend::path() . 'passwordForgottenRes.html';
     }
 }

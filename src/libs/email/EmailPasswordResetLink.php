@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\email;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\view\backend\php\passwordReset;
 use actra\yuf\core\HttpRequest;
@@ -21,24 +22,35 @@ class EmailPasswordResetLink
         int $expirationInMinutes
     ): void {
         $host = HttpRequest::getHost();
+        $messages = ActraBackend::messages();
+        $emailMessages = $messages->email;
         Mailer::sendTextMail(
             recipient: $dbAuthUser->email,
-            subject: 'Ihr neues Passwort',
+            subject: $emailMessages->passwordResetSubject,
             textBody: implode(
                 separator: PHP_EOL,
                 array: [
-                    'Grüezi',
+                    $emailMessages->greeting,
                     '',
-                    'Sie haben bei ' . $host . ' angegeben, dass Sie das Passwort vergessen haben.',
+                    MessageTemplate::fill(
+                        template: $emailMessages->passwordResetIntro,
+                        values: ['host' => $host]
+                    ),
                     '',
-                    'Klicken Sie auf den folgenden Link, um ein neues Passwort zu wählen:',
+                    $emailMessages->passwordResetLinkInstruction,
                     HttpRequest::getProtocol() . '://' . $host . passwordReset::getPath(token: $token),
                     '',
-                    'Bitte beachten Sie, dass dieser Link nur einmal verwendet werden kann und nach ' . $expirationInMinutes . ' Minuten verfällt.',
+                    MessageTemplate::fill(
+                        template: $emailMessages->passwordResetValidity,
+                        values: ['minutes' => (string)$expirationInMinutes]
+                    ),
                     '',
-                    'Wenn Sie das Passwort für die E-Mail-Adresse ' . $dbAuthUser->email . ' nicht zurücksetzen möchten, können Sie diese E-Mail ignorieren.',
+                    MessageTemplate::fill(
+                        template: $emailMessages->passwordResetIgnore,
+                        values: ['email' => $dbAuthUser->email]
+                    ),
                     '',
-                    'Freundliche Grüsse',
+                    $messages->common->closingGreeting,
                     '',
                     ActraBackend::get()->mailerSettings->signature,
                 ]

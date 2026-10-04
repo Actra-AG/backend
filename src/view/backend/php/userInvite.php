@@ -41,7 +41,7 @@ class userInvite extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Willkommens-E-Mail senden');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->inviteTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -58,7 +58,16 @@ class userInvite extends BackendView
                 ) . '?' . user::PARAM_INVITED
             );
         }
+        $messages = ActraBackend::messages()->user;
         $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'inviteIntro',
+            htmlText: HtmlText::unencoded(textContent: $messages->inviteIntro)
+        );
+        $replacements->addHtmlText(
+            identifier: 'recipientLabel',
+            htmlText: HtmlText::unencoded(textContent: $messages->recipientLabel)
+        );
         $replacements->addEncodedText(
             identifier: 'recipient',
             content: $dbAuthUser->email
@@ -71,6 +80,6 @@ class userInvite extends BackendView
 
     public static function getPath(int $ID): string
     {
-        return ActraBackend::get()->path . 'userInvite-' . $ID . '.html';
+        return ActraBackend::path() . 'userInvite-' . $ID . '.html';
     }
 }

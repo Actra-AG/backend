@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\backend\ActraBackend;
 use actra\yuf\html\DetailDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
+use actra\yuf\html\HtmlEncoder;
 use DateTimeImmutable;
 
 readonly class DbAuthUserNotification
@@ -30,50 +32,45 @@ readonly class DbAuthUserNotification
 
     public function render(): HtmlDataObjectCollection
     {
+        $messages = ActraBackend::messages();
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
+        $details = [
+            ['ID', (string)$this->ID],
+            [
+                $messages->notification->sentDateLabel,
+                $this->sentDate->format(format: $messages->common->dateTimeFormat),
+            ],
+            [$messages->common->userGroupLabel, $this->groupName],
+            [$messages->notification->senderDetailLabel, $this->firstName . ' ' . $this->lastName],
+            [$messages->common->subjectLabel, $this->subject],
+        ];
+        foreach ($details as [$label, $value]) {
+            $htmlDataObjectCollection->add(
+                htmlDataObject: DbAuthUserNotification::createDetail(
+                    label: $label,
+                    valueHtml: HtmlEncoder::encode(value: $value)
+                )
+            );
+        }
         $htmlDataObjectCollection->add(
-            htmlDataObject: new DetailDataObject(
-                name: 'ID',
-                value: (string)$this->ID,
-                isEncodedForRendering: true
-            )
-        );
-        $htmlDataObjectCollection->add(
-            htmlDataObject: new DetailDataObject(
-                name: 'Versanddatum',
-                value: $this->sentDate->format(format: 'd.m.Y H:i:s'),
-                isEncodedForRendering: true
-            )
-        );
-        $htmlDataObjectCollection->add(
-            htmlDataObject: new DetailDataObject(
-                name: 'Benutzergruppe',
-                value: $this->groupName,
-                isEncodedForRendering: true
-            )
-        );
-        $htmlDataObjectCollection->add(
-            htmlDataObject: new DetailDataObject(
-                name: 'Absender',
-                value: $this->firstName . ' ' . $this->lastName,
-                isEncodedForRendering: true
-            )
-        );
-        $htmlDataObjectCollection->add(
-            htmlDataObject: new DetailDataObject(
-                name: 'Betreff',
-                value: $this->subject,
-                isEncodedForRendering: true
-            )
-        );
-        $htmlDataObjectCollection->add(
-            htmlDataObject: new DetailDataObject(
-                name: 'Mitteilung',
-                value: nl2br(string: $this->message),
-                isEncodedForRendering: true
+            htmlDataObject: DbAuthUserNotification::createDetail(
+                label: $messages->notification->messageLabel,
+                valueHtml: nl2br(string: HtmlEncoder::encode(value: $this->message))
             )
         );
 
         return $htmlDataObjectCollection;
+    }
+
+    /**
+     * yuf's DetailDataObject never encodes the label, so both parts are passed as HTML.
+     */
+    private static function createDetail(string $label, string $valueHtml): DetailDataObject
+    {
+        return new DetailDataObject(
+            name: HtmlEncoder::encode(value: $label),
+            value: $valueHtml,
+            isEncodedForRendering: true
+        );
     }
 }

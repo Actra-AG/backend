@@ -16,6 +16,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-m);
 
   @media (--sm) {
     margin-block-end: var(--space-xl);

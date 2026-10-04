@@ -16,7 +16,7 @@
   </tst:for>
 </head>
 <body class="{tst:text value='bodyClassName'}">
-<a class="skip-link visuallyhidden" href="#content">Direkt zum Inhalt</a>
+<a class="skip-link visuallyhidden" href="#content">{tst:text value='skipLink'}</a>
 <div class="page">
   <header class="site-header">
     <div class="site-header-inner">
@@ -27,11 +27,11 @@
         <nav class="nav-main">
           <button class="nav-main-toggle" aria-expanded="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
-                 fill="currentColor" role="img" data-icon-hamburger><title>Menü öffnen</title>
+                 fill="currentColor" role="img" data-icon-hamburger><title>{tst:text value='openMenu'}</title>
               <path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path>
             </svg>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
-                 fill="currentColor" role="img" data-icon-close><title>Menü schliessen</title>
+                 fill="currentColor" role="img" data-icon-close><title>{tst:text value='closeMenu'}</title>
               <path
                   d="M10.5859 12L2.79297 4.20706L4.20718 2.79285L12.0001 10.5857L19.793 2.79285L21.2072 4.20706L13.4143 12L21.2072 19.7928L19.793 21.2071L12.0001 13.4142L4.20718 21.2071L2.79297 19.7928L10.5859 12Z"></path>
             </svg>
@@ -80,6 +80,23 @@
         <tst:if compare="frontendHref" operator="NE" against="">
           <a href="{tst:text value='frontendHref'}" class="link-website">{tst:text value='frontendName'}</a>
         </tst:if>
+        <tst:if compare="hasLanguageSwitcher" operator="EQ" against="true">
+        <nav class="language-switcher" aria-label="{tst:text value='languageSwitcherLabel'}">
+          <ul class="language-switcher-list">
+            <tst:for value="languageSwitcher" var="language">
+              <li>
+                <tst:if compare="language.isCurrent" operator="EQ" against="true">
+                  <span lang="{tst:text value='language.languageCode'}" aria-current="true">{tst:text value='language.label'}</span>
+                </tst:if>
+                <tst:else>
+                  <a href="{tst:text value='language.href'}" lang="{tst:text value='language.languageCode'}"
+                     hreflang="{tst:text value='language.languageCode'}">{tst:text value='language.label'}</a>
+                </tst:else>
+              </li>
+            </tst:for>
+          </ul>
+        </nav>
+        </tst:if>
         <tst:if compare="isLoggedIn" operator="EQ" against="true">
           <nav class="nav-user">
             <ul class="nav-user-list">
@@ -104,7 +121,7 @@
                               <path
                                   d="M14 14.252V16.3414C13.3744 16.1203 12.7013 16 12 16C8.68629 16 6 18.6863 6 22H4C4 17.5817 7.58172 14 12 14C12.6906 14 13.3608 14.0875 14 14.252ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM12 11C14.21 11 16 9.21 16 7C16 4.79 14.21 3 12 3C9.79 3 8 4.79 8 7C8 9.21 9.79 11 12 11ZM19 17.5858L21.1213 15.4645L22.5355 16.8787L20.4142 19L22.5355 21.1213L21.1213 22.5355L19 20.4142L16.8787 22.5355L15.4645 21.1213L17.5858 19L15.4645 16.8787L16.8787 15.4645L19 17.5858Z"></path>
                             </svg>
-                            Sitzungswechsel abbrechen</a>
+                            {tst:text value='cancelSessionChange'}</a>
                         </li>
                       </tst:if>
                       <li>
@@ -114,7 +131,7 @@
                             <path
                                 d="M21.0082 3C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918C2.44405 21 2 20.5551 2 20.0066V3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082ZM20 5H4V19H20V5ZM18 15V17H6V15H18ZM12 7V13H6V7H12ZM18 11V13H14V11H18ZM10 9H8V11H10V9ZM18 7V9H14V7H18Z"></path>
                           </svg>
-                          Mein Profil</a>
+                          {tst:text value='myProfile'}</a>
                       </li>
                       <li class="nav-user-logout">
                         <a href="{tst:text value='logoutHref'}">
@@ -124,7 +141,7 @@
                                 d="M5 22C4.44772 22 4 21.5523 4 21V3C4 2.44772 4.44772 2 5 2H19C19.5523 2 20 2.44772 20 3V6H18V4H6V20H18V18H20V21C20 21.5523 19.5523 22 19 22H5ZM18 16V13H11V11H18V8L23 12L18 16Z">
                             </path>
                           </svg>
-                          Abmelden</a>
+                          {tst:text value='logout'}</a>
                       </li>
                     </ul>
                   </div>
@@ -143,10 +160,10 @@
 </div>
 
 <dialog id="dialog" class="dialog">
-  <p class="dialog-message">Wirklich löschen?</p>
+  <p class="dialog-message">{tst:text value='deleteConfirmation'}</p>
   <div class="dialog-control">
-    <button type="button" class="dialog-cancel" data-action="modal-cancel">Abbrechen</button>
-    <button type="button" class="dialog-submit" data-action="modal-submit">Ja, löschen</button>
+    <button type="button" class="dialog-cancel" data-action="modal-cancel">{tst:text value='dialogCancel'}</button>
+    <button type="button" class="dialog-submit" data-action="modal-submit">{tst:text value='dialogConfirmDelete'}</button>
   </div>
 </dialog>
 </body>

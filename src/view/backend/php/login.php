@@ -27,7 +27,7 @@ class login extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Anmelden');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->loginPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -36,7 +36,12 @@ class login extends BackendView
             MyAuthUser::get()->redirectToFirstAllowedPage();
         }
         $htmlDocument->templateName = 'authentication';
+        $messages = ActraBackend::messages()->auth;
         $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'introText',
+            htmlText: HtmlText::unencoded(textContent: $messages->loginIntro)
+        );
         $loginForm = new LoginForm();
         if ($loginForm->process()) {
             HttpResponse::redirectAndExit(relativeOrAbsoluteUri: loginToken::getPath());
@@ -49,6 +54,6 @@ class login extends BackendView
 
     public static function getPath(bool $prependPath = true): string
     {
-        return ($prependPath ? ActraBackend::get()->path : '') . 'login.html';
+        return ($prependPath ? ActraBackend::path() : '') . 'login.html';
     }
 }

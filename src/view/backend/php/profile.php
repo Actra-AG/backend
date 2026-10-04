@@ -19,6 +19,7 @@ use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\html\HtmlDocument;
+use actra\yuf\html\HtmlReplacementCollection;
 use actra\yuf\html\HtmlText;
 
 class profile extends BackendView
@@ -65,7 +66,7 @@ class profile extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Mein Profil');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->profile->profilePageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -94,6 +95,7 @@ class profile extends BackendView
             );
         }
         $replacements = $htmlDocument->replacements;
+        $this->addProfileTexts(replacements: $replacements);
         $replacements->addBool(
             identifier: 'changed',
             booleanValue: $this->getInputString(keyName: profile::PARAM_CHANGED) !== null
@@ -146,8 +148,36 @@ class profile extends BackendView
         );
     }
 
+    private function addProfileTexts(HtmlReplacementCollection $replacements): void
+    {
+        $messages = ActraBackend::messages();
+        $profileMessages = $messages->profile;
+        $common = $messages->common;
+        $this->addTexts(
+            replacements: $replacements,
+            texts: [
+                'changedLabel' => $common->successLabel,
+                'changedText' => $common->changesSaved,
+                'apiKeyGeneratedText' => $common->apiKeyGenerated,
+                'generatedApiKeyLabel' => $common->apiKeyValueLabel,
+                'passwordProtectionHeading' => $profileMessages->passwordProtectionHeading,
+                'passwordProtectionIntro' => $profileMessages->passwordProtectionIntro,
+                'createPasswordLink' => $profileMessages->createPasswordLink,
+                'passwordLoginIntro' => $profileMessages->passwordLoginIntro,
+                'passwordLabel' => $profileMessages->passwordLabel,
+                'changeLink' => $profileMessages->changeLink,
+                'removeLink' => $common->removeLink,
+                'apiKeyHeading' => $common->apiKeyLabel,
+                'apiKeyLabel' => $common->apiKeyLabel,
+                'apiKeyNone' => $common->apiKeyNone,
+                'generateApiKeyLink' => $common->generateApiKeyLink,
+                'apiKeyNeedsIpWhitelist' => $common->apiKeyNeedsIpWhitelist,
+            ]
+        );
+    }
+
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'profile.html';
+        return ActraBackend::path() . 'profile.html';
     }
 }

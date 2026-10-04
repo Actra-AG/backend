@@ -10,6 +10,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\form\NotificationSendForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -38,7 +39,7 @@ class notificationSend extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Benachrichtigung senden');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->notification->sendTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -52,6 +53,15 @@ class notificationSend extends BackendView
                 ) . '?' . notification::PARAM_SENT
             );
         }
+        $replacements->addHtmlText(
+            identifier: 'sendInfo',
+            htmlText: HtmlText::unencoded(
+                textContent: MessageTemplate::fill(
+                    template: ActraBackend::messages()->notification->sendInfo,
+                    values: ['send' => ActraBackend::messages()->common->send]
+                )
+            )
+        );
         $replacements->addEncodedText(
             identifier: 'form',
             content: $notificationSendForm->render()
@@ -60,6 +70,6 @@ class notificationSend extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'notificationSend.html';
+        return ActraBackend::path() . 'notificationSend.html';
     }
 }

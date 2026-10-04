@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form\component;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\form\rule\ValidIpAddressRule;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\html\HtmlText;
@@ -23,13 +24,15 @@ final class IpWhitelistField extends TextAreaField
     /**
      * @param list<string> $value The initial IP addresses
      * @param HtmlText $invalidErrorMessage `[ipAddress]` is replaced by the invalid address
+     * @param ?HtmlText $fieldInfo Default: `CommonMessages::$ipWhitelistInfo` of the backend messages
      */
     public function __construct(
         string $name,
         HtmlText $label,
         array $value,
         HtmlText $invalidErrorMessage,
-        ?HtmlText $requiredError = null
+        ?HtmlText $requiredError = null,
+        ?HtmlText $fieldInfo = null
     ) {
         parent::__construct(
             name: $name,
@@ -38,7 +41,9 @@ final class IpWhitelistField extends TextAreaField
             requiredError: $requiredError
         );
         $this->initialIpAddresses = $this->getValues();
-        $this->fieldInfo = HtmlText::encoded(textContent: 'Eine IP-Adresse pro Zeile.');
+        $this->fieldInfo = $fieldInfo ?? HtmlText::unencoded(
+            textContent: ActraBackend::messages()->common->ipWhitelistInfo
+        );
         $this->addEachRule(formRule: new ValidIpAddressRule(errorMessage: $invalidErrorMessage));
     }
 

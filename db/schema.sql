@@ -163,6 +163,7 @@ CREATE TABLE `auth_user`
     `phone`               varchar(200)          NOT NULL,
     `firstName`           varchar(200)          NOT NULL,
     `lastName`            varchar(200)          NOT NULL,
+    `language`            varchar(10)                    DEFAULT NULL,
     `active`              tinyint(3) UNSIGNED   NOT NULL,
     `lastSuccessfulLogin` datetime                       DEFAULT NULL,
     `passwordSalt`        char(16)                       DEFAULT NULL,

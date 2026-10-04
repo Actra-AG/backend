@@ -24,14 +24,20 @@ class passwordResetRes extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Passwort zurücksetzen');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->passwordResetPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';
+        $messages = ActraBackend::messages()->auth;
+        $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'doneText',
+            htmlText: HtmlText::unencoded(textContent: $messages->passwordResetDone)
+        );
         AuthSession::logOut();
-        $htmlDocument->replacements->addEncodedText(
+        $replacements->addEncodedText(
             identifier: 'loginHref',
             content: loginPassword::getPath()
         );
@@ -39,6 +45,6 @@ class passwordResetRes extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'passwordResetRes.html';
+        return ActraBackend::path() . 'passwordResetRes.html';
     }
 }

@@ -30,13 +30,27 @@ class logout extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Abmelden');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->logoutPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';
-        $htmlDocument->replacements->addEncodedText(
+        $messages = ActraBackend::messages()->auth;
+        $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'heading',
+            htmlText: HtmlText::unencoded(textContent: $messages->logoutHeading)
+        );
+        $replacements->addHtmlText(
+            identifier: 'statusText',
+            htmlText: HtmlText::unencoded(textContent: $messages->logoutStatus)
+        );
+        $replacements->addHtmlText(
+            identifier: 'loginText',
+            htmlText: HtmlText::unencoded(textContent: $messages->loginLink)
+        );
+        $replacements->addEncodedText(
             identifier: 'loginHref',
             content: login::getPath()
         );
@@ -44,6 +58,6 @@ class logout extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'logout.html';
+        return ActraBackend::path() . 'logout.html';
     }
 }

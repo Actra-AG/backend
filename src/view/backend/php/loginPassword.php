@@ -26,14 +26,19 @@ class loginPassword extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Anmelden');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->loginPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         AuthSession::logOut();
         $htmlDocument->templateName = 'authentication';
+        $messages = ActraBackend::messages()->auth;
         $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'introText',
+            htmlText: HtmlText::unencoded(textContent: $messages->loginPasswordIntro)
+        );
         $loginPasswordForm = new LoginPasswordForm();
         if ($loginPasswordForm->process()) {
             HttpResponse::redirectAndExit(relativeOrAbsoluteUri: loginPasswordToken::getPath());
@@ -46,6 +51,6 @@ class loginPassword extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'loginPassword.html';
+        return ActraBackend::path() . 'loginPassword.html';
     }
 }

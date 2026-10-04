@@ -63,21 +63,45 @@ class MyAuthUser extends AuthUser
 
     public function getFirstAllowedPage(): string
     {
-        if (array_key_exists(
-            key: 'requestedPageAfterLogin',
-            array: $_SESSION
-        )) {
-            $target = $_SESSION['requestedPageAfterLogin'];
-            unset($_SESSION['requestedPageAfterLogin']);
-        } else {
-            $target = ActraBackend::get()->navigationItemCollection->getFirst(
-                accessRightCollection: $this->dbAuthUser->accessRightCollection
-            )->href;
+        $requestedPage = $_SESSION['requestedPageAfterLogin'] ?? null;
+        unset($_SESSION['requestedPageAfterLogin']);
+        $target = is_string(value: $requestedPage) && $requestedPage !== ''
+            ? $requestedPage
+            : $this->getFirstNavigationHref();
+        $target = $this->moveToLanguageRoute(target: $target);
+
+        return $target . (str_contains(haystack: $target, needle: '?') ? '&' : '?') . BackendView::PARAM_FROM_LOGIN;
+    }
+
+    private function getFirstNavigationHref(): string
+    {
+        $navigationItem = ActraBackend::get()->navigationItemCollection->getFirst(
+            accessRightCollection: $this->dbAuthUser->accessRightCollection
+        );
+        if ($navigationItem === null) {
+            throw new UnauthorizedException();
         }
-        return $target . (str_contains(
-                haystack: $target,
-                needle: '?'
-            ) ? '&' : '?') . BackendView::PARAM_FROM_LOGIN;
+
+        return $navigationItem->href;
+    }
+
+    /**
+     * A user with a language continues on the backend route of that language. Without a language (no preference) or
+     * for a language without route, the user stays on the route of the login.
+     */
+    private function moveToLanguageRoute(string $target): string
+    {
+        $languageCode = $this->dbAuthUser->languageCode;
+        if ($languageCode === null) {
+            return $target;
+        }
+        $backendRouteCollection = ActraBackend::get()->backendRouteCollection;
+        $languageRoute = $backendRouteCollection->findByLanguage(languageCode: $languageCode);
+        if ($languageRoute === null) {
+            return $target;
+        }
+
+        return $backendRouteCollection->translatePath(uri: $target, targetRoute: $languageRoute);
     }
 
     public static function get(): MyAuthUser

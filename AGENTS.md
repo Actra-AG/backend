@@ -21,6 +21,7 @@ Persistent instructions for developers and AI assistants working in this reposit
   path with `actra/autoloader`).
     - `ActraBackend.php`, `BackendView.php` – entry point and base view.
     - `settings/` – settings value objects and enums.
+    - `i18n/` – the message classes with all user-visible texts (English defaults, `german()` variant).
     - `libs/auth/`, `libs/db/`, `libs/email/`, `libs/common/` – authentication, repositories and records, mails.
     - `libs/form/` – the forms (yuf form API), `component/` custom fields, `rule/` custom rules.
     - `libs/table/` – the tables (yuf `DbResultTable`).

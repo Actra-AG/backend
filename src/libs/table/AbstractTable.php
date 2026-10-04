@@ -8,15 +8,37 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
+use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\yuf\common\CSVFile;
+use actra\yuf\db\DbQuery;
+use actra\yuf\db\FrameworkDB;
+use actra\yuf\html\HtmlEncoder;
+use actra\yuf\table\renderer\TablePaginationRenderer;
 use actra\yuf\table\table\DbResultTable;
 use actra\yuf\table\table\SmartTable;
 use DateTimeImmutable;
 
 abstract class AbstractTable extends DbResultTable
 {
+    public function __construct(string $identifier, FrameworkDB $db, DbQuery $dbQuery, int $itemsPerPage = 25)
+    {
+        $common = ActraBackend::messages()->common;
+        parent::__construct(
+            identifier: $identifier,
+            db: $db,
+            dbQuery: $dbQuery,
+            tablePaginationRenderer: new TablePaginationRenderer(
+                previousTitle: $common->paginationPrevious,
+                nextTitle: $common->paginationNext
+            ),
+            itemsPerPage: $itemsPerPage
+        );
+    }
+
     public function render(): string
     {
+        $this->setMessages();
         $this->fullHtml = DbResultTable::filter . SmartTable::totalAmount . DbResultTable::pagination . '<div class="table-wrap">' . SmartTable::table . '</div>' . DbResultTable::pagination;
         return parent::render();
     }
@@ -34,7 +56,7 @@ abstract class AbstractTable extends DbResultTable
                 if ($i === 1) {
                     $headersList[] = $key;
                 }
-                if ($val !== null) {
+                if (is_scalar(value: $val)) {
                     $item[] = preg_replace(
                         pattern: '/\s+/',
                         replacement: ' ',
@@ -52,5 +74,23 @@ abstract class AbstractTable extends DbResultTable
             $csvFile->addRow(data: $item);
         }
         $csvFile->pushDownloadAndExit();
+    }
+
+    /**
+     * Replaces the texts of yuf's table (German there) by the backend messages.
+     */
+    private function setMessages(): void
+    {
+        $common = ActraBackend::messages()->common;
+        $this->noDataHtml = DbResultTable::filter
+            . '<p class="no-entry">' . HtmlEncoder::encode(value: $common->tableNoEntries) . '</p>';
+        $this->totalAmountMessage_oneResult = MessageTemplate::fill(
+            template: HtmlEncoder::encode(value: $common->tableOneResult),
+            values: ['count' => '<strong>1</strong>']
+        );
+        $this->totalAmountMessage_numResults = MessageTemplate::fill(
+            template: HtmlEncoder::encode(value: $common->tableResults),
+            values: ['count' => '<strong>' . SmartTable::amount . '</strong>']
+        );
     }
 }

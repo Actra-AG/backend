@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\email;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 
 class EmailLoginToken
@@ -19,23 +20,36 @@ class EmailLoginToken
         int $expirationInMinutes,
         bool $usedPasswordLogin
     ): void {
+        $messages = ActraBackend::messages();
+        $emailMessages = $messages->email;
         Mailer::sendTextMail(
             recipient: $dbAuthUser->email,
-            subject: $token . ' ist ihr Bestätigungscode',
+            subject: MessageTemplate::fill(
+                template: $emailMessages->loginTokenSubject,
+                values: ['token' => $token]
+            ),
             textBody: implode(
                 separator: PHP_EOL,
                 array: [
-                    'Grüezi',
+                    $emailMessages->greeting,
                     '',
-                    'Mit dem nachfolgenden Bestätigungscode können Sie sich ' . ($usedPasswordLogin ? '' : 'ohne Passwort ') . 'sicher im Backend anmelden:',
+                    $usedPasswordLogin
+                        ? $emailMessages->loginTokenIntroPasswordLogin
+                        : $emailMessages->loginTokenIntroPasswordless,
                     '',
                     $token,
                     '',
-                    'Bitte beachten Sie, dass dieser Code nur einmal verwendet werden kann und nach ' . $expirationInMinutes . ' Minuten verfällt.',
+                    MessageTemplate::fill(
+                        template: $emailMessages->loginTokenValidity,
+                        values: ['minutes' => (string)$expirationInMinutes]
+                    ),
                     '',
-                    'Wenn Sie keinen Bestätigungscode für die E-Mail-Adresse ' . $dbAuthUser->email . ' angefordert haben, können Sie diese E-Mail ignorieren.',
+                    MessageTemplate::fill(
+                        template: $emailMessages->loginTokenIgnore,
+                        values: ['email' => $dbAuthUser->email]
+                    ),
                     '',
-                    'Freundliche Grüsse',
+                    $messages->common->closingGreeting,
                     '',
                     ActraBackend::get()->mailerSettings->signature,
                 ]

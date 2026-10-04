@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserSearchForm;
@@ -48,10 +49,12 @@ class UserTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100
         );
+        $common = ActraBackend::messages()->common;
+        $messages = ActraBackend::messages()->user;
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'fullName',
-                label: 'Name',
+                label: $messages->nameColumn,
                 callbackFunction: function (TableItemModel $tableItemModel) {
                     return '<a href="' . user::getPath(
                             ID: $tableItemModel->getRawValue(name: 'ID')
@@ -64,14 +67,14 @@ class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
-                label: 'E-Mail',
+                label: $common->emailLabel,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new BooleanColumn(
                 identifier: 'active',
-                label: 'Aktiv',
+                label: $messages->activeColumn,
                 isSortable: true,
                 sortAscendingByDefault: false
             )
@@ -79,14 +82,14 @@ class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'rightGroups',
-                label: 'Rechtegruppe(n)',
+                label: $messages->rightGroupsColumn,
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'ipWhitelist',
-                label: 'IP-Whitelist',
+                label: $common->ipWhitelistLabel,
                 callbackFunction: function (TableItemModel $tableItemModel) {
                     return str_replace(
                         search: ',',
@@ -100,18 +103,18 @@ class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: $registeredColumn = new DateColumn(
                 identifier: 'registered',
-                label: 'erfasst',
+                label: $messages->registeredColumn,
                 isSortable: true
             )
         );
-        $registeredColumn->format = 'd.m.Y';
+        $registeredColumn->format = $common->dateFormat;
         $this->addColumn(
             abstractTableColumn: $invitedColumn = new DateColumn(
                 identifier: 'invited',
-                label: 'eingeladen',
+                label: $messages->invitedColumn,
                 isSortable: true
             )
         );
-        $invitedColumn->format = 'd.m.Y';
+        $invitedColumn->format = $common->dateFormat;
     }
 }

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\form\component\SearchQueryField;
 use actra\backend\libs\form\component\SearchSelectOptionsField;
 use actra\yuf\auth\AuthResult;
@@ -27,6 +28,7 @@ final class VisitSearchForm extends AbstractSearchForm
         parent::__construct(name: $name);
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
+        $messages = ActraBackend::messages();
         $statusFilterOptions = new FormOptions();
         foreach (AuthResult::cases() as $authResult) {
             if ($authResult === AuthResult::UNDEFINED) {
@@ -34,23 +36,26 @@ final class VisitSearchForm extends AbstractSearchForm
             }
             $statusFilterOptions->addItem(
                 key: 'option_' . $authResult->value,
-                htmlText: HtmlText::encoded(
-                    textContent: $authResult->render()
+                htmlText: HtmlText::unencoded(
+                    textContent: $messages->log->authResult(authResult: $authResult)
                 )
             );
         }
-        $statusFilterOptions->addItem(key: 'option_6', htmlText: HtmlText::encoded(textContent: 'Kein Zugriff'));
+        $statusFilterOptions->addItem(
+            key: 'option_6',
+            htmlText: HtmlText::unencoded(textContent: $messages->log->filterNoAccess)
+        );
         $statusFilterOptions->addItem(
             key: 'option_9',
-            htmlText: HtmlText::encoded(textContent: 'Unbestätigter Zugang')
+            htmlText: HtmlText::unencoded(textContent: $messages->log->filterUnconfirmedAccess)
         );
         $this->addField(
             formField: $this->statusFilterField = new SearchSelectOptionsField(
                 name: 'statusFilterField',
-                label: HtmlText::encoded(textContent: 'Status'),
+                label: HtmlText::unencoded(textContent: $messages->log->statusLabel),
                 formOptions: $statusFilterOptions,
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::encoded(textContent: 'alle')
+                individualEmptyValueLabel: HtmlText::unencoded(textContent: $messages->common->filterAll)
             )
         );
         $this->status = (int)$this->validateSearchField(searchField: $this->statusFilterField);
@@ -60,7 +65,7 @@ final class VisitSearchForm extends AbstractSearchForm
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::encoded(textContent: 'anzeigen')
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->searchButton)
             )
         );
     }

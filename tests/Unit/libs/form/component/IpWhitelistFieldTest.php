@@ -25,7 +25,8 @@ final class IpWhitelistFieldTest extends TestCase
             label: HtmlText::encoded(textContent: 'IP-Whitelist'),
             value: $initialIpAddresses,
             invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]'),
-            requiredError: $requiredError
+            requiredError: $requiredError,
+            fieldInfo: HtmlText::unencoded(textContent: 'One IP address per line.')
         );
     }
 

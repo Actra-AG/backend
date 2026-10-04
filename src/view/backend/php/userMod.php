@@ -41,7 +41,7 @@ class userMod extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Benutzer bearbeiten');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->editUserTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -67,6 +67,6 @@ class userMod extends BackendView
 
     public static function getPath(int $ID): string
     {
-        return ActraBackend::get()->path . 'userMod-' . $ID . '.html';
+        return ActraBackend::path() . 'userMod-' . $ID . '.html';
     }
 }

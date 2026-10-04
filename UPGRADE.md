@@ -4,6 +4,21 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## HTML & CSS (Frontend)
 
+### v1.1.0 – October 4, 2026
+
+* All texts of the views and page templates come from the message classes (see "Backend & API"). For a German route
+  the rendered text is unchanged; a few paragraphs that were wrapped in the template source are now on one line.
+* The page templates (`default.html`, `authentication.html`) use new text replacements (`skipLink`, `openMenu`,
+  `closeMenu`, `cancelSessionChange`, `myProfile`, `logout`, `deleteConfirmation`, `dialogCancel`,
+  `dialogConfirmDelete`). Projects with their own page templates (`templateDirectory`) can use them; their existing
+  texts keep working. The `lang` attribute still comes from the route language.
+* With several backend languages, the user forms, the profile and the user detail page show a language field.
+* With several backend languages, both page templates show a language switcher in the header
+  (`<nav class="language-switcher">`, new CSS block `src/assets/css/blocks/_language-switcher.css`, imported in
+  `backend.css`). It links to the same page in each language (without query string); the current language is a
+  `<span aria-current="true">`. `.auth-header` wraps its content (`flex-wrap`, `gap`). Projects with their own page
+  templates can add it with the replacements `hasLanguageSwitcher`, `languageSwitcher` and `languageSwitcherLabel`.
+
 ### v1.0.0 – October 4, 2026
 
 * Password inputs now have an `autocomplete` attribute: `current-password` on the login and the "current password"
@@ -36,6 +51,64 @@ This document tracks relevant changes for both frontend and backend developers.
 * Added the `nav-user-logout` CSS class to the logout item in the user dropdown.
 
 ## Backend & API
+
+### v1.1.0 – October 4, 2026
+
+* **Migration:** Requires `actra/yuf` `^4.1` (configurable table pagination titles); Composer updates yuf within v4.
+  Attention: yuf v4.1.0 changed the default pagination titles of the project's own tables to English, see yuf's
+  UPGRADE.md, section `[v4.1.0]`.
+* **Feature:** All user-visible texts (forms, views, tables, navigation, emails, status labels) come from message
+  classes in `actra\backend\i18n`: `BackendMessages` bundles `CommonMessages`, `LayoutMessages`, `AuthMessages`,
+  `UserMessages`, `ProfileMessages`, `NotificationMessages`, `LogMessages`, `EmailMessages` and yuf's `FormMessages`.
+  English and German are included (`english()`, `german()`, `forLanguageCode()`).
+* **Feature:** Multilingual backend: besides the main route (`ActraBackend::init(path: ...)` in
+  `ActraBackendSettings::$language`) the backend can be registered under further routes, one per language, with the
+  new `ActraBackendSettings::$additionalRoutes` (`list<BackendRoute>`). The texts of a request always follow the
+  language of its route: German for `de`, English for every other language, or own messages per route
+  (`ActraBackendSettings::$messages` for the main route, `BackendRoute::$messages`).
+  ```php
+  new ActraBackendSettings(
+      language: new Language(code: 'de', locale: 'de_CH'),
+      ...,
+      additionalRoutes: [
+          new BackendRoute(path: '/en/backend/', language: new Language(code: 'en', locale: 'en_GB')),
+      ]
+  );
+  ```
+* **Feature:** Single texts can be replaced with `with()`:
+  `BackendMessages::german()->with(auth: AuthMessages::german()->with(loginPageTitle: 'Login'))`.
+* **Feature:** `ActraBackend::messages()` (texts of the current route), `ActraBackend::path()` (path of the current
+  route), `ActraBackend::get()->getRouteForLanguage()`, `ActraBackend::get()->currentRoute`. `ActraBackend::$path` is the
+  path of the main route; links should use `ActraBackend::path()`.
+* **Feature:** Every user has a language (`auth_user.language`, empty = language of the main route), selectable in the
+  user forms and the profile when several languages are configured. The welcome email is prefilled in the recipient's
+  language and links to the backend route of that language.
+* **Feature:** After login, a user with a language continues on the backend route of that language (same page). Users
+  without a language stay on the route they logged in with.
+* **Feature:** `ActraBackendSettings::$projectNavigation` (`BackendNavigationInterface`): projects add their own
+  navigation items per route language; called at init for the main route and again for the route of each request.
+* **Database:** Installations upgrading from an earlier version must apply `db/updates/1.1.0.sql` (adds
+  `auth_user.language`).
+* **Logic Change:** A route whose language is not `de` and that has no messages configured now shows English texts
+  (it showed German texts before).
+* **Logic Change:** Date formats come from `CommonMessages::$dateFormat` / `$dateTimeFormat` (German `d.m.Y` /
+  `d.m.Y H:i:s` as before, English `Y-m-d` / `Y-m-d H:i:s`).
+* **Logic Change:** The visit log uses the backend's own status labels (`LogMessages::authResult()`) instead of yuf's
+  `AuthResult::render()` (same German texts). `AuthTokenTypeEnum::render()` has the optional argument
+  `?LogMessages $messages` (default: the texts of the current route).
+* **Logic Change:** The pagination titles of the backend tables come from `CommonMessages::$paginationPrevious` /
+  `$paginationNext` (German "Zurück" / "Vor" as before). `AbstractTable` has its own constructor (`identifier`, `db`,
+  `dbQuery`, `itemsPerPage`) that passes them to yuf's `TablePaginationRenderer`.
+* **Logic Change:** `IpWhitelistField` has the optional argument `fieldInfo` (default: `CommonMessages::$ipWhitelistInfo`).
+  `DbAuthUser` has the new constructor argument `languageCode`; `DbAuthUserRepository::insert()`/`update()` the new
+  parameter `languageCode`.
+* **Logic Change:** `ActraBackend::get()` throws a `LogicException` before `ActraBackend::init()` (was a `TypeError`).
+  `BackendView` throws an `UnauthorizedException` if the parent session of a session change no longer exists or the
+  user has no allowed navigation item (both were fatal errors).
+* **Feature:** `BackendView::addTexts()` adds plain texts as template replacements; `NewPasswordCheck` checks a new
+  password and its confirmation (minimum length `NewPasswordCheck::MIN_LENGTH` = 8, both equal).
+* **Security:** The subject, message, group and sender name on the notification detail page and the client data in
+  the token log are HTML-encoded (they were rendered as HTML).
 
 ### v1.0.0 – October 4, 2026
 

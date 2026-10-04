@@ -35,14 +35,14 @@ class notifications extends BackendView
             navKey: 'notifications',
             href: notifications::getPath() . '?reset',
             svgPath: '',
-            title: 'Benachrichtigungen',
+            title: ActraBackend::messages()->notification->title,
             requiredAccessRights: notifications::getRequiredAccessRights()
         );
     }
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'notifications.html';
+        return ActraBackend::path() . 'notifications.html';
     }
 
     public static function getRequiredAccessRights(): AccessRightCollection
@@ -54,12 +54,16 @@ class notifications extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Benachrichtigungen');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->notification->title);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'sendTitle',
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->notification->sendTitle)
+        );
         $replacements->addEncodedText(
             identifier: 'sendHref',
             content: notificationSend::getPath()

@@ -39,14 +39,14 @@ class tokens extends BackendView
             navKey: 'tokens',
             href: tokens::getPath(userID: null) . '?reset',
             svgPath: '',
-            title: 'Codes',
+            title: ActraBackend::messages()->log->tokensNavigationTitle,
             requiredAccessRights: tokens::getRequiredAccessRights()
         );
     }
 
     public static function getPath(?int $userID): string
     {
-        return ActraBackend::get()->path . ($userID === null ? 'tokens.html' : 'tokens-' . $userID . '.html');
+        return ActraBackend::path() . ($userID === null ? 'tokens.html' : 'tokens-' . $userID . '.html');
     }
 
     public static function getRequiredAccessRights(): AccessRightCollection
@@ -58,7 +58,7 @@ class tokens extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Codes');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->log->tokensPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void

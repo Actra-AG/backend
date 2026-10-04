@@ -38,7 +38,7 @@ class userAdd extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Benutzer hinzufügen');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->addUserTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -60,6 +60,6 @@ class userAdd extends BackendView
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'userAdd.html';
+        return ActraBackend::path() . 'userAdd.html';
     }
 }

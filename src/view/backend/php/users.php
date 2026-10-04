@@ -45,14 +45,14 @@ class users extends BackendView
             navKey: 'userList',
             href: users::getPath() . '?reset',
             svgPath: '',
-            title: 'Benutzerliste',
+            title: ActraBackend::messages()->user->navigationUserList,
             requiredAccessRights: users::getRequiredAccessRights()
         );
     }
 
     public static function getPath(): string
     {
-        return ActraBackend::get()->path . 'users.html';
+        return ActraBackend::path() . 'users.html';
     }
 
     public static function getRequiredAccessRights(): AccessRightCollection
@@ -64,14 +64,27 @@ class users extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::encoded(textContent: 'Benutzer');
+        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->usersTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $userSearchForm = new UserSearchForm();
 
+        $messages = ActraBackend::messages()->user;
         $replacements = $htmlDocument->replacements;
+        $replacements->addHtmlText(
+            identifier: 'addUserTitle',
+            htmlText: HtmlText::unencoded(textContent: $messages->addUserTitle)
+        );
+        $replacements->addHtmlText(
+            identifier: 'successLabel',
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel)
+        );
+        $replacements->addHtmlText(
+            identifier: 'removedMessage',
+            htmlText: HtmlText::unencoded(textContent: $messages->removedMessage)
+        );
         $replacements->addEncodedText(
             identifier: 'addHref',
             content: userAdd::getPath()

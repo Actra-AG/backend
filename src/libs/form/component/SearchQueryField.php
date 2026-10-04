@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form\component;
 
+use actra\backend\ActraBackend;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\html\HtmlTag;
 use actra\yuf\html\HtmlTagAttribute;
@@ -19,7 +20,7 @@ final class SearchQueryField extends TextField
     {
         parent::__construct(
             name: 'searchQuery',
-            label: HtmlText::encoded(textContent: 'Suchbegriff')
+            label: HtmlText::unencoded(textContent: ActraBackend::messages()->common->searchLabel)
         );
     }
 

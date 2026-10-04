@@ -67,6 +67,23 @@ class notification extends BackendView
             textContent: $dbAuthUserNotification->subject
         );
         $replacements = $htmlDocument->replacements;
+        $messages = ActraBackend::messages()->notification;
+        $replacements->addHtmlText(
+            identifier: 'successLabel',
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel)
+        );
+        $replacements->addHtmlText(
+            identifier: 'sentSuccess',
+            htmlText: HtmlText::unencoded(textContent: $messages->sentSuccess)
+        );
+        $replacements->addHtmlText(
+            identifier: 'detailsHeading',
+            htmlText: HtmlText::unencoded(textContent: $messages->detailsHeading)
+        );
+        $replacements->addHtmlText(
+            identifier: 'recipientsLabel',
+            htmlText: HtmlText::unencoded(textContent: $messages->recipientsLabel)
+        );
         $replacements->addBool(
             identifier: 'sent',
             booleanValue: $this->getInputString(keyName: notification::PARAM_SENT) !== null
@@ -85,6 +102,6 @@ class notification extends BackendView
 
     public static function getPath(int $ID): string
     {
-        return ActraBackend::get()->path . 'notification-' . $ID . '.html';
+        return ActraBackend::path() . 'notification-' . $ID . '.html';
     }
 }

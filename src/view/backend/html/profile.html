@@ -2,15 +2,14 @@
   <h1>{tst:text value='pageTitle'}</h1>
 
   <tst:if compare="changed" operator="EQ" against="true">
-    <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Die Änderungen wurden
-      gespeichert.</p>
+    <p class="msg msg-success" role="status" aria-live="polite"><strong>{tst:text value='changedLabel'}</strong> {tst:text value='changedText'}</p>
   </tst:if>
 
   <tst:if compare="hasApi" operator="EQ" against="true">
     <tst:if compare="generatedApiKey" operator="NE" against="">
       <div class="msg msg-success | flow-layout-xs" role="status" aria-live="polite">
-        <p>Der neue API-Key wurde generiert. Er wird später nicht erneut angezeigt.</p>
-        <p><strong>API-Key:</strong> <code>{tst:text value='generatedApiKey'}</code></p>
+        <p>{tst:text value='apiKeyGeneratedText'}</p>
+        <p><strong>{tst:text value='generatedApiKeyLabel'}</strong> <code>{tst:text value='generatedApiKey'}</code></p>
       </div>
     </tst:if>
   </tst:if>
@@ -20,23 +19,22 @@
 
   <div class="card | flow-layout-m">
     <div class="card-header">
-      <h2>Passwortschutz</h2>
+      <h2>{tst:text value='passwordProtectionHeading'}</h2>
     </div>
     <tst:if compare="createPasswordHref" operator="NE" against="">
-      <p>Zusätzlich zum per E-Mail verschickten Einmalcode können Sie Ihren Zugang ins GUI mit einem Passwort
-        schützen.</p>
-      <p><a href="{tst:text value='createPasswordHref'}">Passwort erstellen</a></p>
+      <p>{tst:text value='passwordProtectionIntro'}</p>
+      <p><a href="{tst:text value='createPasswordHref'}">{tst:text value='createPasswordLink'}</a></p>
     </tst:if>
     <tst:else>
-      <p>Die Anmeldung mit Passwort erfolgt über eine separate Anmeldemaske:<br><a
+      <p>{tst:text value='passwordLoginIntro'}<br><a
           href="{tst:text value='loginPasswordHref'}">{tst:text value='loginPasswordHref'}</a></p>
       <div class="details">
         <dl>
-          <dt>Passwort</dt>
+          <dt>{tst:text value='passwordLabel'}</dt>
           <dd>
             ***
-            [<a href="{tst:text value='changePasswordHref'}">Ändern</a>]
-            [<a href="{tst:text value='removePasswordHref'}">Entfernen</a>]
+            [<a href="{tst:text value='changePasswordHref'}">{tst:text value='changeLink'}</a>]
+            [<a href="{tst:text value='removePasswordHref'}">{tst:text value='removeLink'}</a>]
           </dd>
         </dl>
       </div>
@@ -47,27 +45,27 @@
   <tst:if compare="hasApi" operator="EQ" against="true">
     <div class="card | flow-layout-m">
       <div class="card-header">
-        <h2>API-Key</h2>
+        <h2>{tst:text value='apiKeyHeading'}</h2>
       </div>
       <tst:if compare="generateApiKeyHref" operator="NE" against="">
         <div class="details">
           <dl>
-            <dt>API-Key</dt>
+            <dt>{tst:text value='apiKeyLabel'}</dt>
             <dd>
               <tst:if compare="apiKey" operator="NE" against="">
                 {tst:text value='apiKey'}
-                [<a href="{tst:text value='removeApiKeyHref'}">Entfernen</a>]
+                [<a href="{tst:text value='removeApiKeyHref'}">{tst:text value='removeLink'}</a>]
               </tst:if>
               <tst:else>
-                keiner
+                {tst:text value='apiKeyNone'}
               </tst:else>
-              [<a href="{tst:text value='generateApiKeyHref'}">Neu generieren</a>]
+              [<a href="{tst:text value='generateApiKeyHref'}">{tst:text value='generateApiKeyLink'}</a>]
             </dd>
           </dl>
         </div>
       </tst:if>
       <tst:else>
-        <p>API-Keys können erst generiert werden, wenn eine IP-Whitelist hinterlegt ist.</p>
+        <p>{tst:text value='apiKeyNeedsIpWhitelist'}</p>
       </tst:else>
     </div>
   </tst:if>

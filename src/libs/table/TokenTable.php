@@ -8,14 +8,17 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\settings\AuthTokenTypeEnum;
+use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItemModel;
+use UnexpectedValueException;
 
 class TokenTable extends AbstractTable
 {
@@ -58,94 +61,91 @@ class TokenTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100
         );
-        $this->addColumn(
-            abstractTableColumn: new DateColumn(
-                identifier: 'registered',
-                label: 'Erstellt (Datum)',
-                isSortable: true,
-                sortAscendingByDefault: false
-            ),
-            isDefaultSortColumn: true
+        $messages = ActraBackend::messages();
+        $registeredColumn = new DateColumn(
+            identifier: 'registered',
+            label: $messages->log->tokenCreatedDateColumn,
+            isSortable: true,
+            sortAscendingByDefault: false
         );
+        $registeredColumn->format = $messages->common->dateTimeFormat;
+        $this->addColumn(abstractTableColumn: $registeredColumn, isDefaultSortColumn: true);
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'registeredClient',
-                label: 'Erstellt (Client)',
-                callbackFunction: function (TableItemModel $tableItemModel) {
-                    $registeredClient = $tableItemModel->getRawValue(name: 'registeredClient');
-                    if ($registeredClient === '') {
-                        return '';
-                    }
-                    $list = [];
-                    foreach (
-                        get_object_vars(
-                            object: json_decode(
-                                json: $tableItemModel->getRawValue(
-                                    name: 'registeredClient'
-                                )
-                            )
-                        ) as $key => $val
-                    ) {
-                        $list[] = $key . ': ' . $val;
-                    }
-                    return implode(
-                        separator: '<br>',
-                        array: $list
-                    );
-                },
+                label: $messages->log->tokenCreatedClientColumn,
+                callbackFunction: fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
+                    clientJson: $tableItemModel->getRawValue(name: 'registeredClient')
+                ),
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'type',
-                label: 'Typ',
-                callbackFunction: function (TableItemModel $tableItemModel) {
-                    return AuthTokenTypeEnum::from(value: $tableItemModel->getRawValue(name: 'type'))->render();
+                label: $messages->log->typeLabel,
+                callbackFunction: function (TableItemModel $tableItemModel) use ($messages): string {
+                    $type = $tableItemModel->getRawValue(name: 'type');
+                    if (!is_string(value: $type)) {
+                        throw new UnexpectedValueException(message: 'The token type must be a string.');
+                    }
+
+                    return HtmlEncoder::encode(
+                        value: AuthTokenTypeEnum::from(value: $type)->render(messages: $messages->log)
+                    );
                 },
                 isSortable: true
             )
         );
-        $this->addColumn(
-            abstractTableColumn: new DateColumn(
-                identifier: 'claimed',
-                label: 'Eingelöst (Datum)',
-                isSortable: true
-            )
+        $claimedColumn = new DateColumn(
+            identifier: 'claimed',
+            label: $messages->log->tokenClaimedDateColumn,
+            isSortable: true
         );
+        $claimedColumn->format = $messages->common->dateTimeFormat;
+        $this->addColumn(abstractTableColumn: $claimedColumn);
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'claimedClient',
-                label: 'Eingelöst (Client)',
-                callbackFunction: function (TableItemModel $tableItemModel) {
-                    $claimedClient = $tableItemModel->getRawValue(name: 'claimedClient');
-                    if ($claimedClient === null) {
-                        return '';
-                    }
-                    $list = [];
-                    foreach (
-                        get_object_vars(
-                            object: json_decode(
-                                json: $claimedClient
-                            )
-                        ) as $key => $val
-                    ) {
-                        $list[] = $key . ': ' . $val;
-                    }
-                    return implode(
-                        separator: '<br>',
-                        array: $list
-                    );
-                },
+                label: $messages->log->tokenClaimedClientColumn,
+                callbackFunction: fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
+                    clientJson: $tableItemModel->getRawValue(name: 'claimedClient')
+                ),
                 isSortable: true
             )
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'token',
-                label: 'Token',
+                label: $messages->log->tokenColumn,
                 isSortable: true
             )
         );
+    }
+
+    /**
+     * Lists the JSON client data as "key: value" lines. The values are output as stored (legacy behaviour).
+     */
+    private static function renderClient(mixed $clientJson): string
+    {
+        if ($clientJson === null || $clientJson === '') {
+            return '';
+        }
+        if (!is_string(value: $clientJson)) {
+            throw new UnexpectedValueException(message: 'The client data must be a JSON string.');
+        }
+        $client = json_decode(json: $clientJson);
+        if (!is_object(value: $client)) {
+            throw new UnexpectedValueException(message: 'The client data must be a JSON object.');
+        }
+        $list = [];
+        foreach (get_object_vars(object: $client) as $key => $value) {
+            // Client data is sent by the browser: always encode it
+            $list[] = HtmlEncoder::encode(
+                value: $key . ': ' . (is_scalar(value: $value) ? (string)$value : json_encode(value: $value))
+            );
+        }
+
+        return implode(separator: '<br>', array: $list);
     }
 }

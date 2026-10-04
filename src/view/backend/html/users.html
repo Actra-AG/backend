@@ -1,10 +1,10 @@
 <div class="main-header-action">
     <h1>{tst:text value='pageTitle'}</h1>
-    <a class="btn btn-secondary" href="{tst:text value='addHref'}"><span>Benutzer hinzufügen</span></a>
+    <a class="btn btn-secondary" href="{tst:text value='addHref'}"><span>{tst:text value='addUserTitle'}</span></a>
 </div>
 
 <tst:if compare="removed" operator="EQ" against="true">
-    <p class="msg msg-success" role="status" aria-live="polite"><strong>Erfolgreich:</strong> Der Eintrag wurde gelöscht.
+    <p class="msg msg-success" role="status" aria-live="polite"><strong>{tst:text value='successLabel'}</strong> {tst:text value='removedMessage'}
     </p>
 </tst:if>
 

@@ -13,6 +13,7 @@ use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthUserLoginRepository;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\yuf\auth\AuthResult;
+use actra\yuf\common\SearchHelper;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
@@ -47,12 +48,13 @@ class VisitTable extends AbstractTable
         }
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
+            $booleanQuery = SearchHelper::createBooleanQuery(
+                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_login.sessionId auth_login.ipAddress auth_login.email',
+                queryText: $searchQuery
+            );
             $dbQuery->addWherePart(
-                wherePart: $tokenSearchForm->searchHelper->getBooleanQuery(
-                    spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_login.sessionId auth_login.ipAddress auth_login.email',
-                    query_text: $searchQuery
-                ),
-                parameters: []
+                wherePart: $booleanQuery->query,
+                parameters: $booleanQuery->params
             );
         }
         parent::__construct(

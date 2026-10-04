@@ -66,6 +66,14 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v1.4.2 – October 5, 2026
+
+* **Logic Change:** The search of the user, token and visit tables uses `SearchHelper::createBooleanQuery()` and binds
+  every search word as parameter (before, `getBooleanQuery()` interpolated the words into the SQL). A `?` in the
+  search text (e.g. `?haas`) no longer throws an exception; `%`, `_` and `\` are searched literally.
+* **Migration:** requires `actra/yuf` `^4.6` (was `^4.5`); yuf 4.6.0 has no breaking changes.
+* No breaking change, no database changes.
+
 ### v1.4.1 – October 4, 2026
 
 * **Logic Change:** The views read IDs from the URL with the typed yuf getters (`getRequiredPathVarAsInt()`,

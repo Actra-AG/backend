@@ -13,6 +13,7 @@ use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\settings\AuthTokenTypeEnum;
+use actra\yuf\common\SearchHelper;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
@@ -47,12 +48,13 @@ class TokenTable extends AbstractTable
         }
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
+            $booleanQuery = SearchHelper::createBooleanQuery(
+                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_token.token auth_token.registeredClient auth_token.claimedClient',
+                queryText: $searchQuery
+            );
             $dbQuery->addWherePart(
-                wherePart: $tokenSearchForm->searchHelper->getBooleanQuery(
-                    spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_token.token auth_token.registeredClient auth_token.claimedClient',
-                    query_text: $searchQuery
-                ),
-                parameters: []
+                wherePart: $booleanQuery->query,
+                parameters: $booleanQuery->params
             );
         }
         parent::__construct(

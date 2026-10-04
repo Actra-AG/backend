@@ -13,6 +13,7 @@ use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserSearchForm;
 use actra\backend\view\backend\php\user;
+use actra\yuf\common\SearchHelper;
 use actra\yuf\table\column\BooleanColumn;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
@@ -35,12 +36,13 @@ class UserTable extends AbstractTable
         }
         $searchQuery = $userSearchForm->searchQuery;
         if ($searchQuery !== '') {
+            $booleanQuery = SearchHelper::createBooleanQuery(
+                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_user.email',
+                queryText: $searchQuery
+            );
             $dbQuery->addWherePart(
-                wherePart: $userSearchForm->searchHelper->getBooleanQuery(
-                    spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_user.email',
-                    query_text: $searchQuery
-                ),
-                parameters: []
+                wherePart: $booleanQuery->query,
+                parameters: $booleanQuery->params
             );
         }
         parent::__construct(

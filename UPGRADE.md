@@ -84,6 +84,12 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v1.5.1 – October 6, 2026
+
+* **Migration:** requires `actra/yuf` `^4.7.1` (was `^4.7`). yuf 4.7.1 translates two texts of
+  `FormMessages::german()`: the empty option of select fields (`-- Bitte auswählen --`) and the invalid option error
+  (`Ungültige Auswahl im Feld [field].`). No API change; only projects (or tests) that compare these texts must adapt.
+
 ### v1.5.0 – October 5, 2026
 
 * **Security:** Generating an API key runs only on POST (CSRF protected). New views `userGenerateApiKey`

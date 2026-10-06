@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">=8.5",
-    "actra/yuf": "^4.7",
+    "actra/yuf": "^4.7.1",
     "ext-intl": "*",
     "ext-mbstring": "*"
   },

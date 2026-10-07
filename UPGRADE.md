@@ -1,8 +1,16 @@
 # Upgrade Guide
 
-This document tracks relevant changes for both frontend and backend developers.
+This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
+changes.
 
-## HTML & CSS (Frontend)
+## v1.5.3 (2026-10-07)
+
+### Requires `actra/yuf` `^4.9`
+
+Was `^4.8`. No code change needed in `actra/backend`. yuf 4.9.0 contains a breaking change for projects that use file
+uploads: `UploadedFile::getHash()` returns SHA-256 instead of SHA-1 (see yuf's `UPGRADE.md`, v4.9.0).
+
+## v1.5.2 and older: HTML & CSS (Frontend)
 
 ### v1.5.0 – October 5, 2026
 
@@ -82,7 +90,7 @@ This document tracks relevant changes for both frontend and backend developers.
 
 * Added the `nav-user-logout` CSS class to the logout item in the user dropdown.
 
-## Backend & API
+## v1.5.2 and older: Backend & API
 
 ### v1.5.2 – October 7, 2026
 

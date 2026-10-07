@@ -1,187 +1,865 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			rawMessage: 'Call to function in_array() requires parameter #3 to be set.'
+			identifier: function.strict
+			count: 1
+			path: src/BackendView.php
+
+		-
+			rawMessage: 'Calling in_array() is forbidden, set the third parameter $strict to `true` to also check the types to prevent type juggling bugs.'
+			identifier: disallowed.function
+			count: 1
+			path: src/BackendView.php
+
+		-
+			rawMessage: 'Method actra\backend\BackendView::execute() overrides method actra\yuf\core\BaseView::execute() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/BackendView.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\auth\MyAuthUser::dbConfirmSuccessfulLogin() overrides method actra\yuf\auth\AuthUser::dbConfirmSuccessfulLogin() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/auth/MyAuthUser.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\auth\MyAuthUser::dbIncreaseWrongPasswordAttempts() overrides method actra\yuf\auth\AuthUser::dbIncreaseWrongPasswordAttempts() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/auth/MyAuthUser.php
+
+		-
+			rawMessage: Class actra\backend\libs\auth\MyAuthenticator has an uninitialized property $user. Give it default value or assign it in the constructor.
+			identifier: property.uninitialized
+			count: 1
+			path: src/libs/auth/MyAuthenticator.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\auth\MyAuthenticator::checkLoginCredentials() overrides method actra\yuf\auth\Authenticator::checkLoginCredentials() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/auth/MyAuthenticator.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\auth\MyAuthenticator::createAuthUserByUserName() overrides method actra\yuf\auth\Authenticator::createAuthUserByUserName() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/auth/MyAuthenticator.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\auth\MyAuthenticator::logAuthResult() overrides method actra\yuf\auth\Authenticator::logAuthResult() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/auth/MyAuthenticator.php
+
+		-
+			rawMessage: Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary.
+			identifier: ternary.shortNotAllowed
+			count: 1
+			path: src/libs/common/LanguageSwitcher.php
+
+		-
+			rawMessage: 'Argument of an invalid type mixed supplied for foreach, only iterables are supported.'
 			identifier: foreach.nonIterable
 			count: 2
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Cannot access offset ''link'' on mixed\.$#'
+			rawMessage: 'Calling isset() is forbidden, compare explicitly: array_key_exists(), !== null or a typed property (see standards/php.md).'
+			identifier: disallowed.isset
+			count: 2
+			path: src/libs/common/OldNavigator.php
+
+		-
+			rawMessage: Cannot access offset 'link' on mixed.
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			rawMessage: Cannot access offset 'title' on mixed.
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 3
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Cannot access offset mixed on mixed\.$#'
+			rawMessage: Cannot access offset mixed on mixed.
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Cannot access offset string on mixed\.$#'
+			rawMessage: Cannot access offset string on mixed.
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:__construct\(\) has parameter \$navigationLevels with no value type specified in iterable type array\.$#'
+			rawMessage: 'Loose comparison via "==" between int and int is not allowed.'
+			identifier: equal.notAllowed
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			rawMessage: 'Loose comparison via "==" between mixed and string is not allowed.'
+			identifier: equal.notAllowed
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\common\OldNavigator::__construct() has parameter $navigationLevels with no value type specified in iterable type array.'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:__construct\(\) has parameter \$pathVars with no value type specified in iterable type array\.$#'
+			rawMessage: 'Method actra\backend\libs\common\OldNavigator::__construct() has parameter $pathVars with no value type specified in iterable type array.'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:addBreadcrumb\(\) has parameter \$title with no type specified\.$#'
+			rawMessage: 'Method actra\backend\libs\common\OldNavigator::addBreadcrumb() has parameter $title with no type specified.'
 			identifier: missingType.parameter
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\common\\OldNavigator\:\:setNavistufe\(\) return type has no value type specified in iterable type array\.$#'
+			rawMessage: 'Method actra\backend\libs\common\OldNavigator::setNavistufe() return type has no value type specified in iterable type array.'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Parameter \$array of function implode expects array\<string\>, array given\.$#'
+			rawMessage: Offset 0 might not exist on array.
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/libs/common/OldNavigator.php
+
+		-
+			rawMessage: 'Parameter $array of function implode expects array<string>, array given.'
 			identifier: argument.type
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Parameter \$string of function explode expects string, mixed given\.$#'
+			rawMessage: 'Parameter $string of function explode expects string, mixed given.'
 			identifier: argument.type
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Parameter \$value of function count expects array\|Countable, mixed given\.$#'
+			rawMessage: 'Parameter $value of function count expects array|Countable, mixed given.'
 			identifier: argument.type
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Part \$val\[''link''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			rawMessage: 'Part $val[''link''] (mixed) of encapsed string cannot be cast to string.'
 			identifier: encapsedStringPart.nonString
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Part \$val\[''title''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			rawMessage: 'Part $val[''title''] (mixed) of encapsed string cannot be cast to string.'
 			identifier: encapsedStringPart.nonString
 			count: 2
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Possibly invalid array key type mixed\.$#'
+			rawMessage: Possibly invalid array key type mixed.
 			identifier: offsetAccess.invalidOffset
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Property actra\\backend\\libs\\common\\OldNavigator\:\:\$currentPage \(string\) does not accept mixed\.$#'
+			rawMessage: 'Property actra\backend\libs\common\OldNavigator::$currentPage (string) does not accept mixed.'
 			identifier: assign.propertyType
 			count: 1
 			path: src/libs/common/OldNavigator.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\db\\DbAuthApiKeyCollection\:\:getFirst\(\) should return actra\\backend\\libs\\db\\DbAuthApiKey but returns actra\\backend\\libs\\db\\DbAuthApiKey\|false\.$#'
+			rawMessage: Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary.
+			identifier: ternary.shortNotAllowed
+			count: 1
+			path: src/libs/common/UserLanguageOptions.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\db\DbAuthApiKeyCollection::getFirst() should return actra\backend\libs\db\DbAuthApiKey but returns actra\backend\libs\db\DbAuthApiKey|false.'
 			identifier: return.type
 			count: 1
 			path: src/libs/db/DbAuthApiKeyCollection.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\db\\DbAuthApiKeyRepository\:\:parseBearer\(\) return type has no value type specified in iterable type array\.$#'
+			rawMessage: 'Method actra\backend\libs\db\DbAuthApiKeyRepository::parseBearer() return type has no value type specified in iterable type array.'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/libs/db/DbAuthApiKeyRepository.php
 
 		-
-			message: '#^Parameter \$publicID of static method actra\\backend\\libs\\db\\DbAuthApiKeyRepository\:\:selectByPublicID\(\) expects string, mixed given\.$#'
+			rawMessage: Offset 'publicID' might not exist on array.
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			rawMessage: Offset 'secret' might not exist on array.
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/libs/db/DbAuthApiKeyRepository.php
+
+		-
+			rawMessage: 'Parameter $publicID of static method actra\backend\libs\db\DbAuthApiKeyRepository::selectByPublicID() expects string, mixed given.'
 			identifier: argument.type
 			count: 1
 			path: src/libs/db/DbAuthApiKeyRepository.php
 
 		-
-			message: '#^Parameter \$rawPassword of method actra\\yuf\\auth\\Password\:\:isValid\(\) expects string, mixed given\.$#'
+			rawMessage: 'Parameter $rawPassword of method actra\yuf\auth\Password::isValid() expects string, mixed given.'
 			identifier: argument.type
 			count: 1
 			path: src/libs/db/DbAuthApiKeyRepository.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\db\\DbAuthTokenRepository\:\:getClientData\(\) should return string but returns string\|false\.$#'
+			rawMessage: 'Offset int might not exist on array<int, actra\backend\libs\db\DbAuthGroup>.'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/libs/db/DbAuthGroupCollection.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\db\DbAuthTokenRepository::getClientData() should return string but returns string|false.'
 			identifier: return.type
 			count: 1
 			path: src/libs/db/DbAuthTokenRepository.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\db\\DbAuthUserCollection\:\:first\(\) should return actra\\backend\\libs\\db\\DbAuthUser but returns actra\\backend\\libs\\db\\DbAuthUser\|false\.$#'
+			rawMessage: 'Method actra\backend\libs\db\DbAuthUserCollection::first() should return actra\backend\libs\db\DbAuthUser but returns actra\backend\libs\db\DbAuthUser|false.'
 			identifier: return.type
 			count: 1
 			path: src/libs/db/DbAuthUserCollection.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\db\\DbAuthUserNotificationCollection\:\:first\(\) should return actra\\backend\\libs\\db\\DbAuthUserNotification but returns actra\\backend\\libs\\db\\DbAuthUserNotification\|false\.$#'
+			rawMessage: Offset int might not exist on array<actra\backend\libs\db\DbAuthUser>.
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/libs/db/DbAuthUserCollection.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\db\DbAuthUserNotificationCollection::first() should return actra\backend\libs\db\DbAuthUserNotification but returns actra\backend\libs\db\DbAuthUserNotification|false.'
 			identifier: return.type
 			count: 1
 			path: src/libs/db/DbAuthUserNotificationCollection.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\email\\Mailer\:\:sendTextMail\(\) has parameter \$bcc with no value type specified in iterable type array\.$#'
+			rawMessage: 'Call to method actra\yuf\mailer\AbstractMail::addBCC() with incorrect case: addBcc'
+			identifier: method.nameCase
+			count: 1
+			path: src/libs/email/Mailer.php
+
+		-
+			rawMessage: 'Call to method actra\yuf\mailer\AbstractMail::addCC() with incorrect case: addCc'
+			identifier: method.nameCase
+			count: 1
+			path: src/libs/email/Mailer.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\email\Mailer::sendTextMail() has parameter $bcc with no value type specified in iterable type array.'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/libs/email/Mailer.php
 
 		-
-			message: '#^Method actra\\backend\\libs\\email\\Mailer\:\:sendTextMail\(\) has parameter \$cc with no value type specified in iterable type array\.$#'
+			rawMessage: 'Method actra\backend\libs\email\Mailer::sendTextMail() has parameter $cc with no value type specified in iterable type array.'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/libs/email/Mailer.php
 
 		-
-			message: '#^Parameter \$inputEmail of method actra\\yuf\\mailer\\AbstractMail\:\:addBCC\(\) expects string, mixed given\.$#'
+			rawMessage: 'Parameter $inputEmail of method actra\yuf\mailer\AbstractMail::addBCC() expects string, mixed given.'
 			identifier: argument.type
 			count: 1
 			path: src/libs/email/Mailer.php
 
 		-
-			message: '#^Parameter \$inputEmail of method actra\\yuf\\mailer\\AbstractMail\:\:addCC\(\) expects string, mixed given\.$#'
+			rawMessage: 'Parameter $inputEmail of method actra\yuf\mailer\AbstractMail::addCC() expects string, mixed given.'
 			identifier: argument.type
 			count: 1
 			path: src/libs/email/Mailer.php
 
 		-
-			message: '#^Cannot use \+\+ on mixed\.$#'
+			rawMessage: 'Method actra\backend\libs\form\LoginForm::checkCredentials() never returns false so the return type can be changed to true.'
+			identifier: return.tooWideBool
+			count: 1
+			path: src/libs/form/LoginForm.php
+
+		-
+			rawMessage: Class actra\backend\libs\form\NotificationSendForm has an uninitialized property $notificationID. Give it default value or assign it in the constructor.
+			identifier: property.uninitialized
+			count: 1
+			path: src/libs/form/NotificationSendForm.php
+
+		-
+			rawMessage: Class actra\backend\libs\form\UserAddForm has an uninitialized property $newUserID. Give it default value or assign it in the constructor.
+			identifier: property.uninitialized
+			count: 1
+			path: src/libs/form/UserAddForm.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\form\component\IpWhitelistField::valueHasChanged() overrides method actra\yuf\form\component\field\TextualField::valueHasChanged() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/form/component/IpWhitelistField.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\form\component\SearchQueryField::getHtmlTag() overrides method actra\yuf\form\FormComponent::getHtmlTag() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/form/component/SearchQueryField.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\form\component\SearchSelectOptionsField::getHtmlTag() overrides method actra\yuf\form\FormComponent::getHtmlTag() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/form/component/SearchSelectOptionsField.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\form\rule\ValidIpAddressRule::validate() overrides method actra\yuf\form\rule\StringRule::validate() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/form/rule/ValidIpAddressRule.php
+
+		-
+			rawMessage: 'Method actra\backend\libs\table\AbstractTable::render() overrides method actra\yuf\table\table\DbResultTable::render() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/libs/table/AbstractTable.php
+
+		-
+			rawMessage: Cannot use ++ on mixed.
 			identifier: postInc.type
 			count: 1
 			path: src/settings/AuthTokenTypeEnum.php
 
 		-
-			message: '#^Method actra\\backend\\settings\\AuthTokenTypeEnum\:\:getFailedAttempts\(\) should return int but returns mixed\.$#'
+			rawMessage: 'Method actra\backend\settings\AuthTokenTypeEnum::getFailedAttempts() should return int but returns mixed.'
 			identifier: return.type
 			count: 1
 			path: src/settings/AuthTokenTypeEnum.php
 
 		-
-			message: '#^Class actra\\backend\\view\\backend\\php\\notification has an uninitialized readonly property \$pageTitle\. Assign it in the constructor\.$#'
+			rawMessage: 'Method actra\backend\view\backend\php\login::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/login.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\login::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/login.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\login::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/login.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginPassword::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginPassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginPassword::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginPassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginPassword::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginPassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginPasswordToken::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginPasswordToken.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginPasswordToken::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginPasswordToken.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginPasswordToken::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginPasswordToken.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginToken::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginToken.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginToken::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginToken.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\loginToken::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/loginToken.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\logout::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/logout.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\logout::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/logout.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\logout::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/logout.php
+
+		-
+			rawMessage: Class actra\backend\view\backend\php\notification has an uninitialized readonly property $pageTitle. Assign it in the constructor.
 			identifier: property.uninitializedReadonly
 			count: 1
 			path: src/view/backend/php/notification.php
 
 		-
-			message: '#^Readonly property actra\\backend\\view\\backend\\php\\notification\:\:\$pageTitle is assigned outside of the constructor\.$#'
+			rawMessage: 'Method actra\backend\view\backend\php\notification::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notification.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notification::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notification.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notification::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notification.php
+
+		-
+			rawMessage: Readonly property actra\backend\view\backend\php\notification::$pageTitle is assigned outside of the constructor.
 			identifier: property.readOnlyAssignNotInConstructor
 			count: 1
 			path: src/view/backend/php/notification.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notificationSend::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notificationSend.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notificationSend::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notificationSend.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notificationSend::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notificationSend.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notifications::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notifications.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notifications::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notifications.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\notifications::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/notifications.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordForgotten::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordForgotten.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordForgotten::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordForgotten.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordForgotten::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordForgotten.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordForgottenRes::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordForgottenRes.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordForgottenRes::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordForgottenRes.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordForgottenRes::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordForgottenRes.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordReset::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordReset.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordReset::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordReset.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordReset::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordReset.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordResetRes::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordResetRes.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordResetRes::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordResetRes.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\passwordResetRes::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/passwordResetRes.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profile::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profile.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profile::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profile.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profile::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profile.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileChangePassword::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileChangePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileChangePassword::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileChangePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileChangePassword::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileChangePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileCreatePassword::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileCreatePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileCreatePassword::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileCreatePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileCreatePassword::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileCreatePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileGenerateApiKey::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileGenerateApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileGenerateApiKey::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileGenerateApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileGenerateApiKey::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileGenerateApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileRemoveApiKey::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileRemoveApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileRemoveApiKey::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileRemoveApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileRemoveApiKey::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileRemoveApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileRemovePassword::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileRemovePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileRemovePassword::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileRemovePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\profileRemovePassword::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/profileRemovePassword.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\tokens::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/tokens.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\tokens::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/tokens.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\tokens::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/tokens.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\user::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/user.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\user::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/user.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\user::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/user.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userAdd::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userAdd.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userAdd::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userAdd.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userAdd::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userAdd.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userDelete::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userDelete.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userDelete::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userDelete.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userDelete::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userDelete.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userGenerateApiKey::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userGenerateApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userGenerateApiKey::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userGenerateApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userGenerateApiKey::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userGenerateApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userInvite::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userInvite.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userInvite::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userInvite.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userInvite::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userInvite.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userMod::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userMod.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userMod::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userMod.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userMod::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userMod.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userRemoveApiKey::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userRemoveApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userRemoveApiKey::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userRemoveApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\userRemoveApiKey::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/userRemoveApiKey.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\users::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/users.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\users::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/users.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\users::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/users.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\visits::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/visits.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\visits::getRequiredAccessRights() overrides method actra\backend\BackendView::getRequiredAccessRights() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/visits.php
+
+		-
+			rawMessage: 'Method actra\backend\view\backend\php\visits::prepareHtmlDocument() overrides method actra\backend\BackendView::prepareHtmlDocument() but is missing the #[\Override] attribute.'
+			identifier: method.missingOverride
+			count: 1
+			path: src/view/backend/php/visits.php

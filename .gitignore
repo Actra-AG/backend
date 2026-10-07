@@ -4,8 +4,10 @@
 # Allow core files
 !/.ddev/
 !/.ddev/config.yaml
+!/.editorconfig
 !/.gitattributes
 !/.gitignore
+!/.php-cs-fixer.dist.php
 !/AGENTS.md
 !/CLAUDE.md
 !/composer.json

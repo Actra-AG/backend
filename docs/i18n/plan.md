@@ -85,7 +85,7 @@ final readonly class AuthMessages
 
 ## 4. Rules for all tasks
 
-- Follow `AGENTS.md` and `docs/code-quality.md` (PHP 8.5, strict types, named arguments, `final`, full types, `=== null`).
+- Follow `AGENTS.md` and the global standard it links (PHP 8.5, strict types, named arguments, `final`, full types, `=== null`).
 - **German output must stay identical** to v1.0.0: copy the German texts verbatim (also typos and odd capitalisation
   like `weiter`/`Weiter`) into `german()`. Write natural, concise English for the defaults (backend UI style:
   "Save", "Cancel", "Email", "Log in", sentence case).

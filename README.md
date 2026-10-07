@@ -364,8 +364,9 @@ Everything the repositories write inside the test is rolled back. DDL statements
 
 ## Development
 
-See [AGENTS.md](AGENTS.md) and [docs/code-quality.md](docs/code-quality.md). Run `composer check` (PHPStan level 10 and
-PHPUnit; with DDEV: `ddev composer check`) before every commit.
+This project follows the [Actra coding standard](https://github.com/Actra-AG/coding-standard) (development dependency
+`actra/coding-standard`); project-specific rules are in [AGENTS.md](AGENTS.md). Run `composer check` (PHP-CS-Fixer,
+PHPStan level 10 strict and PHPUnit; with DDEV: `ddev composer check`) before every commit.
 
 ## License
 

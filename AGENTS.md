@@ -2,18 +2,28 @@
 
 Persistent instructions for developers and AI assistants working in this repository.
 
+## Global standard
+
+This project follows the Actra coding standard, installed as development dependency `actra/coding-standard`
+(https://github.com/Actra-AG/coding-standard).
+
+- Read [vendor/actra/coding-standard/AGENTS.md](vendor/actra/coding-standard/AGENTS.md) and the standards linked
+  there before working on this project. They are binding. If `vendor/` is missing, run `composer install` first.
+- The rules below only **add** project-specific rules or state explicit deviations (with reason). They take precedence
+  over the global standard where they conflict.
+
 ## Project context
 
 - `actra/backend` is a public Composer library: a ready-to-use backend (user management, password and one-time token
   login via email, profile, API keys, IP whitelists, notifications, visit and token logs) for projects built on the
-  [yuf framework](https://github.com/Actra-AG/yuf) (`actra/yuf`).
-- Versioning is done with Git tags (`vMAJOR.MINOR.PATCH`, SemVer, stable since `v1.0.0`). Breaking changes require a
-  new major version, features a minor version, fixes a patch version.
-- Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`) and `ext-mbstring`. Do not add Composer packages
-  without asking.
-- yuf is developed in parallel (local checkout usually at `../yuf`). Its `UPGRADE.md` describes every breaking change of
-  the yuf API; follow it when raising the yuf requirement. The yuf version range in `composer.json` must match the API
-  used in `src/`.
+  [yuf framework](https://github.com/Actra-AG/yuf) (`actra/yuf`). Every public class, method, argument name, enum case,
+  database table and generated output is API (see `standards/versioning.md`).
+- Minimum PHP version: 8.5. Releases are Git tags (`vMAJOR.MINOR.PATCH`) with a section in `UPGRADE.md`.
+- yuf is developed in parallel (local checkout usually at `../yuf`). Its `UPGRADE.md` describes every change of the yuf
+  API; follow it when raising the yuf requirement. The yuf version range in `composer.json` must match the API used in
+  `src/`.
+- Ongoing goal: bring the existing code up to the shared PHP-CS-Fixer and PHPStan configuration (see
+  [docs/coding-standard/plan.md](docs/coding-standard/plan.md)).
 
 ## Directory layout
 
@@ -30,62 +40,79 @@ Persistent instructions for developers and AI assistants working in this reposit
     - `assets/` – default CSS (`css/backend.css`) and JavaScript (`js/backend.js`, ES modules in `js/modules/`) that
       projects publish or bundle themselves.
 - `db/` – `schema.sql` and `data.sql` for new installations, `updates/<version>.sql` for upgrades.
-- `tests/` – PHPUnit tests (see `docs/code-quality.md`).
-- `docs/` – conventions ([docs/code-quality.md](docs/code-quality.md)) and plans.
+- `tests/` – PHPUnit tests, `Unit/` only.
+- `docs/` – plans and analyses (`docs/<topic>/`).
 
-## Code quality
+## Project-specific rules
 
-- Follow [docs/code-quality.md](docs/code-quality.md). It is binding for all new and changed code.
-- Key rules: `declare(strict_types=1);` and the copyright header in every PHP file, `final` by default, fully typed,
-  no `mixed` in own code, enums for every fixed set of values, named arguments, one purpose per class, pure logic
-  separated from I/O.
-- Leave every file you touch cleaner than you found it, but keep each change focused on one topic. Do not reformat
-  unrelated code.
-- Run `composer check` before finishing a task (see `docs/code-quality.md`, section 2); it must be green. The
-  PHPStan baseline may only shrink.
-- Without local PHP 8.5, run PHP and Composer commands through DDEV (`ddev composer check`). If DDEV is not running,
-  start it with `ddev start` or ask the user to do it.
+### Dependencies and tooling
+
+- Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`. Development
+  dependencies are `actra/coding-standard` and PHPUnit only: no mocking, fixture or faker libraries.
+- yuf has no Composer autoload configuration: `tests/bootstrap.php` loads its classes with `actra/autoloader`, and
+  `phpstan.neon` makes them known with `scanDirectories: vendor/actra/yuf/src`.
+- `.ddev/config.yaml` provides PHP 8.5 and MariaDB. If DDEV is not running, ask the user to start it.
 - There is no running app in this repository. Changes to views, forms, tables, templates or assets are checked in a
   consuming project (one that requires `actra/backend`), ideally with this checkout as Composer path repository.
+- Code that needs a real database, session, mail server or HTTP request (forms with repositories, views) is kept thin
+  and checked in a consuming project. Custom fields are unit tested with `FormInput::fromArray()`.
 
-## Response style
+### Code
 
-- Be concise. No filler text, no introductory or concluding pleasantries.
-- Do not summarize or restate the problem unless asked.
-- Mention assumptions when relevant.
-- Do not mention the attached context unless it is needed for the answer.
+- Exceptions: specific SPL exceptions or the yuf exceptions.
+- Settings are readonly value objects in `src/settings/` (like `ActraBackendSettings`), not "options" arrays.
 
-## Files
+### Forms (yuf form API)
 
-- Do not add a final newline at the end of newly created files.
-- `.gitignore` whitelists tracked files. New top-level files or directories must be added there, otherwise they are not
-  committed.
-- Development files (`AGENTS.md`, `CLAUDE.md`, `docs/`, `tests/`, PHPStan and PHPUnit config) are excluded from the
-  Composer dist package with `export-ignore` in `.gitattributes`. Add new development files there as well.
+- Every form passes `messages: FormMessages::german()` to `Form::__construct()`, so the texts of yuf (cancel link,
+  invalid input, …) stay German like the texts of the backend.
+- Use the typed getters and setters of the fields (`getValueAsString()`, `getValues()`, `isChecked()`, …), never
+  untyped values. Initial values go into the constructor (or `setInitialValue()` in a field subclass).
+- `PasswordField` always gets the matching `PasswordPurposeEnum` (`CURRENT` for login and confirming the current
+  password, `NEW` for setting a password).
+- Field checks are typed rules (`StringRule`, `StringListRule`, …, per line with `addEachRule()`), not overrides of
+  the field's validation. Error messages are `HtmlText`; user input in a message is always encoded.
 
-## Git & commits
+### Texts (i18n)
 
-- Never run `git commit`, `git add` or `git push` on your own. Prepare the commit message and let the user commit.
-- Inspect the actual changes (`git status`, `git diff`, `git diff --staged`) before proposing a commit message.
-- Commit messages follow the existing history (Conventional Commits): `type(scope): summary`, `!` for breaking
-  changes, then an empty line, a `- ` bullet list of the changes and an optional `Attention:` paragraph. Without the
-  empty line, Git treats the whole message as subject.
+- No hard-coded user-visible text in views, templates, forms, tables or emails: every text is a property of a message
+  class in `src/i18n/` (English default, German in `german()`), shared texts in `CommonMessages`. Read them with
+  `ActraBackend::messages()`.
+- Messages are plain text without HTML and are always encoded (`HtmlText::unencoded()`, `BackendView::addTexts()`).
+  Markup is built around them; punctuation that follows a label (`Success:`) belongs into the message.
+- Dynamic parts are `[placeholder]`s filled with `MessageTemplate::fill()`; the English and German text use the same
+  placeholders (`tests/Unit/i18n/MessagesTest.php`).
+- The backend can run under several routes, one per language. `ActraBackend::messages()` and `ActraBackend::path()`
+  return the texts and the path of the current route: never cache texts or build links from a fixed path. Text for
+  another user (e.g. an email) uses that user's route: `ActraBackend::get()->getRouteForLanguage()`.
 
-## Releases
+### Security
 
-- Every release gets an entry in `UPGRADE.md`: changes of the generated HTML, CSS and JavaScript under
-  "HTML & CSS (Frontend)", everything else under "Backend & API", newest first, as `### vX.Y.Z – <Month D, YYYY>`.
-- Entries are prefixed with **Feature:**, **Logic Change:**, **Security:**, **Database:**, **Migration:** or
-  **Breaking Change:**. Every breaking change needs migration instructions for consuming projects.
-- Database changes come with `db/updates/<version>.sql` and an updated `db/schema.sql` (and `db/data.sql` if needed).
+- Keep the existing security features (CSRF tokens, IP whitelists, login attempt limits, token confirmation, hashed
+  API keys and passwords) working.
+
+### HTML output, CSS and JavaScript
+
+- JavaScript in `src/assets/js/` is progressive enhancement only: vanilla ES modules, one module per purpose in
+  `src/assets/js/modules/`, attached via `data-*` attributes or CSS classes, no external libraries.
+- CSS: plain CSS in `src/assets/css/` (entry `backend.css`, one file per block in `blocks/`), no preprocessor.
+- Changes to generated HTML, CSS classes or assets are breaking changes for projects that customize them; their
+  `UPGRADE.md` entry says whether projects must rebuild or republish their JavaScript and CSS bundles.
+
+### Releases
+
+- Database changes come with `db/updates/<version>.sql` and an updated `db/schema.sql` (and `db/data.sql` if needed),
+  and are listed in `UPGRADE.md`.
 - Update `README.md` when installation, initialization or documented usage changes.
+- Changes are prepared in `UPGRADE.md` in the format of `standards/versioning.md`. Sections up to v1.5.2 use the
+  former format (split into "HTML & CSS (Frontend)" and "Backend & API") and stay as they are.
 
-## Before commit suggestions
+### Files
 
-When asked to review changes before commit, inspect the changed files and answer:
+- Development files (`AGENTS.md`, `CLAUDE.md`, `docs/`, `tests/`, PHPStan, PHP-CS-Fixer and PHPUnit config,
+  `.editorconfig`) are excluded from the Composer dist package with `export-ignore` in `.gitattributes`. Add new
+  development files there as well.
 
-1. Read `README.md` and say whether it needs to be updated.
-2. Read `UPGRADE.md` and say whether it needs to be updated (always for breaking changes and database updates).
-3. Suggest a commit message following the style of previous commit messages.
-4. Check the existing Git tags (`git tag --sort=-v:refname`) and suggest the next release tag (SemVer: breaking change
-   → major, feature → minor, fix → patch).
+## Deviations from the global standard
+
+- None.

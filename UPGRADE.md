@@ -84,6 +84,15 @@ This document tracks relevant changes for both frontend and backend developers.
 
 ## Backend & API
 
+### v1.5.2 – October 7, 2026
+
+* **Security:** Logging out clears the session data of the user. Before, the next user of the same browser saw e.g.
+  the breadcrumb (`$_SESSION['sess_breadcrumb']`) of the previous user. yuf 4.8.0 fixes this in `AuthSession::logOut()`:
+  it removes everything except the data of the session handler, the preferred language and the CSP nonce (breadcrumb,
+  table and search state, uploads, flashes, CSRF token, …).
+* **Migration:** requires `actra/yuf` `^4.8` (was `^4.7.1`). Data that has to survive a logout must be written to the
+  session after `AuthSession::logOut()` (see yuf's `UPGRADE.md`, v4.8.0).
+
 ### v1.5.1 – October 6, 2026
 
 * **Migration:** requires `actra/yuf` `^4.7.1` (was `^4.7`). yuf 4.7.1 translates two texts of

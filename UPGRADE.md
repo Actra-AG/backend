@@ -3,6 +3,24 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.6.0 (2026-10-07)
+
+### ⚠️ Requires `actra/yuf` `^4.10`
+
+Was `^4.9`. yuf 4.9.1 to 4.10.0 contain security fixes that the backend uses directly:
+
+- IP whitelists (`BackendView`, API keys) are checked with the fixed `IpValidator::isInWhitelist()` (IPv4 and IPv6
+  ranges, any IPv6 notation). An invalid range in `ActraBackendSettings::$ipWhitelist` now throws an
+  `InvalidArgumentException`; fix such entries.
+- CSRF tokens are compared timing-safe and never read from the URL; the CSP nonce is new for every request; the session
+  file is deleted when the session ID is regenerated; HSTS is kept for file responses; every response sends
+  `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`.
+
+No code change needed in `actra/backend`: its forms use POST, it uses no `TableFilter`, and the confirmation dialog
+(`dialog.js`) only reads the form of the fetched page. Projects check their own code against yuf's `UPGRADE.md`
+(v4.9.1 to v4.10.0), especially GET forms that change data, CSRF tokens in URLs, filter links and HTML with inline
+code loaded via AJAX.
+
 ## v1.5.3 (2026-10-07)
 
 ### Requires `actra/yuf` `^4.9`

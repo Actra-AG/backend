@@ -64,8 +64,8 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Forms (yuf form API)
 
-- Every form passes `messages: FormMessages::german()` to `Form::__construct()`, so the texts of yuf (cancel link,
-  invalid input, …) stay German like the texts of the backend.
+- Every form passes `messages: ActraBackend::messages()->form` to `Form::__construct()`, so the texts of yuf (cancel
+  link, invalid input, …) have the language of the route like the texts of the backend.
 - Use the typed getters and setters of the fields (`getValueAsString()`, `getValues()`, `isChecked()`, …), never
   untyped values. Initial values go into the constructor (or `setInitialValue()` in a field subclass).
 - `PasswordField` always gets the matching `PasswordPurposeEnum` (`CURRENT` for login and confirming the current

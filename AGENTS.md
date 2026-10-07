@@ -24,6 +24,8 @@ This project follows the Actra coding standard, installed as development depende
   `src/`.
 - Ongoing goal: bring the existing code up to the shared PHP-CS-Fixer and PHPStan configuration (see
   [docs/coding-standard/plan.md](docs/coding-standard/plan.md)).
+- Ongoing goal: migrate the remaining differences to the global standard, without project deviations (see
+  [docs/standard-migration/plan.md](docs/standard-migration/plan.md)).
 
 ## Directory layout
 
@@ -115,4 +117,12 @@ This project follows the Actra coding standard, installed as development depende
 
 ## Deviations from the global standard
 
-- None.
+Temporary only: legacy code that is migrated step by step (see
+[docs/standard-migration/plan.md](docs/standard-migration/plan.md)). New code follows the global standard; existing
+names are kept until their task in the plan is done, because renaming them breaks consuming projects.
+
+- Static accessors `ActraBackend::get()`, `messages()` and `path()` and static repositories instead of constructor
+  injection (views are created by yuf without constructor arguments).
+- View classes named like their route (`login`, `userMod`), as required by the yuf routing.
+- Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.
+- Settings classes without `Model` suffix, interfaces with `Interface` suffix, classes that are not `final`.

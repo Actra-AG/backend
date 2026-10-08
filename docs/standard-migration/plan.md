@@ -417,3 +417,22 @@ depend on these versions and follows as its own step.
 - `AuthTokenTypeEnum::ACTIVATION->createAndSend()` throws a `LogicException` with an explanation.
 - 105 tests, `ddev composer check` green.
 
+
+### Step B – done (2026-10-08, former steps 14 and 15)
+
+- `ActraBackend::init()` returns the instance; `get()`, `messages()`, `path()` and the request state are removed.
+  `ActraBackend::createContext()` (called by `BackendViewFactory`) builds the `BackendViewContext` per request:
+  `route`, `messages`, `paths` (`BackendPaths`, generated from the former static `getPath()` of the views),
+  `repositories`, `mailer`, `session`, `authSession`, `clientData`, `currentUser` (`MyAuthUser::findLoggedIn()`,
+  logs out a login without session row) and `userController`. Navigation items once per request in `createContext()`.
+- Repositories are instances (script: `static` removed, `DB::get()` → `$this->db`); `BackendRepositories` creates them
+  on first use with one lazily opened connection, so pages and unit tests without database never connect.
+  Request data reaches them as arguments (`ClientData`, `sentByUserID`).
+- `DB::fromSettings()` (named constructor; `connect()` collided with PHP's `PDO::connect()`), `Mailer` instance,
+  `UserController` instance with the delete handler from `ActraBackendSettings`, `MyAuthenticator` constructed with
+  the context, the token logic of `AuthTokenTypeEnum` in the internal `AuthTokens`.
+- Call sites converted by script (views and forms `$this->backendContext`, tables `$context` because of static
+  closures), PHPStan guided the rest (1234 → 0 errors). Records and form components get their messages as arguments.
+- Tests: `ActraBackendTestInstance::create()` (fresh instance), `AuthTokensTest`, `BackendRepositoriesTest`
+  (lazy connection), `DBTest` against the DDEV database. 107 tests.
+- AGENTS.md: the static accessors deviation is removed, rule "no static state".

@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form\component;
 
-use actra\backend\ActraBackend;
+use actra\backend\i18n\CommonMessages;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\html\HtmlTag;
 use actra\yuf\html\HtmlTagAttribute;
@@ -17,11 +17,11 @@ use actra\yuf\html\HtmlText;
 
 final class SearchQueryField extends TextField
 {
-    public function __construct()
+    public function __construct(CommonMessages $messages)
     {
         parent::__construct(
             name: 'searchQuery',
-            label: HtmlText::fromText(text: ActraBackend::messages()->common->searchLabel),
+            label: HtmlText::fromText(text: $messages->searchLabel),
         );
     }
 

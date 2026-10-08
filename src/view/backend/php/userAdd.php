@@ -46,7 +46,7 @@ final class userAdd extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->user->addUserTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->user->addUserTitle);
     }
 
     #[\Override]
@@ -57,7 +57,7 @@ final class userAdd extends BackendView
         $newUserID = $userAddForm->process();
         if ($newUserID !== null) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: user::getPath(
+                relativeOrAbsoluteUri: $this->backendContext->paths->user(
                     ID: $newUserID,
                 ) . '?' . user::PARAM_ADDED,
                 httpRequest: $this->context->httpRequest,
@@ -67,10 +67,5 @@ final class userAdd extends BackendView
             identifier: 'form',
             html: $userAddForm->render(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'userAdd.html';
     }
 }

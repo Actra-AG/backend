@@ -9,12 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserSearchForm;
-use actra\backend\view\backend\php\user;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\BooleanColumn;
@@ -30,7 +27,7 @@ final class UserTable extends AbstractTable
 {
     public function __construct(BackendViewContext $context, UserSearchForm $userSearchForm)
     {
-        $dbQuery = DbAuthUserRepository::getDbQuery();
+        $dbQuery = $context->repositories->users()->getDbQuery();
         $dbAuthGroup = $userSearchForm->dbAuthGroup;
         if ($dbAuthGroup !== null) {
             $dbQuery->addWherePart(
@@ -57,13 +54,13 @@ final class UserTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
-        $common = ActraBackend::messages()->common;
-        $messages = ActraBackend::messages()->user;
+        $common = $context->messages->common;
+        $messages = $context->messages->user;
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'fullName',
                 label: $messages->nameColumn,
-                callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . user::getPath(
+                callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . $context->paths->user(
                     ID: $tableItem->getRow()->getInt(column: 'ID'),
                 ) . '">' . MessageTemplate::fill(
                     template: HtmlEncoder::encode(value: $common->fullName),

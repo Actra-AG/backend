@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\backend\ActraBackend;
+use actra\backend\i18n\CommonMessages;
 use actra\backend\i18n\MessageTemplate;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlText;
@@ -43,7 +43,7 @@ final class DbAuthUserCollection
         return $first;
     }
 
-    public function getFormOptions(): FormOptions
+    public function getFormOptions(CommonMessages $messages): FormOptions
     {
         $formOptions = new FormOptions();
         foreach ($this->items as $dbAuthUser) {
@@ -51,8 +51,11 @@ final class DbAuthUserCollection
                 key: (string) $dbAuthUser->ID,
                 htmlText: HtmlText::fromText(
                     text: MessageTemplate::fill(
-                        template: ActraBackend::messages()->common->userOption,
-                        values: ['email' => $dbAuthUser->email, 'name' => $dbAuthUser->renderFullName()],
+                        template: $messages->userOption,
+                        values: [
+                            'email' => $dbAuthUser->email,
+                            'name' => $dbAuthUser->renderFullName(messages: $messages),
+                        ],
                     ),
                 ),
             );

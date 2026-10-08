@@ -9,10 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthGroup;
-use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\form\component\SearchQueryField;
 use actra\backend\libs\form\component\SearchSelectOptionsField;
 use actra\yuf\form\component\FormControl;
@@ -31,24 +29,28 @@ final class UserSearchForm extends AbstractSearchForm
     public function __construct(BackendViewContext $context)
     {
         parent::__construct(context: $context, name: 'UserSearchForm');
-        $common = ActraBackend::messages()->common;
+        $common = $this->backendContext->messages->common;
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
         $this->addField(
             formField: $this->userGroupField = new SearchSelectOptionsField(
                 name: 'userGroup',
                 label: HtmlText::fromText(text: $common->userGroupLabel),
-                formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
+                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
                 initialValue: '',
                 individualEmptyValueLabel: HtmlText::fromText(text: $common->filterAll),
             ),
         );
-        $this->dbAuthGroup = DbAuthGroupRepository::selectByID(
+        $this->dbAuthGroup = $this->backendContext->repositories->groups()->selectByID(
             ID: (int) $this->validateSearchField(
                 searchField: $this->userGroupField,
             ),
         );
-        $this->addField(formField: $this->searchQueryField = new SearchQueryField());
+        $this->addField(
+            formField: $this->searchQueryField = new SearchQueryField(
+                messages: $this->backendContext->messages->common,
+            ),
+        );
         $this->searchQuery = $this->validateSearchField(searchField: $this->searchQueryField);
         $this->addComponent(
             formComponent: new FormControl(

@@ -12,8 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\auth\MyAuthUser;
-use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\form\ApiKeyRemoveForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -51,43 +49,38 @@ final class profileRemoveApiKey extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->common->removeApiKeyTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->common->removeApiKeyTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $userID = MyAuthUser::get()->dbAuthUser->ID;
+        $userID = $this->backendContext->getCurrentUser()->dbAuthUser->ID;
         if (
-            !ActraBackend::get()->actraBackendSettings->hasApi
-            || !DbAuthApiKeyRepository::hasByUserID(userID: $userID)
+            !$this->backendContext->actraBackend->actraBackendSettings->hasApi
+            || !$this->backendContext->repositories->apiKeys()->hasByUserID(userID: $userID)
         ) {
             throw new NotFoundException();
         }
         $apiKeyRemoveForm = new ApiKeyRemoveForm(
             context: $this->backendContext,
             userID: $userID,
-            cancelLink: profile::getPath(),
+            cancelLink: $this->backendContext->paths->profile(),
         );
         if ($apiKeyRemoveForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
+                relativeOrAbsoluteUri: $this->backendContext->paths->profile() . '?' . profile::PARAM_CHANGED,
                 httpRequest: $this->context->httpRequest,
             );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->removeApiKeyConfirm),
+            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->removeApiKeyConfirm),
         );
         $replacements->addHtml(
             identifier: 'form',
             html: $apiKeyRemoveForm->render(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'profileRemoveApiKey.html';
     }
 }

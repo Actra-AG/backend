@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form\component;
 
-use actra\backend\ActraBackend;
+use actra\backend\i18n\CommonMessages;
 use actra\backend\libs\common\UserLanguageOptions;
 use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\html\HtmlText;
@@ -20,12 +20,13 @@ use actra\yuf\html\HtmlText;
 final class LanguageField extends SelectOptionsField
 {
     public function __construct(
+        CommonMessages $messages,
         UserLanguageOptions $userLanguageOptions,
         ?string $initialValue,
     ) {
         parent::__construct(
             name: 'language',
-            label: HtmlText::fromText(text: ActraBackend::messages()->common->languageLabel),
+            label: HtmlText::fromText(text: $messages->languageLabel),
             formOptions: $userLanguageOptions->createFormOptions(),
             initialValue: $initialValue,
             individualEmptyValueLabel: HtmlText::fromText(text: $userLanguageOptions->getDefaultLabel()),

@@ -9,10 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthToken;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\yuf\auth\Password;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\PasswordField;
@@ -25,6 +23,7 @@ use actra\yuf\html\HtmlText;
  */
 final class PasswordResetForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly PasswordField $newPasswordField;
     private readonly PasswordField $newPasswordConfirmField;
 
@@ -32,7 +31,8 @@ final class PasswordResetForm extends Form
         BackendViewContext $context,
         private readonly DbAuthToken $dbAuthToken,
     ) {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'PasswordResetForm',
@@ -70,14 +70,14 @@ final class PasswordResetForm extends Form
             return false;
         }
         $newPasswordField = $this->newPasswordField;
-        $newPasswordCheck = new NewPasswordCheck(messages: ActraBackend::messages()->common);
+        $newPasswordCheck = new NewPasswordCheck(messages: $this->backendContext->messages->common);
         if (!$newPasswordCheck->isValid(
             newPasswordField: $newPasswordField,
             newPasswordConfirmField: $this->newPasswordConfirmField,
         )) {
             return false;
         }
-        DbAuthUserRepository::setPassword(
+        $this->backendContext->repositories->users()->setPassword(
             ID: $this->dbAuthToken->userID,
             newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
         );

@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\form\component\SearchQueryField;
 use actra\backend\libs\form\component\SearchSelectOptionsField;
@@ -33,7 +32,7 @@ final class TokenSearchForm extends AbstractSearchForm
         parent::__construct(context: $context, name: $name);
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
-        $messages = ActraBackend::messages();
+        $messages = $this->backendContext->messages;
         $typeFilterOptions = new FormOptions();
         foreach (AuthTokenTypeEnum::cases() as $authTokenTypeEnum) {
             $typeFilterOptions->addItem(
@@ -58,7 +57,11 @@ final class TokenSearchForm extends AbstractSearchForm
             ),
         );
 
-        $this->addField(formField: $this->searchQueryField = new SearchQueryField());
+        $this->addField(
+            formField: $this->searchQueryField = new SearchQueryField(
+                messages: $this->backendContext->messages->common,
+            ),
+        );
         $this->searchQuery = $this->validateSearchField(searchField: $this->searchQueryField);
         $this->addComponent(
             formComponent: new FormControl(

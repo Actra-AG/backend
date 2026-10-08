@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\yuf\common\SearchState;
 use actra\yuf\core\InputSourceEnum;
@@ -40,7 +39,7 @@ abstract class AbstractSearchForm extends Form
         parent::__construct(
             context: $context->viewContext->formContext,
             name: $name,
-            messages: ActraBackend::messages()->form,
+            messages: $this->backendContext->messages->form,
         );
     }
 

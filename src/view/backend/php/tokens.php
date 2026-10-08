@@ -10,9 +10,10 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendPaths;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\libs\table\TokenTable;
 use actra\yuf\auth\AccessRightCollection;
@@ -39,20 +40,15 @@ final class tokens extends BackendView
         );
     }
 
-    public static function getNavigationItem(): NavigationItem
+    public static function getNavigationItem(BackendPaths $paths, BackendMessages $messages): NavigationItem
     {
         return new NavigationItem(
             navKey: 'tokens',
-            href: tokens::getPath(userID: null) . '?reset',
+            href: $paths->tokens(userID: null) . '?reset',
             svgPath: '',
-            title: ActraBackend::messages()->log->tokensNavigationTitle,
+            title: $messages->log->tokensNavigationTitle,
             requiredAccessRights: tokens::getRequiredAccessRights(),
         );
-    }
-
-    public static function getPath(?int $userID): string
-    {
-        return ActraBackend::path() . ($userID === null ? 'tokens.html' : 'tokens-' . $userID . '.html');
     }
 
     #[\Override]
@@ -66,14 +62,15 @@ final class tokens extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->log->tokensPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->log->tokensPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->getPathVar(nr: 1) !== null) {
-            $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
+            $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
+            $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
             if ($dbAuthUser === null) {
                 throw new NotFoundException();
             }

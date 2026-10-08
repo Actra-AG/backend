@@ -11,23 +11,26 @@ namespace actra\backend\libs\auth;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
-use actra\backend\libs\db\DbAuthSessionRepository;
+use actra\backend\BackendViewContext;
+use actra\backend\i18n\CommonMessages;
+use actra\backend\libs\db\BackendRepositories;
+use actra\backend\libs\db\ClientData;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\libs\db\DbAuthUserRepository;
+use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\AuthUser;
 use actra\yuf\auth\Password;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\UnauthorizedException;
+use actra\yuf\session\Session;
 
 final class MyAuthUser extends AuthUser
 {
-    private static ?MyAuthUser $instance = null;
-
-    private function __construct(
+    public function __construct(
         public readonly DbAuthUser $dbAuthUser,
         public readonly ?int $parentSessionID,
+        private readonly BackendRepositories $repositories,
+        private readonly ClientData $clientData,
     ) {
-        MyAuthUser::$instance = $this;
         parent::__construct(
             id: $dbAuthUser->ID,
             isActive: (
@@ -50,43 +53,62 @@ final class MyAuthUser extends AuthUser
         return new Password(salt: '', hash: '!');
     }
 
-    public static function createFromDbAuthUser(DbAuthUser $dbAuthUser): MyAuthUser
-    {
+    /**
+     * The logged-in user of the session, `null` without login. A login whose session no longer exists in the database
+     * (e.g. the user was deleted) is logged out.
+     */
+    public static function findLoggedIn(
+        AuthSession $authSession,
+        BackendRepositories $repositories,
+        ClientData $clientData,
+    ): ?MyAuthUser {
+        if (!$authSession->isLoggedIn()) {
+            return null;
+        }
+        $dbAuthSession = $repositories->sessions()->selectByID(ID: $authSession->getAuthSessionId());
+        if ($dbAuthSession === null) {
+            $authSession->logOut();
+
+            return null;
+        }
+
         return new MyAuthUser(
-            dbAuthUser: $dbAuthUser,
-            parentSessionID: null,
+            dbAuthUser: $dbAuthSession->dbAuthUser,
+            parentSessionID: $dbAuthSession->parentID,
+            repositories: $repositories,
+            clientData: $clientData,
         );
     }
 
-    public static function setRequestedPageAfterLogin(string $path): void
+    public static function setRequestedPageAfterLogin(Session $session, string $path): void
     {
-        ActraBackend::get()->getSession()->set(key: 'requestedPageAfterLogin', value: $path);
+        $session->set(key: 'requestedPageAfterLogin', value: $path);
     }
 
-    public function redirectToFirstAllowedPage(): void
+    public function redirectToFirstAllowedPage(BackendViewContext $context): never
     {
         HttpResponse::redirectAndExit(
-            relativeOrAbsoluteUri: $this->getFirstAllowedPage(),
-            httpRequest: ActraBackend::get()->getViewContext()->httpRequest,
+            relativeOrAbsoluteUri: $this->getFirstAllowedPage(context: $context),
+            httpRequest: $context->viewContext->httpRequest,
         );
     }
 
-    public function getFirstAllowedPage(): string
+    public function getFirstAllowedPage(BackendViewContext $context): string
     {
-        $session = ActraBackend::get()->getSession();
+        $session = $context->session;
         $requestedPage = $session->getString(key: 'requestedPageAfterLogin');
         $session->remove(key: 'requestedPageAfterLogin');
         $target = is_string(value: $requestedPage) && $requestedPage !== ''
             ? $requestedPage
-            : $this->getFirstNavigationHref();
-        $target = $this->moveToLanguageRoute(target: $target);
+            : $this->getFirstNavigationHref(context: $context);
+        $target = $this->moveToLanguageRoute(context: $context, target: $target);
 
         return $target . (str_contains(haystack: $target, needle: '?') ? '&' : '?') . BackendView::PARAM_FROM_LOGIN;
     }
 
-    private function getFirstNavigationHref(): string
+    private function getFirstNavigationHref(BackendViewContext $context): string
     {
-        $navigationItem = ActraBackend::get()->navigationItemCollection->getFirst(
+        $navigationItem = $context->actraBackend->navigationItemCollection->getFirst(
             accessRightCollection: $this->dbAuthUser->accessRightCollection,
         );
         if ($navigationItem === null) {
@@ -100,13 +122,13 @@ final class MyAuthUser extends AuthUser
      * A user with a language continues on the backend route of that language. Without a language (no preference) or
      * for a language without route, the user stays on the route of the login.
      */
-    private function moveToLanguageRoute(string $target): string
+    private function moveToLanguageRoute(BackendViewContext $context, string $target): string
     {
         $languageCode = $this->dbAuthUser->languageCode;
         if ($languageCode === null) {
             return $target;
         }
-        $backendRouteCollection = ActraBackend::get()->backendRouteCollection;
+        $backendRouteCollection = $context->actraBackend->backendRouteCollection;
         $languageRoute = $backendRouteCollection->findByLanguage(languageCode: $languageCode);
         if ($languageRoute === null) {
             return $target;
@@ -115,25 +137,9 @@ final class MyAuthUser extends AuthUser
         return $backendRouteCollection->translatePath(uri: $target, targetRoute: $languageRoute);
     }
 
-    public static function get(): MyAuthUser
+    public function getUserName(CommonMessages $messages): string
     {
-        if (MyAuthUser::$instance !== null) {
-            return MyAuthUser::$instance;
-        }
-        $authSessionId = ActraBackend::get()->getAuthSession()->getAuthSessionId();
-        $dbAuthSession = DbAuthSessionRepository::selectByID(ID: $authSessionId);
-        if ($dbAuthSession === null) {
-            throw new UnauthorizedException();
-        }
-        return new MyAuthUser(
-            dbAuthUser: $dbAuthSession->dbAuthUser,
-            parentSessionID: $dbAuthSession->parentID,
-        );
-    }
-
-    public function getUserName(): string
-    {
-        return $this->dbAuthUser->renderFullName();
+        return $this->dbAuthUser->renderFullName(messages: $messages);
     }
 
     public function canImpersonateUser(DbAuthUser $dbAuthUser): bool
@@ -162,24 +168,25 @@ final class MyAuthUser extends AuthUser
     #[\Override]
     protected function dbIncreaseWrongPasswordAttempts(): void
     {
-        DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $this->id);
+        $this->repositories->users()->increaseWrongPasswordAttempts(ID: $this->id);
     }
 
     #[\Override]
     protected function dbConfirmSuccessfulLogin(): int
     {
-        DbAuthUserRepository::dbConfirmSuccessfulLogin(ID: $this->id);
+        $this->repositories->users()->dbConfirmSuccessfulLogin(ID: $this->id);
 
-        return DbAuthSessionRepository::insert(
+        return $this->repositories->sessions()->insert(
             parentID: $this->parentSessionID,
             userID: $this->id,
+            clientData: $this->clientData,
         );
     }
 
     #[\Override]
     protected function dbUpdatePassword(Password $newPassword): void
     {
-        DbAuthUserRepository::updatePasswordHash(ID: $this->id, password: $newPassword);
+        $this->repositories->users()->updatePasswordHash(ID: $this->id, password: $newPassword);
     }
 
     public function canManageUsers(): bool

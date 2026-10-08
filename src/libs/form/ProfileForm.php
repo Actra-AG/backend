@@ -9,14 +9,10 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\common\UserLanguageOptions;
-use actra\backend\libs\db\DbAuthApiKeyRepository;
-use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\libs\form\component\LanguageField;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
@@ -33,6 +29,7 @@ use actra\yuf\html\HtmlText;
  */
 final class ProfileForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
     private readonly PhoneNumberField $phoneNumberField;
@@ -43,7 +40,8 @@ final class ProfileForm extends Form
         BackendViewContext $context,
         private readonly DbAuthUser $dbAuthUser,
     ) {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'ProfileForm',
@@ -74,10 +72,11 @@ final class ProfileForm extends Form
                 invalidErrorMessage: HtmlText::fromText(text: $messages->common->phoneInvalid),
             ),
         );
-        $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
+        $userLanguageOptions = UserLanguageOptions::forContext(context: $this->backendContext);
         $languageField = null;
         if ($userLanguageOptions->isSelectable()) {
             $languageField = new LanguageField(
+                messages: $this->backendContext->messages->common,
                 userLanguageOptions: $userLanguageOptions,
                 initialValue: $dbAuthUser->languageCode,
             );
@@ -86,6 +85,7 @@ final class ProfileForm extends Form
         $this->languageField = $languageField;
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
+                messages: $this->backendContext->messages->common,
                 name: 'ipWhitelistField',
                 label: HtmlText::fromText(text: $messages->common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
@@ -108,7 +108,7 @@ final class ProfileForm extends Form
         if (!parent::validate()) {
             return false;
         }
-        $messages = ActraBackend::messages();
+        $messages = $this->backendContext->messages;
         if (!$this->hasChanges()) {
             $this->addError(
                 errorMessage: HtmlText::fromText(text: $messages->common->noChanges),
@@ -120,7 +120,7 @@ final class ProfileForm extends Form
         $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
             $newIpWhitelist === []
-            && DbAuthApiKeyRepository::hasByUserID(userID: $this->dbAuthUser->ID)
+            && $this->backendContext->repositories->apiKeys()->hasByUserID(userID: $this->dbAuthUser->ID)
         ) {
             $this->addError(
                 errorMessage: HtmlText::fromText(
@@ -146,7 +146,7 @@ final class ProfileForm extends Form
             return false;
         }
         $userID = $this->dbAuthUser->ID;
-        DbAuthUserRepository::update(
+        $this->backendContext->repositories->users()->update(
             ID: $userID,
             email: $this->dbAuthUser->email,
             phone: $this->phoneNumberField->getValueAsString(),
@@ -163,7 +163,7 @@ final class ProfileForm extends Form
                 haystack: $this->dbAuthUser->ipWhitelist,
                 strict: true,
             )) {
-                DbAuthIpWhitelistRepository::insert(
+                $this->backendContext->repositories->ipWhitelists()->insert(
                     userID: $userID,
                     ipAddress: $ip,
                 );
@@ -175,7 +175,7 @@ final class ProfileForm extends Form
                 haystack: $newIpWhitelist,
                 strict: true,
             )) {
-                DbAuthIpWhitelistRepository::delete(
+                $this->backendContext->repositories->ipWhitelists()->delete(
                     userID: $userID,
                     ipAddress: $ip,
                 );

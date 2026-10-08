@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\view\backend\php;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendView;
-use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\LoginForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -32,17 +30,17 @@ final class login extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->auth->loginPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->auth->loginPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        if ($this->backendContext->actraBackend->getAuthSession()->isLoggedIn()) {
-            MyAuthUser::get()->redirectToFirstAllowedPage();
+        if ($this->backendContext->authSession->isLoggedIn()) {
+            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(context: $this->backendContext);
         }
         $htmlDocument->templateName = 'authentication';
-        $messages = ActraBackend::messages()->auth;
+        $messages = $this->backendContext->messages->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
@@ -51,7 +49,7 @@ final class login extends BackendView
         $loginForm = new LoginForm(context: $this->backendContext);
         if ($loginForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: loginToken::getPath(),
+                relativeOrAbsoluteUri: $this->backendContext->paths->loginToken(),
                 httpRequest: $this->context->httpRequest,
             );
         }
@@ -59,10 +57,5 @@ final class login extends BackendView
             identifier: 'form',
             html: $loginForm->render(),
         );
-    }
-
-    public static function getPath(bool $prependPath = true): string
-    {
-        return ($prependPath ? ActraBackend::path() : '') . 'login.html';
     }
 }

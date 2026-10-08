@@ -11,7 +11,6 @@ namespace actra\backend\tests\Unit\libs\db;
 
 use actra\backend\libs\db\DB;
 use actra\yuf\db\DbSettings;
-use LogicException;
 use PDOException;
 use PHPUnit\Framework\TestCase;
 
@@ -20,9 +19,8 @@ final class DBTest extends TestCase
     /**
      * Needs a reachable database (defaults: DDEV). Override with the environment variables
      * TEST_DB_HOST, TEST_DB_NAME, TEST_DB_USER and TEST_DB_PASSWORD. Skipped if there is none.
-     * The static instance cannot be reset, so the whole behaviour is checked in one test.
      */
-    public function testUseConnectionSetsTheInstanceReturnedByGetOnlyOnce(): void
+    public function testFromSettingsConnectsToTheDatabase(): void
     {
         $dbSettings = new DbSettings(
             hostName: $this->env(name: 'TEST_DB_HOST', default: 'db'),
@@ -32,15 +30,15 @@ final class DBTest extends TestCase
         );
 
         try {
-            $db = DB::useConnection(dbSettings: $dbSettings);
+            $db = DB::fromSettings(dbSettings: $dbSettings);
         } catch (PDOException $pdoException) {
             DBTest::markTestSkipped('No test database available: ' . $pdoException->getMessage());
         }
 
-        $this->assertSame($db, DB::get());
+        $rows = $db->selectRows(sql: 'SELECT 42 AS answer');
 
-        $this->expectException(LogicException::class);
-        DB::useConnection(dbSettings: $dbSettings);
+        $this->assertCount(1, $rows);
+        $this->assertSame(42, $rows[0]->getInt(column: 'answer'));
     }
 
     private function env(string $name, string $default): string

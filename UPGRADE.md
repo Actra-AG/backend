@@ -3,6 +3,59 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.14.0 (2026-10-08)
+
+### ⚠️ No static state: services in `BackendViewContext`
+
+The backend has no global state any more. `ActraBackend::init()` returns the instance, and everything a view, table or
+form needs comes through the `BackendViewContext` (`$this->backendContext`). See README "Project Views, Tables and
+Search Forms".
+
+```php
+// Before
+ActraBackend::init(…);
+new Route(…, viewFactory: ActraBackend::get()->createViewFactory());
+ActraBackend::messages()->common->saveButton;
+ActraBackend::path() . 'users.html';           // user::getPath(ID: 5)
+MyAuthUser::get()->id;
+DB::get()->selectRows(…);
+DbAuthUserRepository::selectByID(ID: 5);
+Mailer::sendTextMail(recipient: …, subject: …, textBody: …);
+UserController::deleteUser(userID: 5);
+EmailAuthUser::send(dbAuthUser: …, subject: …, message: …);
+DbAuthApiKeyRepository::getUserIDForBearerOrThrow(httpRequest: …);
+
+// After
+$actraBackend = ActraBackend::init(…);
+new Route(…, viewFactory: $actraBackend->createViewFactory());
+$this->backendContext->messages->common->saveButton;
+$this->backendContext->paths->users();         // ->user(ID: 5)
+$this->backendContext->getCurrentUser()->id;
+$this->backendContext->repositories->db()->selectRows(…);
+$this->backendContext->repositories->users()->selectByID(ID: 5);
+$this->backendContext->mailer->sendTextMail(recipient: …, subject: …, textBody: …);
+$this->backendContext->userController->deleteUser(userID: 5);
+EmailAuthUser::send(mailer: $this->backendContext->mailer, dbAuthUser: …, subject: …, message: …);
+$actraBackend->getRepositories()->apiKeys()->getUserIDForBearerOrThrow(httpRequest: …);
+```
+
+- The repositories are instances on one connection (`BackendRepositories`, opened on first use);
+  `DbAuthSessionRepository::insert()`, `DbAuthTokenRepository::createToken()` / `claim()` take the `ClientData` and
+  `DbAuthUserNotificationRepository::insert()` the `sentByUserID`.
+- `DB::get()` and `DB::useConnection()` are removed: `DB::fromSettings(dbSettings:)` and
+  `BackendRepositories::fromDb(db:)` for integration tests and CLI scripts, `$actraBackend->getRepositories()` and
+  `$actraBackend->createMailer()` outside a request.
+- The user delete handler is a setting: `new ActraBackendSettings(…, userDeleteHandler: new ProjectUserDeleteHandler())`
+  instead of `UserController::registerUserDeleteHandler()`.
+- The views have no static `getPath()` any more (`BackendPaths`); `AuthTokenTypeEnum::render()` needs the `LogMessages`;
+  `MyAuthUser::getUserName()`, `DbAuthUser::renderFullName()`, `renderLastLogin()`, `renderActive()`,
+  `DbAuthUserCollection::getFormOptions()` and `DbAuthUserNotification::render()` take the messages; `SearchQueryField`,
+  `LanguageField` take `messages:`.
+
+Search your project for: `ActraBackend::get()`, `ActraBackend::messages()`, `ActraBackend::path()`, `ActraBackend::init(`,
+`MyAuthUser::get()`, `DB::get()`, `DB::useConnection(`, `Repository::`, `Mailer::`, `UserController::`,
+`EmailAuthUser::send(`, `::getPath(`, `new SearchQueryField(`, `->render()` on `AuthTokenTypeEnum`.
+
 ## v1.13.0 (2026-10-08)
 
 ### ⚠️ Classes are `final`, internal classes marked

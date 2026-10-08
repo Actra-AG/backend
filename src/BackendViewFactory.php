@@ -35,9 +35,7 @@ final readonly class BackendViewFactory implements ViewFactory
             return null;
         }
         if (is_subclass_of(object_or_class: $className, class: BackendView::class)) {
-            return new $className(
-                context: new BackendViewContext(viewContext: $context, actraBackend: $this->actraBackend),
-            );
+            return new $className(context: $this->actraBackend->createContext(viewContext: $context));
         }
         if (!is_subclass_of(object_or_class: $className, class: BaseView::class)) {
             throw new LogicException(message: 'The class ' . $className . ' must extend ' . BaseView::class . '.');

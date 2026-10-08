@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\auth;
 
-use actra\backend\ActraBackend;
-use actra\backend\libs\db\DbAuthLoginRepository;
-use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\BackendViewContext;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\Authenticator;
 use actra\yuf\auth\AuthMethodEnum;
@@ -23,28 +21,21 @@ use actra\yuf\auth\AuthUser;
  */
 final class MyAuthenticator extends Authenticator
 {
-    private static ?MyAuthenticator $instance = null;
     public private(set) ?MyAuthUser $user = null;
 
-    private function __construct()
+    public function __construct(private readonly BackendViewContext $context)
     {
-        MyAuthenticator::$instance = $this;
         parent::__construct(
-            httpRequest: ActraBackend::get()->getViewContext()->httpRequest,
-            authSession: ActraBackend::get()->getAuthSession(),
-            maxAllowedWrongPasswordAttempts: ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts,
+            httpRequest: $context->viewContext->httpRequest,
+            authSession: $context->authSession,
+            maxAllowedWrongPasswordAttempts: $context->actraBackend->actraBackendSettings->maxAllowedLoginAttempts,
         );
-    }
-
-    public static function get(): MyAuthenticator
-    {
-        return MyAuthenticator::$instance === null ? new MyAuthenticator() : MyAuthenticator::$instance;
     }
 
     public function tokenLogin(string $inputToken): bool
     {
-        $dbAuthToken = AuthTokenTypeEnum::LOGIN->claim(
-            session: ActraBackend::get()->getSession(),
+        $dbAuthToken = new AuthTokens(context: $this->context)->claim(
+            type: AuthTokenTypeEnum::LOGIN,
             inputToken: $inputToken,
         );
         if ($dbAuthToken === null) {
@@ -66,11 +57,16 @@ final class MyAuthenticator extends Authenticator
     #[\Override]
     protected function createAuthUserByUserName(string $userName): ?MyAuthUser
     {
-        $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $userName);
+        $dbAuthUser = $this->context->repositories->users()->selectByEmail(email: $userName);
         if ($dbAuthUser === null) {
             return null;
         }
-        $this->user = MyAuthUser::createFromDbAuthUser(dbAuthUser: $dbAuthUser);
+        $this->user = new MyAuthUser(
+            dbAuthUser: $dbAuthUser,
+            parentSessionID: null,
+            repositories: $this->context->repositories,
+            clientData: $this->context->clientData,
+        );
         return $this->user;
     }
 
@@ -82,7 +78,7 @@ final class MyAuthenticator extends Authenticator
         string $userName,
         AuthResultEnum $authResult,
     ): void {
-        DbAuthLoginRepository::insert(
+        $this->context->repositories->logins()->insert(
             userID: $userId,
             sessionID: $sessionId,
             ipAddress: $ip,

@@ -11,11 +11,13 @@ namespace actra\backend\libs\db;
 
 final class DbAuthUserGroupRepository
 {
-    public static function insert(
+    public function __construct(private readonly DB $db) {}
+
+    public function insert(
         int $userID,
         int $groupID,
     ): void {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
 				INSERT INTO auth_user_group
 				SET userID=?,
@@ -28,11 +30,11 @@ final class DbAuthUserGroupRepository
         );
     }
 
-    public static function delete(
+    public function delete(
         int $userID,
         int $groupID,
     ): void {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
 				DELETE FROM auth_user_group
 				WHERE userID=?
@@ -45,9 +47,9 @@ final class DbAuthUserGroupRepository
         );
     }
 
-    public static function deleteByUserID(int $userID): void
+    public function deleteByUserID(int $userID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                 DELETE FROM auth_user_group
                 WHERE ID>0

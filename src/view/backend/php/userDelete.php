@@ -13,7 +13,6 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserDeleteForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -53,20 +52,21 @@ final class userDelete extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->user->deleteButton);
+        return HtmlText::fromText(text: $this->backendContext->messages->user->deleteButton);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
+        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
         $userDeleteForm = new UserDeleteForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($userDeleteForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: users::getPath() . '?' . users::PARAM_REMOVED,
+                relativeOrAbsoluteUri: $this->backendContext->paths->users() . '?' . users::PARAM_REMOVED,
                 httpRequest: $this->context->httpRequest,
             );
         }
@@ -74,18 +74,13 @@ final class userDelete extends BackendView
         $replacements->addHtmlText(
             identifier: 'deleteConfirm',
             htmlText: HtmlText::fromText(text: MessageTemplate::fill(
-                template: ActraBackend::messages()->user->deleteConfirm,
-                values: ['name' => $dbAuthUser->renderFullName()],
+                template: $this->backendContext->messages->user->deleteConfirm,
+                values: ['name' => $dbAuthUser->renderFullName(messages: $this->backendContext->messages->common)],
             )),
         );
         $replacements->addHtml(
             identifier: 'form',
             html: $userDeleteForm->render(),
         );
-    }
-
-    public static function getPath(int $ID): string
-    {
-        return ActraBackend::path() . 'userDelete-' . $ID . '.html';
     }
 }

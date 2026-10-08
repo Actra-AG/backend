@@ -9,11 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
-use actra\backend\libs\db\DbAuthUserNotificationRepository;
-use actra\backend\view\backend\php\notification;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
@@ -27,14 +24,14 @@ final class NotificationTable extends AbstractTable
 {
     public function __construct(BackendViewContext $context)
     {
-        $dbQuery = DbAuthUserNotificationRepository::getDbQuery();
+        $dbQuery = $context->repositories->notifications()->getDbQuery();
         parent::__construct(
             context: $context,
             identifier: 'NotificationTable',
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
-        $messages = ActraBackend::messages();
+        $messages = $context->messages;
         $sentDateColumn = new DateColumn(
             identifier: 'sentDate',
             label: $messages->notification->sentDateLabel,
@@ -50,7 +47,7 @@ final class NotificationTable extends AbstractTable
                 identifier: 'subject',
                 label: $messages->common->subjectLabel,
                 callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . HtmlEncoder::encode(
-                    value: notification::getPath(ID: $tableItem->getRow()->getInt(column: 'ID')),
+                    value: $context->paths->notification(ID: $tableItem->getRow()->getInt(column: 'ID')),
                 ) . '">' . $tableItem->renderValue(name: 'subject') . '</a>',
             ),
         );

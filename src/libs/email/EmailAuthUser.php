@@ -17,11 +17,12 @@ use actra\backend\libs\db\DbAuthUser;
 final class EmailAuthUser
 {
     public static function send(
+        Mailer $mailer,
         DbAuthUser $dbAuthUser,
         string $subject,
         string $message,
     ): void {
-        Mailer::sendTextMail(
+        $mailer->sendTextMail(
             recipient: $dbAuthUser->email,
             subject: $subject,
             textBody: $message,

@@ -9,10 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\GeneratedApiKeyFlash;
-use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
@@ -24,21 +22,23 @@ use actra\yuf\html\HtmlText;
  */
 final class ApiKeyGenerateForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     public function __construct(
         BackendViewContext $context,
         private readonly int $userID,
         string $cancelLink,
     ) {
+        $this->backendContext = $context;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'ApiKeyGenerateForm',
-            messages: ActraBackend::messages()->form,
+            messages: $this->backendContext->messages->form,
         );
         $this->addCssClass(className: 'form');
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'generate',
-                submitLabel: HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyTitle),
+                submitLabel: HtmlText::fromText(text: $this->backendContext->messages->common->generateApiKeyTitle),
                 cancelLink: $cancelLink,
             ),
         );
@@ -50,9 +50,9 @@ final class ApiKeyGenerateForm extends Form
             return false;
         }
         GeneratedApiKeyFlash::store(
-            session: ActraBackend::get()->getSession(),
+            session: $this->backendContext->session,
             userID: $this->userID,
-            apiKey: DbAuthApiKeyRepository::createForUserID(userID: $this->userID),
+            apiKey: $this->backendContext->repositories->apiKeys()->createForUserID(userID: $this->userID),
         );
 
         return true;

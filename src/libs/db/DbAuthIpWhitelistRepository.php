@@ -11,11 +11,13 @@ namespace actra\backend\libs\db;
 
 final class DbAuthIpWhitelistRepository
 {
-    public static function listForUserId(int $userID): DbAuthIpWhitelistCollection
+    public function __construct(private readonly DB $db) {}
+
+    public function listForUserId(int $userID): DbAuthIpWhitelistCollection
     {
         $dbAuthIpWhitelistCollection = new DbAuthIpWhitelistCollection();
         foreach (
-            DB::get()->selectRows(
+            $this->db->selectRows(
                 sql: '
                    SELECT ID,
                           userID,
@@ -40,11 +42,11 @@ final class DbAuthIpWhitelistRepository
         return $dbAuthIpWhitelistCollection;
     }
 
-    public static function insert(
+    public function insert(
         int $userID,
         string $ipAddress,
     ): void {
-        DB::get()->execute(
+        $this->db->execute(
             sql: 'INSERT INTO auth_ipWhitelist (userID, ipAddress) VALUES (?, ?)',
             parameters: [
                 $userID,
@@ -53,11 +55,11 @@ final class DbAuthIpWhitelistRepository
         );
     }
 
-    public static function delete(
+    public function delete(
         int $userID,
         string $ipAddress,
     ): void {
-        DB::get()->execute(
+        $this->db->execute(
             sql: 'DELETE FROM auth_ipWhitelist WHERE userID=? AND ipAddress=?',
             parameters: [
                 $userID,
@@ -66,9 +68,9 @@ final class DbAuthIpWhitelistRepository
         );
     }
 
-    public static function deleteByUserID(int $userID): void
+    public function deleteByUserID(int $userID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: 'DELETE FROM auth_ipWhitelist WHERE userID=?',
             parameters: [
                 $userID,

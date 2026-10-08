@@ -9,13 +9,11 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
+use actra\backend\libs\auth\AuthTokens;
 use actra\backend\libs\auth\MyAuthenticator;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\settings\AuthTokenTypeEnum;
-use actra\backend\view\backend\php\passwordForgotten;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\auth\Password;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
@@ -32,12 +30,14 @@ use LogicException;
  */
 final class LoginPasswordForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly EmailField $emailField;
     private readonly PasswordField $passwordField;
 
     public function __construct(BackendViewContext $context)
     {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'LoginPasswordForm',
@@ -69,7 +69,7 @@ final class LoginPasswordForm extends Form
             formComponent: new FormControl(
                 name: 'submit',
                 submitLabel: HtmlText::fromText(text: $messages->auth->loginPasswordSubmitLabel),
-                cancelLink: passwordForgotten::getPath(),
+                cancelLink: $this->backendContext->paths->passwordForgotten(),
                 cancelLabel: HtmlText::fromText(text: $messages->auth->passwordForgottenLinkLabel),
             ),
         );
@@ -82,7 +82,7 @@ final class LoginPasswordForm extends Form
         }
         if (!$this->checkCredentials()) {
             $this->addError(
-                errorMessage: HtmlText::fromText(text: ActraBackend::messages()->auth->credentialsInvalid),
+                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->auth->credentialsInvalid),
             );
             return false;
         }
@@ -94,7 +94,7 @@ final class LoginPasswordForm extends Form
     {
         $inputEmail = $this->emailField->getValueAsString();
         $inputPassword = $this->passwordField->getValueAsString();
-        $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $inputEmail);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByEmail(email: $inputEmail);
         $rejection = $this->findRejection(dbAuthUser: $dbAuthUser);
         if ($rejection !== null) {
             // Same time as a password check, so the response time does not tell whether the email address exists
@@ -108,7 +108,7 @@ final class LoginPasswordForm extends Form
             throw new LogicException(message: 'findRejection() rejects users without password.');
         }
         if (!$password->isValid(rawPassword: $inputPassword)) {
-            DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $dbAuthUser->ID);
+            $this->backendContext->repositories->users()->increaseWrongPasswordAttempts(ID: $dbAuthUser->ID);
             $this->logAuthResult(
                 dbAuthUser: $dbAuthUser,
                 inputEmail: $inputEmail,
@@ -119,13 +119,13 @@ final class LoginPasswordForm extends Form
         }
         if ($password->needsRehash()) {
             // Legacy or outdated hash: store the current algorithm (yuf's Authenticator does not see the password here)
-            DbAuthUserRepository::updatePasswordHash(
+            $this->backendContext->repositories->users()->updatePasswordHash(
                 ID: $dbAuthUser->ID,
                 password: Password::generateNew(rawPassword: $inputPassword),
             );
         }
-        AuthTokenTypeEnum::LOGIN->createAndSend(
-            session: ActraBackend::get()->getSession(),
+        new AuthTokens(context: $this->backendContext)->createAndSend(
+            type: AuthTokenTypeEnum::LOGIN,
             dbAuthUser: $dbAuthUser,
             usedPasswordLogin: true,
         );
@@ -153,7 +153,8 @@ final class LoginPasswordForm extends Form
         if ($dbAuthUser->password === null) {
             return AuthResultEnum::ERROR_NO_PASSWORD_LOGIN_ACTIVE;
         }
-        if ($dbAuthUser->wrongLoginAttempts >= ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts) {
+        $settings = $this->backendContext->actraBackend->actraBackendSettings;
+        if ($dbAuthUser->wrongLoginAttempts >= $settings->maxAllowedLoginAttempts) {
             return AuthResultEnum::ERROR_OUT_TRIED;
         }
 
@@ -162,9 +163,9 @@ final class LoginPasswordForm extends Form
 
     private function logAuthResult(?DbAuthUser $dbAuthUser, string $inputEmail, AuthResultEnum $authResult): void
     {
-        MyAuthenticator::get()->logAuthResult(
+        new MyAuthenticator(context: $this->backendContext)->logAuthResult(
             userId: $dbAuthUser?->ID,
-            sessionId: ActraBackend::get()->getAuthSession()->getSessionId(),
+            sessionId: $this->backendContext->authSession->getSessionId(),
             ip: $this->context->httpRequest->getRemoteAddress(),
             userName: $inputEmail,
             authResult: $authResult,

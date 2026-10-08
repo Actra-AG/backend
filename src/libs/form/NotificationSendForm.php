@@ -9,14 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthGroupRepository;
-use actra\backend\libs\db\DbAuthUserNotificationRecipientRepository;
-use actra\backend\libs\db\DbAuthUserNotificationRepository;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\email\EmailAuthUser;
-use actra\backend\view\backend\php\notifications;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextAreaField;
@@ -29,24 +23,26 @@ use actra\yuf\html\HtmlText;
  */
 final class NotificationSendForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly SelectOptionsField $authUserGroupField;
     private readonly TextField $subjectField;
     private readonly TextAreaField $messageField;
 
     public function __construct(BackendViewContext $context)
     {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'NotificationSendForm',
-            messages: ActraBackend::messages()->form,
+            messages: $this->backendContext->messages->form,
         );
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->authUserGroupField = new SelectOptionsField(
                 name: 'authUserGroupField',
                 label: HtmlText::fromText(text: $messages->common->userGroupLabel),
-                formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
+                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
                 initialValue: null,
                 requiredError: HtmlText::fromText(text: $messages->notification->userGroupRequired),
             ),
@@ -72,7 +68,7 @@ final class NotificationSendForm extends Form
                         '',
                         $messages->common->closingGreeting,
                         '',
-                        ActraBackend::get()->mailerSettings->signature,
+                        $this->backendContext->actraBackend->mailerSettings->signature,
                     ],
                 ),
                 requiredError: HtmlText::fromText(text: $messages->common->messageBodyRequired),
@@ -82,7 +78,7 @@ final class NotificationSendForm extends Form
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::fromText(text: $messages->common->send),
-                cancelLink: notifications::getPath(),
+                cancelLink: $this->backendContext->paths->notifications(),
             ),
         );
     }
@@ -98,13 +94,16 @@ final class NotificationSendForm extends Form
         $authGroupID = (int) $this->authUserGroupField->getValueAsString();
         $subject = $this->subjectField->getValueAsString();
         $message = $this->messageField->getValueAsString();
-        $notificationID = DbAuthUserNotificationRepository::insert(
+        $notificationID = $this->backendContext->repositories->notifications()->insert(
             authGroupID: $authGroupID,
+            sentByUserID: $this->backendContext->getCurrentUser()->id,
             subject: $subject,
             message: $message,
         );
-        foreach (DbAuthUserRepository::selectByUserGroup(groupID: $authGroupID)->items as $dbAuthUser) {
+        $recipients = $this->backendContext->repositories->users()->selectByUserGroup(groupID: $authGroupID);
+        foreach ($recipients->items as $dbAuthUser) {
             EmailAuthUser::send(
+                mailer: $this->backendContext->mailer,
                 dbAuthUser: $dbAuthUser,
                 subject: $subject,
                 message: str_replace(
@@ -119,7 +118,7 @@ final class NotificationSendForm extends Form
                     subject: $message,
                 ),
             );
-            DbAuthUserNotificationRecipientRepository::insert(
+            $this->backendContext->repositories->notificationRecipients()->insert(
                 notificationID: $notificationID,
                 authUserID: $dbAuthUser->ID,
                 email: $dbAuthUser->email,

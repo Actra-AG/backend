@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\common\SearchQueryBuilder;
@@ -33,7 +31,7 @@ final class TokenTable extends AbstractTable
         ?int $filterUserID,
         TokenSearchForm $tokenSearchForm,
     ) {
-        $dbQuery = DbAuthTokenRepository::getDbQuery();
+        $dbQuery = $context->repositories->tokens()->getDbQuery();
         if ($filterUserID !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_token.userID=?',
@@ -69,7 +67,7 @@ final class TokenTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
-        $messages = ActraBackend::messages();
+        $messages = $context->messages;
         $registeredColumn = new DateColumn(
             identifier: 'registered',
             label: $messages->log->tokenCreatedDateColumn,

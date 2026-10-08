@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\view\backend\php;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 use actra\yuf\auth\AccessRightCollection;
@@ -38,14 +37,14 @@ final class logout extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->auth->logoutPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->auth->logoutPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';
-        $messages = ActraBackend::messages()->auth;
+        $messages = $this->backendContext->messages->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'heading',
@@ -61,12 +60,7 @@ final class logout extends BackendView
         );
         $replacements->addHtml(
             identifier: 'loginHref',
-            html: login::getPath(),
+            html: $this->backendContext->paths->login(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'logout.html';
     }
 }

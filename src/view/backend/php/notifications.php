@@ -10,8 +10,10 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendPaths;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
+use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\table\NotificationTable;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDocument;
@@ -35,20 +37,15 @@ final class notifications extends BackendView
         );
     }
 
-    public static function getNavigationItem(): NavigationItem
+    public static function getNavigationItem(BackendPaths $paths, BackendMessages $messages): NavigationItem
     {
         return new NavigationItem(
             navKey: 'notifications',
-            href: notifications::getPath() . '?reset',
+            href: $paths->notifications() . '?reset',
             svgPath: '',
-            title: ActraBackend::messages()->notification->title,
+            title: $messages->notification->title,
             requiredAccessRights: notifications::getRequiredAccessRights(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'notifications.html';
     }
 
     #[\Override]
@@ -62,7 +59,7 @@ final class notifications extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->notification->title);
+        return HtmlText::fromText(text: $this->backendContext->messages->notification->title);
     }
 
     #[\Override]
@@ -71,11 +68,11 @@ final class notifications extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'sendTitle',
-            htmlText: HtmlText::fromText(text: ActraBackend::messages()->notification->sendTitle),
+            htmlText: HtmlText::fromText(text: $this->backendContext->messages->notification->sendTitle),
         );
         $replacements->addHtml(
             identifier: 'sendHref',
-            html: notificationSend::getPath(),
+            html: $this->backendContext->paths->notificationSend(),
         );
         $replacements->addHtml(
             identifier: 'table',

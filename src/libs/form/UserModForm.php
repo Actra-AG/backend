@@ -9,18 +9,11 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\common\UserLanguageOptions;
-use actra\backend\libs\db\DbAuthApiKeyRepository;
-use actra\backend\libs\db\DbAuthGroupRepository;
-use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\libs\db\DbAuthUserGroupRepository;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\libs\form\component\LanguageField;
-use actra\backend\view\backend\php\user;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\BooleanField;
 use actra\yuf\form\component\field\CheckboxOptionsField;
@@ -37,6 +30,7 @@ use actra\yuf\html\HtmlText;
  */
 final class UserModForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
     private readonly EmailField $emailField;
@@ -50,15 +44,16 @@ final class UserModForm extends Form
         BackendViewContext $context,
         private readonly DbAuthUser $dbAuthUser,
     ) {
+        $this->backendContext = $context;
         $dbAuthUser = $this->dbAuthUser;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'UserModForm-' . $dbAuthUser->ID,
-            messages: ActraBackend::messages()->form,
+            messages: $this->backendContext->messages->form,
         );
         $this->addCssClass(className: 'form');
-        $common = ActraBackend::messages()->common;
-        $userMessages = ActraBackend::messages()->user;
+        $common = $this->backendContext->messages->common;
+        $userMessages = $this->backendContext->messages->user;
         $this->addField(
             formField: $this->firstNameField = new TextField(
                 name: 'firstName',
@@ -92,10 +87,11 @@ final class UserModForm extends Form
                 invalidErrorMessage: HtmlText::fromText(text: $common->phoneInvalid),
             ),
         );
-        $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
+        $userLanguageOptions = UserLanguageOptions::forContext(context: $this->backendContext);
         $languageField = null;
         if ($userLanguageOptions->isSelectable()) {
             $languageField = new LanguageField(
+                messages: $this->backendContext->messages->common,
                 userLanguageOptions: $userLanguageOptions,
                 initialValue: $dbAuthUser->languageCode,
             );
@@ -113,8 +109,8 @@ final class UserModForm extends Form
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
-                formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
-                initialValues: DbAuthGroupRepository::listByUserID(
+                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
+                initialValues: $this->backendContext->repositories->groups()->listByUserID(
                     userID: $dbAuthUser->ID,
                 )->listFormOptionKeys(),
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
@@ -122,6 +118,7 @@ final class UserModForm extends Form
         );
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
+                messages: $this->backendContext->messages->common,
                 name: 'ipWhitelistField',
                 label: HtmlText::fromText(text: $common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
@@ -132,7 +129,7 @@ final class UserModForm extends Form
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::fromText(text: $common->save),
-                cancelLink: user::getPath(ID: $dbAuthUser->ID),
+                cancelLink: $this->backendContext->paths->user(ID: $dbAuthUser->ID),
             ),
         );
     }
@@ -144,7 +141,7 @@ final class UserModForm extends Form
         }
         if (!$this->hasChanges()) {
             $this->addError(
-                errorMessage: HtmlText::fromText(text: ActraBackend::messages()->common->noChanges),
+                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->common->noChanges),
             );
 
             return false;
@@ -152,11 +149,11 @@ final class UserModForm extends Form
         $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
             $newIpWhitelist === []
-            && DbAuthApiKeyRepository::hasByUserID(userID: $this->dbAuthUser->ID)
+            && $this->backendContext->repositories->apiKeys()->hasByUserID(userID: $this->dbAuthUser->ID)
         ) {
             $this->addError(
                 errorMessage: HtmlText::fromText(
-                    text: ActraBackend::messages()->common->apiKeyBlocksEmptyIpWhitelist,
+                    text: $this->backendContext->messages->common->apiKeyBlocksEmptyIpWhitelist,
                 ),
             );
 
@@ -164,16 +161,18 @@ final class UserModForm extends Form
         }
         if (
             $this->emailField->valueHasChanged()
-            && DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString()) !== null
+            && $this->backendContext->repositories->users()->selectByEmail(
+                email: $this->emailField->getValueAsString(),
+            ) !== null
         ) {
             $this->addError(
-                errorMessage: HtmlText::fromText(text: ActraBackend::messages()->common->emailAlreadyInUse),
+                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->common->emailAlreadyInUse),
             );
 
             return false;
         }
         $userID = $this->dbAuthUser->ID;
-        DbAuthUserRepository::update(
+        $this->backendContext->repositories->users()->update(
             ID: $userID,
             email: $this->emailField->getValueAsString(),
             phone: $this->phoneNumberField->getValueAsString(),
@@ -185,13 +184,13 @@ final class UserModForm extends Form
                 : $this->languageField->getLanguageCode(),
         );
         foreach ($this->userGroupsField->getAddedValues() as $userGroupValue) {
-            DbAuthUserGroupRepository::insert(
+            $this->backendContext->repositories->userGroups()->insert(
                 userID: $userID,
                 groupID: (int) $userGroupValue,
             );
         }
         foreach ($this->userGroupsField->getRemovedValues() as $userGroupValue) {
-            DbAuthUserGroupRepository::delete(
+            $this->backendContext->repositories->userGroups()->delete(
                 userID: $userID,
                 groupID: (int) $userGroupValue,
             );
@@ -202,7 +201,7 @@ final class UserModForm extends Form
                 haystack: $this->dbAuthUser->ipWhitelist,
                 strict: true,
             )) {
-                DbAuthIpWhitelistRepository::insert(
+                $this->backendContext->repositories->ipWhitelists()->insert(
                     userID: $userID,
                     ipAddress: $ip,
                 );
@@ -214,7 +213,7 @@ final class UserModForm extends Form
                 haystack: $newIpWhitelist,
                 strict: true,
             )) {
-                DbAuthIpWhitelistRepository::delete(
+                $this->backendContext->repositories->ipWhitelists()->delete(
                     userID: $userID,
                     ipAddress: $ip,
                 );

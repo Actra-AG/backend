@@ -9,10 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\email;
 
-use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\view\backend\php\passwordReset;
 
 /**
  * @internal
@@ -20,15 +19,16 @@ use actra\backend\view\backend\php\passwordReset;
 final class EmailPasswordResetLink
 {
     public static function send(
+        BackendViewContext $context,
         DbAuthUser $dbAuthUser,
         string $token,
         int $expirationInMinutes,
     ): void {
-        $httpRequest = ActraBackend::get()->getViewContext()->httpRequest;
+        $httpRequest = $context->viewContext->httpRequest;
         $host = $httpRequest->getHost();
-        $messages = ActraBackend::messages();
+        $messages = $context->messages;
         $emailMessages = $messages->email;
-        Mailer::sendTextMail(
+        $context->mailer->sendTextMail(
             recipient: $dbAuthUser->email,
             subject: $emailMessages->passwordResetSubject,
             textBody: implode(
@@ -42,7 +42,7 @@ final class EmailPasswordResetLink
                     ),
                     '',
                     $emailMessages->passwordResetLinkInstruction,
-                    $httpRequest->getProtocol()->value . '://' . $host . passwordReset::getPath(token: $token),
+                    $httpRequest->getProtocol()->value . '://' . $host . $context->paths->passwordReset(token: $token),
                     '',
                     MessageTemplate::fill(
                         template: $emailMessages->passwordResetValidity,
@@ -56,7 +56,7 @@ final class EmailPasswordResetLink
                     '',
                     $messages->common->closingGreeting,
                     '',
-                    ActraBackend::get()->mailerSettings->signature,
+                    $context->mailer->mailerSettings->signature,
                 ],
             ),
         );

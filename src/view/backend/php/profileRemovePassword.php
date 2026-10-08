@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\ProfilePasswordForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -47,13 +46,13 @@ final class profileRemovePassword extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->profile->removePasswordPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->profile->removePasswordPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = MyAuthUser::get()->dbAuthUser;
+        $dbAuthUser = $this->backendContext->getCurrentUser()->dbAuthUser;
         if ($dbAuthUser->password === null) {
             throw new NotFoundException();
         }
@@ -65,7 +64,7 @@ final class profileRemovePassword extends BackendView
         );
         if ($profilePasswordForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
+                relativeOrAbsoluteUri: $this->backendContext->paths->profile() . '?' . profile::PARAM_CHANGED,
                 httpRequest: $this->context->httpRequest,
             );
         }
@@ -73,10 +72,5 @@ final class profileRemovePassword extends BackendView
             identifier: 'form',
             html: $profilePasswordForm->render(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'profileRemovePassword.html';
     }
 }

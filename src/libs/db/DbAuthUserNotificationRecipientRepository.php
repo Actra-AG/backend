@@ -13,7 +13,9 @@ use actra\yuf\db\DbQuery;
 
 final class DbAuthUserNotificationRecipientRepository
 {
-    public static function getDbQuery(): DbQuery
+    public function __construct(private readonly DB $db) {}
+
+    public function getDbQuery(): DbQuery
     {
         return DbQuery::createFromSqlQuery(
             query: '
@@ -28,12 +30,12 @@ final class DbAuthUserNotificationRecipientRepository
         );
     }
 
-    public static function insert(
+    public function insert(
         int $notificationID,
         int $authUserID,
         string $email,
     ): int {
-        $db = DB::get();
+        $db = $this->db;
         $db->execute(
             sql: '
                 INSERT INTO auth_user_notification_recipient

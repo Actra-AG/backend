@@ -9,10 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\view\backend\php;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\PasswordResetForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\AccessRightCollection;
@@ -43,14 +41,14 @@ final class passwordReset extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordResetPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->auth->passwordResetPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $this->backendContext->actraBackend->getAuthSession()->logOut();
-        $dbAuthToken = DbAuthTokenRepository::getClaimable(
+        $this->backendContext->authSession->logOut();
+        $dbAuthToken = $this->backendContext->repositories->tokens()->getClaimable(
             authTokenType: AuthTokenTypeEnum::PASSWORD,
             token: $this->getRequiredPathVarAsString(nr: 1),
         );
@@ -58,7 +56,7 @@ final class passwordReset extends BackendView
             throw new NotFoundException();
         }
         $htmlDocument->templateName = 'authentication';
-        $messages = ActraBackend::messages()->auth;
+        $messages = $this->backendContext->messages->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
@@ -67,7 +65,7 @@ final class passwordReset extends BackendView
         $passwordResetForm = new PasswordResetForm(context: $this->backendContext, dbAuthToken: $dbAuthToken);
         if ($passwordResetForm->validateAndUpdatePassword()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: passwordResetRes::getPath(),
+                relativeOrAbsoluteUri: $this->backendContext->paths->passwordResetRes(),
                 httpRequest: $this->context->httpRequest,
             );
         }
@@ -75,10 +73,5 @@ final class passwordReset extends BackendView
             identifier: 'form',
             html: $passwordResetForm->render(),
         );
-    }
-
-    public static function getPath(string $token): string
-    {
-        return ActraBackend::path() . 'passwordReset-' . $token . '.html';
     }
 }

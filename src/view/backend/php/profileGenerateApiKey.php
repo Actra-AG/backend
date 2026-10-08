@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\ApiKeyGenerateForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -51,15 +50,15 @@ final class profileGenerateApiKey extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->common->generateApiKeyTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = MyAuthUser::get()->dbAuthUser;
+        $dbAuthUser = $this->backendContext->getCurrentUser()->dbAuthUser;
         if (
-            !ActraBackend::get()->actraBackendSettings->hasApi
+            !$this->backendContext->actraBackend->actraBackendSettings->hasApi
             || $dbAuthUser->ipWhitelist === []
         ) {
             throw new NotFoundException();
@@ -67,27 +66,22 @@ final class profileGenerateApiKey extends BackendView
         $apiKeyGenerateForm = new ApiKeyGenerateForm(
             context: $this->backendContext,
             userID: $dbAuthUser->ID,
-            cancelLink: profile::getPath(),
+            cancelLink: $this->backendContext->paths->profile(),
         );
         if ($apiKeyGenerateForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: profile::getPath(),
+                relativeOrAbsoluteUri: $this->backendContext->paths->profile(),
                 httpRequest: $this->context->httpRequest,
             );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyConfirm),
+            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->generateApiKeyConfirm),
         );
         $replacements->addHtml(
             identifier: 'form',
             html: $apiKeyGenerateForm->render(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'profileGenerateApiKey.html';
     }
 }

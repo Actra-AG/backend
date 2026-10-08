@@ -13,7 +13,7 @@ use actra\yuf\db\DbQuery;
 
 final class DbAuthUserLoginRepository
 {
-    public static function getDbQuery(): DbQuery
+    public function getDbQuery(): DbQuery
     {
         return DbQuery::createFromSqlQuery(
             query: '

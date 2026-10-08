@@ -16,50 +16,42 @@ use actra\yuf\core\Language;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\layout\NavigationItemCollection;
-use LogicException;
 
 /**
- * The `ActraBackend` of the tests: initialized once per test run with example settings (no database connection is
- * opened, `DB::get()` is never called).
+ * An `ActraBackend` with example settings for the tests (no database connection is opened unless a repository is used).
  */
 final class ActraBackendTestInstance
 {
-    public static function get(): ActraBackend
+    public static function create(): ActraBackend
     {
-        try {
-            return ActraBackend::get();
-        } catch (LogicException) {
-            ActraBackend::init(
-                routeCollection: new RouteCollection(),
-                path: '/backend/',
-                isDefaultForLanguage: false,
-                actraBackendSettings: new ActraBackendSettings(
-                    language: new Language(code: 'de', locale: 'de_CH.UTF-8'),
-                    ipWhitelist: [],
-                    backendName: 'Test backend',
-                    javaScriptPaths: [],
-                    stylesPaths: [],
-                ),
-                dbSettings: new DbSettings(
-                    hostName: 'db.example.com',
-                    databaseName: 'example',
-                    userName: 'example',
-                    password: 'example',
-                ),
-                mailerSettings: new MailerSettings(
-                    senderEmail: 'backend@example.com',
-                    senderName: 'Backend',
-                    hostname: 'smtp.example.com',
-                    username: 'example',
-                    password: 'example',
-                    port: 587,
-                    tls: true,
-                    signature: '',
-                ),
-                navigationItemCollection: new NavigationItemCollection(),
-            );
-
-            return ActraBackend::get();
-        }
+        return ActraBackend::init(
+            routeCollection: new RouteCollection(),
+            path: '/backend/',
+            isDefaultForLanguage: false,
+            actraBackendSettings: new ActraBackendSettings(
+                language: new Language(code: 'de', locale: 'de_CH.UTF-8'),
+                ipWhitelist: [],
+                backendName: 'Test backend',
+                javaScriptPaths: [],
+                stylesPaths: [],
+            ),
+            dbSettings: new DbSettings(
+                hostName: 'db.example.com',
+                databaseName: 'example',
+                userName: 'example',
+                password: 'example',
+            ),
+            mailerSettings: new MailerSettings(
+                senderEmail: 'backend@example.com',
+                senderName: 'Backend',
+                hostname: 'smtp.example.com',
+                username: 'example',
+                password: 'example',
+                port: 587,
+                tls: true,
+                signature: '',
+            ),
+            navigationItemCollection: new NavigationItemCollection(),
+        );
     }
 }

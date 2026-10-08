@@ -9,17 +9,43 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\email;
 
-use actra\backend\ActraBackend;
+use actra\backend\settings\MailerSettings;
+use actra\yuf\core\HttpRequest;
 use actra\yuf\mailer\SmtpMailer;
 use actra\yuf\mailer\TextMail;
 
-final class Mailer
+/**
+ * Sends the emails of the backend with the SMTP settings of the project (`BackendViewContext::$mailer`).
+ */
+final readonly class Mailer
 {
+    /**
+     * @param string $serverAddress Names this server to the SMTP server (see `getServerAddress()`)
+     */
+    public function __construct(
+        public MailerSettings $mailerSettings,
+        private string $serverAddress,
+    ) {}
+
+    /**
+     * The address of the request, the host name without request (CLI).
+     */
+    public static function getServerAddress(?HttpRequest $httpRequest): string
+    {
+        $serverAddress = $httpRequest?->getServerAddress();
+        if ($serverAddress !== null && $serverAddress !== '') {
+            return $serverAddress;
+        }
+        $hostName = gethostname();
+
+        return $hostName === false ? 'localhost' : $hostName;
+    }
+
     /**
      * @param list<string> $cc
      * @param list<string> $bcc
      */
-    public static function sendTextMail(
+    public function sendTextMail(
         string $recipient,
         string $subject,
         string $textBody,
@@ -27,7 +53,7 @@ final class Mailer
         array $cc = [],
         array $bcc = [],
     ): void {
-        $mailerSettings = ActraBackend::get()->mailerSettings;
+        $mailerSettings = $this->mailerSettings;
         $textMail = new TextMail(
             senderEmail: $mailerSettings->senderEmail,
             fromEmail: $mailerSettings->senderEmail,
@@ -48,7 +74,7 @@ final class Mailer
         }
         $textMail->send(
             abstractMailer: new SmtpMailer(
-                serverAddress: Mailer::getServerAddress(),
+                serverAddress: $this->serverAddress,
                 hostName: $mailerSettings->hostname,
                 smtpUserName: $mailerSettings->username,
                 smtpPassword: $mailerSettings->password,
@@ -56,19 +82,5 @@ final class Mailer
                 useTls: $mailerSettings->tls,
             ),
         );
-    }
-
-    /**
-     * Names this server to the SMTP server: the address of the request, the host name without request (CLI).
-     */
-    private static function getServerAddress(): string
-    {
-        $serverAddress = ActraBackend::get()->findViewContext()?->httpRequest->getServerAddress();
-        if ($serverAddress !== null && $serverAddress !== '') {
-            return $serverAddress;
-        }
-        $hostName = gethostname();
-
-        return $hostName === false ? 'localhost' : $hostName;
     }
 }

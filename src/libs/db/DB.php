@@ -9,42 +9,23 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\backend\ActraBackend;
 use actra\yuf\db\DbConnectionParameters;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
 use actra\yuf\db\DbSettings;
 use actra\yuf\db\FrameworkDb;
-use LogicException;
 use PDOException;
 
 final class DB extends FrameworkDb
 {
-    private static ?DB $instance = null;
-
-    public static function get(): DB
-    {
-        if (DB::$instance !== null) {
-            return DB::$instance;
-        }
-        return DB::$instance = new DB(
-            connectionParameters: DbConnectionParameters::forMysql(dbSettings: ActraBackend::get()->dbSettings),
-        );
-    }
-
     /**
-     * Makes DB::get() return a connection created from the given settings (e.g. a test database in integration
-     * tests, where ActraBackend::init() is not called). Must be called before the first DB::get().
+     * Connects to the database of the backend (MySQL / MariaDB).
      *
-     * @throws LogicException if the connection has already been created
      * @throws PDOException if the database cannot be reached
      */
-    public static function useConnection(DbSettings $dbSettings): DB
+    public static function fromSettings(DbSettings $dbSettings): DB
     {
-        if (DB::$instance !== null) {
-            throw new LogicException(message: 'The database connection has already been created.');
-        }
-        return DB::$instance = new DB(connectionParameters: DbConnectionParameters::forMysql(dbSettings: $dbSettings));
+        return new DB(connectionParameters: DbConnectionParameters::forMysql(dbSettings: $dbSettings));
     }
 
     /**

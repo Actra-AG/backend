@@ -9,10 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
+use actra\backend\libs\auth\AuthTokens;
 use actra\backend\libs\auth\MyAuthenticator;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
@@ -26,11 +25,13 @@ use actra\yuf\html\HtmlText;
  */
 final class LoginForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly EmailField $emailField;
 
     public function __construct(BackendViewContext $context)
     {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(context: $context->viewContext->formContext, name: 'LoginForm', messages: $messages->form);
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
@@ -69,11 +70,11 @@ final class LoginForm extends Form
      */
     private function sendTokenIfAllowed(): void
     {
-        $myAuthenticator = MyAuthenticator::get();
-        $sessionID = ActraBackend::get()->getAuthSession()->getSessionId();
+        $myAuthenticator = new MyAuthenticator(context: $this->backendContext);
+        $sessionID = $this->backendContext->authSession->getSessionId();
         $ipAddress = $this->context->httpRequest->getRemoteAddress();
         $inputEmail = $this->emailField->getValueAsString();
-        $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $inputEmail);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByEmail(email: $inputEmail);
         if ($dbAuthUser === null) {
             $myAuthenticator->logAuthResult(
                 userId: null,
@@ -122,8 +123,8 @@ final class LoginForm extends Form
             );
             return;
         }
-        AuthTokenTypeEnum::LOGIN->createAndSend(
-            session: ActraBackend::get()->getSession(),
+        new AuthTokens(context: $this->backendContext)->createAndSend(
+            type: AuthTokenTypeEnum::LOGIN,
             dbAuthUser: $dbAuthUser,
             usedPasswordLogin: false,
         );

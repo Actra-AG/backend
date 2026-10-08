@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\form\component\SearchQueryField;
 use actra\backend\libs\form\component\SearchSelectOptionsField;
@@ -33,7 +32,7 @@ final class VisitSearchForm extends AbstractSearchForm
         parent::__construct(context: $context, name: $name);
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
-        $messages = ActraBackend::messages();
+        $messages = $this->backendContext->messages;
         $statusFilterOptions = new FormOptions();
         foreach (AuthResultEnum::cases() as $authResult) {
             if ($authResult === AuthResultEnum::UNDEFINED) {
@@ -65,7 +64,11 @@ final class VisitSearchForm extends AbstractSearchForm
         );
         $this->status = (int) $this->validateSearchField(searchField: $this->statusFilterField);
 
-        $this->addField(formField: $this->searchQueryField = new SearchQueryField());
+        $this->addField(
+            formField: $this->searchQueryField = new SearchQueryField(
+                messages: $this->backendContext->messages->common,
+            ),
+        );
         $this->searchQuery = $this->validateSearchField(searchField: $this->searchQueryField);
         $this->addComponent(
             formComponent: new FormControl(

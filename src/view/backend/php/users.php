@@ -10,8 +10,10 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendPaths;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
+use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\form\UserSearchForm;
 use actra\backend\libs\table\UserTable;
 use actra\yuf\auth\AccessRightCollection;
@@ -50,20 +52,15 @@ final class users extends BackendView
         );
     }
 
-    public static function getNavigationItem(): NavigationItem
+    public static function getNavigationItem(BackendPaths $paths, BackendMessages $messages): NavigationItem
     {
         return new NavigationItem(
             navKey: 'userList',
-            href: users::getPath() . '?reset',
+            href: $paths->users() . '?reset',
             svgPath: '',
-            title: ActraBackend::messages()->user->navigationUserList,
+            title: $messages->user->navigationUserList,
             requiredAccessRights: users::getRequiredAccessRights(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'users.html';
     }
 
     #[\Override]
@@ -77,7 +74,7 @@ final class users extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->user->usersTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->user->usersTitle);
     }
 
     #[\Override]
@@ -85,7 +82,7 @@ final class users extends BackendView
     {
         $userSearchForm = new UserSearchForm(context: $this->backendContext);
 
-        $messages = ActraBackend::messages()->user;
+        $messages = $this->backendContext->messages->user;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'addUserTitle',
@@ -93,7 +90,7 @@ final class users extends BackendView
         );
         $replacements->addHtmlText(
             identifier: 'successLabel',
-            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->successLabel),
+            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->successLabel),
         );
         $replacements->addHtmlText(
             identifier: 'removedMessage',
@@ -101,7 +98,7 @@ final class users extends BackendView
         );
         $replacements->addHtml(
             identifier: 'addHref',
-            html: userAdd::getPath(),
+            html: $this->backendContext->paths->userAdd(),
         );
         $replacements->addBool(
             identifier: 'removed',

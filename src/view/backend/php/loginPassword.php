@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\view\backend\php;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\libs\form\LoginPasswordForm;
 use actra\yuf\auth\AccessRightCollection;
@@ -31,15 +30,15 @@ final class loginPassword extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->auth->loginPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->auth->loginPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $this->backendContext->actraBackend->getAuthSession()->logOut();
+        $this->backendContext->authSession->logOut();
         $htmlDocument->templateName = 'authentication';
-        $messages = ActraBackend::messages()->auth;
+        $messages = $this->backendContext->messages->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
@@ -48,7 +47,7 @@ final class loginPassword extends BackendView
         $loginPasswordForm = new LoginPasswordForm(context: $this->backendContext);
         if ($loginPasswordForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: loginPasswordToken::getPath(),
+                relativeOrAbsoluteUri: $this->backendContext->paths->loginPasswordToken(),
                 httpRequest: $this->context->httpRequest,
             );
         }
@@ -56,10 +55,5 @@ final class loginPassword extends BackendView
             identifier: 'form',
             html: $loginPasswordForm->render(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'loginPassword.html';
     }
 }

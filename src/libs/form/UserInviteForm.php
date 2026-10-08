@@ -9,11 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\email\EmailAuthUser;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\TextAreaField;
@@ -26,6 +24,7 @@ use actra\yuf\html\HtmlText;
  */
 final class UserInviteForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly TextField $subjectField;
     private readonly TextAreaField $bodyField;
 
@@ -33,15 +32,18 @@ final class UserInviteForm extends Form
         BackendViewContext $context,
         private readonly DbAuthUser $dbAuthUser,
     ) {
+        $this->backendContext = $context;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'UserInviteForm',
-            messages: ActraBackend::messages()->form,
+            messages: $this->backendContext->messages->form,
         );
         $this->addCssClass(className: 'form');
-        $common = ActraBackend::messages()->common;
-        $messages = ActraBackend::messages()->user;
-        $recipientRoute = ActraBackend::get()->getRouteForLanguage(languageCode: $dbAuthUser->languageCode);
+        $common = $this->backendContext->messages->common;
+        $messages = $this->backendContext->messages->user;
+        $recipientRoute = $this->backendContext->actraBackend->getRouteForLanguage(
+            languageCode: $dbAuthUser->languageCode,
+        );
         $recipientMessages = $recipientRoute->messages;
         $this->addField(
             formField: $this->subjectField = new TextField(
@@ -77,7 +79,7 @@ final class UserInviteForm extends Form
                         '',
                         $recipientMessages->common->closingGreeting,
                         '',
-                        ActraBackend::get()->mailerSettings->signature,
+                        $this->backendContext->actraBackend->mailerSettings->signature,
                     ],
                 ),
                 requiredError: HtmlText::fromText(text: $common->messageBodyRequired),
@@ -98,11 +100,12 @@ final class UserInviteForm extends Form
         }
         $dbAuthUser = $this->dbAuthUser;
         EmailAuthUser::send(
+            mailer: $this->backendContext->mailer,
             dbAuthUser: $dbAuthUser,
             subject: $this->subjectField->getValueAsString(),
             message: $this->bodyField->getValueAsString(),
         );
-        DbAuthUserRepository::sentInvitation(ID: $dbAuthUser->ID);
+        $this->backendContext->repositories->users()->sentInvitation(ID: $dbAuthUser->ID);
 
         return true;
     }

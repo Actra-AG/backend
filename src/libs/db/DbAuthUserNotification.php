@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\backend\ActraBackend;
+use actra\backend\i18n\BackendMessages;
 use actra\backend\i18n\MessageTemplate;
 use actra\yuf\html\DetailDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
@@ -31,9 +31,8 @@ final readonly class DbAuthUserNotification
         public int $recipients,
     ) {}
 
-    public function render(): HtmlDataObjectCollection
+    public function render(BackendMessages $messages): HtmlDataObjectCollection
     {
-        $messages = ActraBackend::messages();
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         $details = [
             ['ID', (string) $this->ID],

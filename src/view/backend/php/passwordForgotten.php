@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\view\backend\php;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\libs\form\PasswordForgottenForm;
 use actra\yuf\auth\AccessRightCollection;
@@ -31,25 +30,25 @@ final class passwordForgotten extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordForgottenPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->auth->passwordForgottenPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';
-        $messages = ActraBackend::messages()->auth;
+        $messages = $this->backendContext->messages->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
             htmlText: HtmlText::fromText(text: $messages->passwordForgottenIntro),
         );
-        $this->backendContext->actraBackend->getAuthSession()->logOut();
+        $this->backendContext->authSession->logOut();
 
         $passwordForgottenForm = new PasswordForgottenForm(context: $this->backendContext);
         if ($passwordForgottenForm->validateAndSendTokenEmail()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: passwordForgottenRes::getPath(),
+                relativeOrAbsoluteUri: $this->backendContext->paths->passwordForgottenRes(),
                 httpRequest: $this->context->httpRequest,
             );
         }
@@ -57,10 +56,5 @@ final class passwordForgotten extends BackendView
             identifier: 'form',
             html: $passwordForgottenForm->render(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'passwordForgotten.html';
     }
 }

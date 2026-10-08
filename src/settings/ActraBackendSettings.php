@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\settings;
 
 use actra\backend\i18n\BackendMessages;
+use actra\backend\libs\auth\UserDeleteHandler;
 use actra\yuf\core\Language;
 
 final readonly class ActraBackendSettings
@@ -25,6 +26,7 @@ final readonly class ActraBackendSettings
      * @param ?BackendMessages $messages Texts of the main route; default: `BackendMessages::forLanguageCode()`
      * @param list<BackendRoute> $additionalRoutes The backend in further languages, one route per language
      * @param ?BackendNavigation $projectNavigation Adds the project's navigation items per route language
+     * @param ?UserDeleteHandler $userDeleteHandler Deletes the project's data of a user before the user is deleted
      */
     public function __construct(
         public Language $language,
@@ -39,6 +41,7 @@ final readonly class ActraBackendSettings
         ?BackendMessages $messages = null,
         public array $additionalRoutes = [],
         public ?BackendNavigation $projectNavigation = null,
+        public ?UserDeleteHandler $userDeleteHandler = null,
     ) {
         $this->messages = $messages ?? BackendMessages::forLanguageCode(languageCode: $language->code);
     }

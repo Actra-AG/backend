@@ -18,12 +18,14 @@ use actra\yuf\exception\UnauthorizedException;
 
 final class DbAuthApiKeyRepository
 {
+    public function __construct(private readonly DB $db) {}
+
     private const string API_KEY_PREFIX = 'api_key';
     private const int PUBLIC_ID_BYTES = 6;
     private const int SECRET_BYTES = 32;
     private const string PUBLIC_ID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-    public static function getDbQuery(): DbQuery
+    public function getDbQuery(): DbQuery
     {
         return DbQuery::createFromSqlQuery(
             query: '
@@ -36,7 +38,7 @@ final class DbAuthApiKeyRepository
         );
     }
 
-    private static function createItem(DbRow $row): DbAuthApiKey
+    private function createItem(DbRow $row): DbAuthApiKey
     {
         return new DbAuthApiKey(
             userID: $row->getInt(column: 'userID'),
@@ -61,47 +63,47 @@ final class DbAuthApiKeyRepository
         return new Password(salt: $salt, hash: $hash);
     }
 
-    private static function select(DbQuery $dbQuery): DbAuthApiKeyCollection
+    private function select(DbQuery $dbQuery): DbAuthApiKeyCollection
     {
         $dbAuthApiKeyCollection = new DbAuthApiKeyCollection();
         foreach (
-            DB::get()->selectRowsFromQuery(
+            $this->db->selectRowsFromQuery(
                 dbQuery: $dbQuery,
                 offset: 0,
                 rowCount: 1000,
             ) as $row
         ) {
             $dbAuthApiKeyCollection->add(
-                dbAuthApiKey: DbAuthApiKeyRepository::createItem(row: $row),
+                dbAuthApiKey: $this->createItem(row: $row),
             );
         }
         return $dbAuthApiKeyCollection;
     }
 
-    private static function selectByPublicID(string $publicID): ?DbAuthApiKey
+    private function selectByPublicID(string $publicID): ?DbAuthApiKey
     {
-        $dbQuery = DbAuthApiKeyRepository::getDbQuery();
+        $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_api_key.publicID=?',
             parameters: [
                 $publicID,
             ],
         );
-        $dbAuthApiKeyCollection = DbAuthApiKeyRepository::select(dbQuery: $dbQuery);
+        $dbAuthApiKeyCollection = $this->select(dbQuery: $dbQuery);
         return $dbAuthApiKeyCollection->isEmpty() ? null : $dbAuthApiKeyCollection->getFirst();
     }
 
-    public static function getUserIDForBearerOrThrow(HttpRequest $httpRequest): int
+    public function getUserIDForBearerOrThrow(HttpRequest $httpRequest): int
     {
         $bearer = $httpRequest->getBearerToken();
         if ($bearer === null) {
             throw new UnauthorizedException();
         }
-        $apiKeyParts = DbAuthApiKeyRepository::parseBearer(bearer: $bearer);
+        $apiKeyParts = $this->parseBearer(bearer: $bearer);
         if ($apiKeyParts === null) {
             throw new UnauthorizedException();
         }
-        $dbAuthApiKey = DbAuthApiKeyRepository::selectByPublicID(
+        $dbAuthApiKey = $this->selectByPublicID(
             publicID: $apiKeyParts['publicID'],
         );
         if ($dbAuthApiKey === null) {
@@ -116,7 +118,7 @@ final class DbAuthApiKeyRepository
     /**
      * @return array{publicID: string, secret: string}|null
      */
-    private static function parseBearer(string $bearer): ?array
+    private function parseBearer(string $bearer): ?array
     {
         $parts = explode(
             separator: '_',
@@ -141,18 +143,18 @@ final class DbAuthApiKeyRepository
         ];
     }
 
-    public static function hasByUserID(int $userID): bool
+    public function hasByUserID(int $userID): bool
     {
-        $dbQuery = DbAuthApiKeyRepository::getDbQuery();
+        $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_api_key.userID=?',
             parameters: [$userID],
         );
-        $dbAuthApiKeyCollection = DbAuthApiKeyRepository::select(dbQuery: $dbQuery);
+        $dbAuthApiKeyCollection = $this->select(dbQuery: $dbQuery);
         return $dbAuthApiKeyCollection->isEmpty() === false;
     }
 
-    private static function createPublicID(): string
+    private function createPublicID(): string
     {
         do {
             $publicID = '';
@@ -162,18 +164,18 @@ final class DbAuthApiKeyRepository
                     max: strlen(string: DbAuthApiKeyRepository::PUBLIC_ID_CHARS) - 1,
                 )];
             }
-        } while (DbAuthApiKeyRepository::selectByPublicID(publicID: $publicID) !== null);
+        } while ($this->selectByPublicID(publicID: $publicID) !== null);
 
         return $publicID;
     }
 
-    public static function createForUserID(int $userID): string
+    public function createForUserID(int $userID): string
     {
-        $publicID = DbAuthApiKeyRepository::createPublicID();
+        $publicID = $this->createPublicID();
         $secret = bin2hex(string: random_bytes(length: DbAuthApiKeyRepository::SECRET_BYTES));
         $apiKey = DbAuthApiKeyRepository::API_KEY_PREFIX . '_' . $publicID . '_' . $secret;
         $keyHash = SecretTokenHash::fromSecret(secret: $secret);
-        $db = DB::get();
+        $db = $this->db;
         $db->execute(
             sql: '
                 REPLACE INTO auth_api_key
@@ -193,9 +195,9 @@ final class DbAuthApiKeyRepository
         return $apiKey;
     }
 
-    public static function deleteByUserID(int $userID): void
+    public function deleteByUserID(int $userID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                 DELETE FROM auth_api_key
                 WHERE userID=?

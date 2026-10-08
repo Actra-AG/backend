@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\common;
 
-use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\settings\BackendRouteCollection;
 use actra\yuf\form\FormOptions;
@@ -33,14 +33,12 @@ final readonly class UserLanguageOptions
         private string $defaultTemplate,
     ) {}
 
-    public static function forCurrentRoute(): UserLanguageOptions
+    public static function forContext(BackendViewContext $context): UserLanguageOptions
     {
-        $actraBackend = ActraBackend::get();
-
         return new UserLanguageOptions(
-            backendRouteCollection: $actraBackend->backendRouteCollection,
-            displayLocale: $actraBackend->currentRoute->language->locale,
-            defaultTemplate: ActraBackend::messages()->common->languageDefault,
+            backendRouteCollection: $context->actraBackend->backendRouteCollection,
+            displayLocale: $context->route->language->locale,
+            defaultTemplate: $context->messages->common->languageDefault,
         );
     }
 

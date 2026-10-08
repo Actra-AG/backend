@@ -47,7 +47,7 @@ final class notificationSend extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->notification->sendTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->notification->sendTitle);
     }
 
     #[\Override]
@@ -58,7 +58,7 @@ final class notificationSend extends BackendView
         $notificationID = $notificationSendForm->process();
         if ($notificationID !== null) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: notification::getPath(
+                relativeOrAbsoluteUri: $this->backendContext->paths->notification(
                     ID: $notificationID,
                 ) . '?' . notification::PARAM_SENT,
                 httpRequest: $this->context->httpRequest,
@@ -68,8 +68,8 @@ final class notificationSend extends BackendView
             identifier: 'sendInfo',
             htmlText: HtmlText::fromText(
                 text: MessageTemplate::fill(
-                    template: ActraBackend::messages()->notification->sendInfo,
-                    values: ['send' => ActraBackend::messages()->common->send],
+                    template: $this->backendContext->messages->notification->sendInfo,
+                    values: ['send' => $this->backendContext->messages->common->send],
                 ),
             ),
         );
@@ -77,10 +77,5 @@ final class notificationSend extends BackendView
             identifier: 'form',
             html: $notificationSendForm->render(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'notificationSend.html';
     }
 }

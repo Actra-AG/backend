@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserModForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -49,13 +48,14 @@ final class userMod extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->user->editUserTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->user->editUserTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
+        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
@@ -63,7 +63,7 @@ final class userMod extends BackendView
         $userModForm = new UserModForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($userModForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: user::getPath(
+                relativeOrAbsoluteUri: $this->backendContext->paths->user(
                     ID: $dbAuthUser->ID,
                 ) . '?' . user::PARAM_CHANGED,
                 httpRequest: $this->context->httpRequest,
@@ -73,10 +73,5 @@ final class userMod extends BackendView
             identifier: 'form',
             html: $userModForm->render(),
         );
-    }
-
-    public static function getPath(int $ID): string
-    {
-        return ActraBackend::path() . 'userMod-' . $ID . '.html';
     }
 }

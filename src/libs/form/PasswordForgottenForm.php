@@ -9,11 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\libs\auth\AuthTokens;
 use actra\backend\settings\AuthTokenTypeEnum;
-use actra\backend\view\backend\php\loginPassword;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
@@ -25,11 +23,13 @@ use actra\yuf\html\HtmlText;
  */
 final class PasswordForgottenForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly EmailField $emailField;
 
     public function __construct(BackendViewContext $context)
     {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'PasswordForgottenForm',
@@ -52,7 +52,7 @@ final class PasswordForgottenForm extends Form
             formComponent: new FormControl(
                 name: 'submit',
                 submitLabel: HtmlText::fromText(text: $messages->common->send),
-                cancelLink: loginPassword::getPath(),
+                cancelLink: $this->backendContext->paths->loginPassword(),
             ),
         );
     }
@@ -62,7 +62,8 @@ final class PasswordForgottenForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString());
+        $inputEmail = $this->emailField->getValueAsString();
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByEmail(email: $inputEmail);
         if (
             $dbAuthUser === null
             || $dbAuthUser->isActive === false
@@ -78,8 +79,8 @@ final class PasswordForgottenForm extends Form
         ) {
             return true;
         }
-        AuthTokenTypeEnum::PASSWORD->createAndSend(
-            session: ActraBackend::get()->getSession(),
+        new AuthTokens(context: $this->backendContext)->createAndSend(
+            type: AuthTokenTypeEnum::PASSWORD,
             dbAuthUser: $dbAuthUser,
             usedPasswordLogin: false,
         );

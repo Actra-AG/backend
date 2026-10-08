@@ -9,11 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUser;
-use actra\backend\libs\db\DbAuthUserRepository;
-use actra\backend\view\backend\php\profile;
 use actra\yuf\auth\Password;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\PasswordField;
@@ -26,6 +23,7 @@ use actra\yuf\html\HtmlText;
  */
 final class ProfilePasswordForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly ?PasswordField $currentPasswordField;
     private readonly ?PasswordField $newPasswordField;
     private readonly ?PasswordField $newPasswordConfirmField;
@@ -35,7 +33,8 @@ final class ProfilePasswordForm extends Form
         private readonly DbAuthUser $dbAuthUser,
         bool $removePassword,
     ) {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'ProfilePasswordForm',
@@ -79,7 +78,7 @@ final class ProfilePasswordForm extends Form
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::fromText(text: $messages->common->save),
-                cancelLink: profile::getPath(),
+                cancelLink: $this->backendContext->paths->profile(),
             ),
         );
     }
@@ -89,7 +88,7 @@ final class ProfilePasswordForm extends Form
         if (!parent::validate()) {
             return false;
         }
-        $messages = ActraBackend::messages();
+        $messages = $this->backendContext->messages;
         $currentPassword = $this->dbAuthUser->password;
         if (
             $currentPassword !== null
@@ -105,7 +104,7 @@ final class ProfilePasswordForm extends Form
         $newPasswordField = $this->newPasswordField;
         $newPasswordConfirmField = $this->newPasswordConfirmField;
         if ($newPasswordField === null || $newPasswordConfirmField === null) {
-            DbAuthUserRepository::removePassword(ID: $userID);
+            $this->backendContext->repositories->users()->removePassword(ID: $userID);
             return true;
         }
         $newPasswordCheck = new NewPasswordCheck(messages: $messages->common);
@@ -115,7 +114,7 @@ final class ProfilePasswordForm extends Form
         )) {
             return false;
         }
-        DbAuthUserRepository::setPassword(
+        $this->backendContext->repositories->users()->setPassword(
             ID: $userID,
             newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
         );

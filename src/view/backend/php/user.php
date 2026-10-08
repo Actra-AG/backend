@@ -14,12 +14,7 @@ use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\auth\GeneratedApiKeyFlash;
-use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\common\UserLanguageOptions;
-use actra\backend\libs\db\DbAuthApiKeyRepository;
-use actra\backend\libs\db\DbAuthGroupRepository;
-use actra\backend\libs\db\DbAuthSessionRepository;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
@@ -102,26 +97,28 @@ final class user extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
+        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
         $this->pageTitle = HtmlText::fromText(
-            text: $dbAuthUser->renderFullName(),
+            text: $dbAuthUser->renderFullName(messages: $this->backendContext->messages->common),
         );
-        $authUser = MyAuthUser::get();
+        $authUser = $this->backendContext->getCurrentUser();
         $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUser);
         if (
             $canImpersonate
             && $this->getInputString(keyName: user::PARAM_IMPERSONATE) !== null
         ) {
-            $this->backendContext->actraBackend->getAuthSession()->logIn(
-                authSessionId: DbAuthSessionRepository::insert(
-                    parentID: $this->backendContext->actraBackend->getAuthSession()->getAuthSessionId(),
+            $this->backendContext->authSession->logIn(
+                authSessionId: $this->backendContext->repositories->sessions()->insert(
+                    parentID: $this->backendContext->authSession->getAuthSessionId(),
                     userID: $dbAuthUser->ID,
+                    clientData: $this->backendContext->clientData,
                 ),
             );
-            $firstNavigationItem = ActraBackend::get()->navigationItemCollection->getFirst(
+            $firstNavigationItem = $this->backendContext->actraBackend->navigationItemCollection->getFirst(
                 accessRightCollection: $dbAuthUser->accessRightCollection,
             );
             if ($firstNavigationItem === null) {
@@ -135,9 +132,9 @@ final class user extends BackendView
                 httpRequest: $this->context->httpRequest,
             );
         }
-        $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
-        $messages = ActraBackend::messages()->user;
-        $common = ActraBackend::messages()->common;
+        $hasApi = $this->backendContext->actraBackend->actraBackendSettings->hasApi;
+        $messages = $this->backendContext->messages->user;
+        $common = $this->backendContext->messages->common;
         $dateTimeFormat = $common->dateTimeFormat;
         $replacements = $htmlDocument->replacements;
         $this->addTexts(
@@ -181,12 +178,12 @@ final class user extends BackendView
             identifier: 'deleteConfirm',
             htmlText: HtmlText::fromText(text: MessageTemplate::fill(
                 template: $messages->deleteConfirm,
-                values: ['name' => $dbAuthUser->renderFullName()],
+                values: ['name' => $dbAuthUser->renderFullName(messages: $this->backendContext->messages->common)],
             )),
         );
         $replacements->addHtml(
             identifier: 'userModHref',
-            html: userMod::getPath(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userMod(ID: $dbAuthUser->ID),
         );
         $replacements->addHtml(
             identifier: 'impersonateHref',
@@ -194,7 +191,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'removeHref',
-            html: userDelete::getPath(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userDelete(ID: $dbAuthUser->ID),
         );
         $replacements->addBool(
             identifier: 'added',
@@ -214,7 +211,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'inviteHref',
-            html: userInvite::getPath(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userInvite(ID: $dbAuthUser->ID),
         );
         $replacements->addText(
             identifier: 'firstName',
@@ -242,13 +239,13 @@ final class user extends BackendView
         );
         $replacements->addText(
             identifier: 'lastLogin',
-            text: $dbAuthUser->renderLastLogin(),
+            text: $dbAuthUser->renderLastLogin(messages: $this->backendContext->messages->common),
         );
         $replacements->addHtml(
             identifier: 'visitsHref',
-            html: visits::getPath(userID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->visits(userID: $dbAuthUser->ID),
         );
-        $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
+        $userLanguageOptions = UserLanguageOptions::forContext(context: $this->backendContext);
         $replacements->addBool(
             identifier: 'hasMultipleLanguages',
             booleanValue: $userLanguageOptions->isSelectable(),
@@ -263,7 +260,9 @@ final class user extends BackendView
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
-            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->render(),
+            htmlDataObjectCollection: $this->backendContext->repositories->groups()
+                ->listByUserID(userID: $dbAuthUser->ID)
+                ->render(),
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'ipWhitelist',
@@ -275,21 +274,23 @@ final class user extends BackendView
         $replacements->addHtml(
             identifier: 'generatedApiKey',
             html: GeneratedApiKeyFlash::pull(
-                session: $this->backendContext->actraBackend->getSession(),
+                session: $this->backendContext->session,
                 userID: $dbAuthUser->ID,
             ) ?? '',
         );
         $replacements->addHtml(
             identifier: 'apiKey',
-            html: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
+            html: $this->backendContext->repositories->apiKeys()->hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
         );
         $replacements->addHtml(
             identifier: 'generateApiKeyHref',
-            html: $dbAuthUser->ipWhitelist !== [] ? userGenerateApiKey::getPath(ID: $dbAuthUser->ID) : '',
+            html: $dbAuthUser->ipWhitelist !== []
+                ? $this->backendContext->paths->userGenerateApiKey(ID: $dbAuthUser->ID)
+                : '',
         );
         $replacements->addHtml(
             identifier: 'removeApiKeyHref',
-            html: userRemoveApiKey::getPath(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userRemoveApiKey(ID: $dbAuthUser->ID),
         );
         $this->addTexts(
             replacements: $replacements,
@@ -299,10 +300,5 @@ final class user extends BackendView
                 'generateApiKeyConfirmLabel' => $common->generateApiKeyConfirmLabel,
             ],
         );
-    }
-
-    public static function getPath(int|string $ID): string
-    {
-        return ActraBackend::path() . 'user-' . $ID . '.html';
     }
 }

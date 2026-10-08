@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\MyAuthenticator;
 use actra\yuf\form\component\collection\Form;
@@ -22,11 +21,13 @@ use actra\yuf\html\HtmlText;
  */
 final class LoginTokenForm extends Form
 {
+    private readonly BackendViewContext $backendContext;
     private readonly TextField $tokenField;
 
     public function __construct(BackendViewContext $context)
     {
-        $messages = ActraBackend::messages();
+        $this->backendContext = $context;
+        $messages = $this->backendContext->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'LoginTokenForm',
@@ -57,9 +58,10 @@ final class LoginTokenForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        if (!MyAuthenticator::get()->tokenLogin(inputToken: $this->tokenField->getValueAsString())) {
+        $myAuthenticator = new MyAuthenticator(context: $this->backendContext);
+        if (!$myAuthenticator->tokenLogin(inputToken: $this->tokenField->getValueAsString())) {
             $this->tokenField->addError(
-                errorMessage: HtmlText::fromText(text: ActraBackend::messages()->auth->tokenInvalid),
+                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->auth->tokenInvalid),
             );
             return false;
         }

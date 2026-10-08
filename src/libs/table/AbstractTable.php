@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DB;
@@ -32,7 +31,7 @@ abstract class AbstractTable extends DbResultTable
     protected readonly BackendViewContext $backendContext;
 
     /**
-     * @param ?FrameworkDb $db The database of the backend (`DB::get()`) if `null`
+     * @param ?FrameworkDb $db The database of the backend (`$this->backendContext->repositories->db()`) if `null`
      */
     public function __construct(
         BackendViewContext $context,
@@ -43,10 +42,10 @@ abstract class AbstractTable extends DbResultTable
         private readonly Clock $clock = new SystemClock(),
     ) {
         $this->backendContext = $context;
-        $common = ActraBackend::messages()->common;
+        $common = $this->backendContext->messages->common;
         parent::__construct(
             identifier: $identifier,
-            db: $db ?? DB::get(),
+            db: $db ?? $this->backendContext->repositories->db(),
             dbQuery: $dbQuery,
             templateEngine: $context->viewContext->templateEngine,
             httpRequest: $context->viewContext->httpRequest,
@@ -109,7 +108,7 @@ abstract class AbstractTable extends DbResultTable
      */
     private function setMessages(): void
     {
-        $common = ActraBackend::messages()->common;
+        $common = $this->backendContext->messages->common;
         $this->noDataHtml = DbResultTable::FILTER
             . '<p class="no-entry">' . HtmlEncoder::encode(value: $common->tableNoEntries) . '</p>';
         $this->totalAmountMessageOneResult = MessageTemplate::fill(

@@ -9,13 +9,14 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\backend\libs\auth\MyAuthUser;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
 
 final class DbAuthUserNotificationRepository
 {
-    public static function getDbQuery(): DbQuery
+    public function __construct(private readonly DB $db) {}
+
+    public function getDbQuery(): DbQuery
     {
         return DbQuery::createFromSqlQuery(
             query: '
@@ -39,7 +40,7 @@ final class DbAuthUserNotificationRepository
         );
     }
 
-    private static function createItem(DbRow $row): DbAuthUserNotification
+    private function createItem(DbRow $row): DbAuthUserNotification
     {
         return new DbAuthUserNotification(
             ID: $row->getInt(column: 'ID'),
@@ -55,43 +56,44 @@ final class DbAuthUserNotificationRepository
         );
     }
 
-    public static function selectByID(int $ID): ?DbAuthUserNotification
+    public function selectByID(int $ID): ?DbAuthUserNotification
     {
-        $dbQuery = DbAuthUserNotificationRepository::getDbQuery();
+        $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user_notification.ID=?',
             parameters: [
                 $ID,
             ],
         );
-        $dbAuthUserNotificationCollection = DbAuthUserNotificationRepository::select(dbQuery: $dbQuery);
+        $dbAuthUserNotificationCollection = $this->select(dbQuery: $dbQuery);
         return $dbAuthUserNotificationCollection->isEmpty() ? null : $dbAuthUserNotificationCollection->first();
     }
 
-    public static function select(DbQuery $dbQuery): DbAuthUserNotificationCollection
+    public function select(DbQuery $dbQuery): DbAuthUserNotificationCollection
     {
         $dbAuthUserNotificationCollection = new DbAuthUserNotificationCollection();
         foreach (
-            DB::get()->selectRowsFromQuery(
+            $this->db->selectRowsFromQuery(
                 dbQuery: $dbQuery,
                 offset: 0,
                 rowCount: 1000,
             ) as $row
         ) {
             $dbAuthUserNotificationCollection->add(
-                dbAuthUserNotification: DbAuthUserNotificationRepository::createItem(row: $row),
+                dbAuthUserNotification: $this->createItem(row: $row),
             );
         }
 
         return $dbAuthUserNotificationCollection;
     }
 
-    public static function insert(
+    public function insert(
         int $authGroupID,
+        int $sentByUserID,
         string $subject,
         string $message,
     ): int {
-        $db = DB::get();
+        $db = $this->db;
         $db->execute(
             sql: '
                 INSERT INTO auth_user_notification
@@ -102,7 +104,7 @@ final class DbAuthUserNotificationRepository
             ',
             parameters: [
                 $authGroupID,
-                MyAuthUser::get()->id,
+                $sentByUserID,
                 $subject,
                 $message,
             ],

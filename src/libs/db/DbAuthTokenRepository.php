@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\backend\ActraBackend;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
@@ -18,7 +17,9 @@ use actra\yuf\db\DbQuery;
 
 final class DbAuthTokenRepository
 {
-    public static function getDbQuery(): DbQuery
+    public function __construct(private readonly DB $db) {}
+
+    public function getDbQuery(): DbQuery
     {
         return DbQuery::createFromSqlQuery(
             query: '
@@ -35,9 +36,10 @@ final class DbAuthTokenRepository
         );
     }
 
-    public static function createToken(
+    public function createToken(
         DbAuthUser $dbAuthUser,
         AuthTokenTypeEnum $authTokenTypeEnum,
+        ClientData $clientData,
         Clock $clock = new SystemClock(),
     ): string {
         $token = strtoupper(
@@ -46,7 +48,7 @@ final class DbAuthTokenRepository
                 noSpecialChars: true,
             ),
         );
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                 INSERT into auth_token
                 SET auth_token.userID=?,
@@ -60,30 +62,19 @@ final class DbAuthTokenRepository
                 $authTokenTypeEnum->value,
                 $token,
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
-                DbAuthTokenRepository::getClientData(),
+                $clientData->toJson(),
             ],
         );
 
         return $token;
     }
 
-    private static function getClientData(): string
-    {
-        $httpRequest = ActraBackend::get()->getViewContext()->httpRequest;
-
-        return json_encode(value: [
-            'userAgent' => $httpRequest->getUserAgent(),
-            'ipAddress' => $httpRequest->getRemoteAddress(),
-            'sessionId' => ActraBackend::get()->getAuthSession()->getSessionId(),
-        ], flags: JSON_THROW_ON_ERROR);
-    }
-
-    public static function getClaimable(
+    public function getClaimable(
         AuthTokenTypeEnum $authTokenType,
         string $token,
         Clock $clock = new SystemClock(),
     ): ?DbAuthToken {
-        $rows = DB::get()->selectRows(
+        $rows = $this->db->selectRows(
             sql: '
 				SELECT auth_token.ID,
 				       auth_token.userID,
@@ -121,9 +112,9 @@ final class DbAuthTokenRepository
         );
     }
 
-    public static function claim(DbAuthToken $dbAuthToken, Clock $clock = new SystemClock()): void
+    public function claim(DbAuthToken $dbAuthToken, ClientData $clientData, Clock $clock = new SystemClock()): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                 UPDATE auth_token
                 SET auth_token.claimed=?,
@@ -132,15 +123,15 @@ final class DbAuthTokenRepository
             ',
             parameters: [
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
-                DbAuthTokenRepository::getClientData(),
+                $clientData->toJson(),
                 $dbAuthToken->ID,
             ],
         );
     }
 
-    public static function deleteByUserID(int $userID): void
+    public function deleteByUserID(int $userID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                 DELETE FROM auth_token
                        WHERE userID=?

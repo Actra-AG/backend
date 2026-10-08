@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\email;
 
-use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 
@@ -19,14 +19,15 @@ use actra\backend\libs\db\DbAuthUser;
 final class EmailLoginToken
 {
     public static function send(
+        BackendViewContext $context,
         DbAuthUser $dbAuthUser,
         string $token,
         int $expirationInMinutes,
         bool $usedPasswordLogin,
     ): void {
-        $messages = ActraBackend::messages();
+        $messages = $context->messages;
         $emailMessages = $messages->email;
-        Mailer::sendTextMail(
+        $context->mailer->sendTextMail(
             recipient: $dbAuthUser->email,
             subject: MessageTemplate::fill(
                 template: $emailMessages->loginTokenSubject,
@@ -55,7 +56,7 @@ final class EmailLoginToken
                     '',
                     $messages->common->closingGreeting,
                     '',
-                    ActraBackend::get()->mailerSettings->signature,
+                    $context->mailer->mailerSettings->signature,
                 ],
             ),
         );

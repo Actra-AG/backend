@@ -56,15 +56,17 @@ This project follows the Actra coding standard, installed as development depende
 ### Forms (yuf form API)
 
 - Follow the rules for forms in yuf's README (`vendor/actra/yuf/README.md`, section "Rules for forms"). The
-  `FormMessages` of the request language are `ActraBackend::messages()->form`.
+  `FormMessages` of the request language are `$this->backendContext->messages->form`.
 
 ### Texts (`standards/i18n.md`)
 
-- Message classes in `src/i18n/` (English default, German in `german()`), shared texts in `CommonMessages`; read with
-  `ActraBackend::messages()`, output with `BackendView::addTexts()`. Placeholders `[name]` are filled with
+- Message classes in `src/i18n/` (English default, German in `german()`), shared texts in `CommonMessages`; read from
+  `BackendViewContext::$messages`, output with `BackendView::addTexts()`. Placeholders `[name]` are filled with
   `MessageTemplate::fill()` and checked by `tests/Unit/i18n/MessagesTest.php`.
-- One route per language: `ActraBackend::messages()` and `ActraBackend::path()` belong to the current route. Text for
-  another user (e.g. an email) uses that user's route: `ActraBackend::get()->getRouteForLanguage()`.
+- One route per language: `$messages`, `$route` and `$paths` of `BackendViewContext` belong to the route of the request.
+  Text for another user (e.g. an email) uses that user's route: `$actraBackend->getRouteForLanguage()`.
+- No static state: services reach classes through `BackendViewContext` (views, forms, tables) or as constructor
+  arguments; outside a request through the `ActraBackend` instance.
 
 ### Releases
 
@@ -82,7 +84,4 @@ Temporary, legacy code migrated step by step (see [docs/standard-migration/plan.
 New code follows the global standard; existing names are kept until their step is done, because renaming them breaks
 consuming projects:
 
-- Static accessors `ActraBackend::get()`, `messages()` and `path()`, static repositories and helpers instead of
-  constructor injection; outside views they take request and session from `ActraBackend::get()->getViewContext()`.
-  They move into `BackendViewContext` step by step (plan steps 14 and 15).
 - Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.

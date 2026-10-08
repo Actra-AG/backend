@@ -72,7 +72,7 @@ After the assets are available through the application's public asset URLs, refe
 backend:
 
 ```php
-ActraBackend::init();
+$actraBackend = ActraBackend::init(/* see "Basic Initialization" */);
 ```
 
 ### 3. Database Setup
@@ -88,8 +88,9 @@ in [UPGRADE.md](UPGRADE.md).
 
 ## Usage
 
-To integrate the backend into your YUF-based application, you need to call `ActraBackend::init()` during your
-application's bootstrap process.
+To integrate the backend into your YUF-based application, call `ActraBackend::init()` during your application's
+bootstrap process and keep the returned instance: the routes of project views based on `BackendView` need it. The
+backend has no global state; everything a view needs comes through its `BackendViewContext`.
 
 ### Basic Initialization
 
@@ -101,7 +102,7 @@ use actra\yuf\db\DbSettings;
 
 // ... initialize your $routeCollection, $language, $navigationItemCollection ...
 
-ActraBackend::init(
+$actraBackend = ActraBackend::init(
     routeCollection: $routeCollection,
     path: '/backend/', // The URL path where the backend will be accessible
     isDefaultForLanguage: false,
@@ -153,7 +154,7 @@ new Route(
     path: '/de/orders/',
     viewDirectory: $core->viewDirectory,
     viewGroup: 'orders',
-    viewFactory: ActraBackend::get()->createViewFactory(), // after ActraBackend::init()
+    viewFactory: $actraBackend->createViewFactory(), // $actraBackend from ActraBackend::init()
 );
 
 final class orders extends BackendView
@@ -166,7 +167,7 @@ final class orders extends BackendView
 ```
 
 Tables based on `AbstractTable` and search forms based on `AbstractSearchForm` get the same context as first
-argument; the database of a table defaults to `DB::get()`:
+argument; the database of a table defaults to the database of the backend:
 
 ```php
 new OrderTable(context: $this->backendContext);
@@ -175,6 +176,19 @@ new OrderSearchForm(context: $this->backendContext, name: 'OrderSearch');
 // in OrderTable::__construct(BackendViewContext $context)
 parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQuery);
 ```
+
+`BackendViewContext` (`$this->backendContext` in views, tables and search forms) holds the services of the request:
+
+| Property / method | Content |
+|:--|:--|
+| `messages`, `route`, `paths` | Texts, backend route and links of the request language (`$paths->user(ID: 5)`) |
+| `repositories` | The repositories (`->users()`, `->groups()`, …, `->db()` for the database of the backend) |
+| `currentUser`, `getCurrentUser()` | The logged-in `MyAuthUser` (`null` / `UnauthorizedException` without login) |
+| `mailer` | Sends emails with the `MailerSettings` (`->sendTextMail()`) |
+| `session`, `authSession`, `viewContext` | yuf's session objects and `ViewContext` |
+| `userController` | `->deleteUser(userID:)` |
+
+Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and `$actraBackend->createMailer()`.
 
 The values of a search form come from the posted form (`reset` and `find` from the query string), and tables and
 search forms keep their state in the session. New services of the backend are added to `BackendViewContext`, so these
@@ -206,7 +220,7 @@ Titles and links are plain text and escaped; the current page is the page title 
 ### Languages
 
 All texts of the backend come from message classes; English and German are included. The texts of a request follow
-the language of its route: the main route (`path` of `ActraBackend::init()`) uses `ActraBackendSettings::$language`,
+the language of its route: the main route (`path` of `$actraBackend = ActraBackend::init()`) uses `ActraBackendSettings::$language`,
 further languages get their own route:
 
 ```php
@@ -286,11 +300,9 @@ When a backend user is deleted, the library removes its own user-related records
 `auth_user`. Projects that store additional foreign-key references to `auth_user.ID` can register a delete handler to
 remove or update their project-specific records before the user itself is deleted.
 
-In the consuming project, register the handler during application bootstrap, for example in the same `index.php` or
-bootstrap file where `ActraBackend::init()` is called:
+In the consuming project, pass the handler in the settings of `ActraBackend::init()`:
 
 ```php
-use actra\backend\libs\auth\UserController;
 use actra\backend\libs\auth\UserDeleteHandler;
 
 final class ProjectUserDeleteHandler implements UserDeleteHandler {
@@ -299,16 +311,14 @@ final class ProjectUserDeleteHandler implements UserDeleteHandler {
         ProjectUserSettingsRepository::deleteByUserID(userID: $userID);
     }
 }
-UserController::registerUserDeleteHandler(
-    userDeleteHandler: new ProjectUserDeleteHandler()
+new ActraBackendSettings(
+    ...
+    userDeleteHandler: new ProjectUserDeleteHandler(),
 );
 ```
 
 The delete handler is executed inside the same database transaction as the built-in user cleanup and before `auth_user`
 is deleted. If the handler throws an exception, the transaction is rolled back and the user is not deleted.
-
-Only one delete handler can be registered. Calling `UserController::registerUserDeleteHandler()` again replaces the
-previously registered handler.
 
 For simple database relations, projects can alternatively use foreign keys with `ON DELETE CASCADE` or
 `ON DELETE SET NULL`, depending on whether related rows should be removed or preserved without the user reference.
@@ -382,8 +392,9 @@ To validate the bearer token and retrieve the authenticated user ID, pass the re
 `$this->context->httpRequest`):
 
 ```php
-use actra\backend\libs\db\DbAuthApiKeyRepository;
-$userID = DbAuthApiKeyRepository::getUserIDForBearerOrThrow(httpRequest: $this->context->httpRequest);
+$userID = $actraBackend->getRepositories()->apiKeys()->getUserIDForBearerOrThrow(
+    httpRequest: $this->context->httpRequest,
+);
 ```
 
 If the bearer token is missing, malformed, unknown, or invalid, an `UnauthorizedException` is thrown.
@@ -393,34 +404,29 @@ If the bearer token is missing, malformed, unknown, or invalid, an `Unauthorized
 The general setup of PHPStan and the PHPUnit bootstrap for projects using yuf (and therefore the backend) is described
 in yuf's README, section [Static analysis and tests](https://github.com/Actra-AG/yuf#static-analysis-and-tests).
 
-`DB::get()` creates its connection from `ActraBackend::get()->dbSettings`. Integration tests that run without
-`ActraBackend::init()` set the connection explicitly with `DB::useConnection()`, once per process, before the first
-`DB::get()`. It returns the same instance as `DB::get()`, so all repositories use it. A second call throws a
-`LogicException`.
-
-```php
-// tests/bootstrap.php
-DB::useConnection(
-    dbSettings: new DbSettings(
-        hostName: 'db',
-        databaseName: 'app_test',
-        userName: 'db',
-        password: 'db'
-    )
-);
-```
+Integration tests connect to a test database with `DB::fromSettings()` and use the repositories on that connection
+(`BackendRepositories::fromDb()`), without `ActraBackend::init()`:
 
 ```php
 abstract class DatabaseTestCase extends TestCase
 {
+    protected BackendRepositories $repositories;
+
     protected function setUp(): void
     {
-        DB::get()->beginTransaction();
+        $db = DB::fromSettings(dbSettings: new DbSettings(
+            hostName: 'db',
+            databaseName: 'app_test',
+            userName: 'db',
+            password: 'db',
+        ));
+        $db->beginTransaction();
+        $this->repositories = BackendRepositories::fromDb(db: $db);
     }
 
     protected function tearDown(): void
     {
-        DB::get()->rollBack();
+        $this->repositories->db()->rollBack();
     }
 }
 ```

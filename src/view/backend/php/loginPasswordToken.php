@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\view\backend\php;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendView;
-use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\LoginTokenForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDocument;
@@ -31,15 +29,15 @@ final class loginPasswordToken extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->auth->loginPageTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->auth->loginPageTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $this->backendContext->actraBackend->getAuthSession()->logOut();
+        $this->backendContext->authSession->logOut();
         $htmlDocument->templateName = 'authentication';
-        $messages = ActraBackend::messages()->auth;
+        $messages = $this->backendContext->messages->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
@@ -59,7 +57,7 @@ final class loginPasswordToken extends BackendView
         );
         $loginTokenForm = new LoginTokenForm(context: $this->backendContext);
         if ($loginTokenForm->process()) {
-            MyAuthUser::get()->redirectToFirstAllowedPage();
+            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(context: $this->backendContext);
         }
         $replacements->addHtml(
             identifier: 'form',
@@ -67,12 +65,7 @@ final class loginPasswordToken extends BackendView
         );
         $replacements->addHtml(
             identifier: 'loginPasswordHref',
-            html: loginPassword::getPath(),
+            html: $this->backendContext->paths->loginPassword(),
         );
-    }
-
-    public static function getPath(): string
-    {
-        return ActraBackend::path() . 'loginPasswordToken.html';
     }
 }

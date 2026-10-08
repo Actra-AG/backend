@@ -9,46 +9,44 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\auth;
 
-use actra\backend\ActraBackend;
-use actra\backend\libs\db\DB;
-use actra\backend\libs\db\DbAuthApiKeyRepository;
-use actra\backend\libs\db\DbAuthIpWhitelistRepository;
-use actra\backend\libs\db\DbAuthLoginRepository;
-use actra\backend\libs\db\DbAuthSessionRepository;
-use actra\backend\libs\db\DbAuthTokenRepository;
-use actra\backend\libs\db\DbAuthUserGroupRepository;
-use actra\backend\libs\db\DbAuthUserRepository;
+use actra\backend\libs\db\BackendRepositories;
+use actra\yuf\auth\AuthSession;
 use Throwable;
 
-final class UserController
+final readonly class UserController
 {
-    private static ?UserDeleteHandler $userDeleteHandler = null;
+    public function __construct(
+        private BackendRepositories $repositories,
+        private ?UserDeleteHandler $userDeleteHandler,
+        private AuthSession $authSession,
+        private ?MyAuthUser $currentUser,
+    ) {}
 
-    public static function registerUserDeleteHandler(UserDeleteHandler $userDeleteHandler): void
+    /**
+     * Deletes a user with its sessions, tokens, groups, IP whitelist and API key; the `UserDeleteHandler` of the
+     * project deletes its own data first. A user who deletes himself is logged out.
+     */
+    public function deleteUser(int $userID): void
     {
-        UserController::$userDeleteHandler = $userDeleteHandler;
-    }
-
-    public static function deleteUser(int $userID): void
-    {
-        $db = DB::get();
+        $repositories = $this->repositories;
+        $db = $repositories->db();
         $db->beginTransaction();
         try {
-            DbAuthLoginRepository::unsetUserID(userID: $userID);
-            DbAuthSessionRepository::deleteByUserID(userID: $userID);
-            DbAuthTokenRepository::deleteByUserID(userID: $userID);
-            DbAuthUserGroupRepository::deleteByUserID(userID: $userID);
-            DbAuthIpWhitelistRepository::deleteByUserID(userID: $userID);
-            DbAuthApiKeyRepository::deleteByUserID(userID: $userID);
-            UserController::$userDeleteHandler?->beforeDeleteUser($userID);
-            DbAuthUserRepository::delete(ID: $userID);
+            $repositories->logins()->unsetUserID(userID: $userID);
+            $repositories->sessions()->deleteByUserID(userID: $userID);
+            $repositories->tokens()->deleteByUserID(userID: $userID);
+            $repositories->userGroups()->deleteByUserID(userID: $userID);
+            $repositories->ipWhitelists()->deleteByUserID(userID: $userID);
+            $repositories->apiKeys()->deleteByUserID(userID: $userID);
+            $this->userDeleteHandler?->beforeDeleteUser(userID: $userID);
+            $repositories->users()->delete(ID: $userID);
             $db->commit();
         } catch (Throwable $throwable) {
             $db->rollBack();
             throw $throwable;
         }
-        if (MyAuthUser::get()->id === $userID) {
-            ActraBackend::get()->getAuthSession()->logOut();
+        if ($this->currentUser?->id === $userID) {
+            $this->authSession->logOut();
         }
     }
 }

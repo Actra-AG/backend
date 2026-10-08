@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserNotificationRepository;
 use actra\backend\libs\table\NotificationRecipientTable;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\InputParameter;
@@ -70,7 +69,7 @@ final class notification extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUserNotification = DbAuthUserNotificationRepository::selectByID(
+        $dbAuthUserNotification = $this->backendContext->repositories->notifications()->selectByID(
             ID: $this->getRequiredPathVarAsInt(nr: 1),
         );
         if ($dbAuthUserNotification === null) {
@@ -80,10 +79,10 @@ final class notification extends BackendView
             text: $dbAuthUserNotification->subject,
         );
         $replacements = $htmlDocument->replacements;
-        $messages = ActraBackend::messages()->notification;
+        $messages = $this->backendContext->messages->notification;
         $replacements->addHtmlText(
             identifier: 'successLabel',
-            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->successLabel),
+            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->successLabel),
         );
         $replacements->addHtmlText(
             identifier: 'sentSuccess',
@@ -103,7 +102,7 @@ final class notification extends BackendView
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'detailFields',
-            htmlDataObjectCollection: $dbAuthUserNotification->render(),
+            htmlDataObjectCollection: $dbAuthUserNotification->render(messages: $this->backendContext->messages),
         );
         $replacements->addHtml(
             identifier: 'recipients',
@@ -112,10 +111,5 @@ final class notification extends BackendView
                 notificationID: $dbAuthUserNotification->ID,
             )->render(),
         );
-    }
-
-    public static function getPath(int $ID): string
-    {
-        return ActraBackend::path() . 'notification-' . $ID . '.html';
     }
 }

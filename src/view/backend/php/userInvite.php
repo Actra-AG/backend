@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserInviteForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -49,26 +48,27 @@ final class userInvite extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->user->inviteTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->user->inviteTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
+        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
         $userInviteForm = new UserInviteForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($userInviteForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: user::getPath(
+                relativeOrAbsoluteUri: $this->backendContext->paths->user(
                     ID: $dbAuthUser->ID,
                 ) . '?' . user::PARAM_INVITED,
                 httpRequest: $this->context->httpRequest,
             );
         }
-        $messages = ActraBackend::messages()->user;
+        $messages = $this->backendContext->messages->user;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'inviteIntro',
@@ -86,10 +86,5 @@ final class userInvite extends BackendView
             identifier: 'form',
             html: $userInviteForm->render(),
         );
-    }
-
-    public static function getPath(int $ID): string
-    {
-        return ActraBackend::path() . 'userInvite-' . $ID . '.html';
     }
 }

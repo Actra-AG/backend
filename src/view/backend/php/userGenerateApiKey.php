@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\ApiKeyGenerateForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -53,21 +52,22 @@ final class userGenerateApiKey extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyTitle);
+        return HtmlText::fromText(text: $this->backendContext->messages->common->generateApiKeyTitle);
     }
 
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
+        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
         if (
             $dbAuthUser === null
-            || !ActraBackend::get()->actraBackendSettings->hasApi
+            || !$this->backendContext->actraBackend->actraBackendSettings->hasApi
             || $dbAuthUser->ipWhitelist === []
         ) {
             throw new NotFoundException();
         }
-        $userPath = user::getPath(ID: $dbAuthUser->ID);
+        $userPath = $this->backendContext->paths->user(ID: $dbAuthUser->ID);
         $apiKeyGenerateForm = new ApiKeyGenerateForm(
             context: $this->backendContext,
             userID: $dbAuthUser->ID,
@@ -79,16 +79,11 @@ final class userGenerateApiKey extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyConfirm),
+            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->generateApiKeyConfirm),
         );
         $replacements->addHtml(
             identifier: 'form',
             html: $apiKeyGenerateForm->render(),
         );
-    }
-
-    public static function getPath(int $ID): string
-    {
-        return ActraBackend::path() . 'userGenerateApiKey-' . $ID . '.html';
     }
 }

@@ -18,7 +18,9 @@ use actra\yuf\db\DbRow;
 
 final class DbAuthUserRepository
 {
-    public static function getDbQuery(): DbQuery
+    public function __construct(private readonly DB $db) {}
+
+    public function getDbQuery(): DbQuery
     {
         return DbQuery::createFromSqlQuery(
             query: '
@@ -54,7 +56,7 @@ final class DbAuthUserRepository
         );
     }
 
-    private static function createItem(DbRow $row): DbAuthUser
+    private function createItem(DbRow $row): DbAuthUser
     {
         $passwordSalt = $row->getNullableString(column: 'passwordSalt');
 
@@ -84,55 +86,55 @@ final class DbAuthUserRepository
         );
     }
 
-    public static function select(DbQuery $dbQuery): DbAuthUserCollection
+    public function select(DbQuery $dbQuery): DbAuthUserCollection
     {
         $dbAuthUserCollection = new DbAuthUserCollection();
         foreach (
-            DB::get()->selectRowsFromQuery(
+            $this->db->selectRowsFromQuery(
                 dbQuery: $dbQuery,
                 offset: 0,
                 rowCount: 1000,
             ) as $row
         ) {
             $dbAuthUserCollection->add(
-                dbAuthUser: DbAuthUserRepository::createItem(row: $row),
+                dbAuthUser: $this->createItem(row: $row),
             );
         }
 
         return $dbAuthUserCollection;
     }
 
-    public static function selectByID(int $ID): ?DbAuthUser
+    public function selectByID(int $ID): ?DbAuthUser
     {
-        $dbQuery = DbAuthUserRepository::getDbQuery();
+        $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user.ID=?',
             parameters: [
                 $ID,
             ],
         );
-        $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
+        $dbAuthUserCollection = $this->select(dbQuery: $dbQuery);
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
     }
 
-    public static function selectByEmail(string $email): ?DbAuthUser
+    public function selectByEmail(string $email): ?DbAuthUser
     {
-        $dbQuery = DbAuthUserRepository::getDbQuery();
+        $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user.email=?',
             parameters: [
                 $email,
             ],
         );
-        $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
+        $dbAuthUserCollection = $this->select(dbQuery: $dbQuery);
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
     }
 
-    public static function selectByUserGroup(
+    public function selectByUserGroup(
         int $groupID,
         bool $mustBeActive = true,
     ): DbAuthUserCollection {
-        $dbQuery = DbAuthUserRepository::getDbQuery();
+        $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
             parameters: [
@@ -145,12 +147,12 @@ final class DbAuthUserRepository
                 parameters: [],
             );
         }
-        return DbAuthUserRepository::select(dbQuery: $dbQuery);
+        return $this->select(dbQuery: $dbQuery);
     }
 
-    public static function sentInvitation(int $ID, Clock $clock = new SystemClock()): void
+    public function sentInvitation(int $ID, Clock $clock = new SystemClock()): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                     UPDATE auth_user
                     SET invited=?
@@ -163,9 +165,9 @@ final class DbAuthUserRepository
         );
     }
 
-    public static function dbConfirmSuccessfulLogin(int $ID, Clock $clock = new SystemClock()): void
+    public function dbConfirmSuccessfulLogin(int $ID, Clock $clock = new SystemClock()): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                     UPDATE auth_user
                     SET lastSuccessfulLogin=?
@@ -178,9 +180,9 @@ final class DbAuthUserRepository
         );
     }
 
-    public static function delete(int $ID): void
+    public function delete(int $ID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                         DELETE FROM auth_user
                                WHERE ID=?
@@ -191,7 +193,7 @@ final class DbAuthUserRepository
         );
     }
 
-    public static function insert(
+    public function insert(
         ?int $registeredById,
         string $email,
         string $phone,
@@ -200,7 +202,7 @@ final class DbAuthUserRepository
         string $lastName,
         ?string $languageCode,
     ): int {
-        $db = DB::get();
+        $db = $this->db;
         $db->execute(
             sql: '
             INSERT INTO auth_user
@@ -226,7 +228,7 @@ final class DbAuthUserRepository
         return $db->getLastInsertId();
     }
 
-    public static function update(
+    public function update(
         int $ID,
         string $email,
         string $phone,
@@ -235,7 +237,7 @@ final class DbAuthUserRepository
         string $lastName,
         ?string $languageCode,
     ): void {
-        $db = DB::get();
+        $db = $this->db;
         $db->execute(
             sql: '
                             UPDATE auth_user
@@ -259,9 +261,9 @@ final class DbAuthUserRepository
         );
     }
 
-    public static function increaseWrongPasswordAttempts(int $ID): void
+    public function increaseWrongPasswordAttempts(int $ID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: 'UPDATE auth_user SET wrongLoginAttempts=wrongLoginAttempts+1 WHERE ID=?',
             parameters: [$ID],
         );
@@ -270,19 +272,19 @@ final class DbAuthUserRepository
     /**
      * Stores an upgraded hash of the same password (lazy upgrade at login); keeps the wrong login attempts.
      */
-    public static function updatePasswordHash(int $ID, Password $password): void
+    public function updatePasswordHash(int $ID, Password $password): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=? WHERE ID=?',
             parameters: [$password->salt, $password->hash, $ID],
         );
     }
 
-    public static function setPassword(
+    public function setPassword(
         int $ID,
         Password $newPassword,
     ): void {
-        DB::get()->execute(
+        $this->db->execute(
             sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=?, wrongLoginAttempts=0 WHERE ID=?',
             parameters: [
                 $newPassword->salt,
@@ -292,9 +294,9 @@ final class DbAuthUserRepository
         );
     }
 
-    public static function removePassword(int $ID): void
+    public function removePassword(int $ID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=?, wrongLoginAttempts=0 WHERE ID=?',
             parameters: [
                 null,

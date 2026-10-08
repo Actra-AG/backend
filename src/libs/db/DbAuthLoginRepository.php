@@ -13,14 +13,16 @@ use actra\yuf\auth\AuthResultEnum;
 
 final class DbAuthLoginRepository
 {
-    public static function insert(
+    public function __construct(private readonly DB $db) {}
+
+    public function insert(
         ?int $userID,
         string $sessionID,
         string $ipAddress,
         string $inputEmail,
         AuthResultEnum $authResult,
     ): void {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                 INSERT INTO auth_login
                 SET userID=?,
@@ -39,9 +41,9 @@ final class DbAuthLoginRepository
         );
     }
 
-    public static function unsetUserID(int $userID): void
+    public function unsetUserID(int $userID): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                 UPDATE auth_login SET userID=NULL WHERE userID=?
             ',

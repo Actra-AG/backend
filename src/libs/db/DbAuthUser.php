@@ -9,8 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\backend\ActraBackend;
+use actra\backend\i18n\CommonMessages;
 use actra\backend\i18n\MessageTemplate;
+use actra\backend\i18n\UserMessages;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\html\HtmlDataObject;
@@ -65,28 +66,28 @@ final readonly class DbAuthUser
         return $this->invitedDate !== null;
     }
 
-    public function renderFullName(): string
+    public function renderFullName(CommonMessages $messages): string
     {
         return MessageTemplate::fill(
-            template: ActraBackend::messages()->common->fullName,
+            template: $messages->fullName,
             values: ['firstName' => $this->firstName, 'lastName' => $this->lastName],
         );
     }
 
-    public function renderLastLogin(): string
+    public function renderLastLogin(CommonMessages $messages): string
     {
         if ($this->lastLogin === null) {
             return '';
         }
 
-        return $this->lastLogin->format(format: ActraBackend::messages()->common->dateTimeFormat);
+        return $this->lastLogin->format(format: $messages->dateTimeFormat);
     }
 
-    public function renderActive(): string
+    public function renderActive(UserMessages $messages): string
     {
         return $this->isActive
-            ? ActraBackend::messages()->user->statusActive
-            : ActraBackend::messages()->user->statusInactive;
+            ? $messages->statusActive
+            : $messages->statusInactive;
     }
 
     public function renderPhone(): string

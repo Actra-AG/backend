@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserNotificationRecipientRepository;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 
@@ -22,7 +20,7 @@ final class NotificationRecipientTable extends AbstractTable
 {
     public function __construct(BackendViewContext $context, int $notificationID)
     {
-        $dbQuery = DbAuthUserNotificationRecipientRepository::getDbQuery();
+        $dbQuery = $context->repositories->notificationRecipients()->getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user_notification_recipient.notificationID=?',
             parameters: [$notificationID],
@@ -33,7 +31,7 @@ final class NotificationRecipientTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
-        $messages = ActraBackend::messages();
+        $messages = $context->messages;
         $sentDateColumn = new DateColumn(
             identifier: 'sentDate',
             label: $messages->notification->dateLabel,

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Unit;
 
+use actra\backend\ActraBackend;
 use actra\backend\BackendViewFactory;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\view\factory\php\PlainView;
@@ -34,9 +35,17 @@ final class BackendViewFactoryTest extends TestCase
         );
     }
 
+    private ActraBackend $actraBackend;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->actraBackend = ActraBackendTestInstance::create();
+    }
+
     private function createFactory(): BackendViewFactory
     {
-        return new BackendViewFactory(actraBackend: ActraBackendTestInstance::get());
+        return new BackendViewFactory(actraBackend: $this->actraBackend);
     }
 
     public function testBackendViewGetsTheBackendViewContext(): void
@@ -47,7 +56,7 @@ final class BackendViewFactoryTest extends TestCase
 
         $this->assertInstanceOf(ProjectBackendView::class, $view);
         $this->assertSame($context, $view->getBackendContext()->viewContext);
-        $this->assertSame(ActraBackendTestInstance::get(), $view->getBackendContext()->actraBackend);
+        $this->assertSame($this->actraBackend, $view->getBackendContext()->actraBackend);
     }
 
     public function testOtherViewGetsTheViewContext(): void

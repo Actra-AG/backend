@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\table;
 
-use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\db\DbAuthUserLoginRepository;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\common\SearchQueryBuilder;
@@ -32,7 +30,7 @@ final class VisitTable extends AbstractTable
         ?int $filterUserID,
         VisitSearchForm $tokenSearchForm,
     ) {
-        $dbQuery = DbAuthUserLoginRepository::getDbQuery();
+        $dbQuery = $context->repositories->userLogins()->getDbQuery();
         if ($filterUserID !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_login.userID=?',
@@ -68,7 +66,7 @@ final class VisitTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
-        $messages = ActraBackend::messages();
+        $messages = $context->messages;
         $dateColumn = new DateColumn(
             identifier: 'registered',
             label: $messages->log->visitDateColumn,

@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\backend\ActraBackend;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\clock\Clock;
@@ -18,6 +17,8 @@ use actra\yuf\db\DbRow;
 
 final class DbAuthSessionRepository
 {
+    public function __construct(private readonly DB $db) {}
+
     private const string SELECT_QUERY = '
         SELECT auth_session.ID,
                auth_session.parentID,
@@ -46,11 +47,12 @@ final class DbAuthSessionRepository
             INNER JOIN auth_user ON auth_user.ID=auth_session.userID
     ';
 
-    public static function insert(
+    public function insert(
         ?int $parentID,
         int $userID,
+        ClientData $clientData,
     ): int {
-        $db = DB::get();
+        $db = $this->db;
         $db->execute(
             sql: '
                 INSERT INTO auth_session
@@ -62,27 +64,27 @@ final class DbAuthSessionRepository
             parameters: [
                 $parentID,
                 $userID,
-                ActraBackend::get()->getAuthSession()->getSessionId(),
-                ActraBackend::get()->getViewContext()->httpRequest->getRemoteAddress(),
+                $clientData->sessionId,
+                $clientData->ipAddress,
             ],
         );
 
         return $db->getLastInsertId();
     }
 
-    public static function selectByID(int $ID): ?DbAuthSession
+    public function selectByID(int $ID): ?DbAuthSession
     {
-        $row = DB::get()->selectRow(
+        $row = $this->db->selectRow(
             sql: DbAuthSessionRepository::SELECT_QUERY . ' WHERE auth_session.ID=?',
             parameters: [
                 $ID,
             ],
         );
 
-        return $row === null ? null : DbAuthSessionRepository::createDbAuthSession(row: $row);
+        return $row === null ? null : $this->createDbAuthSession(row: $row);
     }
 
-    private static function createDbAuthSession(DbRow $row): DbAuthSession
+    private function createDbAuthSession(DbRow $row): DbAuthSession
     {
         $passwordSalt = $row->getNullableString(column: 'passwordSalt');
 
@@ -116,9 +118,9 @@ final class DbAuthSessionRepository
         );
     }
 
-    public static function updateLastAction(int $ID, Clock $clock = new SystemClock()): void
+    public function updateLastAction(int $ID, Clock $clock = new SystemClock()): void
     {
-        DB::get()->execute(
+        $this->db->execute(
             sql: '
                     UPDATE auth_session
                     SET lastAction=?
@@ -128,9 +130,9 @@ final class DbAuthSessionRepository
         );
     }
 
-    public static function deleteByUserID(int $userID): void
+    public function deleteByUserID(int $userID): void
     {
-        $db = DB::get();
+        $db = $this->db;
         $db->execute(
             sql: '
                     DELETE FROM auth_session

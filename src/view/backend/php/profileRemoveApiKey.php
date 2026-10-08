@@ -24,8 +24,10 @@ use actra\yuf\html\HtmlText;
 /**
  * Server-side confirmation page for removing the own API key (without JavaScript the link opens it; with JavaScript
  * the dialog fetches it and submits its form).
+ *
+ * @internal
  */
-class profileRemoveApiKey extends BackendView
+final class profileRemoveApiKey extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -38,6 +40,7 @@ class profileRemoveApiKey extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -45,11 +48,13 @@ class profileRemoveApiKey extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->common->removeApiKeyTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $userID = MyAuthUser::get()->dbAuthUser->ID;

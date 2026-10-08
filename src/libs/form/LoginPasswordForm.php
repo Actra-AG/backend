@@ -27,6 +27,9 @@ use actra\yuf\form\settings\PasswordPurposeEnum;
 use actra\yuf\html\HtmlText;
 use LogicException;
 
+/**
+ * @internal
+ */
 final class LoginPasswordForm extends Form
 {
     private readonly EmailField $emailField;

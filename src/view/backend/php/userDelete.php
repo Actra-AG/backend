@@ -22,10 +22,12 @@ use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
 /**
- * Server-side confirmation page for the deletion of a user (without JavaScript the link opens it; with JavaScript the dialog
- * fetches it and submits its form).
+ * Server-side confirmation page for the deletion of a user (without JavaScript the link opens it; with JavaScript
+ * the dialog fetches it and submits its form).
+ *
+ * @internal
  */
-class userDelete extends BackendView
+final class userDelete extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -40,6 +42,7 @@ class userDelete extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -47,11 +50,13 @@ class userDelete extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->user->deleteButton);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
@@ -70,7 +75,7 @@ class userDelete extends BackendView
             identifier: 'deleteConfirm',
             htmlText: HtmlText::fromText(text: MessageTemplate::fill(
                 template: ActraBackend::messages()->user->deleteConfirm,
-                values: ['name' => $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName],
+                values: ['name' => $dbAuthUser->renderFullName()],
             )),
         );
         $replacements->addHtml(

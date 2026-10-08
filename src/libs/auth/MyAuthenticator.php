@@ -18,10 +18,13 @@ use actra\yuf\auth\AuthMethodEnum;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\auth\AuthUser;
 
-class MyAuthenticator extends Authenticator
+/**
+ * @internal
+ */
+final class MyAuthenticator extends Authenticator
 {
     private static ?MyAuthenticator $instance = null;
-    public private(set) MyAuthUser $user;
+    public private(set) ?MyAuthUser $user = null;
 
     private function __construct()
     {
@@ -54,11 +57,13 @@ class MyAuthenticator extends Authenticator
         );
     }
 
+    #[\Override]
     protected function checkLoginCredentials(AuthUser $authUser): bool
     {
         return true;
     }
 
+    #[\Override]
     protected function createAuthUserByUserName(string $userName): ?MyAuthUser
     {
         $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $userName);
@@ -69,6 +74,7 @@ class MyAuthenticator extends Authenticator
         return $this->user;
     }
 
+    #[\Override]
     public function logAuthResult(
         ?int $userId,
         string $sessionId,

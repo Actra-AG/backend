@@ -13,7 +13,10 @@ use actra\backend\ActraBackend;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 
-class EmailLoginToken
+/**
+ * @internal
+ */
+final class EmailLoginToken
 {
     public static function send(
         DbAuthUser $dbAuthUser,

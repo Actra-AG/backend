@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-readonly class DbAuthSession
+final readonly class DbAuthSession
 {
     public function __construct(
         public int $ID,

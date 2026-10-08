@@ -248,13 +248,13 @@ With several languages, every user can choose a language (user forms, profile). 
 the backend route of that language, and the welcome email uses it (text and link). Users without a language stay on
 the route they logged in with; their welcome email uses the main route.
 
-Navigation items of the project follow the route language if they are added by a `BackendNavigationInterface`:
+Navigation items of the project follow the route language if they are added by a `BackendNavigation`:
 
 ```php
-use actra\backend\settings\BackendNavigationInterface;
+use actra\backend\settings\BackendNavigation;
 use actra\backend\settings\BackendRoute;
 
-final class ProjectNavigation implements BackendNavigationInterface
+final class ProjectNavigation implements BackendNavigation
 {
     public function addNavigationItems(
         NavigationItemCollection $navigationItemCollection,
@@ -291,9 +291,9 @@ bootstrap file where `ActraBackend::init()` is called:
 
 ```php
 use actra\backend\libs\auth\UserController;
-use actra\backend\libs\auth\UserDeleteHandlerInterface;
+use actra\backend\libs\auth\UserDeleteHandler;
 
-final class ProjectUserDeleteHandler implements UserDeleteHandlerInterface {
+final class ProjectUserDeleteHandler implements UserDeleteHandler {
     public function beforeDeleteUser(int $userID): void {
         ProjectUserProfileRepository::deleteByUserID(userID: $userID);
         ProjectUserSettingsRepository::deleteByUserID(userID: $userID);

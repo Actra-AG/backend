@@ -32,6 +32,9 @@ use actra\yuf\form\component\FormControl;
 use actra\yuf\form\component\FormField;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class UserModForm extends Form
 {
     private readonly TextField $firstNameField;
@@ -113,7 +116,7 @@ final class UserModForm extends Form
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValues: DbAuthGroupRepository::listByUserID(
                     userID: $dbAuthUser->ID,
-                )?->listFormOptionKeys() ?? [],
+                )->listFormOptionKeys(),
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
             ),
         );

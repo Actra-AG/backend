@@ -20,7 +20,10 @@ use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class profileRemovePassword extends BackendView
+/**
+ * @internal
+ */
+final class profileRemovePassword extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -33,6 +36,7 @@ class profileRemovePassword extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -40,11 +44,13 @@ class profileRemovePassword extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->profile->removePasswordPageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = MyAuthUser::get()->dbAuthUser;

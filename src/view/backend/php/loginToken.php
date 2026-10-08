@@ -17,18 +17,24 @@ use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class loginToken extends BackendView
+/**
+ * @internal
+ */
+final class loginToken extends BackendView
 {
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createEmpty();
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->auth->loginPageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->backendContext->actraBackend->getAuthSession()->isLoggedIn()) {

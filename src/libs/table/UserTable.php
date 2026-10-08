@@ -11,17 +11,22 @@ namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserSearchForm;
 use actra\backend\view\backend\php\user;
 use actra\yuf\common\SearchQueryBuilder;
+use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\BooleanColumn;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
 
-class UserTable extends AbstractTable
+/**
+ * @internal
+ */
+final class UserTable extends AbstractTable
 {
     public function __construct(BackendViewContext $context, UserSearchForm $userSearchForm)
     {
@@ -60,7 +65,13 @@ class UserTable extends AbstractTable
                 label: $messages->nameColumn,
                 callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . user::getPath(
                     ID: $tableItem->getRow()->getInt(column: 'ID'),
-                ) . '">' . $tableItem->renderValue(name: 'fullName') . '</a>',
+                ) . '">' . MessageTemplate::fill(
+                    template: HtmlEncoder::encode(value: $common->fullName),
+                    values: [
+                        'firstName' => $tableItem->renderValue(name: 'firstName'),
+                        'lastName' => $tableItem->renderValue(name: 'lastName'),
+                    ],
+                ) . '</a>',
                 isSortable: true,
             ),
             isDefaultSortColumn: true,

@@ -11,7 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\html\HtmlDataObject;
 
-readonly class DbAuthGroup
+final readonly class DbAuthGroup
 {
     public function __construct(
         public int $ID,

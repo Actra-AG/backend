@@ -22,11 +22,14 @@ use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class notification extends BackendView
+/**
+ * @internal
+ */
+final class notification extends BackendView
 {
     public const string PARAM_SENT = 'sent';
 
-    private readonly HtmlText $pageTitle;
+    private ?HtmlText $pageTitle = null;
 
     public function __construct(BackendViewContext $context)
     {
@@ -50,6 +53,7 @@ class notification extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -57,14 +61,18 @@ class notification extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return $this->pageTitle;
+        return $this->pageTitle ?? HtmlText::fromText(text: '');
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUserNotification = DbAuthUserNotificationRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
+        $dbAuthUserNotification = DbAuthUserNotificationRepository::selectByID(
+            ID: $this->getRequiredPathVarAsInt(nr: 1),
+        );
         if ($dbAuthUserNotification === null) {
             throw new NotFoundException();
         }

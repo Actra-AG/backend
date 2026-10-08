@@ -15,18 +15,24 @@ use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class passwordResetRes extends BackendView
+/**
+ * @internal
+ */
+final class passwordResetRes extends BackendView
 {
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createEmpty();
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordResetPageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';

@@ -16,7 +16,7 @@ use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
 use actra\yuf\exception\UnauthorizedException;
 
-class DbAuthApiKeyRepository
+final class DbAuthApiKeyRepository
 {
     private const string API_KEY_PREFIX = 'api_key';
     private const int PUBLIC_ID_BYTES = 6;

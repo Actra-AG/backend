@@ -28,6 +28,9 @@ use actra\yuf\form\component\FormControl;
 use actra\yuf\form\component\FormField;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class ProfileForm extends Form
 {
     private readonly TextField $firstNameField;

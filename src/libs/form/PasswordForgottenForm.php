@@ -20,6 +20,9 @@ use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class PasswordForgottenForm extends Form
 {
     private readonly EmailField $emailField;

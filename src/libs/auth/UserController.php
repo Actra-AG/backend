@@ -20,11 +20,11 @@ use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
 use Throwable;
 
-class UserController
+final class UserController
 {
-    private static ?UserDeleteHandlerInterface $userDeleteHandler = null;
+    private static ?UserDeleteHandler $userDeleteHandler = null;
 
-    public static function registerUserDeleteHandler(UserDeleteHandlerInterface $userDeleteHandler): void
+    public static function registerUserDeleteHandler(UserDeleteHandler $userDeleteHandler): void
     {
         UserController::$userDeleteHandler = $userDeleteHandler;
     }

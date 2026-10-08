@@ -16,7 +16,7 @@ use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbRow;
 
-class DbAuthSessionRepository
+final class DbAuthSessionRepository
 {
     private const string SELECT_QUERY = '
         SELECT auth_session.ID,
@@ -34,8 +34,14 @@ class DbAuthSessionRepository
                auth_user.passwordSalt,
                auth_user.passwordHash,
                auth_user.wrongLoginAttempts,
-               (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights,
-               (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress) FROM auth_ipWhitelist WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
+               (SELECT GROUP_CONCAT(auth_group_right.rightName)
+                   FROM auth_group_right
+                   WHERE auth_group_right.groupID IN (SELECT groupID
+                       FROM auth_user_group
+                       WHERE userID=auth_user.ID)) AS accessRights,
+               (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress)
+                   FROM auth_ipWhitelist
+                   WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
         FROM auth_session
             INNER JOIN auth_user ON auth_user.ID=auth_session.userID
     ';

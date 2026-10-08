@@ -3,6 +3,41 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.13.0 (2026-10-08)
+
+### ⚠️ Classes are `final`, internal classes marked
+
+All classes except the extension points `BackendView`, `AbstractTable` and `AbstractSearchForm` are `final`. The
+views, forms, tables and emails of the backend, the language helpers, `MyAuthenticator` and `GeneratedApiKeyFlash`
+are `@internal`: projects do not use them directly.
+
+### ⚠️ Renamed names
+
+```php
+// Before
+ActraBackend::viewGroup;
+final class ProjectUserDeleteHandler implements UserDeleteHandlerInterface {}
+final class ProjectNavigation implements BackendNavigationInterface {}
+
+// After
+ActraBackend::VIEW_GROUP;
+final class ProjectUserDeleteHandler implements UserDeleteHandler {}
+final class ProjectNavigation implements BackendNavigation {}
+```
+
+`UserAddForm::process()` and `NotificationSendForm::process()` return the ID of the new record (`null` if not saved)
+instead of `bool` and a property.
+
+### Texts and security
+
+- Full names are built from the new message `CommonMessages::$fullName` (`[firstName] [lastName]`), select options of
+  users from `$userOption` (`[email] ([name])`).
+- Escaped (were output as raw HTML): group titles, the user labels of the notification form, the data on the user
+  detail page and the recipient of the invitation.
+
+Search your project for: `ActraBackend::viewGroup`, `UserDeleteHandlerInterface`, `BackendNavigationInterface`,
+`extends ` (backend classes other than the three extension points), `->newUserID`, `->notificationID`.
+
 ## v1.12.0 (2026-10-08)
 
 ### ⚠️ Requires `actra/yuf` `~4.57.3`

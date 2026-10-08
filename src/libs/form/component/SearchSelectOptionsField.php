@@ -15,6 +15,7 @@ use actra\yuf\html\HtmlTagAttribute;
 
 final class SearchSelectOptionsField extends SelectOptionsField
 {
+    #[\Override]
     public function getHtmlTag(): HtmlTag
     {
         $divTag = new HtmlTag(name: 'div', selfClosing: false);

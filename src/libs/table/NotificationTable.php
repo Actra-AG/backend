@@ -11,6 +11,7 @@ namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
+use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUserNotificationRepository;
 use actra\backend\view\backend\php\notification;
 use actra\yuf\html\HtmlEncoder;
@@ -19,7 +20,10 @@ use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
 
-class NotificationTable extends AbstractTable
+/**
+ * @internal
+ */
+final class NotificationTable extends AbstractTable
 {
     public function __construct(BackendViewContext $context)
     {
@@ -54,8 +58,12 @@ class NotificationTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'firstName',
                 label: $messages->notification->senderLabel,
-                callbackFunction: static fn(TableItem $tableItem): string => $tableItem->renderValue(name: 'firstName') . ' ' . $tableItem->renderValue(
-                    name: 'lastName',
+                callbackFunction: static fn(TableItem $tableItem): string => MessageTemplate::fill(
+                    template: HtmlEncoder::encode(value: $messages->common->fullName),
+                    values: [
+                        'firstName' => $tableItem->renderValue(name: 'firstName'),
+                        'lastName' => $tableItem->renderValue(name: 'lastName'),
+                    ],
                 ),
             ),
         );

@@ -13,7 +13,7 @@ use actra\backend\ActraBackend;
 use actra\yuf\mailer\SmtpMailer;
 use actra\yuf\mailer\TextMail;
 
-class Mailer
+final class Mailer
 {
     /**
      * @param list<string> $cc

@@ -11,7 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\db\DbRow;
 
-class DbAuthGroupRepository
+final class DbAuthGroupRepository
 {
     public const string SELECT_QUERY = '
 		SELECT auth_group.ID,
@@ -66,7 +66,7 @@ class DbAuthGroupRepository
         );
     }
 
-    public static function listByUserID(int $userID): ?DbAuthGroupCollection
+    public static function listByUserID(int $userID): DbAuthGroupCollection
     {
         return DbAuthGroupRepository::listByCond(
             whereCond: 'WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=?)',

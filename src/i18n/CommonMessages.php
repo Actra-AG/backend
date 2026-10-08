@@ -48,7 +48,8 @@ final readonly class CommonMessages
         public string $apiKeyGenerated = 'The new API key has been generated. It will not be shown again.',
         public string $generateApiKeyLink = 'Generate new',
         public string $apiKeyNeedsIpWhitelist = 'API keys can only be generated once an IP whitelist has been set.',
-        public string $apiKeyBlocksEmptyIpWhitelist = 'The API key must be removed before the IP whitelist can be emptied.',
+        public string $apiKeyBlocksEmptyIpWhitelist = 'The API key must be removed before the IP whitelist can be '
+            . 'emptied.',
         public string $newPasswordLabel = 'New password',
         public string $newPasswordRequired = 'Please enter the new password.',
         public string $newPasswordConfirmLabel = 'Confirm new password',
@@ -63,6 +64,8 @@ final readonly class CommonMessages
         public string $searchLabel = 'Search term',
         public string $searchButton = 'Show',
         public string $filterAll = 'all',
+        public string $fullName = '[firstName] [lastName]',
+        public string $userOption = '[email] ([name])',
         public string $tableNoEntries = 'No entries found.',
         public string $tableOneResult = '[count] result found.',
         public string $tableResults = '[count] results found.',
@@ -73,7 +76,8 @@ final readonly class CommonMessages
         public string $removeApiKeyTitle = 'Remove API key',
         public string $removeApiKeyConfirm = 'Really remove the API key?',
         public string $generateApiKeyTitle = 'Generate API key',
-        public string $generateApiKeyConfirm = 'Generate a new API key? An existing API key is replaced and stops working.',
+        public string $generateApiKeyConfirm = 'Generate a new API key? An existing API key is replaced and stops '
+            . 'working.',
         public string $generateApiKeyConfirmLabel = 'Yes, generate',
     ) {}
 
@@ -110,7 +114,8 @@ final readonly class CommonMessages
             apiKeyGenerated: 'Der neue API-Key wurde generiert. Er wird später nicht erneut angezeigt.',
             generateApiKeyLink: 'Neu generieren',
             apiKeyNeedsIpWhitelist: 'API-Keys können erst generiert werden, wenn eine IP-Whitelist hinterlegt ist.',
-            apiKeyBlocksEmptyIpWhitelist: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden kann.',
+            apiKeyBlocksEmptyIpWhitelist: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden '
+                . 'kann.',
             newPasswordLabel: 'Neues Passwort',
             newPasswordRequired: 'Bitte geben Sie das neue Passwort ein.',
             newPasswordConfirmLabel: 'Neues Passwort bestätigen',
@@ -125,6 +130,8 @@ final readonly class CommonMessages
             searchLabel: 'Suchbegriff',
             searchButton: 'anzeigen',
             filterAll: 'alle',
+            fullName: '[firstName] [lastName]',
+            userOption: '[email] ([name])',
             tableNoEntries: 'Es wurden keine Einträge gefunden.',
             tableOneResult: 'Es wurde [count] Resultat gefunden.',
             tableResults: 'Es wurden [count] Resultate gefunden.',
@@ -135,7 +142,8 @@ final readonly class CommonMessages
             removeApiKeyTitle: 'API-Key entfernen',
             removeApiKeyConfirm: 'Den API-Key wirklich entfernen?',
             generateApiKeyTitle: 'API-Key generieren',
-            generateApiKeyConfirm: 'Einen neuen API-Key generieren? Ein bestehender API-Key wird ersetzt und funktioniert nicht mehr.',
+            generateApiKeyConfirm: 'Einen neuen API-Key generieren? Ein bestehender API-Key wird ersetzt und '
+                . 'funktioniert nicht mehr.',
             generateApiKeyConfirmLabel: 'Ja, generieren',
         );
     }

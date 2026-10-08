@@ -24,6 +24,8 @@ use actra\yuf\html\HtmlText;
  * Server-side confirmation page for generating (or replacing) the API key of a user (without JavaScript the link opens
  * it; with JavaScript the dialog fetches it and submits its form). After the redirect, the target page shows the new
  * key once.
+ *
+ * @internal
  */
 final class userGenerateApiKey extends BackendView
 {
@@ -40,6 +42,7 @@ final class userGenerateApiKey extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -47,11 +50,13 @@ final class userGenerateApiKey extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));

@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\settings;
 
-readonly class MailerSettings
+final readonly class MailerSettings
 {
     public function __construct(
         public string $senderEmail,

@@ -16,6 +16,9 @@ use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class ApiKeyRemoveForm extends Form
 {
     public function __construct(

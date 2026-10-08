@@ -20,7 +20,8 @@ final readonly class NotificationMessages
     public function __construct(
         public string $title = 'Notifications',
         public string $sendTitle = 'Send notification',
-        public string $sendInfo = 'The notifications are sent one second apart. Please do not click "[send]" more than once.',
+        public string $sendInfo = 'The notifications are sent one second apart. Please do not click "[send]" more than '
+            . 'once.',
         public string $sentSuccess = 'The notification has been sent.',
         public string $detailsHeading = 'Details',
         public string $recipientsLabel = 'Recipients',
@@ -39,7 +40,8 @@ final readonly class NotificationMessages
         return new NotificationMessages(
             title: 'Benachrichtigungen',
             sendTitle: 'Benachrichtigung senden',
-            sendInfo: 'Die Benachrichtigungen werden mit einem Abstand von einer Sekunde verschickt. Bitte klicken Sie nicht mehrfach auf "[send]".',
+            sendInfo: 'Die Benachrichtigungen werden mit einem Abstand von einer Sekunde verschickt. Bitte klicken Sie '
+                . 'nicht mehrfach auf "[send]".',
             sentSuccess: 'Die Benachrichtigung wurde verschickt.',
             detailsHeading: 'Details',
             recipientsLabel: 'Empfänger',

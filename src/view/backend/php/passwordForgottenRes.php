@@ -15,18 +15,24 @@ use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class passwordForgottenRes extends BackendView
+/**
+ * @internal
+ */
+final class passwordForgottenRes extends BackendView
 {
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createEmpty();
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordForgottenPageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $htmlDocument->templateName = 'authentication';

@@ -26,12 +26,14 @@ use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\core\InputSourceEnum;
 use actra\yuf\exception\NotFoundException;
-use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use LogicException;
 
-class user extends BackendView
+/**
+ * @internal
+ */
+final class user extends BackendView
 {
     public const string PARAM_IMPERSONATE = 'impersonate';
     public const string PARAM_ADDED = 'add';
@@ -83,6 +85,7 @@ class user extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -90,11 +93,13 @@ class user extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return $this->pageTitle ?? HtmlText::fromText(text: '');
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
@@ -102,7 +107,7 @@ class user extends BackendView
             throw new NotFoundException();
         }
         $this->pageTitle = HtmlText::fromText(
-            text: $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName,
+            text: $dbAuthUser->renderFullName(),
         );
         $authUser = MyAuthUser::get();
         $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUser);
@@ -176,7 +181,7 @@ class user extends BackendView
             identifier: 'deleteConfirm',
             htmlText: HtmlText::fromText(text: MessageTemplate::fill(
                 template: $messages->deleteConfirm,
-                values: ['name' => $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName],
+                values: ['name' => $dbAuthUser->renderFullName()],
             )),
         );
         $replacements->addHtml(
@@ -219,25 +224,25 @@ class user extends BackendView
             identifier: 'lastName',
             text: $dbAuthUser->lastName,
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'email',
-            html: $dbAuthUser->email,
+            text: $dbAuthUser->email,
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'phone',
-            html: $dbAuthUser->renderPhone(),
+            text: $dbAuthUser->renderPhone(),
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'registered',
-            html: $dbAuthUser->registered->format(format: $dateTimeFormat),
+            text: $dbAuthUser->registered->format(format: $dateTimeFormat),
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'invitedDate',
-            html: $dbAuthUser->invitedDate?->format(format: $dateTimeFormat) ?? '',
+            text: $dbAuthUser->invitedDate?->format(format: $dateTimeFormat) ?? '',
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'lastLogin',
-            html: $dbAuthUser->renderLastLogin(),
+            text: $dbAuthUser->renderLastLogin(),
         );
         $replacements->addHtml(
             identifier: 'visitsHref',
@@ -248,18 +253,17 @@ class user extends BackendView
             identifier: 'hasMultipleLanguages',
             booleanValue: $userLanguageOptions->isSelectable(),
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'language',
-            html: $userLanguageOptions->render(languageCode: $dbAuthUser->languageCode),
+            text: $userLanguageOptions->render(languageCode: $dbAuthUser->languageCode),
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'active',
-            html: $dbAuthUser->isActive ? $messages->yes : $messages->no,
+            text: $dbAuthUser->isActive ? $messages->yes : $messages->no,
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
-            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)?->render()
-                ?? new HtmlDataObjectCollection(),
+            htmlDataObjectCollection: DbAuthGroupRepository::listByUserID(userID: $dbAuthUser->ID)->render(),
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'ipWhitelist',

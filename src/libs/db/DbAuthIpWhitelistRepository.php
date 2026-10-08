@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-class DbAuthIpWhitelistRepository
+final class DbAuthIpWhitelistRepository
 {
     public static function listForUserId(int $userID): DbAuthIpWhitelistCollection
     {

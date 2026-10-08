@@ -18,7 +18,10 @@ use actra\yuf\core\HttpResponse;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class userAdd extends BackendView
+/**
+ * @internal
+ */
+final class userAdd extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -32,6 +35,7 @@ class userAdd extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -39,19 +43,22 @@ class userAdd extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->user->addUserTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $replacements = $htmlDocument->replacements;
         $userAddForm = new UserAddForm(context: $this->backendContext);
-        if ($userAddForm->process()) {
+        $newUserID = $userAddForm->process();
+        if ($newUserID !== null) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: user::getPath(
-                    ID: $userAddForm->newUserID,
+                    ID: $newUserID,
                 ) . '?' . user::PARAM_ADDED,
                 httpRequest: $this->context->httpRequest,
             );

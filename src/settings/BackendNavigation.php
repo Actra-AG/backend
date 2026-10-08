@@ -15,7 +15,7 @@ use actra\yuf\layout\NavigationItemCollection;
  * Lets a project add its own navigation items in the language of the current backend route
  * (`ActraBackendSettings::$projectNavigation`).
  */
-interface BackendNavigationInterface
+interface BackendNavigation
 {
     /**
      * Called once per request, when a view based on `BackendView` activates its backend route. Add the items with the

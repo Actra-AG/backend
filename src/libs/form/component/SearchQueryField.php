@@ -25,6 +25,7 @@ final class SearchQueryField extends TextField
         );
     }
 
+    #[\Override]
     public function getHtmlTag(): HtmlTag
     {
         $divTag = new HtmlTag(name: 'div', selfClosing: false);

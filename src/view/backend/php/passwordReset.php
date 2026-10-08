@@ -21,7 +21,10 @@ use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class passwordReset extends BackendView
+/**
+ * @internal
+ */
+final class passwordReset extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -31,16 +34,19 @@ class passwordReset extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createEmpty();
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordResetPageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $this->backendContext->actraBackend->getAuthSession()->logOut();

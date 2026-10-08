@@ -15,7 +15,10 @@ use actra\backend\libs\db\DbAuthUserNotificationRecipientRepository;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 
-class NotificationRecipientTable extends AbstractTable
+/**
+ * @internal
+ */
+final class NotificationRecipientTable extends AbstractTable
 {
     public function __construct(BackendViewContext $context, int $notificationID)
     {

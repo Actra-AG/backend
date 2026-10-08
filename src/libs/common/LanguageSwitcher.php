@@ -17,6 +17,8 @@ use Locale;
 
 /**
  * Builds the entries of the language switcher in the page header: the current page under every backend route.
+ *
+ * @internal
  */
 final readonly class LanguageSwitcher
 {
@@ -91,7 +93,10 @@ final readonly class LanguageSwitcher
     private function getLanguageName(string $languageCode): string
     {
         // false only for an invalid locale; the code is the best remaining label
-        $name = Locale::getDisplayLanguage(locale: $languageCode, displayLocale: $languageCode) ?: $languageCode;
+        $name = Locale::getDisplayLanguage(locale: $languageCode, displayLocale: $languageCode);
+        if ($name === false) {
+            $name = $languageCode;
+        }
 
         return mb_convert_case(string: mb_substr(string: $name, start: 0, length: 1), mode: MB_CASE_TITLE)
             . mb_substr(string: $name, start: 1);

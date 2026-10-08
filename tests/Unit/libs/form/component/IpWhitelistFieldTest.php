@@ -43,7 +43,8 @@ final class IpWhitelistFieldTest extends TestCase
     {
         $field = $this->createField();
 
-        $isValid = $field->validate(input: FormInput::fromArray(data: ['ipWhitelist' => " 10.0.0.1 \r\n\r\n2001:db8::1\n"]));
+        $input = FormInput::fromArray(data: ['ipWhitelist' => " 10.0.0.1 \r\n\r\n2001:db8::1\n"]);
+        $isValid = $field->validate(input: $input);
 
         $this->assertTrue($isValid);
         $this->assertSame(['10.0.0.1', '2001:db8::1'], $field->getValues());

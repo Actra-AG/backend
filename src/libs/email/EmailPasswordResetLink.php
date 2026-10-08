@@ -14,7 +14,10 @@ use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\view\backend\php\passwordReset;
 
-class EmailPasswordResetLink
+/**
+ * @internal
+ */
+final class EmailPasswordResetLink
 {
     public static function send(
         DbAuthUser $dbAuthUser,

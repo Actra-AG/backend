@@ -49,7 +49,8 @@ final readonly class UserMessages
         public string $inviteDefaultSubject = 'Access to the password-protected area',
         public string $inviteGreeting = 'Hello [firstName] [lastName]',
         public string $inviteAccessCreated = 'We have set up an account for you in our backend:',
-        public string $inviteLoginInstructions = 'To log in, enter your email address [email] and, in the next step, the confirmation code you receive.',
+        public string $inviteLoginInstructions = 'To log in, enter your email address [email] and, in the next step, '
+            . 'the confirmation code you receive.',
         public string $activeAccessLabel = 'Active access',
         public string $userGroupsRequired = 'Please select at least one user group.',
         public string $nameColumn = 'Name',
@@ -87,13 +88,15 @@ final readonly class UserMessages
             no: 'nein',
             statusActive: 'aktiv',
             statusInactive: 'inaktiv',
-            inviteIntro: 'Geben Sie nachfolgend den gewünschten Inhalt der Willkommens-E-Mail ein, die an die Person geschickt werden soll.',
+            inviteIntro: 'Geben Sie nachfolgend den gewünschten Inhalt der Willkommens-E-Mail ein, die an die Person '
+                . 'geschickt werden soll.',
             recipientLabel: 'Empfänger:',
             inviteSubmitButton: 'senden',
             inviteDefaultSubject: 'Zugang zum passwortgeschützten Bereich',
             inviteGreeting: 'Guten Tag [firstName] [lastName]',
             inviteAccessCreated: 'Wir haben Ihnen einen Zugang in unser Backend eingerichtet:',
-            inviteLoginInstructions: 'Geben Sie zur Anmeldung Ihre E-Mail-Adresse [email] und beim nächsten Schritt den erhaltenen Bestätigungscode ein, um sich anzumelden.',
+            inviteLoginInstructions: 'Geben Sie zur Anmeldung Ihre E-Mail-Adresse [email] und beim nächsten Schritt '
+                . 'den erhaltenen Bestätigungscode ein, um sich anzumelden.',
             activeAccessLabel: 'aktiver Zugang',
             userGroupsRequired: 'Bitte wählen Sie mindestens eine Benutzergruppe aus.',
             nameColumn: 'Name',

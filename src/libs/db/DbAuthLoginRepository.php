@@ -11,7 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AuthResultEnum;
 
-class DbAuthLoginRepository
+final class DbAuthLoginRepository
 {
     public static function insert(
         ?int $userID,

@@ -21,7 +21,10 @@ use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
 
-class VisitTable extends AbstractTable
+/**
+ * @internal
+ */
+final class VisitTable extends AbstractTable
 {
     public function __construct(
         BackendViewContext $context,
@@ -50,7 +53,8 @@ class VisitTable extends AbstractTable
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_login.sessionId auth_login.ipAddress auth_login.email',
+                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_login.sessionId '
+                    . 'auth_login.ipAddress auth_login.email',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(

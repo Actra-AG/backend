@@ -11,7 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 
-class DbAuthIpWhitelistCollection
+final class DbAuthIpWhitelistCollection
 {
     /** @var DbAuthIpWhitelist[] $items */
     public private(set) array $items = [];

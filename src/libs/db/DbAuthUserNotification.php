@@ -10,12 +10,13 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\yuf\html\DetailDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlEncoder;
 use DateTimeImmutable;
 
-readonly class DbAuthUserNotification
+final readonly class DbAuthUserNotification
 {
     public function __construct(
         public int $ID,
@@ -41,7 +42,13 @@ readonly class DbAuthUserNotification
                 $this->sentDate->format(format: $messages->common->dateTimeFormat),
             ],
             [$messages->common->userGroupLabel, $this->groupName],
-            [$messages->notification->senderDetailLabel, $this->firstName . ' ' . $this->lastName],
+            [
+                $messages->notification->senderDetailLabel,
+                MessageTemplate::fill(
+                    template: $messages->common->fullName,
+                    values: ['firstName' => $this->firstName, 'lastName' => $this->lastName],
+                ),
+            ],
             [$messages->common->subjectLabel, $this->subject],
         ];
         foreach ($details as [$label, $value]) {

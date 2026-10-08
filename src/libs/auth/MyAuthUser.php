@@ -19,7 +19,7 @@ use actra\yuf\auth\Password;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\UnauthorizedException;
 
-class MyAuthUser extends AuthUser
+final class MyAuthUser extends AuthUser
 {
     private static ?MyAuthUser $instance = null;
 
@@ -133,7 +133,7 @@ class MyAuthUser extends AuthUser
 
     public function getUserName(): string
     {
-        return $this->dbAuthUser->firstName . ' ' . $this->dbAuthUser->lastName;
+        return $this->dbAuthUser->renderFullName();
     }
 
     public function canImpersonateUser(DbAuthUser $dbAuthUser): bool
@@ -159,11 +159,13 @@ class MyAuthUser extends AuthUser
         return $this->parentSessionID !== null;
     }
 
+    #[\Override]
     protected function dbIncreaseWrongPasswordAttempts(): void
     {
         DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $this->id);
     }
 
+    #[\Override]
     protected function dbConfirmSuccessfulLogin(): int
     {
         DbAuthUserRepository::dbConfirmSuccessfulLogin(ID: $this->id);

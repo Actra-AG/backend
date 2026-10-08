@@ -16,7 +16,7 @@ use actra\yuf\clock\SystemClock;
 use actra\yuf\common\StringUtils;
 use actra\yuf\db\DbQuery;
 
-class DbAuthTokenRepository
+final class DbAuthTokenRepository
 {
     public static function getDbQuery(): DbQuery
     {
@@ -75,7 +75,7 @@ class DbAuthTokenRepository
             'userAgent' => $httpRequest->getUserAgent(),
             'ipAddress' => $httpRequest->getRemoteAddress(),
             'sessionId' => ActraBackend::get()->getAuthSession()->getSessionId(),
-        ]);
+        ], flags: JSON_THROW_ON_ERROR);
     }
 
     public static function getClaimable(

@@ -21,6 +21,9 @@ use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class LoginForm extends Form
 {
     private readonly EmailField $emailField;
@@ -55,10 +58,16 @@ final class LoginForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        return $this->checkCredentials();
+        $this->sendTokenIfAllowed();
+
+        return true;
     }
 
-    private function checkCredentials(): bool
+    /**
+     * Sends a token if the user may log in with it. The form answers the same in every case, so it does not reveal
+     * whether the email address exists.
+     */
+    private function sendTokenIfAllowed(): void
     {
         $myAuthenticator = MyAuthenticator::get();
         $sessionID = ActraBackend::get()->getAuthSession()->getSessionId();
@@ -73,7 +82,7 @@ final class LoginForm extends Form
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_UNKNOWN_USER_NAME,
             );
-            return true;
+            return;
         }
         if (
             $dbAuthUser->ipWhitelist !== []
@@ -89,7 +98,7 @@ final class LoginForm extends Form
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_IP_NOT_ALLOWED,
             );
-            return true;
+            return;
         }
         if ($dbAuthUser->isActive === false
             || $dbAuthUser->accessRightCollection->isEmpty()
@@ -101,7 +110,7 @@ final class LoginForm extends Form
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_INACTIVE,
             );
-            return true;
+            return;
         }
         if ($dbAuthUser->password !== null) {
             $myAuthenticator->logAuthResult(
@@ -111,13 +120,12 @@ final class LoginForm extends Form
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_NO_PASSWORD,
             );
-            return true;
+            return;
         }
         AuthTokenTypeEnum::LOGIN->createAndSend(
             session: ActraBackend::get()->getSession(),
             dbAuthUser: $dbAuthUser,
             usedPasswordLogin: false,
         );
-        return true;
     }
 }

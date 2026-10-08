@@ -30,6 +30,10 @@ use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
 use actra\yuf\html\HtmlText;
 
+/**
+ * Extension point: the base of the views of the backend and of the project views in the backend layout. Projects
+ * create these views through `ActraBackend::createViewFactory()`.
+ */
 abstract class BackendView extends BaseView
 {
     public const string PARAM_FROM_LOGIN = 'fromLogin';
@@ -47,7 +51,7 @@ abstract class BackendView extends BaseView
         BackendViewContext $context,
         bool $forceLogout = false,
         InputParameterCollection $inputParameterCollection = new InputParameterCollection(),
-        string $requiredViewGroupName = ActraBackend::viewGroup,
+        string $requiredViewGroupName = ActraBackend::VIEW_GROUP,
         int $maxAllowedPathVars = 0,
         private readonly array $activeHtmlIdList = [],
         private readonly bool $useNavigator = false,
@@ -102,6 +106,7 @@ abstract class BackendView extends BaseView
                 if (!in_array(
                     needle: $ipAddress,
                     haystack: $ipWhitelist,
+                    strict: true,
                 )) {
                     $ipWhitelist[] = $ipAddress;
                 }
@@ -138,6 +143,7 @@ abstract class BackendView extends BaseView
 
     abstract protected static function getRequiredAccessRights(): AccessRightCollection;
 
+    #[\Override]
     public function execute(): void
     {
         if ($this->backendContext->actraBackend->getAuthSession()->isLoggedIn()) {

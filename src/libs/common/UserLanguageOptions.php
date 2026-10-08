@@ -18,6 +18,8 @@ use Locale;
 
 /**
  * The languages a backend user can choose from (the languages of the backend routes) with their display names.
+ *
+ * @internal
  */
 final readonly class UserLanguageOptions
 {
@@ -66,8 +68,10 @@ final readonly class UserLanguageOptions
     public function getDisplayName(string $languageCode): string
     {
         // false only for an invalid locale; the code is the best remaining label
-        $name = Locale::getDisplayLanguage(locale: $languageCode, displayLocale: $this->displayLocale)
-            ?: $languageCode;
+        $name = Locale::getDisplayLanguage(locale: $languageCode, displayLocale: $this->displayLocale);
+        if ($name === false) {
+            $name = $languageCode;
+        }
 
         return mb_convert_case(string: mb_substr(string: $name, start: 0, length: 1), mode: MB_CASE_TITLE)
             . mb_substr(string: $name, start: 1);

@@ -21,7 +21,10 @@ use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 
-class tokens extends BackendView
+/**
+ * @internal
+ */
+final class tokens extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -52,6 +55,7 @@ class tokens extends BackendView
         return ActraBackend::path() . ($userID === null ? 'tokens.html' : 'tokens-' . $userID . '.html');
     }
 
+    #[\Override]
     public static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -59,11 +63,13 @@ class tokens extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->log->tokensPageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->getPathVar(nr: 1) !== null) {

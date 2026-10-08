@@ -16,6 +16,8 @@ use actra\yuf\html\HtmlText;
 
 /**
  * Checks a new password and its confirmation (minimum length, both equal) and adds the error to the wrong field.
+ *
+ * @internal
  */
 final readonly class NewPasswordCheck
 {

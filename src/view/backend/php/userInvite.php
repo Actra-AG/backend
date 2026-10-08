@@ -20,7 +20,10 @@ use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class userInvite extends BackendView
+/**
+ * @internal
+ */
+final class userInvite extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -35,6 +38,7 @@ class userInvite extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -42,11 +46,13 @@ class userInvite extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->user->inviteTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = DbAuthUserRepository::selectByID(ID: $this->getRequiredPathVarAsInt(nr: 1));
@@ -72,9 +78,9 @@ class userInvite extends BackendView
             identifier: 'recipientLabel',
             htmlText: HtmlText::fromText(text: $messages->recipientLabel),
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'recipient',
-            html: $dbAuthUser->email,
+            text: $dbAuthUser->email,
         );
         $replacements->addHtml(
             identifier: 'form',

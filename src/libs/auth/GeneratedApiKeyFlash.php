@@ -14,6 +14,8 @@ use actra\yuf\session\Session;
 /**
  * Keeps a newly generated API key in the session until the page after the POST redirect has shown it once. The key
  * is never stored in plain text anywhere else, so it must not be put into the redirect URL.
+ *
+ * @internal
  */
 final class GeneratedApiKeyFlash
 {

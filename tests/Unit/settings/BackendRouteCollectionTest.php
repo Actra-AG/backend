@@ -43,7 +43,11 @@ final class BackendRouteCollectionTest extends TestCase
     public function testRouteUsesGivenTexts(): void
     {
         $messages = BackendMessages::english();
-        $route = new BackendRoute(path: '/b/', language: new Language(code: 'de', locale: 'de_CH'), messages: $messages);
+        $route = new BackendRoute(
+            path: '/b/',
+            language: new Language(code: 'de', locale: 'de_CH'),
+            messages: $messages,
+        );
 
         $this->assertSame($messages, $route->messages);
     }

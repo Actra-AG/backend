@@ -22,7 +22,10 @@ use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 
-class users extends BackendView
+/**
+ * @internal
+ */
+final class users extends BackendView
 {
     public const string PARAM_REMOVED = 'removed';
 
@@ -63,6 +66,7 @@ class users extends BackendView
         return ActraBackend::path() . 'users.html';
     }
 
+    #[\Override]
     public static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -70,11 +74,13 @@ class users extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->user->usersTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $userSearchForm = new UserSearchForm(context: $this->backendContext);

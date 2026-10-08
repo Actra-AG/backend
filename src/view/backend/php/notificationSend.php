@@ -19,7 +19,10 @@ use actra\yuf\core\HttpResponse;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
-class notificationSend extends BackendView
+/**
+ * @internal
+ */
+final class notificationSend extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -33,6 +36,7 @@ class notificationSend extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -40,19 +44,22 @@ class notificationSend extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->notification->sendTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $replacements = $htmlDocument->replacements;
         $notificationSendForm = new NotificationSendForm(context: $this->backendContext);
-        if ($notificationSendForm->process()) {
+        $notificationID = $notificationSendForm->process();
+        if ($notificationID !== null) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: notification::getPath(
-                    ID: $notificationSendForm->notificationID,
+                    ID: $notificationID,
                 ) . '?' . notification::PARAM_SENT,
                 httpRequest: $this->context->httpRequest,
             );

@@ -16,7 +16,7 @@ use actra\yuf\auth\SecretTokenHash;
  * An API key of a user. Keys since v1.11.0 are stored as `SecretTokenHash` (SHA-256 of the random secret, checked on
  * every API request); older keys keep their `Password` hash until they are generated again.
  */
-readonly class DbAuthApiKey
+final readonly class DbAuthApiKey
 {
     public function __construct(
         public int $userID,

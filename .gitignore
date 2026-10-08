@@ -13,7 +13,6 @@
 !/composer.json
 !/LICENSE
 !/phpstan.neon
-!/phpstan-baseline.neon
 !/phpunit.xml
 !/README.md
 !/UPGRADE.md

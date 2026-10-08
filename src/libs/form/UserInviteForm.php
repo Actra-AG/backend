@@ -21,6 +21,9 @@ use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class UserInviteForm extends Form
 {
     private readonly TextField $subjectField;

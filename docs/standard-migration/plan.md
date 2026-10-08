@@ -77,13 +77,9 @@ modified from this repository). Steps that change views, templates or HTML are c
 | 8  | ^4.37 | Passwords (`dbUpdatePassword()`), API keys with `SecretTokenHash`, tables  | medium | direct | v1.11.0 |
 | 9  | –     | merged into step 10                                                        | –      | –      | –       |
 | 10 | ~4.57 | yuf v4.38–v4.57.3 (former steps 9 and 10)                                  | medium | direct | v1.12.0 |
-| 11 | ^4.57 | Empty baseline, line lengths, no superglobals rule, constant names         | small  | direct | v1.13.0 |
-| 12 | ^4.57 | `final`, extension points, `@internal`                                     | medium | direct | v1.14.0 |
-| 13 | ^4.57 | Interfaces without suffix                                                  | small  | direct | v1.15.0 |
-| 14 | ^4.57 | No static `ActraBackend`: messages, path, navigation in the context        | large  | direct | v1.16.0 |
-| 15 | ^4.57 | Repositories, `DB`, current user, mailer as services                       | large  | direct | v1.17.0 |
-| 16 | ^4.57 | Acronyms of the backend API (`ID` → `id`, …)                               | large  | Sonnet | v1.18.0 |
-| 17 | ^4.57 | snake_case database tables and columns                                     | large  | Sonnet | v1.19.0 |
+| A  | ~4.57 | Empty baseline, lines, superglobals rule, `final`, interfaces, i18n (11–13) | medium | direct | v1.13.0 |
+| B  | ~4.57 | No static state: services in `BackendViewContext` (former 14 and 15)        | large  | direct | v1.14.0 |
+| C  | ~4.57 | Acronyms and snake_case database in one go (former 16 and 17)              | large  | direct | v1.15.0 |
 
 `^4.57` in the table means `^4.57.3` (the current yuf release). "Sonnet" marks the only steps that are long, mechanical and self-contained enough for a separate session; the main
 session decides again when the step starts. The release numbers are the expected order; a major version (v2.0.0) for
@@ -256,6 +252,11 @@ depend on these versions and follows as its own step.
 
 ## Open points
 
+- Dates with `IntlDateFormatter` instead of the per-language patterns of the messages (needs own table columns).
+- Token login (the standard login): an unknown email address answers without sending an email, so the response time
+  can tell whether an address exists; sending the email after the response (e.g. `fastcgi_finish_request()` or a
+  queue) would close it.
+
 - Microsoft Graph mailer (yuf v4.56): `Mailer` supports SMTP only; Microsoft 365 no longer allows SMTP basic auth.
 - `DBTest` against SQLite (`DbConnectionParameters`, yuf v4.34) instead of skipping without MariaDB.
 - Major version for the final state (v2.0.0) instead of v1.23.0.
@@ -394,4 +395,25 @@ depend on these versions and follows as its own step.
   `init()`; `BackendViewFactoryTest` found the error. `BackendNavigationInterface` and README say "once per request".
 - Transition code removed: the Argon2id case of the API keys.
 - 105 tests, baseline 111 → 110 entries.
+
+### Step A – done (2026-10-08, former steps 11–13)
+
+- Decision 2026-10-08: steps 11–13, 14–15 and 16–17 become the three releases A, B and C (no project uses the
+  intermediate releases).
+- PHPStan baseline empty and removed (94 `#[\Override]` by script from the PHPStan output, 16 errors by hand:
+  `in_array(strict:)`, short ternaries, `current()` / missing keys of the collections throw, `JSON_THROW_ON_ERROR`,
+  `UserAddForm::process()` and `NotificationSendForm::process()` return the new ID, `LoginForm` sends the token
+  without a misleading `bool`). `phpstan-no-superglobals.neon` included, no exception needed.
+- Lines ≤ 120 in `src/` and `tests/`: texts of the message classes split by script (same strings), SQL sub-selects,
+  SVG path, the rest by hand. `phpunit.xml` ends with a newline.
+- `final` for 65 classes, `@internal` for 59 (views, backend forms, tables, emails, language helpers,
+  `MyAuthenticator`, `GeneratedApiKeyFlash`); extension points `BackendView`, `AbstractTable`, `AbstractSearchForm`
+  with PHPDoc. `ActraBackend::VIEW_GROUP`; interfaces `UserDeleteHandler`, `BackendNavigation`.
+- i18n: full names from the message `CommonMessages::$fullName` (`[firstName] [lastName]`, also in tables and the
+  notification details), select labels from `$userOption`. Dates keep their per-language patterns in the messages
+  (yuf's `DateColumn` takes PHP date patterns); `IntlDateFormatter` would need own table columns, open point.
+- Security: group titles and the user labels of the notification form were raw HTML (`fromHtml()`), the user data on
+  the user detail page and the invite recipient raw replacements (`addHtml()`); now escaped.
+- `AuthTokenTypeEnum::ACTIVATION->createAndSend()` throws a `LogicException` with an explanation.
+- 105 tests, `ddev composer check` green.
 

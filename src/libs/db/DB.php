@@ -18,7 +18,7 @@ use actra\yuf\db\FrameworkDb;
 use LogicException;
 use PDOException;
 
-class DB extends FrameworkDb
+final class DB extends FrameworkDb
 {
     private static ?DB $instance = null;
 

@@ -17,6 +17,9 @@ use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class LoginTokenForm extends Form
 {
     private readonly TextField $tokenField;

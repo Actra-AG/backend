@@ -1,7 +1,6 @@
 includes:
     - vendor/actra/coding-standard/config/phpstan.neon
-    # Only for legacy code, may only shrink
-    - phpstan-baseline.neon
+    - vendor/actra/coding-standard/config/phpstan-no-superglobals.neon
 
 parameters:
     phpVersion: 80500

@@ -12,8 +12,9 @@ namespace actra\backend\libs\db;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlText;
+use OutOfBoundsException;
 
-class DbAuthGroupCollection
+final class DbAuthGroupCollection
 {
     /** @var array<int, DbAuthGroup> */
     public private(set) array $items = [];
@@ -31,7 +32,7 @@ class DbAuthGroupCollection
         foreach ($this->items as $dbAuthGroup) {
             $formOptions->addItem(
                 key: (string) $dbAuthGroup->ID,
-                htmlText: HtmlText::fromHtml(html: $dbAuthGroup->title),
+                htmlText: HtmlText::fromText(text: $dbAuthGroup->title),
             );
         }
 
@@ -66,10 +67,14 @@ class DbAuthGroupCollection
 
     public function get(int $ID): DbAuthGroup
     {
+        if (!array_key_exists(key: $ID, array: $this->items)) {
+            throw new OutOfBoundsException(message: 'No DbAuthGroup with the ID ' . $ID . ' in the collection.');
+        }
+
         return $this->items[$ID];
     }
 
-    public function render(): ?HtmlDataObjectCollection
+    public function render(): HtmlDataObjectCollection
     {
         $userGroups = new HtmlDataObjectCollection();
         foreach ($this->items as $dbAuthGroup) {

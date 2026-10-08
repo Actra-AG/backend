@@ -11,6 +11,8 @@ namespace actra\backend\libs\common;
 
 /**
  * One language of the language switcher: a link to the same page under the route of that language.
+ *
+ * @internal
  */
 final readonly class LanguageSwitcherEntry
 {

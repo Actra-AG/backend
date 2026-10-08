@@ -11,7 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\db\DbQuery;
 
-class DbAuthUserNotificationRecipientRepository
+final class DbAuthUserNotificationRecipientRepository
 {
     public static function getDbQuery(): DbQuery
     {

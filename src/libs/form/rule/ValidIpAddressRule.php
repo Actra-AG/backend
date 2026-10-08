@@ -31,6 +31,7 @@ final class ValidIpAddressRule extends StringRule
         $this->errorMessageTemplate = $errorMessage;
     }
 
+    #[\Override]
     public function validate(string $value): bool
     {
         if (IpValidator::validate(input: $value, ipType: IpTypeEnum::IP)) {

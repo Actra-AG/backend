@@ -24,6 +24,9 @@ use actra\yuf\table\table\DbResultTable;
 use actra\yuf\table\table\SmartTable;
 use LogicException;
 
+/**
+ * Extension point: the base of the tables of the backend and of the project tables in the backend layout.
+ */
 abstract class AbstractTable extends DbResultTable
 {
     protected readonly BackendViewContext $backendContext;

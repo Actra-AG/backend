@@ -51,6 +51,7 @@ final class IpWhitelistField extends TextAreaField
     /**
      * The order of the addresses, empty lines and surrounding whitespace do not matter.
      */
+    #[\Override]
     public function valueHasChanged(): bool
     {
         $ipAddresses = $this->getValues();

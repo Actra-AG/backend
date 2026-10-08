@@ -20,6 +20,9 @@ use actra\yuf\form\component\FormControl;
 use actra\yuf\form\settings\PasswordPurposeEnum;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class PasswordResetForm extends Form
 {
     private readonly PasswordField $newPasswordField;

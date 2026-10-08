@@ -19,6 +19,8 @@ use actra\yuf\html\HtmlText;
 
 /**
  * Generates (or replaces) the API key of a user. The new key is kept in the session until it has been shown once.
+ *
+ * @internal
  */
 final class ApiKeyGenerateForm extends Form
 {

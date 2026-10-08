@@ -25,7 +25,8 @@ final readonly class ProfileMessages
         public string $ipWhitelistInfo = 'One IP address per line. Make sure not to exclude your current IP address.',
         public string $currentIpMustBeAllowed = 'The IP whitelist must allow your current IP address [ipAddress].',
         public string $passwordProtectionHeading = 'Password protection',
-        public string $passwordProtectionIntro = 'In addition to the one-time code sent by email, you can protect your access to the backend with a password.',
+        public string $passwordProtectionIntro = 'In addition to the one-time code sent by email, you can protect your '
+            . 'access to the backend with a password.',
         public string $createPasswordLink = 'Create password',
         public string $passwordLoginIntro = 'Password login uses a separate login page:',
         public string $passwordLabel = 'Password',
@@ -42,10 +43,12 @@ final readonly class ProfileMessages
             changePasswordPageTitle: 'Passwort ändern',
             createPasswordPageTitle: 'Passwort erstellen',
             removePasswordPageTitle: 'Passwort entfernen',
-            ipWhitelistInfo: 'Eine IP-Adresse pro Zeile. Achten Sie darauf, Ihre aktuelle IP-Adresse nicht auszuschliessen.',
+            ipWhitelistInfo: 'Eine IP-Adresse pro Zeile. Achten Sie darauf, Ihre aktuelle IP-Adresse nicht '
+                . 'auszuschliessen.',
             currentIpMustBeAllowed: 'Die IP-Whitelist muss Ihre aktuelle IP-Adresse [ipAddress] erlauben.',
             passwordProtectionHeading: 'Passwortschutz',
-            passwordProtectionIntro: 'Zusätzlich zum per E-Mail verschickten Einmalcode können Sie Ihren Zugang ins GUI mit einem Passwort schützen.',
+            passwordProtectionIntro: 'Zusätzlich zum per E-Mail verschickten Einmalcode können Sie Ihren Zugang ins '
+                . 'GUI mit einem Passwort schützen.',
             createPasswordLink: 'Passwort erstellen',
             passwordLoginIntro: 'Die Anmeldung mit Passwort erfolgt über eine separate Anmeldemaske:',
             passwordLabel: 'Passwort',

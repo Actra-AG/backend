@@ -13,7 +13,7 @@ use actra\backend\libs\auth\MyAuthUser;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
 
-class DbAuthUserNotificationRepository
+final class DbAuthUserNotificationRepository
 {
     public static function getDbQuery(): DbQuery
     {
@@ -28,7 +28,10 @@ class DbAuthUserNotificationRepository
                        auth_group.title AS groupName,
                        auth_user.firstName,
                        auth_user.lastName,
-                       (SELECT COUNT(ID) FROM auth_user_notification_recipient WHERE auth_user_notification_recipient.notificationID=auth_user_notification.ID) AS recipients
+                       (SELECT COUNT(ID)
+                           FROM auth_user_notification_recipient
+                           WHERE auth_user_notification_recipient.notificationID=auth_user_notification.ID
+                       ) AS recipients
                 FROM auth_user_notification
                     INNER JOIN auth_group ON auth_user_notification.authGroupID = auth_group.ID
                     INNER JOIN auth_user ON auth_user.ID = auth_user_notification.sentByID

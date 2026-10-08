@@ -16,7 +16,7 @@ use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
 
-class DbAuthUserRepository
+final class DbAuthUserRepository
 {
     public static function getDbQuery(): DbQuery
     {
@@ -29,16 +29,26 @@ class DbAuthUserRepository
                        auth_user.email,
                        auth_user.phone,
                        auth_user.active,
-                       (SELECT GROUP_CONCAT(auth_group_right.rightName) FROM auth_group_right WHERE auth_group_right.groupID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS accessRights,
+                       (SELECT GROUP_CONCAT(auth_group_right.rightName)
+                           FROM auth_group_right
+                           WHERE auth_group_right.groupID IN (SELECT groupID
+                               FROM auth_user_group
+                               WHERE userID=auth_user.ID)) AS accessRights,
                        auth_user.firstName,
                        auth_user.lastName,
                        auth_user.language,
                        auth_user.passwordSalt,
                        auth_user.passwordHash,
                        auth_user.wrongLoginAttempts,
-                       (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\') FROM auth_group WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=auth_user.ID)) AS rightGroups,
+                       (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\')
+                           FROM auth_group
+                           WHERE auth_group.ID IN (SELECT groupID
+                               FROM auth_user_group
+                               WHERE userID=auth_user.ID)) AS rightGroups,
                        CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName,
-                       (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress) FROM auth_ipWhitelist WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
+                       (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress)
+                           FROM auth_ipWhitelist
+                           WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
                 FROM auth_user
             ',
         );

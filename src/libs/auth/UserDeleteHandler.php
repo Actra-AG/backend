@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\auth;
 
-interface UserDeleteHandlerInterface
+interface UserDeleteHandler
 {
     public function beforeDeleteUser(int $userID): void;
 }

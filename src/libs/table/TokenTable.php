@@ -22,7 +22,10 @@ use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
 use UnexpectedValueException;
 
-class TokenTable extends AbstractTable
+/**
+ * @internal
+ */
+final class TokenTable extends AbstractTable
 {
     public function __construct(
         BackendViewContext $context,
@@ -51,7 +54,8 @@ class TokenTable extends AbstractTable
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_token.token auth_token.registeredClient auth_token.claimedClient',
+                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_token.token '
+                    . 'auth_token.registeredClient auth_token.claimedClient',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(

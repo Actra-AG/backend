@@ -17,7 +17,7 @@ use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\email\EmailLoginToken;
 use actra\backend\libs\email\EmailPasswordResetLink;
 use actra\yuf\session\Session;
-use Exception;
+use LogicException;
 
 enum AuthTokenTypeEnum: string
 {
@@ -65,7 +65,10 @@ enum AuthTokenTypeEnum: string
                 token: $token,
                 expirationInMinutes: $this->getExpirationInMinutes(),
             ),
-            AuthTokenTypeEnum::ACTIVATION => throw new Exception(message: 'To be implemented'),
+            AuthTokenTypeEnum::ACTIVATION => throw new LogicException(
+                message: 'The backend sends no activation tokens; projects that use AuthTokenTypeEnum::ACTIVATION '
+                    . 'send them.',
+            ),
         };
     }
 

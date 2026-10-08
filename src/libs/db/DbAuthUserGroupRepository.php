@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-class DbAuthUserGroupRepository
+final class DbAuthUserGroupRepository
 {
     public static function insert(
         int $userID,

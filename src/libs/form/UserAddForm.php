@@ -29,9 +29,11 @@ use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class UserAddForm extends Form
 {
-    public private(set) int $newUserID;
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
     private readonly EmailField $emailField;
@@ -125,17 +127,20 @@ final class UserAddForm extends Form
         );
     }
 
-    public function process(): bool
+    /**
+     * @return ?int The ID of the new user, `null` if the form was not sent or is invalid
+     */
+    public function process(): ?int
     {
         if (!parent::validate()) {
-            return false;
+            return null;
         }
         if (DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString()) !== null) {
             $this->addError(
                 errorMessage: HtmlText::fromText(text: ActraBackend::messages()->common->emailAlreadyInUse),
             );
 
-            return false;
+            return null;
         }
         $newUserID = DbAuthUserRepository::insert(
             registeredById: MyAuthUser::get()->id,
@@ -158,8 +163,7 @@ final class UserAddForm extends Form
                 ipAddress: $ip,
             );
         }
-        $this->newUserID = $newUserID;
 
-        return true;
+        return $newUserID;
     }
 }

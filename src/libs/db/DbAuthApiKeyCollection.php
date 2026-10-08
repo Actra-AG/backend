@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-class DbAuthApiKeyCollection
+use LogicException;
+
+final class DbAuthApiKeyCollection
 {
     /** @var DbAuthApiKey[] $items */
     public private(set) array $items = [];
@@ -28,6 +30,11 @@ class DbAuthApiKeyCollection
 
     public function getFirst(): DbAuthApiKey
     {
-        return current(array: $this->items);
+        $first = current(array: $this->items);
+        if ($first === false) {
+            throw new LogicException(message: 'The collection is empty.');
+        }
+
+        return $first;
     }
 }

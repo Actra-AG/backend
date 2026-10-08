@@ -18,7 +18,10 @@ use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 
-class notifications extends BackendView
+/**
+ * @internal
+ */
+final class notifications extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -48,6 +51,7 @@ class notifications extends BackendView
         return ActraBackend::path() . 'notifications.html';
     }
 
+    #[\Override]
     public static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -55,11 +59,13 @@ class notifications extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->notification->title);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $replacements = $htmlDocument->replacements;

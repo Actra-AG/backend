@@ -9,10 +9,14 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlText;
+use LogicException;
+use OutOfBoundsException;
 
-class DbAuthUserCollection
+final class DbAuthUserCollection
 {
     /** @var DbAuthUser[] $items */
     public private(set) array $items = [];
@@ -31,7 +35,12 @@ class DbAuthUserCollection
 
     public function first(): DbAuthUser
     {
-        return current(array: $this->items);
+        $first = current(array: $this->items);
+        if ($first === false) {
+            throw new LogicException(message: 'The collection is empty.');
+        }
+
+        return $first;
     }
 
     public function getFormOptions(): FormOptions
@@ -40,8 +49,11 @@ class DbAuthUserCollection
         foreach ($this->items as $dbAuthUser) {
             $formOptions->addItem(
                 key: (string) $dbAuthUser->ID,
-                htmlText: HtmlText::fromHtml(
-                    html: $dbAuthUser->email . ' (' . $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName . ')',
+                htmlText: HtmlText::fromText(
+                    text: MessageTemplate::fill(
+                        template: ActraBackend::messages()->common->userOption,
+                        values: ['email' => $dbAuthUser->email, 'name' => $dbAuthUser->renderFullName()],
+                    ),
                 ),
             );
         }
@@ -55,6 +67,10 @@ class DbAuthUserCollection
 
     public function get(int $userID): DbAuthUser
     {
+        if (!array_key_exists(key: $userID, array: $this->items)) {
+            throw new OutOfBoundsException(message: 'No DbAuthUser with the ID ' . $userID . ' in the collection.');
+        }
+
         return $this->items[$userID];
     }
 }

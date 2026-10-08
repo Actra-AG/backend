@@ -19,6 +19,9 @@ use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextField;
 use LogicException;
 
+/**
+ * Extension point: the base of the search forms of the backend tables and of the project tables.
+ */
 abstract class AbstractSearchForm extends Form
 {
     public readonly SearchState $searchState;

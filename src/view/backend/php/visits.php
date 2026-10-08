@@ -21,7 +21,10 @@ use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 
-class visits extends BackendView
+/**
+ * @internal
+ */
+final class visits extends BackendView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -52,6 +55,7 @@ class visits extends BackendView
         return ActraBackend::path() . ($userID === null ? 'visits.html' : 'visits-' . $userID . '.html');
     }
 
+    #[\Override]
     public static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -59,11 +63,13 @@ class visits extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->log->visitsPageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->getPathVar(nr: 1) !== null) {

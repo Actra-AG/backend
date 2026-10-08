@@ -25,7 +25,10 @@ use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
 use actra\yuf\html\HtmlText;
 
-class profile extends BackendView
+/**
+ * @internal
+ */
+final class profile extends BackendView
 {
     public const string PARAM_CHANGED = 'changed';
 
@@ -48,6 +51,7 @@ class profile extends BackendView
         );
     }
 
+    #[\Override]
     protected static function getRequiredAccessRights(): AccessRightCollection
     {
         return AccessRightCollection::createFromStringArray(input: [
@@ -55,11 +59,13 @@ class profile extends BackendView
         ]);
     }
 
+    #[\Override]
     protected function getPageTitle(): HtmlText
     {
         return HtmlText::fromText(text: ActraBackend::messages()->profile->profilePageTitle);
     }
 
+    #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = MyAuthUser::get()->dbAuthUser;

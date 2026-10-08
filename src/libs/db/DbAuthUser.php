@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\MessageTemplate;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\html\HtmlDataObject;
@@ -18,7 +19,7 @@ use actra\yuf\phone\PhoneNumber;
 use actra\yuf\phone\PhoneRenderer;
 use DateTimeImmutable;
 
-readonly class DbAuthUser
+final readonly class DbAuthUser
 {
     /** @var list<string> */
     public array $ipWhitelist;
@@ -62,6 +63,14 @@ readonly class DbAuthUser
     public function isInvited(): bool
     {
         return $this->invitedDate !== null;
+    }
+
+    public function renderFullName(): string
+    {
+        return MessageTemplate::fill(
+            template: ActraBackend::messages()->common->fullName,
+            values: ['firstName' => $this->firstName, 'lastName' => $this->lastName],
+        );
     }
 
     public function renderLastLogin(): string

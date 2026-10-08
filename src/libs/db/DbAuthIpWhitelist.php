@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-readonly class DbAuthIpWhitelist
+final readonly class DbAuthIpWhitelist
 {
     public function __construct(
         public int $ID,

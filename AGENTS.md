@@ -86,4 +86,3 @@ consuming projects:
   constructor injection; outside views they take request and session from `ActraBackend::get()->getViewContext()`.
   They move into `BackendViewContext` step by step (plan steps 14 and 15).
 - Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.
-- Interfaces with `Interface` suffix, classes that are not `final`.

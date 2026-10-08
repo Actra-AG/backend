@@ -24,12 +24,14 @@ use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
+/**
+ * @internal
+ */
 final class NotificationSendForm extends Form
 {
     private readonly SelectOptionsField $authUserGroupField;
     private readonly TextField $subjectField;
     private readonly TextAreaField $messageField;
-    public private(set) int $notificationID;
 
     public function __construct(BackendViewContext $context)
     {
@@ -85,15 +87,18 @@ final class NotificationSendForm extends Form
         );
     }
 
-    public function process(): bool
+    /**
+     * @return ?int The ID of the sent notification, `null` if the form was not sent or is invalid
+     */
+    public function process(): ?int
     {
         if (!parent::validate()) {
-            return false;
+            return null;
         }
         $authGroupID = (int) $this->authUserGroupField->getValueAsString();
         $subject = $this->subjectField->getValueAsString();
         $message = $this->messageField->getValueAsString();
-        $this->notificationID = DbAuthUserNotificationRepository::insert(
+        $notificationID = DbAuthUserNotificationRepository::insert(
             authGroupID: $authGroupID,
             subject: $subject,
             message: $message,
@@ -115,13 +120,13 @@ final class NotificationSendForm extends Form
                 ),
             );
             DbAuthUserNotificationRecipientRepository::insert(
-                notificationID: $this->notificationID,
+                notificationID: $notificationID,
                 authUserID: $dbAuthUser->ID,
                 email: $dbAuthUser->email,
             );
             sleep(seconds: 1);
         }
 
-        return true;
+        return $notificationID;
     }
 }

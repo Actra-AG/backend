@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-class DbAuthUserNotificationCollection
+use LogicException;
+
+final class DbAuthUserNotificationCollection
 {
     /** @var DbAuthUserNotification[] $items */
     public private(set) array $items = [];
@@ -28,6 +30,11 @@ class DbAuthUserNotificationCollection
 
     public function first(): DbAuthUserNotification
     {
-        return current(array: $this->items);
+        $first = current(array: $this->items);
+        if ($first === false) {
+            throw new LogicException(message: 'The collection is empty.');
+        }
+
+        return $first;
     }
 }

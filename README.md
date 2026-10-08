@@ -363,6 +363,9 @@ If the bearer token is missing, malformed, unknown, or invalid, an `Unauthorized
 
 ### Integration Tests
 
+The general setup of PHPStan and the PHPUnit bootstrap for projects using yuf (and therefore the backend) is described
+in yuf's README, section [Static analysis and tests](https://github.com/Actra-AG/yuf#static-analysis-and-tests).
+
 `DB::get()` creates its connection from `ActraBackend::get()->dbSettings`. Integration tests that run without
 `ActraBackend::init()` set the connection explicitly with `DB::useConnection()`, once per process, before the first
 `DB::get()`. It returns the same instance as `DB::get()`, so all repositories use it. A second call throws a

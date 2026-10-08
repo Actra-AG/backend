@@ -47,8 +47,8 @@ This project follows the Actra coding standard, installed as development depende
 ### Dependencies and tooling
 
 - Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`.
-- yuf has no Composer autoload configuration: `tests/bootstrap.php` loads its classes with `actra/autoloader`, and
-  `phpstan.neon` makes them known with `scanDirectories: vendor/actra/yuf/src`.
+- PHPStan and PHPUnit find the yuf classes as described in yuf's README, section "Static analysis and tests"
+  (https://github.com/Actra-AG/yuf#static-analysis-and-tests).
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).

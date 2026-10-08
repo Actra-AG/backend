@@ -3,6 +3,13 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.8.1 (2026-10-08)
+
+### README links the yuf setup of static analysis and tests
+
+Documentation only: the README, section "Integration Tests", links yuf's README, section "Static analysis and tests"
+(PHPStan `scanDirectories`, PHPUnit bootstrap with `actra/autoloader`). No code change needed.
+
 ## v1.8.0 (2026-10-08)
 
 ### ⚠️ Requires `actra/yuf` `^4.15`

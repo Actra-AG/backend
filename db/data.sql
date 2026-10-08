@@ -25,7 +25,7 @@ TRUNCATE TABLE `auth_group`;
 -- Daten für Tabelle `auth_group`
 --
 
-INSERT INTO `auth_group` (`ID`, `title`)
+INSERT INTO `auth_group` (`id`, `title`)
 VALUES (1, 'Administrator');
 
 --
@@ -37,15 +37,15 @@ TRUNCATE TABLE `auth_group_right`;
 -- Daten für Tabelle `auth_group_right`
 --
 
-INSERT INTO `auth_group_right` (`ID`, `groupID`, `rightName`)
+INSERT INTO `auth_group_right` (`id`, `group_id`, `right_name`)
 VALUES (1, 1, 'backend_access'),
        (2, 1, 'manage_users');
 
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_ipWhitelist`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_ip_whitelist`
 --
 
-TRUNCATE TABLE `auth_ipWhitelist`;
+TRUNCATE TABLE `auth_ip_whitelist`;
 --
 -- TRUNCATE Tabelle vor dem Einfügen `auth_api_key`
 --
@@ -88,8 +88,8 @@ TRUNCATE TABLE `auth_user`;
 -- Daten für Tabelle `auth_user`
 --
 
-INSERT INTO `auth_user` (`ID`, `registeredByID`, `registered`, `invited`, `email`, `phone`, `firstName`, `lastName`,
-                         `active`, `lastSuccessfulLogin`)
+INSERT INTO `auth_user` (`id`, `registered_by_id`, `registered`, `invited`, `email`, `phone`, `first_name`, `last_name`,
+                         `active`, `last_successful_login`)
 VALUES (1, NULL, NOW(), null, 'admin@actra.ch', '', 'Admin', 'User', 1, NULL);
 
 --
@@ -101,7 +101,7 @@ TRUNCATE TABLE `auth_user_group`;
 -- Daten für Tabelle `auth_user_group`
 --
 
-INSERT INTO `auth_user_group` (`ID`, `userID`, `groupID`)
+INSERT INTO `auth_user_group` (`id`, `user_id`, `group_id`)
 VALUES (1, 1, 1);
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;

@@ -63,7 +63,7 @@ final class MyAuthenticator extends Authenticator
         }
         $this->user = new MyAuthUser(
             dbAuthUser: $dbAuthUser,
-            parentSessionID: null,
+            parentSessionId: null,
             repositories: $this->context->repositories,
             clientData: $this->context->clientData,
         );
@@ -79,8 +79,8 @@ final class MyAuthenticator extends Authenticator
         AuthResultEnum $authResult,
     ): void {
         $this->context->repositories->logins()->insert(
-            userID: $userId,
-            sessionID: $sessionId,
+            userId: $userId,
+            sessionId: $sessionId,
             ipAddress: $ip,
             inputEmail: $userName,
             authResult: $authResult,

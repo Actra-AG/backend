@@ -22,8 +22,8 @@ final class DbAuthApiKeyTest extends TestCase
     private function createApiKey(string $salt, string $hash): DbAuthApiKey
     {
         return new DbAuthApiKey(
-            userID: 5,
-            publicID: 'ABC123',
+            userId: 5,
+            publicId: 'ABC123',
             key: DbAuthApiKeyRepository::createKeyHash(salt: $salt, hash: $hash),
         );
     }

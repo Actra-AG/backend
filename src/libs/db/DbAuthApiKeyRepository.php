@@ -29,9 +29,9 @@ final class DbAuthApiKeyRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-                SELECT auth_api_key.userID,
-                       auth_api_key.publicID,
-                       auth_api_key.apiKey,
+                SELECT auth_api_key.user_id,
+                       auth_api_key.public_id,
+                       auth_api_key.api_key,
                        auth_api_key.salt
                 FROM auth_api_key
             ',
@@ -41,11 +41,11 @@ final class DbAuthApiKeyRepository
     private function createItem(DbRow $row): DbAuthApiKey
     {
         return new DbAuthApiKey(
-            userID: $row->getInt(column: 'userID'),
-            publicID: $row->getString(column: 'publicID'),
+            userId: $row->getInt(column: 'user_id'),
+            publicId: $row->getString(column: 'public_id'),
             key: DbAuthApiKeyRepository::createKeyHash(
                 salt: $row->getString(column: 'salt'),
-                hash: $row->getString(column: 'apiKey'),
+                hash: $row->getString(column: 'api_key'),
             ),
         );
     }
@@ -80,20 +80,20 @@ final class DbAuthApiKeyRepository
         return $dbAuthApiKeyCollection;
     }
 
-    private function selectByPublicID(string $publicID): ?DbAuthApiKey
+    private function selectByPublicId(string $publicId): ?DbAuthApiKey
     {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_api_key.publicID=?',
+            wherePart: 'auth_api_key.public_id=?',
             parameters: [
-                $publicID,
+                $publicId,
             ],
         );
         $dbAuthApiKeyCollection = $this->select(dbQuery: $dbQuery);
         return $dbAuthApiKeyCollection->isEmpty() ? null : $dbAuthApiKeyCollection->getFirst();
     }
 
-    public function getUserIDForBearerOrThrow(HttpRequest $httpRequest): int
+    public function getUserIdForBearerOrThrow(HttpRequest $httpRequest): int
     {
         $bearer = $httpRequest->getBearerToken();
         if ($bearer === null) {
@@ -103,8 +103,8 @@ final class DbAuthApiKeyRepository
         if ($apiKeyParts === null) {
             throw new UnauthorizedException();
         }
-        $dbAuthApiKey = $this->selectByPublicID(
-            publicID: $apiKeyParts['publicID'],
+        $dbAuthApiKey = $this->selectByPublicId(
+            publicId: $apiKeyParts['publicId'],
         );
         if ($dbAuthApiKey === null) {
             throw new UnauthorizedException();
@@ -112,11 +112,11 @@ final class DbAuthApiKeyRepository
         if (!$dbAuthApiKey->isValid(secret: $apiKeyParts['secret'])) {
             throw new UnauthorizedException();
         }
-        return $dbAuthApiKey->userID;
+        return $dbAuthApiKey->userId;
     }
 
     /**
-     * @return array{publicID: string, secret: string}|null
+     * @return array{publicId: string, secret: string}|null
      */
     private function parseBearer(string $bearer): ?array
     {
@@ -138,55 +138,55 @@ final class DbAuthApiKeyRepository
         }
 
         return [
-            'publicID' => $parts[2],
+            'publicId' => $parts[2],
             'secret' => $parts[3],
         ];
     }
 
-    public function hasByUserID(int $userID): bool
+    public function hasByUserId(int $userId): bool
     {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_api_key.userID=?',
-            parameters: [$userID],
+            wherePart: 'auth_api_key.user_id=?',
+            parameters: [$userId],
         );
         $dbAuthApiKeyCollection = $this->select(dbQuery: $dbQuery);
         return $dbAuthApiKeyCollection->isEmpty() === false;
     }
 
-    private function createPublicID(): string
+    private function createPublicId(): string
     {
         do {
-            $publicID = '';
+            $publicId = '';
             for ($i = 0; $i < DbAuthApiKeyRepository::PUBLIC_ID_BYTES; $i++) {
-                $publicID .= DbAuthApiKeyRepository::PUBLIC_ID_CHARS[random_int(
+                $publicId .= DbAuthApiKeyRepository::PUBLIC_ID_CHARS[random_int(
                     min: 0,
                     max: strlen(string: DbAuthApiKeyRepository::PUBLIC_ID_CHARS) - 1,
                 )];
             }
-        } while ($this->selectByPublicID(publicID: $publicID) !== null);
+        } while ($this->selectByPublicId(publicId: $publicId) !== null);
 
-        return $publicID;
+        return $publicId;
     }
 
-    public function createForUserID(int $userID): string
+    public function createForUserId(int $userId): string
     {
-        $publicID = $this->createPublicID();
+        $publicId = $this->createPublicId();
         $secret = bin2hex(string: random_bytes(length: DbAuthApiKeyRepository::SECRET_BYTES));
-        $apiKey = DbAuthApiKeyRepository::API_KEY_PREFIX . '_' . $publicID . '_' . $secret;
+        $apiKey = DbAuthApiKeyRepository::API_KEY_PREFIX . '_' . $publicId . '_' . $secret;
         $keyHash = SecretTokenHash::fromSecret(secret: $secret);
         $db = $this->db;
         $db->execute(
             sql: '
                 REPLACE INTO auth_api_key
-                SET userID=?,
-                    publicID=?,
-                    apiKey=?,
+                SET user_id=?,
+                    public_id=?,
+                    api_key=?,
                     salt=?
             ',
             parameters: [
-                $userID,
-                $publicID,
+                $userId,
+                $publicId,
                 $keyHash->hash,
                 '',
             ],
@@ -195,15 +195,15 @@ final class DbAuthApiKeyRepository
         return $apiKey;
     }
 
-    public function deleteByUserID(int $userID): void
+    public function deleteByUserId(int $userId): void
     {
         $this->db->execute(
             sql: '
                 DELETE FROM auth_api_key
-                WHERE userID=?
+                WHERE user_id=?
             ',
             parameters: [
-                $userID,
+                $userId,
             ],
         );
     }

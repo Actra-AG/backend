@@ -1,5 +1,7 @@
 # Plan: bring `actra/backend` to yuf ^4.57 and the global coding standard
 
+Status: done with v2.0.0 (2026-10-09). Final state and open points at the end.
+
 Goal: the same standard in all Actra projects, without project deviations. This plan replaces the task list of
 2026-10-07 (state v1.6.0, yuf ^4.10). It includes the remaining tasks of `docs/coding-standard/plan.md` (tooling).
 
@@ -64,24 +66,25 @@ modified from this repository). Steps that change views, templates or HTML are c
 
 ## Steps
 
-| #  | yuf   | Content                                                                    | Size   | Who    | Release |
-|:---|:------|:---------------------------------------------------------------------------|:-------|:-------|:--------|
-| 0  | ^4.10 | Tooling green (code style, test errors, coding standard ^1.3)              | small  | direct | –       |
-| 1  | ^4.14 | `DbSettings`, `TableItem`                                                  | small  | direct | v1.7.0  |
-| 2  | ^4.15 | `BackendViewContext`, view factory, `ViewContext` in all views             | large  | direct | v1.8.0  |
-| 3  | ^4.34 | yuf v4.16–v4.34 in one step (former steps 3, 4, 5 and 7, see below)        | large  | direct | v1.9.0  |
-| 4  | –     | merged into step 3                                                         | –      | –      | –       |
-| 5  | –     | merged into step 3                                                         | –      | –      | –       |
-| 6  | ^4.34 | No `$_SESSION`; breadcrumb on `Session` and fixed                          | medium | direct | v1.10.0 |
-| 7  | –     | merged into step 3                                                         | –      | –      | –       |
-| 8  | ^4.37 | Passwords (`dbUpdatePassword()`), API keys with `SecretTokenHash`, tables  | medium | direct | v1.11.0 |
-| 9  | –     | merged into step 10                                                        | –      | –      | –       |
-| 10 | ~4.57 | yuf v4.38–v4.57.3 (former steps 9 and 10)                                  | medium | direct | v1.12.0 |
+| #  | yuf   | Content                                                                     | Size   | Who    | Release |
+|:---|:------|:----------------------------------------------------------------------------|:-------|:-------|:--------|
+| 0  | ^4.10 | Tooling green (code style, test errors, coding standard ^1.3)               | small  | direct | –       |
+| 1  | ^4.14 | `DbSettings`, `TableItem`                                                   | small  | direct | v1.7.0  |
+| 2  | ^4.15 | `BackendViewContext`, view factory, `ViewContext` in all views              | large  | direct | v1.8.0  |
+| 3  | ^4.34 | yuf v4.16–v4.34 in one step (former steps 3, 4, 5 and 7, see below)         | large  | direct | v1.9.0  |
+| 4  | –     | merged into step 3                                                          | –      | –      | –       |
+| 5  | –     | merged into step 3                                                          | –      | –      | –       |
+| 6  | ^4.34 | No `$_SESSION`; breadcrumb on `Session` and fixed                           | medium | direct | v1.10.0 |
+| 7  | –     | merged into step 3                                                          | –      | –      | –       |
+| 8  | ^4.37 | Passwords (`dbUpdatePassword()`), API keys with `SecretTokenHash`, tables   | medium | direct | v1.11.0 |
+| 9  | –     | merged into step 10                                                         | –      | –      | –       |
+| 10 | ~4.57 | yuf v4.38–v4.57.3 (former steps 9 and 10)                                   | medium | direct | v1.12.0 |
 | A  | ~4.57 | Empty baseline, lines, superglobals rule, `final`, interfaces, i18n (11–13) | medium | direct | v1.13.0 |
 | B  | ~4.57 | No static state: services in `BackendViewContext` (former 14 and 15)        | large  | direct | v1.14.0 |
-| C  | ~4.57 | Acronyms and snake_case database in one go (former 16 and 17)              | large  | direct | v1.15.0 |
+| C  | ~4.57 | Acronyms and snake_case database in one go (former 16 and 17)               | large  | direct | v2.0.0  |
 
-`^4.57` in the table means `^4.57.3` (the current yuf release). "Sonnet" marks the only steps that are long, mechanical and self-contained enough for a separate session; the main
+`^4.57` in the table means `^4.57.3` (the current yuf release). "Sonnet" marks the only steps that are long, mechanical
+and self-contained enough for a separate session; the main
 session decides again when the step starts. The release numbers are the expected order; a major version (v2.0.0) for
 the final state is an open decision.
 
@@ -173,12 +176,12 @@ depend on these versions and follows as its own step.
 
 ### Step 8 – yuf ^4.37 (v4.35–v4.37): passwords and API keys
 
-- `MyAuthUser::dbUpdatePassword()` (new abstract method) with a repository method that only updates salt and hash
-  (lazy upgrade to Argon2id at login); a constant hash for users without password instead of
+- `MyAuthUser::dbUpdatePassword()` (new abstract method) with a repository method that only updates salt and hash (lazy
+  upgrade to Argon2id at login); a constant hash for users without password instead of
   `Password::generateNew()` per instance.
 - API keys with yuf's `SecretTokenHash` (decision 2026-10-08): new keys store the SHA-256 of a random secret (`salt`
-  `''`), keys with a salt keep the legacy check until they are regenerated. `DbAuthApiKey::$key` changes its type
-  (⚠️). In the same release as the yuf raise, because from v4.37 on `Password::generateNew()` creates Argon2id
+  `''`), keys with a salt keep the legacy check until they are regenerated. `DbAuthApiKey::$key` changes its type (⚠️).
+  In the same release as the yuf raise, because from v4.37 on `Password::generateNew()` creates Argon2id
   hashes, which would cost one Argon2id check (~50 ms, 64 MB) per API request. README ("stored hashed").
 - `$totalAmountMessageOneResult` / `…NumResults` (v4.35).
 - Behaviour notes: Argon2id with empty `passwordSalt`, `auth_session.sessionId` is the ID before login, SMTP TLS fails
@@ -236,8 +239,8 @@ depend on these versions and follows as its own step.
 
 - Repositories as instances with a `DB` dependency, `DB` without `get()`, the current user
   (`BackendViewContext::$currentUser`) instead of `MyAuthUser::get()`, `MyAuthenticator` and `Mailer` as services,
-  `AuthTokenTypeEnum` without I/O (logic in a service). Static methods stay as deprecated wrappers for one release
-  (416 `DB::get()` calls in projects). Possibly split into 14a (db, repositories) and 14b (user, auth, mailer).
+  `AuthTokenTypeEnum` without I/O (logic in a service). Static methods stay as deprecated wrappers for one release (416
+  `DB::get()` calls in projects). Possibly split into 14a (db, repositories) and 14b (user, auth, mailer).
 
 ### Step 16 – acronyms of the backend API
 
@@ -271,8 +274,8 @@ depend on these versions and follows as its own step.
   same behaviour), `no_trailing_whitespace_in_string` (only line ends inside SQL strings), `modifier_keywords`
   (`private(set)` → `public private(set)`, same visibility).
 - The 11 PHPStan errors in `tests/` fixed: `#[\Override]`, `?? <Test>::fail()` instead of unchecked offsets, entries
-  compared as one list, `markTestSkipped()` and `fail()` called statically. `ddev composer check` is green
-  (85 tests); the baseline is unchanged (144 entries, all in `src/`).
+  compared as one list, `markTestSkipped()` and `fail()` called statically. `ddev composer check` is green (85 tests);
+  the baseline is unchanged (144 entries, all in `src/`).
 - `AGENTS.md`: rules that repeat the global standard removed (exceptions, settings objects, security features, generic
   JavaScript rules, README updates, export-ignore, DDEV start); `docs/coding-standard/plan.md` closed.
 - Open for step 11: 6 lines over 120 characters in test files that only the fixer touched.
@@ -328,7 +331,6 @@ depend on these versions and follows as its own step.
   deviation wording for lowercase view classes is used in `AGENTS.md`.
 - Next: step 3 (yuf ^4.23), no decision needed.
 
-
 ### Step 3 – done (2026-10-08)
 
 - `actra/yuf` ^4.34 (checked against v4.34.0; intermediate checks against v4.23.0, v4.28.0 and v4.30.0 while working,
@@ -359,8 +361,8 @@ depend on these versions and follows as its own step.
   new `SessionBreadcrumbTrail` (`@internal`, `Session` and `HttpRequest`, same session keys); `OldNavigator` and its
   test removed. The link of a trail entry is escaped (was raw from the URL).
 - Breadcrumb fix (decision 2026-10-08: overridable method): `BackendView::getBreadcrumbParents():
-  ?BreadcrumbItemCollection`, called after `prepareHtmlDocument()`; with parents the breadcrumb is built from them
-  (same markup) and the session trail restarts at the page. 307 project views use `useNavigator: true` and keep
+  ?BreadcrumbItemCollection`, called after `prepareHtmlDocument()`; with parents the breadcrumb is built from them (same
+  markup) and the session trail restarts at the page. 307 project views use `useNavigator: true` and keep
   working unchanged.
 - `GeneratedApiKeyFlash` and the session methods of `AuthTokenTypeEnum` take the `Session` (projects use only the
   cases of the enum); `MyAuthUser` (page after login) uses `ActraBackend::getSession()`. `claim()` uses its own type.
@@ -410,13 +412,12 @@ depend on these versions and follows as its own step.
   `MyAuthenticator`, `GeneratedApiKeyFlash`); extension points `BackendView`, `AbstractTable`, `AbstractSearchForm`
   with PHPDoc. `ActraBackend::VIEW_GROUP`; interfaces `UserDeleteHandler`, `BackendNavigation`.
 - i18n: full names from the message `CommonMessages::$fullName` (`[firstName] [lastName]`, also in tables and the
-  notification details), select labels from `$userOption`. Dates keep their per-language patterns in the messages
-  (yuf's `DateColumn` takes PHP date patterns); `IntlDateFormatter` would need own table columns, open point.
+  notification details), select labels from `$userOption`. Dates keep their per-language patterns in the messages (yuf's
+  `DateColumn` takes PHP date patterns); `IntlDateFormatter` would need own table columns, open point.
 - Security: group titles and the user labels of the notification form were raw HTML (`fromHtml()`), the user data on
   the user detail page and the invite recipient raw replacements (`addHtml()`); now escaped.
 - `AuthTokenTypeEnum::ACTIVATION->createAndSend()` throws a `LogicException` with an explanation.
 - 105 tests, `ddev composer check` green.
-
 
 ### Step B – done (2026-10-08, former steps 14 and 15)
 
@@ -436,3 +437,40 @@ depend on these versions and follows as its own step.
 - Tests: `ActraBackendTestInstance::create()` (fresh instance), `AuthTokensTest`, `BackendRepositoriesTest`
   (lazy connection), `DBTest` against the DDEV database. 107 tests.
 - AGENTS.md: the static accessors deviation is removed, rule "no static state".
+
+### Step C – done (2026-10-09, former steps 16 and 17)
+
+- Database: `schema.sql` and `data.sql` converted (mapping of every backticked name: `ID` → `id`, `userID` →
+  `user_id`, `auth_ipWhitelist` → `auth_ip_whitelist`, index names alike). `db/updates/2.0.0.sql` generated from the
+  old schema (`RENAME TABLE`, `RENAME COLUMN`, `RENAME INDEX`); the generated foreign key name follows the table
+  rename by itself. Checked on the DDEV MariaDB 11.8: old schema + data + script gives the same `SHOW CREATE TABLE`
+  for all 12 tables as the new schema.
+- PHP: a tokenizer script renamed the names only in SQL strings and in the column arguments (`column:`,
+  `wherePart:`, field names of the search, column identifiers of the tables); template identifiers stay. The column
+  aliases are snake_case too. All 45 repository calls and all 5 tables were run against the new schema (transaction
+  rolled back).
+- Acronyms: a second tokenizer script renamed variables, properties, parameters, named arguments and methods (`ID` →
+  `id`, `…ID` → `…Id`, constants and strings excluded), doc comments included; internal array keys by hand.
+- Note: files written inside the DDEV container show up on the host with a delay; search them after a moment.
+- AGENTS.md: only the documented deviation for lowercase view class names is left.
+
+## Final state (v2.0.0)
+
+- `actra/yuf` `~4.57.3`, `actra/coding-standard` `^1.7.0`; `ddev composer check` green (code style, PHPStan level 10
+  strict with the superglobals rule and without baseline, 107 tests).
+- No static state; all services through `BackendViewContext` or the `ActraBackend` instance.
+- All classes `final` except the extension points `BackendView`, `AbstractTable`, `AbstractSearchForm`; internal
+  classes `@internal`.
+- Database and PHP names follow `naming.md`; the only deviation is documented in `AGENTS.md` (lowercase view classes).
+- Releases v1.7.0–v2.0.0; projects update from about v1.0 directly to v2.0.0 with the `UPGRADE.md` sections.
+
+## Open points after the plan
+
+- Browser check of all views, forms, tables and templates in `../drogeriehaas.ch` (path repository), including the
+  database update `1.11.0.sql` and `2.0.0.sql` on a copy of real data.
+- Token login: the response time can tell whether an email address exists (no email sent for unknown addresses);
+  sending the email after the response would close it.
+- Dates with `IntlDateFormatter` instead of the per-language patterns (needs own table columns).
+- Microsoft Graph mailer (yuf v4.56) for Microsoft 365 without SMTP basic auth.
+- Major version v2.0.0 for this state instead of v2.0.0 (decision).
+

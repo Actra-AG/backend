@@ -46,9 +46,9 @@ final readonly class BackendPaths
         return $this->path . 'logout.html';
     }
 
-    public function notification(int $ID): string
+    public function notification(int $id): string
     {
-        return $this->path . 'notification-' . $ID . '.html';
+        return $this->path . 'notification-' . $id . '.html';
     }
 
     public function notificationSend(): string
@@ -111,14 +111,14 @@ final readonly class BackendPaths
         return $this->path . 'profileRemovePassword.html';
     }
 
-    public function tokens(?int $userID): string
+    public function tokens(?int $userId): string
     {
-        return $this->path . ($userID === null ? 'tokens.html' : 'tokens-' . $userID . '.html');
+        return $this->path . ($userId === null ? 'tokens.html' : 'tokens-' . $userId . '.html');
     }
 
-    public function user(int|string $ID): string
+    public function user(int|string $id): string
     {
-        return $this->path . 'user-' . $ID . '.html';
+        return $this->path . 'user-' . $id . '.html';
     }
 
     public function userAdd(): string
@@ -126,29 +126,29 @@ final readonly class BackendPaths
         return $this->path . 'userAdd.html';
     }
 
-    public function userDelete(int $ID): string
+    public function userDelete(int $id): string
     {
-        return $this->path . 'userDelete-' . $ID . '.html';
+        return $this->path . 'userDelete-' . $id . '.html';
     }
 
-    public function userGenerateApiKey(int $ID): string
+    public function userGenerateApiKey(int $id): string
     {
-        return $this->path . 'userGenerateApiKey-' . $ID . '.html';
+        return $this->path . 'userGenerateApiKey-' . $id . '.html';
     }
 
-    public function userInvite(int $ID): string
+    public function userInvite(int $id): string
     {
-        return $this->path . 'userInvite-' . $ID . '.html';
+        return $this->path . 'userInvite-' . $id . '.html';
     }
 
-    public function userMod(int $ID): string
+    public function userMod(int $id): string
     {
-        return $this->path . 'userMod-' . $ID . '.html';
+        return $this->path . 'userMod-' . $id . '.html';
     }
 
-    public function userRemoveApiKey(int $ID): string
+    public function userRemoveApiKey(int $id): string
     {
-        return $this->path . 'userRemoveApiKey-' . $ID . '.html';
+        return $this->path . 'userRemoveApiKey-' . $id . '.html';
     }
 
     public function users(): string
@@ -156,8 +156,8 @@ final readonly class BackendPaths
         return $this->path . 'users.html';
     }
 
-    public function visits(?int $userID): string
+    public function visits(?int $userId): string
     {
-        return $this->path . ($userID === null ? 'visits.html' : 'visits-' . $userID . '.html');
+        return $this->path . ($userId === null ? 'visits.html' : 'visits-' . $userId . '.html');
     }
 }

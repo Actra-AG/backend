@@ -11,5 +11,5 @@ namespace actra\backend\libs\auth;
 
 interface UserDeleteHandler
 {
-    public function beforeDeleteUser(int $userID): void;
+    public function beforeDeleteUser(int $userId): void;
 }

@@ -55,11 +55,11 @@ final class notificationSend extends BackendView
     {
         $replacements = $htmlDocument->replacements;
         $notificationSendForm = new NotificationSendForm(context: $this->backendContext);
-        $notificationID = $notificationSendForm->process();
-        if ($notificationID !== null) {
+        $notificationId = $notificationSendForm->process();
+        if ($notificationId !== null) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $this->backendContext->paths->notification(
-                    ID: $notificationID,
+                    id: $notificationId,
                 ) . '?' . notification::PARAM_SENT,
                 httpRequest: $this->context->httpRequest,
             );

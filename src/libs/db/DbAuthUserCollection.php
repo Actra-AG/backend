@@ -25,7 +25,7 @@ final class DbAuthUserCollection
 
     public function add(DbAuthUser $dbAuthUser): void
     {
-        $this->items[$dbAuthUser->ID] = $dbAuthUser;
+        $this->items[$dbAuthUser->id] = $dbAuthUser;
     }
 
     public function isEmpty(): bool
@@ -48,7 +48,7 @@ final class DbAuthUserCollection
         $formOptions = new FormOptions();
         foreach ($this->items as $dbAuthUser) {
             $formOptions->addItem(
-                key: (string) $dbAuthUser->ID,
+                key: (string) $dbAuthUser->id,
                 htmlText: HtmlText::fromText(
                     text: MessageTemplate::fill(
                         template: $messages->userOption,
@@ -63,17 +63,17 @@ final class DbAuthUserCollection
         return $formOptions;
     }
 
-    public function has(int $userID): bool
+    public function has(int $userId): bool
     {
-        return array_key_exists(key: $userID, array: $this->items);
+        return array_key_exists(key: $userId, array: $this->items);
     }
 
-    public function get(int $userID): DbAuthUser
+    public function get(int $userId): DbAuthUser
     {
-        if (!array_key_exists(key: $userID, array: $this->items)) {
-            throw new OutOfBoundsException(message: 'No DbAuthUser with the ID ' . $userID . ' in the collection.');
+        if (!array_key_exists(key: $userId, array: $this->items)) {
+            throw new OutOfBoundsException(message: 'No DbAuthUser with the ID ' . $userId . ' in the collection.');
         }
 
-        return $this->items[$userID];
+        return $this->items[$userId];
     }
 }

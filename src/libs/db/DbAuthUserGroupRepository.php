@@ -14,49 +14,49 @@ final class DbAuthUserGroupRepository
     public function __construct(private readonly DB $db) {}
 
     public function insert(
-        int $userID,
-        int $groupID,
+        int $userId,
+        int $groupId,
     ): void {
         $this->db->execute(
             sql: '
 				INSERT INTO auth_user_group
-				SET userID=?,
-				    groupID=?
+				SET user_id=?,
+				    group_id=?
 			',
             parameters: [
-                $userID,
-                $groupID,
+                $userId,
+                $groupId,
             ],
         );
     }
 
     public function delete(
-        int $userID,
-        int $groupID,
+        int $userId,
+        int $groupId,
     ): void {
         $this->db->execute(
             sql: '
 				DELETE FROM auth_user_group
-				WHERE userID=?
-				  AND groupID=?
+				WHERE user_id=?
+				  AND group_id=?
 			',
             parameters: [
-                $userID,
-                $groupID,
+                $userId,
+                $groupId,
             ],
         );
     }
 
-    public function deleteByUserID(int $userID): void
+    public function deleteByUserId(int $userId): void
     {
         $this->db->execute(
             sql: '
                 DELETE FROM auth_user_group
-                WHERE ID>0
-                  AND userID=?
+                WHERE id>0
+                  AND user_id=?
             ',
             parameters: [
-                $userID,
+                $userId,
             ],
         );
     }

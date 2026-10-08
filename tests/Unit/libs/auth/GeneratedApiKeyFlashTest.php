@@ -26,40 +26,40 @@ final class GeneratedApiKeyFlashTest extends TestCase
 
     public function testPullReturnsTheStoredKeyOnlyOnce(): void
     {
-        GeneratedApiKeyFlash::store(session: $this->session, userID: 5, apiKey: 'api_key_public_secret');
+        GeneratedApiKeyFlash::store(session: $this->session, userId: 5, apiKey: 'api_key_public_secret');
 
-        $this->assertSame('api_key_public_secret', GeneratedApiKeyFlash::pull(session: $this->session, userID: 5));
-        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userID: 5));
+        $this->assertSame('api_key_public_secret', GeneratedApiKeyFlash::pull(session: $this->session, userId: 5));
+        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userId: 5));
     }
 
     public function testPullForAnotherUserKeepsTheKey(): void
     {
-        GeneratedApiKeyFlash::store(session: $this->session, userID: 5, apiKey: 'api_key_public_secret');
+        GeneratedApiKeyFlash::store(session: $this->session, userId: 5, apiKey: 'api_key_public_secret');
 
-        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userID: 6));
-        $this->assertSame('api_key_public_secret', GeneratedApiKeyFlash::pull(session: $this->session, userID: 5));
+        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userId: 6));
+        $this->assertSame('api_key_public_secret', GeneratedApiKeyFlash::pull(session: $this->session, userId: 5));
     }
 
     public function testStoreReplacesThePreviousKey(): void
     {
-        GeneratedApiKeyFlash::store(session: $this->session, userID: 5, apiKey: 'first');
-        GeneratedApiKeyFlash::store(session: $this->session, userID: 5, apiKey: 'second');
+        GeneratedApiKeyFlash::store(session: $this->session, userId: 5, apiKey: 'first');
+        GeneratedApiKeyFlash::store(session: $this->session, userId: 5, apiKey: 'second');
 
-        $this->assertSame('second', GeneratedApiKeyFlash::pull(session: $this->session, userID: 5));
+        $this->assertSame('second', GeneratedApiKeyFlash::pull(session: $this->session, userId: 5));
     }
 
     public function testPullWithoutStoredKeyReturnsNull(): void
     {
-        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userID: 5));
+        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userId: 5));
     }
 
     public function testPullIgnoresInvalidSessionData(): void
     {
         $this->session->set(
             key: 'actra_backend_generated_api_key',
-            value: ['userID' => '5', 'apiKey' => 'api_key_public_secret'],
+            value: ['userId' => '5', 'apiKey' => 'api_key_public_secret'],
         );
 
-        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userID: 5));
+        $this->assertNull(GeneratedApiKeyFlash::pull(session: $this->session, userId: 5));
     }
 }

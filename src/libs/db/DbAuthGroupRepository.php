@@ -16,17 +16,17 @@ final class DbAuthGroupRepository
     public function __construct(private readonly DB $db) {}
 
     public const string SELECT_QUERY = '
-		SELECT auth_group.ID,
+		SELECT auth_group.id,
 		       auth_group.title
 		FROM auth_group
 	';
     private ?DbAuthGroupCollection $cache = null;
 
-    public function selectByID(int $ID): ?DbAuthGroup
+    public function selectById(int $id): ?DbAuthGroup
     {
         return array_find(
             array: $this->listAll()->items,
-            callback: fn($dbAuthGroup) => $ID === $dbAuthGroup->ID,
+            callback: fn($dbAuthGroup) => $id === $dbAuthGroup->id,
         );
     }
 
@@ -63,17 +63,17 @@ final class DbAuthGroupRepository
     private function createDbAuthGroup(DbRow $row): DbAuthGroup
     {
         return new DbAuthGroup(
-            ID: $row->getInt(column: 'ID'),
+            id: $row->getInt(column: 'id'),
             title: $row->getString(column: 'title'),
         );
     }
 
-    public function listByUserID(int $userID): DbAuthGroupCollection
+    public function listByUserId(int $userId): DbAuthGroupCollection
     {
         return $this->listByCond(
-            whereCond: 'WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=?)',
+            whereCond: 'WHERE auth_group.id IN (SELECT group_id FROM auth_user_group WHERE user_id=?)',
             parameters: [
-                $userID,
+                $userId,
             ],
         );
     }

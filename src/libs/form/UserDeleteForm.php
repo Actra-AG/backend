@@ -36,7 +36,7 @@ final class UserDeleteForm extends Form
             formComponent: new FormControl(
                 name: 'delete',
                 submitLabel: HtmlText::fromText(text: $this->backendContext->messages->user->deleteButton),
-                cancelLink: $this->backendContext->paths->user(ID: $dbAuthUser->ID),
+                cancelLink: $this->backendContext->paths->user(id: $dbAuthUser->id),
             ),
         );
     }
@@ -46,7 +46,7 @@ final class UserDeleteForm extends Form
         if (!parent::validate()) {
             return false;
         }
-        $this->backendContext->userController->deleteUser(userID: $this->dbAuthUser->ID);
+        $this->backendContext->userController->deleteUser(userId: $this->dbAuthUser->id);
 
         return true;
     }

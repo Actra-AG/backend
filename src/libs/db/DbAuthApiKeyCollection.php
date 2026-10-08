@@ -20,7 +20,7 @@ final class DbAuthApiKeyCollection
 
     public function add(DbAuthApiKey $dbAuthApiKey): void
     {
-        $this->items[$dbAuthApiKey->publicID] = $dbAuthApiKey;
+        $this->items[$dbAuthApiKey->publicId] = $dbAuthApiKey;
     }
 
     public function isEmpty(): bool

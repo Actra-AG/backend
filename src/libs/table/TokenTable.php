@@ -28,15 +28,15 @@ final class TokenTable extends AbstractTable
     public function __construct(
         BackendViewContext $context,
         string $identifier,
-        ?int $filterUserID,
+        ?int $filterUserId,
         TokenSearchForm $tokenSearchForm,
     ) {
         $dbQuery = $context->repositories->tokens()->getDbQuery();
-        if ($filterUserID !== null) {
+        if ($filterUserId !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_token.userID=?',
+                wherePart: 'auth_token.user_id=?',
                 parameters: [
-                    $filterUserID,
+                    $filterUserId,
                 ],
             );
         }
@@ -52,8 +52,8 @@ final class TokenTable extends AbstractTable
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_token.token '
-                    . 'auth_token.registeredClient auth_token.claimedClient',
+                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_token.token '
+                    . 'auth_token.registered_client auth_token.claimed_client',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
@@ -78,10 +78,10 @@ final class TokenTable extends AbstractTable
         $this->addColumn(abstractTableColumn: $registeredColumn, isDefaultSortColumn: true);
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
-                identifier: 'registeredClient',
+                identifier: 'registered_client',
                 label: $messages->log->tokenCreatedClientColumn,
                 callbackFunction: static fn(TableItem $tableItem): string => TokenTable::renderClient(
-                    clientJson: $tableItem->getRow()->getNullableString(column: 'registeredClient'),
+                    clientJson: $tableItem->getRow()->getNullableString(column: 'registered_client'),
                 ),
                 isSortable: true,
             ),
@@ -108,10 +108,10 @@ final class TokenTable extends AbstractTable
         $this->addColumn(abstractTableColumn: $claimedColumn);
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
-                identifier: 'claimedClient',
+                identifier: 'claimed_client',
                 label: $messages->log->tokenClaimedClientColumn,
                 callbackFunction: static fn(TableItem $tableItem): string => TokenTable::renderClient(
-                    clientJson: $tableItem->getRow()->getNullableString(column: 'claimedClient'),
+                    clientJson: $tableItem->getRow()->getNullableString(column: 'claimed_client'),
                 ),
                 isSortable: true,
             ),

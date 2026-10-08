@@ -16,8 +16,8 @@ final class DbAuthLoginRepository
     public function __construct(private readonly DB $db) {}
 
     public function insert(
-        ?int $userID,
-        string $sessionID,
+        ?int $userId,
+        string $sessionId,
         string $ipAddress,
         string $inputEmail,
         AuthResultEnum $authResult,
@@ -25,15 +25,15 @@ final class DbAuthLoginRepository
         $this->db->execute(
             sql: '
                 INSERT INTO auth_login
-                SET userID=?,
-                    sessionId=?,
-                    ipAddress=?,
+                SET user_id=?,
+                    session_id=?,
+                    ip_address=?,
                     email=?,
                     result=?
             ',
             parameters: [
-                $userID,
-                $sessionID,
+                $userId,
+                $sessionId,
                 $ipAddress,
                 $inputEmail,
                 $authResult->value,
@@ -41,14 +41,14 @@ final class DbAuthLoginRepository
         );
     }
 
-    public function unsetUserID(int $userID): void
+    public function unsetUserId(int $userId): void
     {
         $this->db->execute(
             sql: '
-                UPDATE auth_login SET userID=NULL WHERE userID=?
+                UPDATE auth_login SET user_id=NULL WHERE user_id=?
             ',
             parameters: [
-                $userID,
+                $userId,
             ],
         );
     }

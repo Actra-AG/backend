@@ -108,7 +108,7 @@ final class LoginPasswordForm extends Form
             throw new LogicException(message: 'findRejection() rejects users without password.');
         }
         if (!$password->isValid(rawPassword: $inputPassword)) {
-            $this->backendContext->repositories->users()->increaseWrongPasswordAttempts(ID: $dbAuthUser->ID);
+            $this->backendContext->repositories->users()->increaseWrongPasswordAttempts(id: $dbAuthUser->id);
             $this->logAuthResult(
                 dbAuthUser: $dbAuthUser,
                 inputEmail: $inputEmail,
@@ -120,7 +120,7 @@ final class LoginPasswordForm extends Form
         if ($password->needsRehash()) {
             // Legacy or outdated hash: store the current algorithm (yuf's Authenticator does not see the password here)
             $this->backendContext->repositories->users()->updatePasswordHash(
-                ID: $dbAuthUser->ID,
+                id: $dbAuthUser->id,
                 password: Password::generateNew(rawPassword: $inputPassword),
             );
         }
@@ -164,7 +164,7 @@ final class LoginPasswordForm extends Form
     private function logAuthResult(?DbAuthUser $dbAuthUser, string $inputEmail, AuthResultEnum $authResult): void
     {
         new MyAuthenticator(context: $this->backendContext)->logAuthResult(
-            userId: $dbAuthUser?->ID,
+            userId: $dbAuthUser?->id,
             sessionId: $this->backendContext->authSession->getSessionId(),
             ip: $this->context->httpRequest->getRemoteAddress(),
             userName: $inputEmail,

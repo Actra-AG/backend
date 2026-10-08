@@ -20,22 +20,22 @@ final class DbAuthUserNotificationRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-                SELECT auth_user_notification.ID,
-                       auth_user_notification.authGroupID,
-                       auth_user_notification.sentByID,
-                       auth_user_notification.sentDate,
+                SELECT auth_user_notification.id,
+                       auth_user_notification.auth_group_id,
+                       auth_user_notification.sent_by_id,
+                       auth_user_notification.sent_date,
                        auth_user_notification.subject,
                        auth_user_notification.message,
-                       auth_group.title AS groupName,
-                       auth_user.firstName,
-                       auth_user.lastName,
-                       (SELECT COUNT(ID)
+                       auth_group.title AS group_name,
+                       auth_user.first_name,
+                       auth_user.last_name,
+                       (SELECT COUNT(id)
                            FROM auth_user_notification_recipient
-                           WHERE auth_user_notification_recipient.notificationID=auth_user_notification.ID
+                           WHERE auth_user_notification_recipient.notification_id=auth_user_notification.id
                        ) AS recipients
                 FROM auth_user_notification
-                    INNER JOIN auth_group ON auth_user_notification.authGroupID = auth_group.ID
-                    INNER JOIN auth_user ON auth_user.ID = auth_user_notification.sentByID
+                    INNER JOIN auth_group ON auth_user_notification.auth_group_id = auth_group.id
+                    INNER JOIN auth_user ON auth_user.id = auth_user_notification.sent_by_id
             ',
         );
     }
@@ -43,26 +43,26 @@ final class DbAuthUserNotificationRepository
     private function createItem(DbRow $row): DbAuthUserNotification
     {
         return new DbAuthUserNotification(
-            ID: $row->getInt(column: 'ID'),
-            authGroupID: $row->getInt(column: 'authGroupID'),
-            sentByID: $row->getInt(column: 'sentByID'),
-            sentDate: $row->getDateTimeImmutable(column: 'sentDate'),
+            id: $row->getInt(column: 'id'),
+            authGroupId: $row->getInt(column: 'auth_group_id'),
+            sentById: $row->getInt(column: 'sent_by_id'),
+            sentDate: $row->getDateTimeImmutable(column: 'sent_date'),
             subject: $row->getString(column: 'subject'),
             message: $row->getString(column: 'message'),
-            groupName: $row->getString(column: 'groupName'),
-            firstName: $row->getString(column: 'firstName'),
-            lastName: $row->getString(column: 'lastName'),
+            groupName: $row->getString(column: 'group_name'),
+            firstName: $row->getString(column: 'first_name'),
+            lastName: $row->getString(column: 'last_name'),
             recipients: $row->getInt(column: 'recipients'),
         );
     }
 
-    public function selectByID(int $ID): ?DbAuthUserNotification
+    public function selectById(int $id): ?DbAuthUserNotification
     {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_user_notification.ID=?',
+            wherePart: 'auth_user_notification.id=?',
             parameters: [
-                $ID,
+                $id,
             ],
         );
         $dbAuthUserNotificationCollection = $this->select(dbQuery: $dbQuery);
@@ -88,8 +88,8 @@ final class DbAuthUserNotificationRepository
     }
 
     public function insert(
-        int $authGroupID,
-        int $sentByUserID,
+        int $authGroupId,
+        int $sentByUserId,
         string $subject,
         string $message,
     ): int {
@@ -97,14 +97,14 @@ final class DbAuthUserNotificationRepository
         $db->execute(
             sql: '
                 INSERT INTO auth_user_notification
-                SET authGroupID=?,
-                    sentByID=?,
+                SET auth_group_id=?,
+                    sent_by_id=?,
                     subject=?,
                     message=?
             ',
             parameters: [
-                $authGroupID,
-                $sentByUserID,
+                $authGroupId,
+                $sentByUserId,
                 $subject,
                 $message,
             ],

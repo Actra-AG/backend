@@ -100,11 +100,11 @@ final class ProfilePasswordForm extends Form
             );
             return false;
         }
-        $userID = $this->dbAuthUser->ID;
+        $userId = $this->dbAuthUser->id;
         $newPasswordField = $this->newPasswordField;
         $newPasswordConfirmField = $this->newPasswordConfirmField;
         if ($newPasswordField === null || $newPasswordConfirmField === null) {
-            $this->backendContext->repositories->users()->removePassword(ID: $userID);
+            $this->backendContext->repositories->users()->removePassword(id: $userId);
             return true;
         }
         $newPasswordCheck = new NewPasswordCheck(messages: $messages->common);
@@ -115,7 +115,7 @@ final class ProfilePasswordForm extends Form
             return false;
         }
         $this->backendContext->repositories->users()->setPassword(
-            ID: $userID,
+            id: $userId,
             newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
         );
         return true;

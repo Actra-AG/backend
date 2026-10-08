@@ -25,7 +25,7 @@ final class ApiKeyGenerateForm extends Form
     private readonly BackendViewContext $backendContext;
     public function __construct(
         BackendViewContext $context,
-        private readonly int $userID,
+        private readonly int $userId,
         string $cancelLink,
     ) {
         $this->backendContext = $context;
@@ -51,8 +51,8 @@ final class ApiKeyGenerateForm extends Form
         }
         GeneratedApiKeyFlash::store(
             session: $this->backendContext->session,
-            userID: $this->userID,
-            apiKey: $this->backendContext->repositories->apiKeys()->createForUserID(userID: $this->userID),
+            userId: $this->userId,
+            apiKey: $this->backendContext->repositories->apiKeys()->createForUserId(userId: $this->userId),
         );
 
         return true;

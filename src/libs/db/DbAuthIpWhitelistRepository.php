@@ -13,28 +13,28 @@ final class DbAuthIpWhitelistRepository
 {
     public function __construct(private readonly DB $db) {}
 
-    public function listForUserId(int $userID): DbAuthIpWhitelistCollection
+    public function listForUserId(int $userId): DbAuthIpWhitelistCollection
     {
         $dbAuthIpWhitelistCollection = new DbAuthIpWhitelistCollection();
         foreach (
             $this->db->selectRows(
                 sql: '
-                   SELECT ID,
-                          userID,
-                          ipAddress
-                   FROM auth_ipWhitelist
-                   WHERE userID=?
+                   SELECT id,
+                          user_id,
+                          ip_address
+                   FROM auth_ip_whitelist
+                   WHERE user_id=?
                ',
                 parameters: [
-                    $userID,
+                    $userId,
                 ],
             ) as $row
         ) {
             $dbAuthIpWhitelistCollection->add(
                 dbAuthIpWhitelist: new DbAuthIpWhitelist(
-                    ID: $row->getInt(column: 'ID'),
-                    userID: $row->getInt(column: 'userID'),
-                    ipAddress: $row->getString(column: 'ipAddress'),
+                    id: $row->getInt(column: 'id'),
+                    userId: $row->getInt(column: 'user_id'),
+                    ipAddress: $row->getString(column: 'ip_address'),
                 ),
             );
         }
@@ -43,37 +43,37 @@ final class DbAuthIpWhitelistRepository
     }
 
     public function insert(
-        int $userID,
+        int $userId,
         string $ipAddress,
     ): void {
         $this->db->execute(
-            sql: 'INSERT INTO auth_ipWhitelist (userID, ipAddress) VALUES (?, ?)',
+            sql: 'INSERT INTO auth_ip_whitelist (user_id, ip_address) VALUES (?, ?)',
             parameters: [
-                $userID,
+                $userId,
                 $ipAddress,
             ],
         );
     }
 
     public function delete(
-        int $userID,
+        int $userId,
         string $ipAddress,
     ): void {
         $this->db->execute(
-            sql: 'DELETE FROM auth_ipWhitelist WHERE userID=? AND ipAddress=?',
+            sql: 'DELETE FROM auth_ip_whitelist WHERE user_id=? AND ip_address=?',
             parameters: [
-                $userID,
+                $userId,
                 $ipAddress,
             ],
         );
     }
 
-    public function deleteByUserID(int $userID): void
+    public function deleteByUserId(int $userId): void
     {
         $this->db->execute(
-            sql: 'DELETE FROM auth_ipWhitelist WHERE userID=?',
+            sql: 'DELETE FROM auth_ip_whitelist WHERE user_id=?',
             parameters: [
-                $userID,
+                $userId,
             ],
         );
     }

@@ -44,7 +44,7 @@ final class visits extends BackendView
     {
         return new NavigationItem(
             navKey: 'visits',
-            href: $paths->visits(userID: null) . '?reset',
+            href: $paths->visits(userId: null) . '?reset',
             svgPath: '',
             title: $messages->log->visitsNavigationTitle,
             requiredAccessRights: visits::getRequiredAccessRights(),
@@ -69,16 +69,16 @@ final class visits extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->getPathVar(nr: 1) !== null) {
-            $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
-            $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
+            $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
+            $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
             if ($dbAuthUser === null) {
                 throw new NotFoundException();
             }
-            $filterUserID = $dbAuthUser->ID;
+            $filterUserId = $dbAuthUser->id;
         } else {
-            $filterUserID = null;
+            $filterUserId = null;
         }
-        $pageIdentifier = 'VisitSearch-' . (int) $filterUserID;
+        $pageIdentifier = 'VisitSearch-' . (int) $filterUserId;
         $visitSearchForm = new VisitSearchForm(context: $this->backendContext, name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
         $replacements->addHtml(
@@ -90,7 +90,7 @@ final class visits extends BackendView
             html: new VisitTable(
                 context: $this->backendContext,
                 identifier: $pageIdentifier . 'Table',
-                filterUserID: $filterUserID,
+                filterUserId: $filterUserId,
                 tokenSearchForm: $visitSearchForm,
             )->render(),
         );

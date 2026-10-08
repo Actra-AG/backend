@@ -71,14 +71,14 @@ final class LoginForm extends Form
     private function sendTokenIfAllowed(): void
     {
         $myAuthenticator = new MyAuthenticator(context: $this->backendContext);
-        $sessionID = $this->backendContext->authSession->getSessionId();
+        $sessionId = $this->backendContext->authSession->getSessionId();
         $ipAddress = $this->context->httpRequest->getRemoteAddress();
         $inputEmail = $this->emailField->getValueAsString();
         $dbAuthUser = $this->backendContext->repositories->users()->selectByEmail(email: $inputEmail);
         if ($dbAuthUser === null) {
             $myAuthenticator->logAuthResult(
                 userId: null,
-                sessionId: $sessionID,
+                sessionId: $sessionId,
                 ip: $ipAddress,
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_UNKNOWN_USER_NAME,
@@ -93,8 +93,8 @@ final class LoginForm extends Form
             )
         ) {
             $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
+                userId: $dbAuthUser->id,
+                sessionId: $sessionId,
                 ip: $ipAddress,
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_IP_NOT_ALLOWED,
@@ -105,8 +105,8 @@ final class LoginForm extends Form
             || $dbAuthUser->accessRightCollection->isEmpty()
         ) {
             $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
+                userId: $dbAuthUser->id,
+                sessionId: $sessionId,
                 ip: $ipAddress,
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_INACTIVE,
@@ -115,8 +115,8 @@ final class LoginForm extends Form
         }
         if ($dbAuthUser->password !== null) {
             $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
+                userId: $dbAuthUser->id,
+                sessionId: $sessionId,
                 ip: $ipAddress,
                 userName: $inputEmail,
                 authResult: AuthResultEnum::ERROR_NO_PASSWORD,

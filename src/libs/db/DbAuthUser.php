@@ -26,7 +26,7 @@ final readonly class DbAuthUser
     public array $ipWhitelist;
 
     public function __construct(
-        public int $ID,
+        public int $id,
         public DateTimeImmutable $registered,
         public ?DateTimeImmutable $invitedDate,
         private ?DateTimeImmutable $lastLogin,

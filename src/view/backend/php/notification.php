@@ -69,8 +69,8 @@ final class notification extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $dbAuthUserNotification = $this->backendContext->repositories->notifications()->selectByID(
-            ID: $this->getRequiredPathVarAsInt(nr: 1),
+        $dbAuthUserNotification = $this->backendContext->repositories->notifications()->selectById(
+            id: $this->getRequiredPathVarAsInt(nr: 1),
         );
         if ($dbAuthUserNotification === null) {
             throw new NotFoundException();
@@ -108,7 +108,7 @@ final class notification extends BackendView
             identifier: 'recipients',
             html: new NotificationRecipientTable(
                 context: $this->backendContext,
-                notificationID: $dbAuthUserNotification->ID,
+                notificationId: $dbAuthUserNotification->id,
             )->render(),
         );
     }

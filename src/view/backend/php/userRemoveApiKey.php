@@ -57,19 +57,19 @@ final class userRemoveApiKey extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
+        $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
         if (
             $dbAuthUser === null
             || !$this->backendContext->actraBackend->actraBackendSettings->hasApi
-            || !$this->backendContext->repositories->apiKeys()->hasByUserID(userID: $dbAuthUser->ID)
+            || !$this->backendContext->repositories->apiKeys()->hasByUserId(userId: $dbAuthUser->id)
         ) {
             throw new NotFoundException();
         }
-        $userPath = $this->backendContext->paths->user(ID: $dbAuthUser->ID);
+        $userPath = $this->backendContext->paths->user(id: $dbAuthUser->id);
         $apiKeyRemoveForm = new ApiKeyRemoveForm(
             context: $this->backendContext,
-            userID: $dbAuthUser->ID,
+            userId: $dbAuthUser->id,
             cancelLink: $userPath,
         );
         if ($apiKeyRemoveForm->process()) {

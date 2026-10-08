@@ -140,7 +140,7 @@ final class UserAddForm extends Form
 
             return null;
         }
-        $newUserID = $this->backendContext->repositories->users()->insert(
+        $newUserId = $this->backendContext->repositories->users()->insert(
             registeredById: $this->backendContext->getCurrentUser()->id,
             email: $this->emailField->getValueAsString(),
             phone: $this->phoneNumberField->getValueAsString(),
@@ -151,17 +151,17 @@ final class UserAddForm extends Form
         );
         foreach ($this->userGroupsField->getValues() as $userGroupValue) {
             $this->backendContext->repositories->userGroups()->insert(
-                userID: $newUserID,
-                groupID: (int) $userGroupValue,
+                userId: $newUserId,
+                groupId: (int) $userGroupValue,
             );
         }
         foreach ($this->ipWhitelistField->getValues() as $ip) {
             $this->backendContext->repositories->ipWhitelists()->insert(
-                userID: $newUserID,
+                userId: $newUserId,
                 ipAddress: $ip,
             );
         }
 
-        return $newUserID;
+        return $newUserId;
     }
 }

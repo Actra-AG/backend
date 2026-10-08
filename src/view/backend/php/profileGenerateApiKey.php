@@ -65,7 +65,7 @@ final class profileGenerateApiKey extends BackendView
         }
         $apiKeyGenerateForm = new ApiKeyGenerateForm(
             context: $this->backendContext,
-            userID: $dbAuthUser->ID,
+            userId: $dbAuthUser->id,
             cancelLink: $this->backendContext->paths->profile(),
         );
         if ($apiKeyGenerateForm->process()) {

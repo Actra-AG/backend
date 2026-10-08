@@ -12,8 +12,8 @@ namespace actra\backend\libs\db;
 final readonly class DbAuthSession
 {
     public function __construct(
-        public int $ID,
-        public ?int $parentID,
+        public int $id,
+        public ?int $parentId,
         public DbAuthUser $dbAuthUser,
     ) {}
 }

@@ -23,15 +23,15 @@ final class DbAuthTokenRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-				        SELECT auth_token.userID,
+				        SELECT auth_token.user_id,
 				               auth_token.registered,
-				               auth_token.registeredClient,
+				               auth_token.registered_client,
 				               auth_token.type,
 				               auth_token.claimed,
-				               auth_token.claimedClient,
+				               auth_token.claimed_client,
 				               auth_token.token
 				        FROM auth_token
-				            INNER JOIN auth_user ON auth_user.ID=auth_token.userID
+				            INNER JOIN auth_user ON auth_user.id=auth_token.user_id
 				    ',
         );
     }
@@ -51,14 +51,14 @@ final class DbAuthTokenRepository
         $this->db->execute(
             sql: '
                 INSERT into auth_token
-                SET auth_token.userID=?,
+                SET auth_token.user_id=?,
                     auth_token.type=?,
                     auth_token.token=?,
                     auth_token.registered=?,
-                    auth_token.registeredClient=?
+                    auth_token.registered_client=?
             ',
             parameters: [
-                $dbAuthUser->ID,
+                $dbAuthUser->id,
                 $authTokenTypeEnum->value,
                 $token,
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
@@ -76,18 +76,18 @@ final class DbAuthTokenRepository
     ): ?DbAuthToken {
         $rows = $this->db->selectRows(
             sql: '
-				SELECT auth_token.ID,
-				       auth_token.userID,
+				SELECT auth_token.id,
+				       auth_token.user_id,
 				       auth_user.email
 				FROM auth_token
-				    INNER JOIN auth_user ON auth_token.userID = auth_user.ID
+				    INNER JOIN auth_user ON auth_token.user_id = auth_user.id
 				WHERE auth_token.type=?
 				  AND auth_token.token=?
 				  AND auth_token.registered>=DATE_SUB(?, INTERVAL ? MINUTE)
 				  AND auth_token.claimed IS NULL
 				  AND auth_token.token=(SELECT last.token
 				                        FROM auth_token last
-				                        WHERE last.userID=auth_token.userID
+				                        WHERE last.user_id=auth_token.user_id
 				                          AND last.claimed IS NULL
 				                        ORDER BY last.registered
 				                        DESC LIMIT 1
@@ -106,8 +106,8 @@ final class DbAuthTokenRepository
         $row = $rows[0];
 
         return new DbAuthToken(
-            ID: $row->getInt(column: 'ID'),
-            userID: $row->getInt(column: 'userID'),
+            id: $row->getInt(column: 'id'),
+            userId: $row->getInt(column: 'user_id'),
             email: $row->getString(column: 'email'),
         );
     }
@@ -118,26 +118,26 @@ final class DbAuthTokenRepository
             sql: '
                 UPDATE auth_token
                 SET auth_token.claimed=?,
-                    auth_token.claimedClient=?
-                WHERE auth_token.ID=?
+                    auth_token.claimed_client=?
+                WHERE auth_token.id=?
             ',
             parameters: [
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
                 $clientData->toJson(),
-                $dbAuthToken->ID,
+                $dbAuthToken->id,
             ],
         );
     }
 
-    public function deleteByUserID(int $userID): void
+    public function deleteByUserId(int $userId): void
     {
         $this->db->execute(
             sql: '
                 DELETE FROM auth_token
-                       WHERE userID=?
+                       WHERE user_id=?
             ',
             parameters: [
-                $userID,
+                $userId,
             ],
         );
     }

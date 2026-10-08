@@ -22,7 +22,7 @@ final class ApiKeyRemoveForm extends Form
     private readonly BackendViewContext $backendContext;
     public function __construct(
         BackendViewContext $context,
-        private readonly int $userID,
+        private readonly int $userId,
         string $cancelLink,
     ) {
         $this->backendContext = $context;
@@ -46,7 +46,7 @@ final class ApiKeyRemoveForm extends Form
         if (!parent::validate()) {
             return false;
         }
-        $this->backendContext->repositories->apiKeys()->deleteByUserID(userID: $this->userID);
+        $this->backendContext->repositories->apiKeys()->deleteByUserId(userId: $this->userId);
 
         return true;
     }

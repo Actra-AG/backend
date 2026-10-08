@@ -19,8 +19,8 @@ use actra\yuf\auth\SecretTokenHash;
 final readonly class DbAuthApiKey
 {
     public function __construct(
-        public int $userID,
-        public string $publicID,
+        public int $userId,
+        public string $publicId,
         public Password|SecretTokenHash $key,
     ) {}
 

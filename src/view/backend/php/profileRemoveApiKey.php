@@ -55,16 +55,16 @@ final class profileRemoveApiKey extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $userID = $this->backendContext->getCurrentUser()->dbAuthUser->ID;
+        $userId = $this->backendContext->getCurrentUser()->dbAuthUser->id;
         if (
             !$this->backendContext->actraBackend->actraBackendSettings->hasApi
-            || !$this->backendContext->repositories->apiKeys()->hasByUserID(userID: $userID)
+            || !$this->backendContext->repositories->apiKeys()->hasByUserId(userId: $userId)
         ) {
             throw new NotFoundException();
         }
         $apiKeyRemoveForm = new ApiKeyRemoveForm(
             context: $this->backendContext,
-            userID: $userID,
+            userId: $userId,
             cancelLink: $this->backendContext->paths->profile(),
         );
         if ($apiKeyRemoveForm->process()) {

@@ -21,8 +21,8 @@ This project follows the Actra coding standard, installed as development depende
 - Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`.
 - yuf is developed in parallel (local checkout usually at `../yuf`); raise it as described in
   `standards/versioning.md`, section 8.
-- Ongoing goal: bring the backend to the current yuf and to the global standard, without project deviations (see
-  [docs/standard-migration/plan.md](docs/standard-migration/plan.md)).
+- The migration to the current yuf and the global standard is complete (v2.0.0); final state and open points in
+  [docs/standard-migration/plan.md](docs/standard-migration/plan.md).
 
 ## Directory layout
 
@@ -79,9 +79,3 @@ This project follows the Actra coding standard, installed as development depende
   based on `BackendView`) have a lowercase class name equal to the file title (`login`, `userMod`), not PascalCase
   (`standards/naming.md`). Reason: the factory builds the class name from the requested file name, like yuf's
   `ClassNameViewFactory` (allowed by yuf's README, section "Views"). Applies only to these view classes.
-
-Temporary, legacy code migrated step by step (see [docs/standard-migration/plan.md](docs/standard-migration/plan.md)).
-New code follows the global standard; existing names are kept until their step is done, because renaming them breaks
-consuming projects:
-
-- Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.

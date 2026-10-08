@@ -14,7 +14,7 @@ use actra\yuf\html\HtmlDataObject;
 final readonly class DbAuthGroup
 {
     public function __construct(
-        public int $ID,
+        public int $id,
         public string $title,
     ) {}
 

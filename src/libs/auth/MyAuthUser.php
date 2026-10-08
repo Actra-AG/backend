@@ -27,12 +27,12 @@ final class MyAuthUser extends AuthUser
 {
     public function __construct(
         public readonly DbAuthUser $dbAuthUser,
-        public readonly ?int $parentSessionID,
+        public readonly ?int $parentSessionId,
         private readonly BackendRepositories $repositories,
         private readonly ClientData $clientData,
     ) {
         parent::__construct(
-            id: $dbAuthUser->ID,
+            id: $dbAuthUser->id,
             isActive: (
                 $dbAuthUser->isActive
                 && !$dbAuthUser->accessRightCollection->isEmpty()
@@ -65,7 +65,7 @@ final class MyAuthUser extends AuthUser
         if (!$authSession->isLoggedIn()) {
             return null;
         }
-        $dbAuthSession = $repositories->sessions()->selectByID(ID: $authSession->getAuthSessionId());
+        $dbAuthSession = $repositories->sessions()->selectById(id: $authSession->getAuthSessionId());
         if ($dbAuthSession === null) {
             $authSession->logOut();
 
@@ -74,7 +74,7 @@ final class MyAuthUser extends AuthUser
 
         return new MyAuthUser(
             dbAuthUser: $dbAuthSession->dbAuthUser,
-            parentSessionID: $dbAuthSession->parentID,
+            parentSessionId: $dbAuthSession->parentId,
             repositories: $repositories,
             clientData: $clientData,
         );
@@ -147,7 +147,7 @@ final class MyAuthUser extends AuthUser
         if ($this->isSessionChange()) {
             return false;
         }
-        if ($dbAuthUser->ID === $this->id) {
+        if ($dbAuthUser->id === $this->id) {
             return false;
         }
         if (!$dbAuthUser->isActive) {
@@ -162,23 +162,23 @@ final class MyAuthUser extends AuthUser
 
     public function isSessionChange(): bool
     {
-        return $this->parentSessionID !== null;
+        return $this->parentSessionId !== null;
     }
 
     #[\Override]
     protected function dbIncreaseWrongPasswordAttempts(): void
     {
-        $this->repositories->users()->increaseWrongPasswordAttempts(ID: $this->id);
+        $this->repositories->users()->increaseWrongPasswordAttempts(id: $this->id);
     }
 
     #[\Override]
     protected function dbConfirmSuccessfulLogin(): int
     {
-        $this->repositories->users()->dbConfirmSuccessfulLogin(ID: $this->id);
+        $this->repositories->users()->dbConfirmSuccessfulLogin(id: $this->id);
 
         return $this->repositories->sessions()->insert(
-            parentID: $this->parentSessionID,
-            userID: $this->id,
+            parentId: $this->parentSessionId,
+            userId: $this->id,
             clientData: $this->clientData,
         );
     }
@@ -186,7 +186,7 @@ final class MyAuthUser extends AuthUser
     #[\Override]
     protected function dbUpdatePassword(Password $newPassword): void
     {
-        $this->repositories->users()->updatePasswordHash(ID: $this->id, password: $newPassword);
+        $this->repositories->users()->updatePasswordHash(id: $this->id, password: $newPassword);
     }
 
     public function canManageUsers(): bool

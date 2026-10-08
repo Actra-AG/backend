@@ -20,7 +20,7 @@ final class DbAuthUserNotificationCollection
 
     public function add(DbAuthUserNotification $dbAuthUserNotification): void
     {
-        $this->items[$dbAuthUserNotification->ID] = $dbAuthUserNotification;
+        $this->items[$dbAuthUserNotification->id] = $dbAuthUserNotification;
     }
 
     public function isEmpty(): bool

@@ -97,8 +97,8 @@ final class user extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
+        $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
@@ -113,8 +113,8 @@ final class user extends BackendView
         ) {
             $this->backendContext->authSession->logIn(
                 authSessionId: $this->backendContext->repositories->sessions()->insert(
-                    parentID: $this->backendContext->authSession->getAuthSessionId(),
-                    userID: $dbAuthUser->ID,
+                    parentId: $this->backendContext->authSession->getAuthSessionId(),
+                    userId: $dbAuthUser->id,
                     clientData: $this->backendContext->clientData,
                 ),
             );
@@ -183,7 +183,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'userModHref',
-            html: $this->backendContext->paths->userMod(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userMod(id: $dbAuthUser->id),
         );
         $replacements->addHtml(
             identifier: 'impersonateHref',
@@ -191,7 +191,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'removeHref',
-            html: $this->backendContext->paths->userDelete(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userDelete(id: $dbAuthUser->id),
         );
         $replacements->addBool(
             identifier: 'added',
@@ -211,7 +211,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'inviteHref',
-            html: $this->backendContext->paths->userInvite(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userInvite(id: $dbAuthUser->id),
         );
         $replacements->addText(
             identifier: 'firstName',
@@ -243,7 +243,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'visitsHref',
-            html: $this->backendContext->paths->visits(userID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->visits(userId: $dbAuthUser->id),
         );
         $userLanguageOptions = UserLanguageOptions::forContext(context: $this->backendContext);
         $replacements->addBool(
@@ -261,7 +261,7 @@ final class user extends BackendView
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
             htmlDataObjectCollection: $this->backendContext->repositories->groups()
-                ->listByUserID(userID: $dbAuthUser->ID)
+                ->listByUserId(userId: $dbAuthUser->id)
                 ->render(),
         );
         $replacements->addHtmlDataObjectCollection(
@@ -275,22 +275,22 @@ final class user extends BackendView
             identifier: 'generatedApiKey',
             html: GeneratedApiKeyFlash::pull(
                 session: $this->backendContext->session,
-                userID: $dbAuthUser->ID,
+                userId: $dbAuthUser->id,
             ) ?? '',
         );
         $replacements->addHtml(
             identifier: 'apiKey',
-            html: $this->backendContext->repositories->apiKeys()->hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
+            html: $this->backendContext->repositories->apiKeys()->hasByUserId(userId: $dbAuthUser->id) ? '***' : '',
         );
         $replacements->addHtml(
             identifier: 'generateApiKeyHref',
             html: $dbAuthUser->ipWhitelist !== []
-                ? $this->backendContext->paths->userGenerateApiKey(ID: $dbAuthUser->ID)
+                ? $this->backendContext->paths->userGenerateApiKey(id: $dbAuthUser->id)
                 : '',
         );
         $replacements->addHtml(
             identifier: 'removeApiKeyHref',
-            html: $this->backendContext->paths->userRemoveApiKey(ID: $dbAuthUser->ID),
+            html: $this->backendContext->paths->userRemoveApiKey(id: $dbAuthUser->id),
         );
         $this->addTexts(
             replacements: $replacements,

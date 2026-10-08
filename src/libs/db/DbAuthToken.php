@@ -12,8 +12,8 @@ namespace actra\backend\libs\db;
 final readonly class DbAuthToken
 {
     public function __construct(
-        public int $ID,
-        public int $userID,
+        public int $id,
+        public int $userId,
         public string $email,
     ) {}
 }

@@ -23,7 +23,7 @@ final class DbAuthGroupCollection
 
     public function add(DbAuthGroup $dbAuthGroup): void
     {
-        $this->items[$dbAuthGroup->ID] = $dbAuthGroup;
+        $this->items[$dbAuthGroup->id] = $dbAuthGroup;
     }
 
     public function getFormOptions(): FormOptions
@@ -31,7 +31,7 @@ final class DbAuthGroupCollection
         $formOptions = new FormOptions();
         foreach ($this->items as $dbAuthGroup) {
             $formOptions->addItem(
-                key: (string) $dbAuthGroup->ID,
+                key: (string) $dbAuthGroup->id,
                 htmlText: HtmlText::fromText(text: $dbAuthGroup->title),
             );
         }
@@ -42,7 +42,7 @@ final class DbAuthGroupCollection
     /**
      * @return list<int>
      */
-    public function listIDs(): array
+    public function listIds(): array
     {
         return array_keys(array: $this->items);
     }
@@ -54,24 +54,24 @@ final class DbAuthGroupCollection
      */
     public function listFormOptionKeys(): array
     {
-        return array_map(callback: static fn(int $ID): string => (string) $ID, array: $this->listIDs());
+        return array_map(callback: static fn(int $id): string => (string) $id, array: $this->listIds());
     }
 
     /**
      * @param list<int> $authGroupIdList
      */
-    public function hasOneOfIDs(array $authGroupIdList): bool
+    public function hasOneOfIds(array $authGroupIdList): bool
     {
-        return array_intersect($authGroupIdList, $this->listIDs()) !== [];
+        return array_intersect($authGroupIdList, $this->listIds()) !== [];
     }
 
-    public function get(int $ID): DbAuthGroup
+    public function get(int $id): DbAuthGroup
     {
-        if (!array_key_exists(key: $ID, array: $this->items)) {
-            throw new OutOfBoundsException(message: 'No DbAuthGroup with the ID ' . $ID . ' in the collection.');
+        if (!array_key_exists(key: $id, array: $this->items)) {
+            throw new OutOfBoundsException(message: 'No DbAuthGroup with the ID ' . $id . ' in the collection.');
         }
 
-        return $this->items[$ID];
+        return $this->items[$id];
     }
 
     public function render(): HtmlDataObjectCollection

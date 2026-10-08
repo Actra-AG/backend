@@ -21,22 +21,22 @@ final class GeneratedApiKeyFlash
 {
     private const string SESSION_KEY = 'actra_backend_generated_api_key';
 
-    public static function store(Session $session, int $userID, string $apiKey): void
+    public static function store(Session $session, int $userId, string $apiKey): void
     {
-        $session->set(key: GeneratedApiKeyFlash::SESSION_KEY, value: ['userID' => $userID, 'apiKey' => $apiKey]);
+        $session->set(key: GeneratedApiKeyFlash::SESSION_KEY, value: ['userId' => $userId, 'apiKey' => $apiKey]);
     }
 
     /**
      * Returns the stored key of the user and removes it, so it is shown only once.
      */
-    public static function pull(Session $session, int $userID): ?string
+    public static function pull(Session $session, int $userId): ?string
     {
         $stored = $session->getArray(key: GeneratedApiKeyFlash::SESSION_KEY);
         if (
             $stored === null
-            || !array_key_exists(key: 'userID', array: $stored)
+            || !array_key_exists(key: 'userId', array: $stored)
             || !array_key_exists(key: 'apiKey', array: $stored)
-            || $stored['userID'] !== $userID
+            || $stored['userId'] !== $userId
             || !is_string(value: $stored['apiKey'])
         ) {
             return null;

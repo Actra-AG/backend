@@ -31,16 +31,16 @@ final class UserTable extends AbstractTable
         $dbAuthGroup = $userSearchForm->dbAuthGroup;
         if ($dbAuthGroup !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
+                wherePart: 'auth_user.id IN (SELECT user_id FROM auth_user_group WHERE group_id=?)',
                 parameters: [
-                    $dbAuthGroup->ID,
+                    $dbAuthGroup->id,
                 ],
             );
         }
         $searchQuery = $userSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_user.email',
+                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_user.email',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
@@ -58,15 +58,15 @@ final class UserTable extends AbstractTable
         $messages = $context->messages->user;
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
-                identifier: 'fullName',
+                identifier: 'full_name',
                 label: $messages->nameColumn,
                 callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . $context->paths->user(
-                    ID: $tableItem->getRow()->getInt(column: 'ID'),
+                    id: $tableItem->getRow()->getInt(column: 'id'),
                 ) . '">' . MessageTemplate::fill(
                     template: HtmlEncoder::encode(value: $common->fullName),
                     values: [
-                        'firstName' => $tableItem->renderValue(name: 'firstName'),
-                        'lastName' => $tableItem->renderValue(name: 'lastName'),
+                        'firstName' => $tableItem->renderValue(name: 'first_name'),
+                        'last_name' => $tableItem->renderValue(name: 'last_name'),
                     ],
                 ) . '</a>',
                 isSortable: true,
@@ -90,19 +90,19 @@ final class UserTable extends AbstractTable
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'rightGroups',
+                identifier: 'right_groups',
                 label: $messages->rightGroupsColumn,
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
-                identifier: 'ipWhitelist',
+                identifier: 'ip_whitelist',
                 label: $common->ipWhitelistLabel,
                 callbackFunction: static fn(TableItem $tableItem): string => str_replace(
                     search: ',',
                     replace: '<br>',
-                    subject: $tableItem->renderValue(name: 'ipWhitelist'),
+                    subject: $tableItem->renderValue(name: 'ip_whitelist'),
                 ),
                 isSortable: true,
             ),

@@ -44,7 +44,7 @@ final class tokens extends BackendView
     {
         return new NavigationItem(
             navKey: 'tokens',
-            href: $paths->tokens(userID: null) . '?reset',
+            href: $paths->tokens(userId: null) . '?reset',
             svgPath: '',
             title: $messages->log->tokensNavigationTitle,
             requiredAccessRights: tokens::getRequiredAccessRights(),
@@ -69,16 +69,16 @@ final class tokens extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->getPathVar(nr: 1) !== null) {
-            $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
-            $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
+            $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
+            $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
             if ($dbAuthUser === null) {
                 throw new NotFoundException();
             }
-            $filterUserID = $dbAuthUser->ID;
+            $filterUserId = $dbAuthUser->id;
         } else {
-            $filterUserID = null;
+            $filterUserId = null;
         }
-        $pageIdentifier = 'TokenSearch-' . (int) $filterUserID;
+        $pageIdentifier = 'TokenSearch-' . (int) $filterUserId;
         $tokenSearchForm = new TokenSearchForm(context: $this->backendContext, name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
         $replacements->addHtml(
@@ -90,7 +90,7 @@ final class tokens extends BackendView
             html: new TokenTable(
                 context: $this->backendContext,
                 identifier: $pageIdentifier . 'Table',
-                filterUserID: $filterUserID,
+                filterUserId: $filterUserId,
                 tokenSearchForm: $tokenSearchForm,
             )->render(),
         );

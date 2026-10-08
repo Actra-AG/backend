@@ -18,22 +18,22 @@ use actra\yuf\table\column\DefaultColumn;
  */
 final class NotificationRecipientTable extends AbstractTable
 {
-    public function __construct(BackendViewContext $context, int $notificationID)
+    public function __construct(BackendViewContext $context, int $notificationId)
     {
         $dbQuery = $context->repositories->notificationRecipients()->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_user_notification_recipient.notificationID=?',
-            parameters: [$notificationID],
+            wherePart: 'auth_user_notification_recipient.notification_id=?',
+            parameters: [$notificationId],
         );
         parent::__construct(
             context: $context,
-            identifier: 'NotificationRecipientTable-' . $notificationID,
+            identifier: 'NotificationRecipientTable-' . $notificationId,
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
         $messages = $context->messages;
         $sentDateColumn = new DateColumn(
-            identifier: 'sentDate',
+            identifier: 'sent_date',
             label: $messages->notification->dateLabel,
             isSortable: true,
             sortAscendingByDefault: false,
@@ -52,14 +52,14 @@ final class NotificationRecipientTable extends AbstractTable
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'firstName',
+                identifier: 'first_name',
                 label: $messages->common->firstNameLabel,
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'lastName',
+                identifier: 'last_name',
                 label: $messages->common->lastNameLabel,
                 isSortable: true,
             ),

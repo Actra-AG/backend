@@ -3,6 +3,57 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v2.0.0 (2026-10-09)
+
+### ⚠️ Database in snake_case: `db/updates/2.0.0.sql`
+
+All tables, columns and indexes of the backend follow the coding standard (`naming.md`): `auth_ipWhitelist` is
+`auth_ip_whitelist`, `ID` is `id`, `userID` is `user_id`, `firstName` is `first_name`, `passwordHash` is
+`password_hash`, and so on. The update script renames them and keeps all data, indexes and foreign keys (checked:
+the old schema plus the script equals the new `db/schema.sql`). It needs MariaDB ≥ 10.5 or MySQL ≥ 8.0
+(`RENAME COLUMN`).
+
+```sql
+-- Before
+SELECT auth_user.ID, auth_user.firstName
+FROM auth_user
+         INNER JOIN auth_ipWhitelist ON auth_ipWhitelist.userID = auth_user.ID;
+
+-- After
+SELECT auth_user.id, auth_user.first_name
+FROM auth_user
+         INNER JOIN auth_ip_whitelist ON auth_ip_whitelist.user_id = auth_user.id;
+```
+
+The columns of the tables of the backend have the new names, so their sort parameters in links change (e.g.
+`?…|first_name|asc`).
+
+### ⚠️ Acronyms like normal words
+
+Every name of the backend writes `ID` as `Id` (or `id` at the start): properties, parameters, named arguments and
+methods.
+
+```php
+// Before
+$dbAuthUser->ID;
+$repositories->users()->selectByID(ID: 5);
+$paths->user(ID: 5);
+$userController->deleteUser(userID: 5);
+$apiKeys->getUserIDForBearerOrThrow(httpRequest: $httpRequest);
+public function beforeDeleteUser(int $userID): void // UserDeleteHandler
+
+// After
+$dbAuthUser->id;
+$repositories->users()->selectById(id: 5);
+$paths->user(id: 5);
+$userController->deleteUser(userId: 5);
+$apiKeys->getUserIdForBearerOrThrow(httpRequest: $httpRequest);
+public function beforeDeleteUser(int $userId): void // the backend calls it with userId:
+```
+
+Search your project for: `auth_` (own SQL on the backend tables), `->ID`, `ID:`, `userID`, `ByID(`, `IDs(`,
+`ForBearerOrThrow(`, `beforeDeleteUser(`.
+
 ## v1.14.0 (2026-10-08)
 
 ### ⚠️ No static state: services in `BackendViewContext`
@@ -52,7 +103,8 @@ $actraBackend->getRepositories()->apiKeys()->getUserIDForBearerOrThrow(httpReque
   `DbAuthUserCollection::getFormOptions()` and `DbAuthUserNotification::render()` take the messages; `SearchQueryField`,
   `LanguageField` take `messages:`.
 
-Search your project for: `ActraBackend::get()`, `ActraBackend::messages()`, `ActraBackend::path()`, `ActraBackend::init(`,
+Search your project for: `ActraBackend::get()`, `ActraBackend::messages()`, `ActraBackend::path()`,
+`ActraBackend::init(`,
 `MyAuthUser::get()`, `DB::get()`, `DB::useConnection(`, `Repository::`, `Mailer::`, `UserController::`,
 `EmailAuthUser::send(`, `::getPath(`, `new SearchQueryField(`, `->render()` on `AuthTokenTypeEnum`.
 
@@ -322,8 +374,8 @@ Was `^4.14`. yuf 4.15.0 passes a `ViewContext` to every view and removes `HtmlDo
 
 `BackendViewContext` holds the yuf `ViewContext` and the services of the backend. It is the only constructor change
 for project views in the migration to the current yuf: later releases add services to the context, not new arguments.
-Routes with `BackendView` views use the view factory of the backend, which creates these views with the context
-(other views on the route get the yuf `ViewContext` as before):
+Routes with `BackendView` views use the view factory of the backend, which creates these views with the context (other
+views on the route get the yuf `ViewContext` as before):
 
 ```php
 // Before
@@ -473,7 +525,8 @@ uploads: `UploadedFile::getHash()` returns SHA-256 instead of SHA-1 (see yuf's `
   Actions".
 * **Migration:** Projects must rebuild their JavaScript bundle (or republish `backend.js`/`modules/dialog.js`).
 * `user.html`: the delete link got `data-form="main form"` and points to the new confirmation page
-  `userDelete-{ID}.html`. The "remove API key" links in `user.html` and `profile.html` got `data-action="confirm-deletion"`,
+  `userDelete-{ID}.html`. The "remove API key" links in `user.html` and `profile.html` got
+  `data-action="confirm-deletion"`,
   `data-form="main form"` and `data-confirm` (new text `removeApiKeyConfirm`) and point to the new confirmation pages
   `userRemoveApiKey-{ID}.html` and `profileRemoveApiKey.html`. Projects with their own `user.html`/`profile.html`
   copy these attributes and the replacement.
@@ -651,7 +704,8 @@ uploads: `UploadedFile::getHash()` returns SHA-256 instead of SHA-1 (see yuf's `
 * **Feature:** Single texts can be replaced with `with()`:
   `BackendMessages::german()->with(auth: AuthMessages::german()->with(loginPageTitle: 'Login'))`.
 * **Feature:** `ActraBackend::messages()` (texts of the current route), `ActraBackend::path()` (path of the current
-  route), `ActraBackend::get()->getRouteForLanguage()`, `ActraBackend::get()->currentRoute`. `ActraBackend::$path` is the
+  route), `ActraBackend::get()->getRouteForLanguage()`, `ActraBackend::get()->currentRoute`. `ActraBackend::$path` is
+  the
   path of the main route; links should use `ActraBackend::path()`.
 * **Feature:** Every user has a language (`auth_user.language`, empty = language of the main route), selectable in the
   user forms and the profile when several languages are configured. The welcome email is prefilled in the recipient's
@@ -662,8 +716,8 @@ uploads: `UploadedFile::getHash()` returns SHA-256 instead of SHA-1 (see yuf's `
   navigation items per route language; called at init for the main route and again for the route of each request.
 * **Database:** Installations upgrading from an earlier version must apply `db/updates/1.1.0.sql` (adds
   `auth_user.language`).
-* **Logic Change:** A route whose language is not `de` and that has no messages configured now shows English texts
-  (it showed German texts before).
+* **Logic Change:** A route whose language is not `de` and that has no messages configured now shows English texts (it
+  showed German texts before).
 * **Logic Change:** Date formats come from `CommonMessages::$dateFormat` / `$dateTimeFormat` (German `d.m.Y` /
   `d.m.Y H:i:s` as before, English `Y-m-d` / `Y-m-d H:i:s`).
 * **Logic Change:** The visit log uses the backend's own status labels (`LogMessages::authResult()`) instead of yuf's
@@ -672,7 +726,8 @@ uploads: `UploadedFile::getHash()` returns SHA-256 instead of SHA-1 (see yuf's `
 * **Logic Change:** The pagination titles of the backend tables come from `CommonMessages::$paginationPrevious` /
   `$paginationNext` (German "Zurück" / "Vor" as before). `AbstractTable` has its own constructor (`identifier`, `db`,
   `dbQuery`, `itemsPerPage`) that passes them to yuf's `TablePaginationRenderer`.
-* **Logic Change:** `IpWhitelistField` has the optional argument `fieldInfo` (default: `CommonMessages::$ipWhitelistInfo`).
+* **Logic Change:** `IpWhitelistField` has the optional argument `fieldInfo` (default:
+  `CommonMessages::$ipWhitelistInfo`).
   `DbAuthUser` has the new constructor argument `languageCode`; `DbAuthUserRepository::insert()`/`update()` the new
   parameter `languageCode`.
 * **Logic Change:** `ActraBackend::get()` throws a `LogicException` before `ActraBackend::init()` (was a `TypeError`).
@@ -702,8 +757,10 @@ uploads: `UploadedFile::getHash()` returns SHA-256 instead of SHA-1 (see yuf's `
   // After
   $field->addEachRule(formRule: new ValidIpAddressRule(errorMessage: $invalid));
   ```
-* **Breaking Change:** `IpWhitelistField` is a string-based yuf v4 `TextAreaField`: the constructor (`value: list<string>`)
-  is unchanged, `getValue()` is replaced by `getValues()` (trimmed addresses without empty lines), `setValue()` takes the
+* **Breaking Change:** `IpWhitelistField` is a string-based yuf v4 `TextAreaField`: the constructor
+  (`value: list<string>`)
+  is unchanged, `getValue()` is replaced by `getValues()` (trimmed addresses without empty lines), `setValue()` takes
+  the
   text (one address per line) instead of an array, and validation no longer rewrites the field value.
 * **Breaking Change:** The forms (`LoginForm`, `LoginPasswordForm`, `LoginTokenForm`, `PasswordForgottenForm`,
   `PasswordResetForm`, `ProfileForm`, `ProfilePasswordForm`, `UserAddForm`, `UserInviteForm`, `UserModForm`,
@@ -711,7 +768,8 @@ uploads: `UploadedFile::getHash()` returns SHA-256 instead of SHA-1 (see yuf's `
   `SearchQueryField` and `SearchSelectOptionsField` are now `final`.
 * **Logic Change:** `UserAddForm::$newUserID` and `NotificationSendForm::$notificationID` are `private(set)` instead of
   `readonly`; reading them is unchanged.
-* **Logic Change:** Manipulated input (e.g. an array instead of a text) resets the field and shows "Die ungültige Eingabe
+* **Logic Change:** Manipulated input (e.g. an array instead of a text) resets the field and shows "Die ungültige
+  Eingabe
   wurde ignoriert." instead of keeping the previous value.
 * **Feature:** Added `DbAuthGroupCollection::listFormOptionKeys()` (the option keys of `getFormOptions()`).
 * **Security:** An invalid IP address shown in the IP whitelist error message is now HTML-encoded.

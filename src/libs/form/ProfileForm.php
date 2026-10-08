@@ -120,7 +120,7 @@ final class ProfileForm extends Form
         $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
             $newIpWhitelist === []
-            && $this->backendContext->repositories->apiKeys()->hasByUserID(userID: $this->dbAuthUser->ID)
+            && $this->backendContext->repositories->apiKeys()->hasByUserId(userId: $this->dbAuthUser->id)
         ) {
             $this->addError(
                 errorMessage: HtmlText::fromText(
@@ -145,9 +145,9 @@ final class ProfileForm extends Form
 
             return false;
         }
-        $userID = $this->dbAuthUser->ID;
+        $userId = $this->dbAuthUser->id;
         $this->backendContext->repositories->users()->update(
-            ID: $userID,
+            id: $userId,
             email: $this->dbAuthUser->email,
             phone: $this->phoneNumberField->getValueAsString(),
             active: $this->dbAuthUser->isActive,
@@ -164,7 +164,7 @@ final class ProfileForm extends Form
                 strict: true,
             )) {
                 $this->backendContext->repositories->ipWhitelists()->insert(
-                    userID: $userID,
+                    userId: $userId,
                     ipAddress: $ip,
                 );
             }
@@ -176,7 +176,7 @@ final class ProfileForm extends Form
                 strict: true,
             )) {
                 $this->backendContext->repositories->ipWhitelists()->delete(
-                    userID: $userID,
+                    userId: $userId,
                     ipAddress: $ip,
                 );
             }

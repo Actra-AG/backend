@@ -105,7 +105,7 @@ final class UserInviteForm extends Form
             subject: $this->subjectField->getValueAsString(),
             message: $this->bodyField->getValueAsString(),
         );
-        $this->backendContext->repositories->users()->sentInvitation(ID: $dbAuthUser->ID);
+        $this->backendContext->repositories->users()->sentInvitation(id: $dbAuthUser->id);
 
         return true;
     }

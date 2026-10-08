@@ -26,26 +26,26 @@ final readonly class UserController
      * Deletes a user with its sessions, tokens, groups, IP whitelist and API key; the `UserDeleteHandler` of the
      * project deletes its own data first. A user who deletes himself is logged out.
      */
-    public function deleteUser(int $userID): void
+    public function deleteUser(int $userId): void
     {
         $repositories = $this->repositories;
         $db = $repositories->db();
         $db->beginTransaction();
         try {
-            $repositories->logins()->unsetUserID(userID: $userID);
-            $repositories->sessions()->deleteByUserID(userID: $userID);
-            $repositories->tokens()->deleteByUserID(userID: $userID);
-            $repositories->userGroups()->deleteByUserID(userID: $userID);
-            $repositories->ipWhitelists()->deleteByUserID(userID: $userID);
-            $repositories->apiKeys()->deleteByUserID(userID: $userID);
-            $this->userDeleteHandler?->beforeDeleteUser(userID: $userID);
-            $repositories->users()->delete(ID: $userID);
+            $repositories->logins()->unsetUserId(userId: $userId);
+            $repositories->sessions()->deleteByUserId(userId: $userId);
+            $repositories->tokens()->deleteByUserId(userId: $userId);
+            $repositories->userGroups()->deleteByUserId(userId: $userId);
+            $repositories->ipWhitelists()->deleteByUserId(userId: $userId);
+            $repositories->apiKeys()->deleteByUserId(userId: $userId);
+            $this->userDeleteHandler?->beforeDeleteUser(userId: $userId);
+            $repositories->users()->delete(id: $userId);
             $db->commit();
         } catch (Throwable $throwable) {
             $db->rollBack();
             throw $throwable;
         }
-        if ($this->currentUser?->id === $userID) {
+        if ($this->currentUser?->id === $userId) {
             $this->authSession->logOut();
         }
     }

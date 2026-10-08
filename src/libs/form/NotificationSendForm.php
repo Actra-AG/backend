@@ -91,16 +91,16 @@ final class NotificationSendForm extends Form
         if (!parent::validate()) {
             return null;
         }
-        $authGroupID = (int) $this->authUserGroupField->getValueAsString();
+        $authGroupId = (int) $this->authUserGroupField->getValueAsString();
         $subject = $this->subjectField->getValueAsString();
         $message = $this->messageField->getValueAsString();
-        $notificationID = $this->backendContext->repositories->notifications()->insert(
-            authGroupID: $authGroupID,
-            sentByUserID: $this->backendContext->getCurrentUser()->id,
+        $notificationId = $this->backendContext->repositories->notifications()->insert(
+            authGroupId: $authGroupId,
+            sentByUserId: $this->backendContext->getCurrentUser()->id,
             subject: $subject,
             message: $message,
         );
-        $recipients = $this->backendContext->repositories->users()->selectByUserGroup(groupID: $authGroupID);
+        $recipients = $this->backendContext->repositories->users()->selectByUserGroup(groupId: $authGroupId);
         foreach ($recipients->items as $dbAuthUser) {
             EmailAuthUser::send(
                 mailer: $this->backendContext->mailer,
@@ -119,13 +119,13 @@ final class NotificationSendForm extends Form
                 ),
             );
             $this->backendContext->repositories->notificationRecipients()->insert(
-                notificationID: $notificationID,
-                authUserID: $dbAuthUser->ID,
+                notificationId: $notificationId,
+                authUserId: $dbAuthUser->id,
                 email: $dbAuthUser->email,
             );
             sleep(seconds: 1);
         }
 
-        return $notificationID;
+        return $notificationId;
     }
 }

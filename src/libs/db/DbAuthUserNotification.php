@@ -19,9 +19,9 @@ use DateTimeImmutable;
 final readonly class DbAuthUserNotification
 {
     public function __construct(
-        public int $ID,
-        public int $authGroupID,
-        public int $sentByID,
+        public int $id,
+        public int $authGroupId,
+        public int $sentById,
         public DateTimeImmutable $sentDate,
         public string $subject,
         public string $message,
@@ -35,7 +35,7 @@ final readonly class DbAuthUserNotification
     {
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         $details = [
-            ['ID', (string) $this->ID],
+            ['ID', (string) $this->id],
             [
                 $messages->notification->sentDateLabel,
                 $this->sentDate->format(format: $messages->common->dateTimeFormat),

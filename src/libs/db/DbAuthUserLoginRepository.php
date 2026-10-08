@@ -18,15 +18,15 @@ final class DbAuthUserLoginRepository
         return DbQuery::createFromSqlQuery(
             query: '
                 SELECT auth_login.registered,
-                       auth_user.firstName,
-                       auth_user.lastName,
-                       auth_login.userID,
-                       auth_login.sessionId,
-                       auth_login.ipAddress,
+                       auth_user.first_name,
+                       auth_user.last_name,
+                       auth_login.user_id,
+                       auth_login.session_id,
+                       auth_login.ip_address,
                        auth_login.email,
                        auth_login.result
                 FROM auth_login
-                    INNER JOIN auth_user ON auth_user.ID=auth_login.userID
+                    INNER JOIN auth_user ON auth_user.id=auth_login.user_id
             ',
         );
     }

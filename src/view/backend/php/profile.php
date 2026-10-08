@@ -114,7 +114,7 @@ final class profile extends BackendView
         }
         $replacements->addHtml(
             identifier: 'apiKey',
-            html: $this->backendContext->repositories->apiKeys()->hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
+            html: $this->backendContext->repositories->apiKeys()->hasByUserId(userId: $dbAuthUser->id) ? '***' : '',
         );
         $replacements->addHtml(
             identifier: 'generateApiKeyHref',
@@ -128,7 +128,7 @@ final class profile extends BackendView
             identifier: 'generatedApiKey',
             html: GeneratedApiKeyFlash::pull(
                 session: $this->backendContext->session,
-                userID: $dbAuthUser->ID,
+                userId: $dbAuthUser->id,
             ) ?? '',
         );
     }

@@ -54,8 +54,8 @@ final class userInvite extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
+        $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
@@ -63,7 +63,7 @@ final class userInvite extends BackendView
         if ($userInviteForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $this->backendContext->paths->user(
-                    ID: $dbAuthUser->ID,
+                    id: $dbAuthUser->id,
                 ) . '?' . user::PARAM_INVITED,
                 httpRequest: $this->context->httpRequest,
             );

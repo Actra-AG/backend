@@ -58,8 +58,8 @@ final class userDelete extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $pathUserID = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectByID(ID: $pathUserID);
+        $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
+        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }

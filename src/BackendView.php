@@ -77,9 +77,9 @@ abstract class BackendView extends BaseView
         );
         $ipWhitelist = $actraBackend->actraBackendSettings->ipWhitelist;
         if ($myAuthUser !== null) {
-            $parentSessionID = $myAuthUser->parentSessionID;
-            if ($parentSessionID !== null) {
-                $parentSession = $this->backendContext->repositories->sessions()->selectByID(ID: $parentSessionID);
+            $parentSessionId = $myAuthUser->parentSessionId;
+            if ($parentSessionId !== null) {
+                $parentSession = $this->backendContext->repositories->sessions()->selectById(id: $parentSessionId);
                 if ($parentSession === null) {
                     throw new UnauthorizedException();
                 }
@@ -125,7 +125,7 @@ abstract class BackendView extends BaseView
             throw $unauthorizedAccessRightException;
         }
         if ($myAuthUser !== null) {
-            $context->repositories->sessions()->updateLastAction(ID: $authSession->getAuthSessionId());
+            $context->repositories->sessions()->updateLastAction(id: $authSession->getAuthSessionId());
         }
     }
 
@@ -136,15 +136,15 @@ abstract class BackendView extends BaseView
     {
         if ($this->backendContext->authSession->isLoggedIn()) {
             $myAuthUser = $this->backendContext->getCurrentUser();
-            $parentSessionID = $myAuthUser->parentSessionID;
+            $parentSessionId = $myAuthUser->parentSessionId;
             if (
-                $parentSessionID !== null
+                $parentSessionId !== null
                 && $this->getInputString(keyName: BackendView::PARAM_CANCEL_SESSION_CHANGE) !== null
             ) {
-                $impersonatedUserID = $myAuthUser->id;
-                $this->backendContext->authSession->logIn(authSessionId: $parentSessionID);
+                $impersonatedUserId = $myAuthUser->id;
+                $this->backendContext->authSession->logIn(authSessionId: $parentSessionId);
                 HttpResponse::redirectAndExit(
-                    relativeOrAbsoluteUri: $this->backendContext->paths->user(ID: $impersonatedUserID),
+                    relativeOrAbsoluteUri: $this->backendContext->paths->user(id: $impersonatedUserId),
                     httpRequest: $this->context->httpRequest,
                 );
             }

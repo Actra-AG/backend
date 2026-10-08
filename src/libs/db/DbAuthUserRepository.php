@@ -24,33 +24,33 @@ final class DbAuthUserRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-                SELECT auth_user.ID,
+                SELECT auth_user.id,
                        auth_user.registered,
                        auth_user.invited,
-                       (SELECT MAX(registered) FROM auth_login WHERE userID=auth_user.ID) AS lastLogin,
+                       (SELECT MAX(registered) FROM auth_login WHERE user_id=auth_user.id) AS last_login,
                        auth_user.email,
                        auth_user.phone,
                        auth_user.active,
-                       (SELECT GROUP_CONCAT(auth_group_right.rightName)
+                       (SELECT GROUP_CONCAT(auth_group_right.right_name)
                            FROM auth_group_right
-                           WHERE auth_group_right.groupID IN (SELECT groupID
+                           WHERE auth_group_right.group_id IN (SELECT group_id
                                FROM auth_user_group
-                               WHERE userID=auth_user.ID)) AS accessRights,
-                       auth_user.firstName,
-                       auth_user.lastName,
+                               WHERE user_id=auth_user.id)) AS access_rights,
+                       auth_user.first_name,
+                       auth_user.last_name,
                        auth_user.language,
-                       auth_user.passwordSalt,
-                       auth_user.passwordHash,
-                       auth_user.wrongLoginAttempts,
+                       auth_user.password_salt,
+                       auth_user.password_hash,
+                       auth_user.wrong_login_attempts,
                        (SELECT GROUP_CONCAT(auth_group.title SEPARATOR \'<br>\')
                            FROM auth_group
-                           WHERE auth_group.ID IN (SELECT groupID
+                           WHERE auth_group.id IN (SELECT group_id
                                FROM auth_user_group
-                               WHERE userID=auth_user.ID)) AS rightGroups,
-                       CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName,
-                       (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress)
-                           FROM auth_ipWhitelist
-                           WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
+                               WHERE user_id=auth_user.id)) AS right_groups,
+                       CONCAT_WS(\' \', auth_user.first_name, auth_user.last_name) AS full_name,
+                       (SELECT GROUP_CONCAT(auth_ip_whitelist.ip_address)
+                           FROM auth_ip_whitelist
+                           WHERE auth_ip_whitelist.user_id=auth_user.id) AS ip_whitelist
                 FROM auth_user
             ',
         );
@@ -58,31 +58,31 @@ final class DbAuthUserRepository
 
     private function createItem(DbRow $row): DbAuthUser
     {
-        $passwordSalt = $row->getNullableString(column: 'passwordSalt');
+        $passwordSalt = $row->getNullableString(column: 'password_salt');
 
         return new DbAuthUser(
-            ID: $row->getInt(column: 'ID'),
+            id: $row->getInt(column: 'id'),
             registered: $row->getDateTimeImmutable(column: 'registered'),
             invitedDate: $row->getNullableDateTimeImmutable(column: 'invited'),
-            lastLogin: $row->getNullableDateTimeImmutable(column: 'lastLogin'),
+            lastLogin: $row->getNullableDateTimeImmutable(column: 'last_login'),
             email: $row->getString(column: 'email'),
             phone: $row->getString(column: 'phone'),
             isActive: $row->getBool(column: 'active'),
             accessRightCollection: AccessRightCollection::createFromStringArray(
                 input: explode(
                     separator: ',',
-                    string: $row->getNullableString(column: 'accessRights') ?? '',
+                    string: $row->getNullableString(column: 'access_rights') ?? '',
                 ),
             ),
-            firstName: $row->getString(column: 'firstName'),
-            lastName: $row->getString(column: 'lastName'),
+            firstName: $row->getString(column: 'first_name'),
+            lastName: $row->getString(column: 'last_name'),
             languageCode: $row->getNullableString(column: 'language'),
             password: $passwordSalt === null ? null : new Password(
                 salt: $passwordSalt,
-                hash: $row->getString(column: 'passwordHash'),
+                hash: $row->getString(column: 'password_hash'),
             ),
-            wrongLoginAttempts: $row->getInt(column: 'wrongLoginAttempts'),
-            rawIpWhitelist: $row->getNullableString(column: 'ipWhitelist') ?? '',
+            wrongLoginAttempts: $row->getInt(column: 'wrong_login_attempts'),
+            rawIpWhitelist: $row->getNullableString(column: 'ip_whitelist') ?? '',
         );
     }
 
@@ -104,13 +104,13 @@ final class DbAuthUserRepository
         return $dbAuthUserCollection;
     }
 
-    public function selectByID(int $ID): ?DbAuthUser
+    public function selectById(int $id): ?DbAuthUser
     {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_user.ID=?',
+            wherePart: 'auth_user.id=?',
             parameters: [
-                $ID,
+                $id,
             ],
         );
         $dbAuthUserCollection = $this->select(dbQuery: $dbQuery);
@@ -131,14 +131,14 @@ final class DbAuthUserRepository
     }
 
     public function selectByUserGroup(
-        int $groupID,
+        int $groupId,
         bool $mustBeActive = true,
     ): DbAuthUserCollection {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
+            wherePart: 'auth_user.id IN (SELECT user_id FROM auth_user_group WHERE group_id=?)',
             parameters: [
-                $groupID,
+                $groupId,
             ],
         );
         if ($mustBeActive) {
@@ -150,45 +150,45 @@ final class DbAuthUserRepository
         return $this->select(dbQuery: $dbQuery);
     }
 
-    public function sentInvitation(int $ID, Clock $clock = new SystemClock()): void
+    public function sentInvitation(int $id, Clock $clock = new SystemClock()): void
     {
         $this->db->execute(
             sql: '
                     UPDATE auth_user
                     SET invited=?
-                    WHERE ID=?
+                    WHERE id=?
                 ',
             parameters: [
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
-                $ID,
+                $id,
             ],
         );
     }
 
-    public function dbConfirmSuccessfulLogin(int $ID, Clock $clock = new SystemClock()): void
+    public function dbConfirmSuccessfulLogin(int $id, Clock $clock = new SystemClock()): void
     {
         $this->db->execute(
             sql: '
                     UPDATE auth_user
-                    SET lastSuccessfulLogin=?
-                    WHERE ID=?
+                    SET last_successful_login=?
+                    WHERE id=?
                 ',
             parameters: [
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
-                $ID,
+                $id,
             ],
         );
     }
 
-    public function delete(int $ID): void
+    public function delete(int $id): void
     {
         $this->db->execute(
             sql: '
                         DELETE FROM auth_user
-                               WHERE ID=?
+                               WHERE id=?
                     ',
             parameters: [
-                $ID,
+                $id,
             ],
         );
     }
@@ -206,12 +206,12 @@ final class DbAuthUserRepository
         $db->execute(
             sql: '
             INSERT INTO auth_user
-            SET registeredByID=?,
+            SET registered_by_id=?,
                 email=?,
                 phone=?,
                 active=?,
-                firstName=?,
-                lastName=?,
+                first_name=?,
+                last_name=?,
                 language=?
         ',
             parameters: [
@@ -229,7 +229,7 @@ final class DbAuthUserRepository
     }
 
     public function update(
-        int $ID,
+        int $id,
         string $email,
         string $phone,
         bool $active,
@@ -243,11 +243,11 @@ final class DbAuthUserRepository
                             UPDATE auth_user
                             SET email=?,
                                 phone=?,
-                                firstName=?,
-                                lastName=?,
+                                first_name=?,
+                                last_name=?,
                                 language=?,
                                 active=?
-                            WHERE ID=?
+                            WHERE id=?
                         ',
             parameters: [
                 $email,
@@ -256,52 +256,52 @@ final class DbAuthUserRepository
                 $lastName,
                 $languageCode,
                 $active ? 1 : 0,
-                $ID,
+                $id,
             ],
         );
     }
 
-    public function increaseWrongPasswordAttempts(int $ID): void
+    public function increaseWrongPasswordAttempts(int $id): void
     {
         $this->db->execute(
-            sql: 'UPDATE auth_user SET wrongLoginAttempts=wrongLoginAttempts+1 WHERE ID=?',
-            parameters: [$ID],
+            sql: 'UPDATE auth_user SET wrong_login_attempts=wrong_login_attempts+1 WHERE id=?',
+            parameters: [$id],
         );
     }
 
     /**
      * Stores an upgraded hash of the same password (lazy upgrade at login); keeps the wrong login attempts.
      */
-    public function updatePasswordHash(int $ID, Password $password): void
+    public function updatePasswordHash(int $id, Password $password): void
     {
         $this->db->execute(
-            sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=? WHERE ID=?',
-            parameters: [$password->salt, $password->hash, $ID],
+            sql: 'UPDATE auth_user SET password_salt=?, password_hash=? WHERE id=?',
+            parameters: [$password->salt, $password->hash, $id],
         );
     }
 
     public function setPassword(
-        int $ID,
+        int $id,
         Password $newPassword,
     ): void {
         $this->db->execute(
-            sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=?, wrongLoginAttempts=0 WHERE ID=?',
+            sql: 'UPDATE auth_user SET password_salt=?, password_hash=?, wrong_login_attempts=0 WHERE id=?',
             parameters: [
                 $newPassword->salt,
                 $newPassword->hash,
-                $ID,
+                $id,
             ],
         );
     }
 
-    public function removePassword(int $ID): void
+    public function removePassword(int $id): void
     {
         $this->db->execute(
-            sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=?, wrongLoginAttempts=0 WHERE ID=?',
+            sql: 'UPDATE auth_user SET password_salt=?, password_hash=?, wrong_login_attempts=0 WHERE id=?',
             parameters: [
                 null,
                 null,
-                $ID,
+                $id,
             ],
         );
     }

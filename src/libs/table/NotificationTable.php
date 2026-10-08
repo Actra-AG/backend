@@ -33,7 +33,7 @@ final class NotificationTable extends AbstractTable
         );
         $messages = $context->messages;
         $sentDateColumn = new DateColumn(
-            identifier: 'sentDate',
+            identifier: 'sent_date',
             label: $messages->notification->sentDateLabel,
             sortAscendingByDefault: false,
         );
@@ -47,26 +47,26 @@ final class NotificationTable extends AbstractTable
                 identifier: 'subject',
                 label: $messages->common->subjectLabel,
                 callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . HtmlEncoder::encode(
-                    value: $context->paths->notification(ID: $tableItem->getRow()->getInt(column: 'ID')),
+                    value: $context->paths->notification(id: $tableItem->getRow()->getInt(column: 'id')),
                 ) . '">' . $tableItem->renderValue(name: 'subject') . '</a>',
             ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
-                identifier: 'firstName',
+                identifier: 'first_name',
                 label: $messages->notification->senderLabel,
                 callbackFunction: static fn(TableItem $tableItem): string => MessageTemplate::fill(
                     template: HtmlEncoder::encode(value: $messages->common->fullName),
                     values: [
-                        'firstName' => $tableItem->renderValue(name: 'firstName'),
-                        'lastName' => $tableItem->renderValue(name: 'lastName'),
+                        'firstName' => $tableItem->renderValue(name: 'first_name'),
+                        'last_name' => $tableItem->renderValue(name: 'last_name'),
                     ],
                 ),
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'groupName',
+                identifier: 'group_name',
                 label: $messages->common->userGroupLabel,
             ),
         );

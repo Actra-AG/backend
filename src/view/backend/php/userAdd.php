@@ -54,11 +54,11 @@ final class userAdd extends BackendView
     {
         $replacements = $htmlDocument->replacements;
         $userAddForm = new UserAddForm(context: $this->backendContext);
-        $newUserID = $userAddForm->process();
-        if ($newUserID !== null) {
+        $newUserId = $userAddForm->process();
+        if ($newUserId !== null) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $this->backendContext->paths->user(
-                    ID: $newUserID,
+                    id: $newUserId,
                 ) . '?' . user::PARAM_ADDED,
                 httpRequest: $this->context->httpRequest,
             );

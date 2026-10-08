@@ -78,7 +78,7 @@ final class PasswordResetForm extends Form
             return false;
         }
         $this->backendContext->repositories->users()->setPassword(
-            ID: $this->dbAuthToken->userID,
+            id: $this->dbAuthToken->userId,
             newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
         );
 

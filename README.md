@@ -181,12 +181,12 @@ parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQue
 
 | Property / method | Content |
 |:--|:--|
-| `messages`, `route`, `paths` | Texts, backend route and links of the request language (`$paths->user(ID: 5)`) |
+| `messages`, `route`, `paths` | Texts, backend route and links of the request language (`$paths->user(id: 5)`) |
 | `repositories` | The repositories (`->users()`, `->groups()`, …, `->db()` for the database of the backend) |
 | `currentUser`, `getCurrentUser()` | The logged-in `MyAuthUser` (`null` / `UnauthorizedException` without login) |
 | `mailer` | Sends emails with the `MailerSettings` (`->sendTextMail()`) |
 | `session`, `authSession`, `viewContext` | yuf's session objects and `ViewContext` |
-| `userController` | `->deleteUser(userID:)` |
+| `userController` | `->deleteUser(userId:)` |
 
 Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and `$actraBackend->createMailer()`.
 
@@ -209,8 +209,11 @@ protected function getBreadcrumbParents(): ?BreadcrumbItemCollection
 {
     // called when the page is rendered, after prepareHtmlDocument() has loaded the subscription
     return new BreadcrumbItemCollection(
-        new BreadcrumbItem(title: $this->event->title, href: event::getPath(ID: $this->event->ID)),
-        new BreadcrumbItem(title: '#' . $this->subscription->ID, href: subscription::getPath(ID: $this->subscription->ID)),
+        new BreadcrumbItem(title: $this->event->title, href: $this->eventPath($this->event->id)),
+        new BreadcrumbItem(
+            title: '#' . $this->subscription->id,
+            href: $this->subscriptionPath($this->subscription->id),
+        ),
     );
 }
 ```
@@ -297,7 +300,7 @@ With several languages, the page header shows a language switcher that links to 
 ### User Deletion Handler
 
 When a backend user is deleted, the library removes its own user-related records first and then deletes the row from
-`auth_user`. Projects that store additional foreign-key references to `auth_user.ID` can register a delete handler to
+`auth_user`. Projects that store additional foreign-key references to `auth_user.id` can register a delete handler to
 remove or update their project-specific records before the user itself is deleted.
 
 In the consuming project, pass the handler in the settings of `ActraBackend::init()`:
@@ -306,9 +309,9 @@ In the consuming project, pass the handler in the settings of `ActraBackend::ini
 use actra\backend\libs\auth\UserDeleteHandler;
 
 final class ProjectUserDeleteHandler implements UserDeleteHandler {
-    public function beforeDeleteUser(int $userID): void {
-        ProjectUserProfileRepository::deleteByUserID(userID: $userID);
-        ProjectUserSettingsRepository::deleteByUserID(userID: $userID);
+    public function beforeDeleteUser(int $userId): void {
+        $this->projectUserProfiles->deleteByUserId(userId: $userId);
+        $this->projectUserSettings->deleteByUserId(userId: $userId);
     }
 }
 new ActraBackendSettings(
@@ -392,7 +395,7 @@ To validate the bearer token and retrieve the authenticated user ID, pass the re
 `$this->context->httpRequest`):
 
 ```php
-$userID = $actraBackend->getRepositories()->apiKeys()->getUserIDForBearerOrThrow(
+$userId = $actraBackend->getRepositories()->apiKeys()->getUserIdForBearerOrThrow(
     httpRequest: $this->context->httpRequest,
 );
 ```

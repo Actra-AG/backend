@@ -27,15 +27,15 @@ final class VisitTable extends AbstractTable
     public function __construct(
         BackendViewContext $context,
         string $identifier,
-        ?int $filterUserID,
+        ?int $filterUserId,
         VisitSearchForm $tokenSearchForm,
     ) {
         $dbQuery = $context->repositories->userLogins()->getDbQuery();
-        if ($filterUserID !== null) {
+        if ($filterUserId !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_login.userID=?',
+                wherePart: 'auth_login.user_id=?',
                 parameters: [
-                    $filterUserID,
+                    $filterUserId,
                 ],
             );
         }
@@ -51,8 +51,8 @@ final class VisitTable extends AbstractTable
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_login.sessionId '
-                    . 'auth_login.ipAddress auth_login.email',
+                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_login.session_id '
+                    . 'auth_login.ip_address auth_login.email',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
@@ -77,28 +77,28 @@ final class VisitTable extends AbstractTable
         $this->addColumn(abstractTableColumn: $dateColumn, isDefaultSortColumn: true);
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'firstName',
+                identifier: 'first_name',
                 label: $messages->common->firstNameLabel,
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'lastName',
+                identifier: 'last_name',
                 label: $messages->common->lastNameLabel,
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'sessionId',
+                identifier: 'session_id',
                 label: $messages->log->visitSessionIdColumn,
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'ipAddress',
+                identifier: 'ip_address',
                 label: $messages->log->visitIpAddressColumn,
                 isSortable: true,
             ),

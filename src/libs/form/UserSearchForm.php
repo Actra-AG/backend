@@ -41,8 +41,8 @@ final class UserSearchForm extends AbstractSearchForm
                 individualEmptyValueLabel: HtmlText::fromText(text: $common->filterAll),
             ),
         );
-        $this->dbAuthGroup = $this->backendContext->repositories->groups()->selectByID(
-            ID: (int) $this->validateSearchField(
+        $this->dbAuthGroup = $this->backendContext->repositories->groups()->selectById(
+            id: (int) $this->validateSearchField(
                 searchField: $this->userGroupField,
             ),
         );

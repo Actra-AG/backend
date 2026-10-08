@@ -20,7 +20,7 @@ final class DbAuthIpWhitelistCollection
 
     public function add(DbAuthIpWhitelist $dbAuthIpWhitelist): void
     {
-        $this->items[$dbAuthIpWhitelist->ID] = $dbAuthIpWhitelist;
+        $this->items[$dbAuthIpWhitelist->id] = $dbAuthIpWhitelist;
     }
 
     public function isEmpty(): bool

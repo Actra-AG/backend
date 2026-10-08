@@ -48,7 +48,7 @@ final class UserModForm extends Form
         $dbAuthUser = $this->dbAuthUser;
         parent::__construct(
             context: $context->viewContext->formContext,
-            name: 'UserModForm-' . $dbAuthUser->ID,
+            name: 'UserModForm-' . $dbAuthUser->id,
             messages: $this->backendContext->messages->form,
         );
         $this->addCssClass(className: 'form');
@@ -110,8 +110,8 @@ final class UserModForm extends Form
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
                 formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
-                initialValues: $this->backendContext->repositories->groups()->listByUserID(
-                    userID: $dbAuthUser->ID,
+                initialValues: $this->backendContext->repositories->groups()->listByUserId(
+                    userId: $dbAuthUser->id,
                 )->listFormOptionKeys(),
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
             ),
@@ -129,7 +129,7 @@ final class UserModForm extends Form
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::fromText(text: $common->save),
-                cancelLink: $this->backendContext->paths->user(ID: $dbAuthUser->ID),
+                cancelLink: $this->backendContext->paths->user(id: $dbAuthUser->id),
             ),
         );
     }
@@ -149,7 +149,7 @@ final class UserModForm extends Form
         $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
             $newIpWhitelist === []
-            && $this->backendContext->repositories->apiKeys()->hasByUserID(userID: $this->dbAuthUser->ID)
+            && $this->backendContext->repositories->apiKeys()->hasByUserId(userId: $this->dbAuthUser->id)
         ) {
             $this->addError(
                 errorMessage: HtmlText::fromText(
@@ -171,9 +171,9 @@ final class UserModForm extends Form
 
             return false;
         }
-        $userID = $this->dbAuthUser->ID;
+        $userId = $this->dbAuthUser->id;
         $this->backendContext->repositories->users()->update(
-            ID: $userID,
+            id: $userId,
             email: $this->emailField->getValueAsString(),
             phone: $this->phoneNumberField->getValueAsString(),
             active: $this->activeField->isChecked(),
@@ -185,14 +185,14 @@ final class UserModForm extends Form
         );
         foreach ($this->userGroupsField->getAddedValues() as $userGroupValue) {
             $this->backendContext->repositories->userGroups()->insert(
-                userID: $userID,
-                groupID: (int) $userGroupValue,
+                userId: $userId,
+                groupId: (int) $userGroupValue,
             );
         }
         foreach ($this->userGroupsField->getRemovedValues() as $userGroupValue) {
             $this->backendContext->repositories->userGroups()->delete(
-                userID: $userID,
-                groupID: (int) $userGroupValue,
+                userId: $userId,
+                groupId: (int) $userGroupValue,
             );
         }
         foreach ($newIpWhitelist as $ip) {
@@ -202,7 +202,7 @@ final class UserModForm extends Form
                 strict: true,
             )) {
                 $this->backendContext->repositories->ipWhitelists()->insert(
-                    userID: $userID,
+                    userId: $userId,
                     ipAddress: $ip,
                 );
             }
@@ -214,7 +214,7 @@ final class UserModForm extends Form
                 strict: true,
             )) {
                 $this->backendContext->repositories->ipWhitelists()->delete(
-                    userID: $userID,
+                    userId: $userId,
                     ipAddress: $ip,
                 );
             }

@@ -102,7 +102,7 @@ class ActraBackend
         );
         ActraBackend::$instance = $actraBackend;
         foreach ($backendRouteCollection->routes as $backendRoute) {
-            $routeCollection->addRoute(route: ActraBackend::createRoute(backendRoute: $backendRoute));
+            $routeCollection->addRoute(route: $actraBackend->createRoute(backendRoute: $backendRoute));
         }
         $actraBackend->addNavigationItems();
     }
@@ -141,7 +141,16 @@ class ActraBackend
         return $this->backendRouteCollection->getForLanguage(languageCode: $languageCode);
     }
 
-    private static function createRoute(BackendRoute $backendRoute): Route
+    /**
+     * The view factory for routes with views based on `BackendView`: `new Route(…, viewFactory:
+     * ActraBackend::get()->createViewFactory())`. Views of other classes on the same route keep working.
+     */
+    public function createViewFactory(): BackendViewFactory
+    {
+        return new BackendViewFactory(actraBackend: $this);
+    }
+
+    private function createRoute(BackendRoute $backendRoute): Route
     {
         return new Route(
             path: $backendRoute->path,
@@ -153,6 +162,7 @@ class ActraBackend
             defaultContentType: ContentType::createHtml(),
             language: $backendRoute->language,
             acceptedExtension: ContentType::HTML,
+            viewFactory: $this->createViewFactory(),
         );
     }
 

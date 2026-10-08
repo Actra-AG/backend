@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\backend\libs\table\VisitTable;
@@ -22,9 +23,10 @@ use actra\yuf\layout\NavigationItem;
 
 class visits extends BackendView
 {
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         parent::__construct(
+            context: $context,
             maxAllowedPathVars: 1,
             activeHtmlIdList: [
                 'users',
@@ -74,7 +76,7 @@ class visits extends BackendView
             $filterUserID = null;
         }
         $pageIdentifier = 'VisitSearch-' . (int) $filterUserID;
-        $visitSearchForm = new VisitSearchForm(name: $pageIdentifier . 'Form');
+        $visitSearchForm = new VisitSearchForm(context: $this->backendContext, name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
             identifier: 'searchForm',
@@ -83,6 +85,7 @@ class visits extends BackendView
         $replacements->addEncodedText(
             identifier: 'table',
             content: new VisitTable(
+                context: $this->backendContext,
                 identifier: $pageIdentifier . 'Table',
                 filterUserID: $filterUserID,
                 tokenSearchForm: $visitSearchForm,

@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\auth\GeneratedApiKeyFlash;
 use actra\backend\libs\auth\MyAuthUser;
@@ -39,7 +40,7 @@ class user extends BackendView
 
     private ?HtmlText $pageTitle = null;
 
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $inputParameterCollection = new InputParameterCollection();
         $inputParameterCollection->add(
@@ -67,6 +68,7 @@ class user extends BackendView
             ),
         );
         parent::__construct(
+            context: $context,
             inputParameterCollection: $inputParameterCollection,
             maxAllowedPathVars: 1,
             activeHtmlIdList: [

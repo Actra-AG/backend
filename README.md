@@ -138,6 +138,46 @@ ActraBackend::init(
 Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`)
 and adds navigation items to your `NavigationItemCollection`.
 
+### Project Views, Tables and Search Forms
+
+Project views based on `BackendView` receive a `BackendViewContext`: the `ViewContext` of yuf
+(`$this->context`) and the services of the backend (`$this->backendContext`). The routes of these views use the view
+factory of the backend; other views on the same route keep getting the yuf `ViewContext`:
+
+```php
+use actra\backend\ActraBackend;
+use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
+
+new Route(
+    path: '/de/orders/',
+    viewDirectory: $core->viewDirectory,
+    viewGroup: 'orders',
+    viewFactory: ActraBackend::get()->createViewFactory(), // after ActraBackend::init()
+);
+
+final class orders extends BackendView
+{
+    public function __construct(BackendViewContext $context)
+    {
+        parent::__construct(context: $context, requiredViewGroupName: 'orders');
+    }
+}
+```
+
+Tables based on `AbstractTable` and search forms based on `AbstractSearchForm` get the same context as first
+argument; the database of a table defaults to `DB::get()`:
+
+```php
+new OrderTable(context: $this->backendContext);
+new OrderSearchForm(context: $this->backendContext, name: 'OrderSearch');
+
+// in OrderTable::__construct(BackendViewContext $context)
+parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQuery);
+```
+
+New services of the backend are added to `BackendViewContext`, so these constructors do not change again.
+
 ### Languages
 
 All texts of the backend come from message classes; English and German are included. The texts of a request follow

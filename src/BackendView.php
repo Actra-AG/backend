@@ -21,12 +21,10 @@ use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\UnauthorizedAccessRightException;
 use actra\yuf\core\BaseView;
-use actra\yuf\core\ContentHandler;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
-use actra\yuf\core\RequestHandler;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
@@ -38,9 +36,15 @@ abstract class BackendView extends BaseView
     public const string PARAM_CANCEL_SESSION_CHANGE = 'cancelSessionChange';
 
     /**
+     * The services of the backend; `$this->context` is the `ViewContext` of yuf.
+     */
+    protected readonly BackendViewContext $backendContext;
+
+    /**
      * @param array<int, string> $activeHtmlIdList
      */
     public function __construct(
+        BackendViewContext $context,
         bool $forceLogout = false,
         InputParameterCollection $inputParameterCollection = new InputParameterCollection(),
         string $requiredViewGroupName = ActraBackend::viewGroup,
@@ -50,8 +54,10 @@ abstract class BackendView extends BaseView
         private readonly bool $resetNavigator = false,
         private readonly string $legacyBreadcrumbSeparator = ' ',
     ) {
+        $this->backendContext = $context;
+        $actraBackend = $context->actraBackend;
         // Texts and links of this request follow the language of its route
-        ActraBackend::get()->activateRoute(route: RequestHandler::get()->route);
+        $actraBackend->activateRoute(route: $context->viewContext->route);
         if ($forceLogout) {
             AuthSession::logOut();
         }
@@ -67,7 +73,7 @@ abstract class BackendView extends BaseView
                 isRequired: false,
             ),
         );
-        $ipWhitelist = ActraBackend::get()->actraBackendSettings->ipWhitelist;
+        $ipWhitelist = $actraBackend->actraBackendSettings->ipWhitelist;
         if (AuthSession::isLoggedIn()) {
             try {
                 $myAuthUser = MyAuthUser::get();
@@ -100,6 +106,7 @@ abstract class BackendView extends BaseView
         }
         try {
             parent::__construct(
+                context: $context->viewContext,
                 requiredViewGroupName: $requiredViewGroupName,
                 ipWhitelist: $ipWhitelist,
                 authUser: $myAuthUser,
@@ -111,7 +118,7 @@ abstract class BackendView extends BaseView
             if (
                 $myAuthUser === null
                 && $this->getInputString(keyName: BackendView::PARAM_FROM_LOGIN) === null
-                && ContentHandler::get()->getContentType()->isHtml()
+                && $context->viewContext->content->getContentType()->isHtml()
             ) {
                 MyAuthUser::setRequestedPageAfterLogin(path: HttpRequest::getURI());
                 HttpResponse::redirectAndExit(relativeOrAbsoluteUri: login::getPath());
@@ -139,9 +146,9 @@ abstract class BackendView extends BaseView
                 HttpResponse::redirectAndExit(relativeOrAbsoluteUri: user::getPath(ID: $impersonatedUserID));
             }
         }
-        $actraBackend = ActraBackend::get();
+        $actraBackend = $this->backendContext->actraBackend;
         $actraBackendSettings = $actraBackend->actraBackendSettings;
-        $htmlDocument = HtmlDocument::get();
+        $htmlDocument = $this->context->getHtmlDocument();
         $htmlDocument->templateDirectory = $actraBackend->templateDirectory;
         $this->prepareHtmlDocument(htmlDocument: $htmlDocument);
         foreach ($this->activeHtmlIdList as $key => $val) {
@@ -271,8 +278,8 @@ abstract class BackendView extends BaseView
     private function addLanguageSwitcher(HtmlReplacementCollection $replacements): void
     {
         $languageSwitcher = new LanguageSwitcher(
-            backendRouteCollection: ActraBackend::get()->backendRouteCollection,
-            currentRoute: ActraBackend::get()->currentRoute,
+            backendRouteCollection: $this->backendContext->actraBackend->backendRouteCollection,
+            currentRoute: $this->backendContext->actraBackend->currentRoute,
             currentUri: HttpRequest::getURI(),
         );
         $replacements->addBool(identifier: 'hasLanguageSwitcher', booleanValue: $languageSwitcher->isAvailable());
@@ -299,13 +306,28 @@ abstract class BackendView extends BaseView
 
     abstract protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void;
 
+    /**
+     * The path variables of the request as list (`subscription-42.html` → `['subscription', '42']`).
+     *
+     * @return list<string>
+     */
+    private function listPathVars(): array
+    {
+        $pathVars = [];
+        for ($nr = 0; ($value = $this->context->pathVars->get(nr: $nr)) !== null; $nr++) {
+            $pathVars[] = $value;
+        }
+
+        return $pathVars;
+    }
+
     abstract protected function getPageTitle(): HtmlText;
 
     private function renderLegacyBreadcrumb(HtmlDocument $htmlDocument): void
     {
         if ($this->useNavigator) {
             $oldNavigator = new OldNavigator(
-                pathVars: RequestHandler::get()->pathVars,
+                pathVars: $this->listPathVars(),
                 navigationLevels: $htmlDocument->listActiveHtmlIds(),
                 separator: $this->legacyBreadcrumbSeparator,
             );

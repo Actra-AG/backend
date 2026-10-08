@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\form\NotificationSendForm;
 use actra\yuf\auth\AccessRightCollection;
@@ -20,9 +21,10 @@ use actra\yuf\html\HtmlText;
 
 class notificationSend extends BackendView
 {
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         parent::__construct(
+            context: $context,
             activeHtmlIdList: [
                 'users',
                 'notifications',

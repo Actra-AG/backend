@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\form\component\SearchQueryField;
 use actra\backend\libs\form\component\SearchSelectOptionsField;
 use actra\yuf\auth\AuthResult;
@@ -24,9 +25,9 @@ final class VisitSearchForm extends AbstractSearchForm
     private readonly SearchSelectOptionsField $statusFilterField;
     private readonly SearchQueryField $searchQueryField;
 
-    public function __construct(string $name)
+    public function __construct(BackendViewContext $context, string $name)
     {
-        parent::__construct(name: $name);
+        parent::__construct(context: $context, name: $name);
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
         $messages = ActraBackend::messages();

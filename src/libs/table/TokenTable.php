@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
-use actra\backend\libs\db\DB;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\settings\AuthTokenTypeEnum;
@@ -25,6 +25,7 @@ use UnexpectedValueException;
 class TokenTable extends AbstractTable
 {
     public function __construct(
+        BackendViewContext $context,
         string $identifier,
         ?int $filterUserID,
         TokenSearchForm $tokenSearchForm,
@@ -59,8 +60,8 @@ class TokenTable extends AbstractTable
             );
         }
         parent::__construct(
+            context: $context,
             identifier: $identifier,
-            db: DB::get(),
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );

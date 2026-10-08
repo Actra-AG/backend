@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\GeneratedApiKeyFlash;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
@@ -28,7 +29,7 @@ class profile extends BackendView
 {
     public const string PARAM_CHANGED = 'changed';
 
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $inputParameterCollection = new InputParameterCollection();
         $inputParameterCollection->add(
@@ -38,6 +39,7 @@ class profile extends BackendView
             ),
         );
         parent::__construct(
+            context: $context,
             inputParameterCollection: $inputParameterCollection,
             activeHtmlIdList: [
                 'profile',

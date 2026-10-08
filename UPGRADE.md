@@ -3,6 +3,72 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.8.0 (2026-10-08)
+
+### ⚠️ Requires `actra/yuf` `^4.15`
+
+Was `^4.14`. yuf 4.15.0 passes a `ViewContext` to every view and removes `HtmlDocument::get()` and
+`JsonRequestBody::get()` (see yuf's `UPGRADE.md`, v4.15.0).
+
+### ⚠️ Views based on `BackendView` get a `BackendViewContext`
+
+`BackendViewContext` holds the yuf `ViewContext` and the services of the backend. It is the only constructor change
+for project views in the migration to the current yuf: later releases add services to the context, not new arguments.
+Routes with `BackendView` views use the view factory of the backend, which creates these views with the context
+(other views on the route get the yuf `ViewContext` as before):
+
+```php
+// Before
+new Route(path: '/de/orders/', viewDirectory: …, viewGroup: 'orders');
+
+final class orders extends BackendView
+{
+    public function __construct()
+    {
+        parent::__construct(requiredViewGroupName: 'orders');
+    }
+}
+
+// After
+new Route(path: '/de/orders/', viewDirectory: …, viewGroup: 'orders',
+    viewFactory: ActraBackend::get()->createViewFactory());
+
+final class orders extends BackendView
+{
+    public function __construct(BackendViewContext $context)
+    {
+        parent::__construct(context: $context, requiredViewGroupName: 'orders');
+    }
+}
+```
+
+Inside the view, `$this->context` is the yuf `ViewContext` (`route`, `pathVars`, `content`, `getHtmlDocument()`)
+and `$this->backendContext` the `BackendViewContext`. Views without own constructor need no change.
+
+### ⚠️ `AbstractTable` and `AbstractSearchForm` get the context
+
+Both take the `BackendViewContext` as first argument; the `db` of a table is optional now (default `DB::get()`) and
+comes after `itemsPerPage`:
+
+```php
+// Before
+parent::__construct(identifier: 'OrderTable', db: DB::get(), dbQuery: $dbQuery, itemsPerPage: 50);
+parent::__construct(name: 'OrderSearch'); // AbstractSearchForm
+new OrderTable();
+
+// After
+parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQuery, itemsPerPage: 50);
+parent::__construct(context: $context, name: 'OrderSearch');
+new OrderTable(context: $this->backendContext);
+```
+
+The tables and search forms of the backend (`UserTable`, `TokenTable`, `VisitTable`, `NotificationTable`,
+`NotificationRecipientTable`, `UserSearchForm`, `TokenSearchForm`, `VisitSearchForm`) take the context the same way.
+
+Search your project for: `extends BackendView`, `extends AbstractTable`, `extends AbstractSearchForm`, `new Route(`
+(routes with backend views), `HtmlDocument::get()`, `JsonRequestBody::get()`, `RequestHandler::get()->route`,
+`RequestHandler::get()->pathVars`, `ContentHandler::get()`.
+
 ## v1.7.0 (2026-10-08)
 
 ### ⚠️ Requires `actra/yuf` `^4.14`

@@ -52,8 +52,8 @@ This project follows the Actra coding standard, installed as development depende
 - yuf has no Composer autoload configuration: `tests/bootstrap.php` loads its classes with `actra/autoloader`, and
   `phpstan.neon` makes them known with `scanDirectories: vendor/actra/yuf/src`.
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
-- There is no running app in this repository. Changes to views, forms, tables, templates or assets are checked in a
-  consuming project with this checkout as Composer path repository (`../drogeriehaas.ch`, set up by the user).
+- Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
+  path repository (set up and adapted by the user).
 - Custom fields are unit tested with `FormInput::fromArray()`.
 
 ### Forms (yuf form API)
@@ -67,32 +67,23 @@ This project follows the Actra coding standard, installed as development depende
 - Field checks are typed rules (`StringRule`, `StringListRule`, …, per line with `addEachRule()`), not overrides of
   the field's validation. Error messages are `HtmlText`; user input in a message is always encoded.
 
-### Texts (i18n)
+### Texts (`standards/i18n.md`)
 
-- No hard-coded user-visible text in views, templates, forms, tables or emails: every text is a property of a message
-  class in `src/i18n/` (English default, German in `german()`), shared texts in `CommonMessages`. Read them with
-  `ActraBackend::messages()`.
-- Messages are plain text without HTML and are always encoded (`HtmlText::unencoded()`, `BackendView::addTexts()`).
-  Markup is built around them; punctuation that follows a label (`Success:`) belongs into the message.
-- Dynamic parts are `[placeholder]`s filled with `MessageTemplate::fill()`; the English and German text use the same
-  placeholders (`tests/Unit/i18n/MessagesTest.php`).
-- The backend can run under several routes, one per language. `ActraBackend::messages()` and `ActraBackend::path()`
-  return the texts and the path of the current route: never cache texts or build links from a fixed path. Text for
+- Message classes in `src/i18n/` (English default, German in `german()`), shared texts in `CommonMessages`; read with
+  `ActraBackend::messages()`, output with `BackendView::addTexts()`. Placeholders `[name]` are filled with
+  `MessageTemplate::fill()` and checked by `tests/Unit/i18n/MessagesTest.php`.
+- One route per language: `ActraBackend::messages()` and `ActraBackend::path()` belong to the current route. Text for
   another user (e.g. an email) uses that user's route: `ActraBackend::get()->getRouteForLanguage()`.
 
 ### CSS and JavaScript
 
 - JavaScript: one ES module per purpose in `src/assets/js/modules/`, no external libraries.
 - CSS: plain CSS in `src/assets/css/` (entry `backend.css`, one file per block in `blocks/`), no preprocessor.
-- The `UPGRADE.md` entry of a change to the assets says whether projects must rebuild or republish their JavaScript
-  and CSS bundles.
 
 ### Releases
 
-- Database changes come with `db/updates/<version>.sql` and an updated `db/schema.sql` (and `db/data.sql` if needed),
-  and are listed in `UPGRADE.md`.
-- Changes are prepared in `UPGRADE.md` in the format of `standards/versioning.md`. Sections up to v1.5.2 use the
-  former format (split into "HTML & CSS (Frontend)" and "Backend & API") and stay as they are.
+- `UPGRADE.md` sections up to v1.5.2 use the former format (split into "HTML & CSS (Frontend)" and "Backend & API")
+  and stay as they are.
 
 ## Deviations from the global standard
 
@@ -101,7 +92,8 @@ Temporary only: legacy code that is migrated step by step (see
 names are kept until their task in the plan is done, because renaming them breaks consuming projects.
 
 - Static accessors `ActraBackend::get()`, `messages()` and `path()` and static repositories instead of constructor
-  injection (views are created by yuf without constructor arguments).
-- View classes named like their route (`login`, `userMod`), as required by the yuf routing.
+  injection; they move into `BackendViewContext` step by step (plan steps 14 and 15).
+- View classes named like their route (`login`, `userMod`), as `BackendViewFactory` builds the class name from the
+  file name (plan step 16).
 - Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.
 - Interfaces with `Interface` suffix, classes that are not `final`.

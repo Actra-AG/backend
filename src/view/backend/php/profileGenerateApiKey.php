@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\ApiKeyGenerateForm;
 use actra\yuf\auth\AccessRightCollection;
@@ -26,9 +27,10 @@ use actra\yuf\html\HtmlText;
  */
 final class profileGenerateApiKey extends BackendView
 {
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         parent::__construct(
+            context: $context,
             activeHtmlIdList: [
                 'profile',
             ],

@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\libs\table\TokenTable;
@@ -22,9 +23,10 @@ use actra\yuf\layout\NavigationItem;
 
 class tokens extends BackendView
 {
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         parent::__construct(
+            context: $context,
             maxAllowedPathVars: 1,
             activeHtmlIdList: [
                 'users',
@@ -74,7 +76,7 @@ class tokens extends BackendView
             $filterUserID = null;
         }
         $pageIdentifier = 'TokenSearch-' . (int) $filterUserID;
-        $tokenSearchForm = new TokenSearchForm(name: $pageIdentifier . 'Form');
+        $tokenSearchForm = new TokenSearchForm(context: $this->backendContext, name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
             identifier: 'searchForm',
@@ -83,6 +85,7 @@ class tokens extends BackendView
         $replacements->addEncodedText(
             identifier: 'table',
             content: new TokenTable(
+                context: $this->backendContext,
                 identifier: $pageIdentifier . 'Table',
                 filterUserID: $filterUserID,
                 tokenSearchForm: $tokenSearchForm,

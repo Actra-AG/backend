@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\table\NotificationTable;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDocument;
@@ -19,9 +20,10 @@ use actra\yuf\layout\NavigationItem;
 
 class notifications extends BackendView
 {
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         parent::__construct(
+            context: $context,
             activeHtmlIdList: [
                 'users',
                 'notifications',
@@ -71,7 +73,7 @@ class notifications extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'table',
-            content: new NotificationTable()->render(),
+            content: new NotificationTable(context: $this->backendContext)->render(),
         );
     }
 }

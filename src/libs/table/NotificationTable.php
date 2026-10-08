@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
-use actra\backend\libs\db\DB;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserNotificationRepository;
 use actra\backend\view\backend\php\notification;
 use actra\yuf\html\HtmlEncoder;
@@ -21,12 +21,12 @@ use actra\yuf\table\TableItem;
 
 class NotificationTable extends AbstractTable
 {
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $dbQuery = DbAuthUserNotificationRepository::getDbQuery();
         parent::__construct(
+            context: $context,
             identifier: 'NotificationTable',
-            db: DB::get(),
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );

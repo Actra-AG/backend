@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\ApiKeyRemoveForm;
@@ -26,9 +27,10 @@ use actra\yuf\html\HtmlText;
  */
 class userRemoveApiKey extends BackendView
 {
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         parent::__construct(
+            context: $context,
             maxAllowedPathVars: 1,
             activeHtmlIdList: [
                 'users',

@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\form\UserSearchForm;
 use actra\backend\libs\table\UserTable;
 use actra\yuf\auth\AccessRightCollection;
@@ -24,13 +25,14 @@ class users extends BackendView
 {
     public const string PARAM_REMOVED = 'removed';
 
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $inputParameterCollection = new InputParameterCollection();
         $inputParameterCollection->add(
             inputParameter: new InputParameter(name: users::PARAM_REMOVED, isRequired: false),
         );
         parent::__construct(
+            context: $context,
             inputParameterCollection: $inputParameterCollection,
             activeHtmlIdList: [
                 'users',
@@ -70,7 +72,7 @@ class users extends BackendView
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $userSearchForm = new UserSearchForm();
+        $userSearchForm = new UserSearchForm(context: $this->backendContext);
 
         $messages = ActraBackend::messages()->user;
         $replacements = $htmlDocument->replacements;
@@ -100,7 +102,7 @@ class users extends BackendView
         );
         $replacements->addEncodedText(
             identifier: 'table',
-            content: new UserTable(userSearchForm: $userSearchForm)->render(),
+            content: new UserTable(context: $this->backendContext, userSearchForm: $userSearchForm)->render(),
         );
     }
 }

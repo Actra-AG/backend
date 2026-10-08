@@ -10,7 +10,9 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
+use actra\backend\libs\db\DB;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\common\CSVFile;
@@ -23,17 +25,24 @@ use actra\yuf\table\table\SmartTable;
 
 abstract class AbstractTable extends DbResultTable
 {
+    protected readonly BackendViewContext $backendContext;
+
+    /**
+     * @param ?FrameworkDB $db The database of the backend (`DB::get()`) if `null`
+     */
     public function __construct(
+        BackendViewContext $context,
         string $identifier,
-        FrameworkDB $db,
         DbQuery $dbQuery,
         int $itemsPerPage = 25,
+        ?FrameworkDB $db = null,
         private readonly Clock $clock = new SystemClock(),
     ) {
+        $this->backendContext = $context;
         $common = ActraBackend::messages()->common;
         parent::__construct(
             identifier: $identifier,
-            db: $db,
+            db: $db ?? DB::get(),
             dbQuery: $dbQuery,
             tablePaginationRenderer: new TablePaginationRenderer(
                 previousTitle: $common->paginationPrevious,

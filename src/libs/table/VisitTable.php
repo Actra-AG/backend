@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
-use actra\backend\libs\db\DB;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserLoginRepository;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\yuf\auth\AuthResult;
@@ -24,6 +24,7 @@ use actra\yuf\table\TableItem;
 class VisitTable extends AbstractTable
 {
     public function __construct(
+        BackendViewContext $context,
         string $identifier,
         ?int $filterUserID,
         VisitSearchForm $tokenSearchForm,
@@ -58,8 +59,8 @@ class VisitTable extends AbstractTable
             );
         }
         parent::__construct(
+            context: $context,
             identifier: $identifier,
-            db: DB::get(),
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );

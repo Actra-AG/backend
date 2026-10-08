@@ -11,6 +11,7 @@ namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserNotificationRepository;
 use actra\backend\libs\table\NotificationRecipientTable;
 use actra\yuf\auth\AccessRightCollection;
@@ -26,7 +27,7 @@ class notification extends BackendView
 
     private readonly HtmlText $pageTitle;
 
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $inputParameterCollection = new InputParameterCollection();
         $inputParameterCollection->add(
@@ -36,6 +37,7 @@ class notification extends BackendView
             ),
         );
         parent::__construct(
+            context: $context,
             inputParameterCollection: $inputParameterCollection,
             maxAllowedPathVars: 1,
             activeHtmlIdList: [
@@ -96,6 +98,7 @@ class notification extends BackendView
         $replacements->addEncodedText(
             identifier: 'recipients',
             content: new NotificationRecipientTable(
+                context: $this->backendContext,
                 notificationID: $dbAuthUserNotification->ID,
             )->render(),
         );

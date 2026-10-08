@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\yuf\common\SearchHelper;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\NullField;
@@ -19,9 +20,11 @@ use actra\yuf\form\component\field\TextField;
 abstract class AbstractSearchForm extends Form
 {
     public readonly SearchHelper $searchHelper;
+    protected readonly BackendViewContext $backendContext;
 
-    public function __construct(string $name)
+    public function __construct(BackendViewContext $context, string $name)
     {
+        $this->backendContext = $context;
         $this->searchHelper = SearchHelper::getInstance(instanceName: $name);
         parent::__construct(name: $name, messages: ActraBackend::messages()->form);
     }

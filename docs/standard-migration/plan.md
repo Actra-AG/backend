@@ -267,3 +267,23 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   `DBTest`, README; `TableItem` / `$tableItem` in the table callbacks. No other change of v4.10.1–v4.14.0 affects the
   backend. `ddev composer check` green, baseline unchanged (144).
 - README: the list of yuf versions per backend version is replaced by a pointer to `composer.json` and `UPGRADE.md`.
+
+### Step 2 – done (2026-10-08)
+
+- `actra/yuf` ^4.15, checked against v4.15.0.
+- `BackendViewContext` (final, readonly): `viewContext` (yuf) and `actraBackend`. Later steps add `messages`, the
+  current route, `db`, repositories, the current user and the mailer here.
+- `BackendViewFactory` (yuf `ViewFactory`): class name like `ClassNameViewFactory`; subclasses of `BackendView` get
+  `new $class(context: BackendViewContext)`, other views `new $class(context: ViewContext)`, a class that is no view
+  throws. Backend routes use it; projects get it with `ActraBackend::get()->createViewFactory()`.
+- `BackendView::__construct(BackendViewContext $context, …)` keeps it as `$this->backendContext`; `$this->context` is
+  the yuf `ViewContext`. `RequestHandler::get()`, `ContentHandler::get()` and `HtmlDocument::get()` are gone from
+  `BackendView`; the breadcrumb gets the path variables from `PathVars` (rebuilt as list, `OldNavigator` needs it until
+  step 6). `ActraBackend::get()` in `BackendView` replaced by the context.
+- Decision of this step: `AbstractTable(BackendViewContext $context, string $identifier, DbQuery $dbQuery,
+  int $itemsPerPage = 25, ?FrameworkDB $db = null, Clock $clock)` and `AbstractSearchForm(BackendViewContext $context,
+  string $name)` change now, so steps 4, 5 and 15 take the template engine, request, session and database from the
+  context without another signature change. `db` defaults to `DB::get()`.
+- `BackendViewFactoryTest` (4 tests) with doubles in `tests/Double/` (`ActraBackendTestInstance` initializes the
+  backend once with example settings, no database connection). 89 tests, baseline unchanged (144).
+- Browser check in `../drogeriehaas.ch` pending: the user adapts its views, tables, search forms and routes.

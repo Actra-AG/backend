@@ -10,14 +10,14 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
-use actra\backend\libs\db\DB;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserNotificationRecipientRepository;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 
 class NotificationRecipientTable extends AbstractTable
 {
-    public function __construct(int $notificationID)
+    public function __construct(BackendViewContext $context, int $notificationID)
     {
         $dbQuery = DbAuthUserNotificationRecipientRepository::getDbQuery();
         $dbQuery->addWherePart(
@@ -25,8 +25,8 @@ class NotificationRecipientTable extends AbstractTable
             parameters: [$notificationID],
         );
         parent::__construct(
+            context: $context,
             identifier: 'NotificationRecipientTable-' . $notificationID,
-            db: DB::get(),
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );

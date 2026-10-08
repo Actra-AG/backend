@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\ActraBackend;
-use actra\backend\libs\db\DB;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\form\UserSearchForm;
 use actra\backend\view\backend\php\user;
@@ -23,7 +23,7 @@ use actra\yuf\table\TableItem;
 
 class UserTable extends AbstractTable
 {
-    public function __construct(UserSearchForm $userSearchForm)
+    public function __construct(BackendViewContext $context, UserSearchForm $userSearchForm)
     {
         $dbQuery = DbAuthUserRepository::getDbQuery();
         $dbAuthGroup = $userSearchForm->dbAuthGroup;
@@ -47,8 +47,8 @@ class UserTable extends AbstractTable
             );
         }
         parent::__construct(
+            context: $context,
             identifier: 'UserTable',
-            db: DB::get(),
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );

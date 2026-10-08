@@ -258,3 +258,12 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
 - `AGENTS.md`: rules that repeat the global standard removed (exceptions, settings objects, security features, generic
   JavaScript rules, README updates, export-ignore, DDEV start); `docs/coding-standard/plan.md` closed.
 - Open for step 11: 6 lines over 120 characters in test files that only the fixer touched.
+
+### Step 1 – done (2026-10-08)
+
+- `actra/yuf` ^4.14, checked against exactly v4.14.0 (`composer update actra/yuf --with actra/yuf:4.14.0`; every
+  yuf step is checked against its lowest version this way).
+- `DbSettings` / `dbSettings` in `ActraBackend::init()`, `ActraBackend::$dbSettings`, `DB::useConnection()`,
+  `DBTest`, README; `TableItem` / `$tableItem` in the table callbacks. No other change of v4.10.1–v4.14.0 affects the
+  backend. `ddev composer check` green, baseline unchanged (144).
+- README: the list of yuf versions per backend version is replaced by a pointer to `composer.json` and `UPGRADE.md`.

@@ -19,7 +19,7 @@ use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
-use actra\yuf\table\TableItemModel;
+use actra\yuf\table\TableItem;
 use UnexpectedValueException;
 
 class TokenTable extends AbstractTable
@@ -77,8 +77,8 @@ class TokenTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'registeredClient',
                 label: $messages->log->tokenCreatedClientColumn,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
-                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'registeredClient'),
+                callbackFunction: static fn(TableItem $tableItem): string => TokenTable::renderClient(
+                    clientJson: $tableItem->getRow()->getNullableString(column: 'registeredClient'),
                 ),
                 isSortable: true,
             ),
@@ -87,8 +87,8 @@ class TokenTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'type',
                 label: $messages->log->typeLabel,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => HtmlEncoder::encode(
-                    value: $tableItemModel->getRow()->getEnum(
+                callbackFunction: static fn(TableItem $tableItem): string => HtmlEncoder::encode(
+                    value: $tableItem->getRow()->getEnum(
                         column: 'type',
                         enumClass: AuthTokenTypeEnum::class,
                     )->render(messages: $messages->log),
@@ -107,8 +107,8 @@ class TokenTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'claimedClient',
                 label: $messages->log->tokenClaimedClientColumn,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
-                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'claimedClient'),
+                callbackFunction: static fn(TableItem $tableItem): string => TokenTable::renderClient(
+                    clientJson: $tableItem->getRow()->getNullableString(column: 'claimedClient'),
                 ),
                 isSortable: true,
             ),

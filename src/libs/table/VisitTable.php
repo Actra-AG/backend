@@ -19,7 +19,7 @@ use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
-use actra\yuf\table\TableItemModel;
+use actra\yuf\table\TableItem;
 
 class VisitTable extends AbstractTable
 {
@@ -111,9 +111,9 @@ class VisitTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'result',
                 label: $messages->log->statusLabel,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => HtmlEncoder::encode(
+                callbackFunction: static fn(TableItem $tableItem): string => HtmlEncoder::encode(
                     value: $messages->log->authResult(
-                        authResult: $tableItemModel->getRow()->getEnum(column: 'result', enumClass: AuthResult::class),
+                        authResult: $tableItem->getRow()->getEnum(column: 'result', enumClass: AuthResult::class),
                     ),
                 ),
             ),

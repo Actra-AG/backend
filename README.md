@@ -22,8 +22,9 @@ password login, and one-time tokens sent via email.
 ## Requirements
 
 - PHP >= 8.5
-- `actra/yuf` framework `^4.6` (since `actra/backend` v1.4.2; v1.4.1 requires `^4.5`; v1.3.0 requires `^4.4`; v1.2.1 requires `^4.3`; v1.1.0 requires `^4.1`; v1.0.0 requires `^4.0`).
-  Projects with own forms must migrate them as described in yuf's [UPGRADE.md](https://github.com/Actra-AG/yuf/blob/main/UPGRADE.md).
+- `actra/yuf` framework in the version range of `composer.json`. [UPGRADE.md](UPGRADE.md) names every raise of the
+  yuf requirement; projects migrate their own code with yuf's
+  [UPGRADE.md](https://github.com/Actra-AG/yuf/blob/main/UPGRADE.md).
 
 ## Installation
 
@@ -96,7 +97,7 @@ application's bootstrap process.
 use actra\backend\ActraBackend;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
-use actra\yuf\db\DbSettingsModel;
+use actra\yuf\db\DbSettings;
 
 // ... initialize your $routeCollection, $language, $navigationItemCollection ...
 
@@ -119,7 +120,7 @@ ActraBackend::init(
         frontendName: 'Go to Website', // Optional
         hasApi: false // Optional, defaults to false
     ),
-    dbSettingsModel: new DbSettingsModel,
+    dbSettings: new DbSettings,
     mailerSettings: new MailerSettings(
     senderEmail: 'noreply@example.com',
         senderName: 'My Project',
@@ -322,7 +323,7 @@ If the bearer token is missing, malformed, unknown, or invalid, an `Unauthorized
 
 ### Integration Tests
 
-`DB::get()` creates its connection from `ActraBackend::get()->dbSettingsModel`. Integration tests that run without
+`DB::get()` creates its connection from `ActraBackend::get()->dbSettings`. Integration tests that run without
 `ActraBackend::init()` set the connection explicitly with `DB::useConnection()`, once per process, before the first
 `DB::get()`. It returns the same instance as `DB::get()`, so all repositories use it. A second call throws a
 `LogicException`.
@@ -330,7 +331,7 @@ If the bearer token is missing, malformed, unknown, or invalid, an `Unauthorized
 ```php
 // tests/bootstrap.php
 DB::useConnection(
-    dbSettingsModel: new DbSettingsModel(
+    dbSettings: new DbSettings(
         identifier: 'test',
         hostName: 'db',
         databaseName: 'app_test',

@@ -56,10 +56,10 @@ abstract class AbstractTable extends DbResultTable
         $headersList = [];
         $list = [];
         $i = 0;
-        foreach ($this->tableItemCollection->list() as $tableItemModel) {
+        foreach ($this->tableItemCollection->list() as $tableItem) {
             $i++;
             $item = [];
-            foreach ($tableItemModel->data as $key => $val) {
+            foreach ($tableItem->data as $key => $val) {
                 if ($i === 1) {
                     $headersList[] = $key;
                 }

@@ -17,7 +17,7 @@ use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
-use actra\yuf\table\TableItemModel;
+use actra\yuf\table\TableItem;
 
 class NotificationTable extends AbstractTable
 {
@@ -45,16 +45,16 @@ class NotificationTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'subject',
                 label: $messages->common->subjectLabel,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => '<a href="' . HtmlEncoder::encode(
-                    value: notification::getPath(ID: $tableItemModel->getRow()->getInt(column: 'ID')),
-                ) . '">' . $tableItemModel->renderValue(name: 'subject') . '</a>',
+                callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . HtmlEncoder::encode(
+                    value: notification::getPath(ID: $tableItem->getRow()->getInt(column: 'ID')),
+                ) . '">' . $tableItem->renderValue(name: 'subject') . '</a>',
             ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'firstName',
                 label: $messages->notification->senderLabel,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => $tableItemModel->renderValue(name: 'firstName') . ' ' . $tableItemModel->renderValue(
+                callbackFunction: static fn(TableItem $tableItem): string => $tableItem->renderValue(name: 'firstName') . ' ' . $tableItem->renderValue(
                     name: 'lastName',
                 ),
             ),

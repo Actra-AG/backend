@@ -19,7 +19,7 @@ use actra\yuf\table\column\BooleanColumn;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
-use actra\yuf\table\TableItemModel;
+use actra\yuf\table\TableItem;
 
 class UserTable extends AbstractTable
 {
@@ -58,9 +58,9 @@ class UserTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'fullName',
                 label: $messages->nameColumn,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => '<a href="' . user::getPath(
-                    ID: $tableItemModel->getRow()->getInt(column: 'ID'),
-                ) . '">' . $tableItemModel->renderValue(name: 'fullName') . '</a>',
+                callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . user::getPath(
+                    ID: $tableItem->getRow()->getInt(column: 'ID'),
+                ) . '">' . $tableItem->renderValue(name: 'fullName') . '</a>',
                 isSortable: true,
             ),
             isDefaultSortColumn: true,
@@ -91,10 +91,10 @@ class UserTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'ipWhitelist',
                 label: $common->ipWhitelistLabel,
-                callbackFunction: static fn(TableItemModel $tableItemModel): string => str_replace(
+                callbackFunction: static fn(TableItem $tableItem): string => str_replace(
                     search: ',',
                     replace: '<br>',
-                    subject: $tableItemModel->renderValue(name: 'ipWhitelist'),
+                    subject: $tableItem->renderValue(name: 'ipWhitelist'),
                 ),
                 isSortable: true,
             ),

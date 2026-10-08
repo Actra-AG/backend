@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\db;
 
 use actra\backend\libs\db\DB;
-use actra\yuf\db\DbSettingsModel;
+use actra\yuf\db\DbSettings;
 use LogicException;
 use PDOException;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +24,7 @@ final class DBTest extends TestCase
      */
     public function testUseConnectionSetsTheInstanceReturnedByGetOnlyOnce(): void
     {
-        $dbSettingsModel = new DbSettingsModel(
+        $dbSettings = new DbSettings(
             identifier: 'backend-db-test',
             hostName: $this->env(name: 'TEST_DB_HOST', default: 'db'),
             databaseName: $this->env(name: 'TEST_DB_NAME', default: 'db'),
@@ -33,7 +33,7 @@ final class DBTest extends TestCase
         );
 
         try {
-            $db = DB::useConnection(dbSettingsModel: $dbSettingsModel);
+            $db = DB::useConnection(dbSettings: $dbSettings);
         } catch (PDOException $pdoException) {
             DBTest::markTestSkipped('No test database available: ' . $pdoException->getMessage());
         }
@@ -41,7 +41,7 @@ final class DBTest extends TestCase
         $this->assertSame($db, DB::get());
 
         $this->expectException(LogicException::class);
-        DB::useConnection(dbSettingsModel: $dbSettingsModel);
+        DB::useConnection(dbSettings: $dbSettings);
     }
 
     private function env(string $name, string $default): string

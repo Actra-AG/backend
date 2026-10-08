@@ -3,6 +3,48 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.7.0 (2026-10-08)
+
+### ⚠️ Requires `actra/yuf` `^4.14`
+
+Was `^4.10`. Read yuf's `UPGRADE.md` v4.10.1–v4.14.0. yuf 4.10.1 reads the session ID only from the cookie (no GET or
+POST fallback).
+
+### ⚠️ `DbSettings` instead of `DbSettingsModel`
+
+yuf 4.12.0 renamed `DbSettingsModel` to `DbSettings` (coding standard v1.2.0). The backend follows with its argument
+and property names:
+
+```php
+// Before
+use actra\yuf\db\DbSettingsModel;
+ActraBackend::init(…, dbSettingsModel: new DbSettingsModel(…), …);
+ActraBackend::get()->dbSettingsModel;
+DB::useConnection(dbSettingsModel: $dbSettingsModel);
+
+// After
+use actra\yuf\db\DbSettings;
+ActraBackend::init(…, dbSettings: new DbSettings(…), …);
+ActraBackend::get()->dbSettings;
+DB::useConnection(dbSettings: $dbSettings);
+```
+
+### ⚠️ `TableItem` in table callbacks
+
+yuf 4.12.0 renamed `TableItemModel` to `TableItem`. Callbacks of project tables (e.g. in classes extending
+`AbstractTable`) change their parameter type:
+
+```php
+// Before
+callbackFunction: static fn(TableItemModel $tableItemModel): string => $tableItemModel->renderValue(name: 'email'),
+
+// After
+callbackFunction: static fn(TableItem $tableItem): string => $tableItem->renderValue(name: 'email'),
+```
+
+Search your project for: `DbSettingsModel`, `dbSettingsModel`, `TableItemModel`, `SessionSettingsModel`,
+`CspPolicySettingsModel`, `SelectOptionsSettings`, `getPhpClassName(`.
+
 ## v1.6.0 (2026-10-07)
 
 ### ⚠️ Requires `actra/yuf` `^4.10`

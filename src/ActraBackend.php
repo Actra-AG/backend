@@ -25,7 +25,7 @@ use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\Route;
 use actra\yuf\core\RouteCollection;
-use actra\yuf\db\DbSettingsModel;
+use actra\yuf\db\DbSettings;
 use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\layout\NavigationItem;
@@ -56,7 +56,7 @@ class ActraBackend
     private function __construct(
         public readonly string $path,
         public readonly ActraBackendSettings $actraBackendSettings,
-        public readonly DbSettingsModel $dbSettingsModel,
+        public readonly DbSettings $dbSettings,
         public readonly MailerSettings $mailerSettings,
         public readonly NavigationItemCollection $navigationItemCollection,
         public readonly string $templateDirectory,
@@ -74,7 +74,7 @@ class ActraBackend
         string $path,
         bool $isDefaultForLanguage,
         ActraBackendSettings $actraBackendSettings,
-        DbSettingsModel $dbSettingsModel,
+        DbSettings $dbSettings,
         MailerSettings $mailerSettings,
         NavigationItemCollection $navigationItemCollection,
         ?string $templateDirectory = null,
@@ -94,7 +94,7 @@ class ActraBackend
         $actraBackend = new ActraBackend(
             path: $path,
             actraBackendSettings: $actraBackendSettings,
-            dbSettingsModel: $dbSettingsModel,
+            dbSettings: $dbSettings,
             mailerSettings: $mailerSettings,
             navigationItemCollection: $navigationItemCollection,
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',

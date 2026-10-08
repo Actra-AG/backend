@@ -13,7 +13,6 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\libs\form\LoginPasswordForm;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
@@ -27,26 +26,29 @@ class loginPassword extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->loginPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->auth->loginPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        AuthSession::logOut();
+        $this->backendContext->actraBackend->getAuthSession()->logOut();
         $htmlDocument->templateName = 'authentication';
         $messages = ActraBackend::messages()->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginPasswordIntro),
+            htmlText: HtmlText::fromText(text: $messages->loginPasswordIntro),
         );
-        $loginPasswordForm = new LoginPasswordForm();
+        $loginPasswordForm = new LoginPasswordForm(context: $this->backendContext);
         if ($loginPasswordForm->process()) {
-            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: loginPasswordToken::getPath());
+            HttpResponse::redirectAndExit(
+                relativeOrAbsoluteUri: loginPasswordToken::getPath(),
+                httpRequest: $this->context->httpRequest,
+            );
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $loginPasswordForm->render(),
+            html: $loginPasswordForm->render(),
         );
     }
 

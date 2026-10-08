@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthToken;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\yuf\auth\Password;
@@ -24,32 +25,38 @@ final class PasswordResetForm extends Form
     private readonly PasswordField $newPasswordField;
     private readonly PasswordField $newPasswordConfirmField;
 
-    public function __construct(private readonly DbAuthToken $dbAuthToken)
-    {
+    public function __construct(
+        BackendViewContext $context,
+        private readonly DbAuthToken $dbAuthToken,
+    ) {
         $messages = ActraBackend::messages();
-        parent::__construct(name: 'PasswordResetForm', messages: $messages->form);
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: 'PasswordResetForm',
+            messages: $messages->form,
+        );
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
             formField: $this->newPasswordField = new PasswordField(
                 name: 'newPassword',
-                label: HtmlText::unencoded(textContent: $messages->common->newPasswordLabel),
-                requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordRequired),
+                label: HtmlText::fromText(text: $messages->common->newPasswordLabel),
+                requiredError: HtmlText::fromText(text: $messages->common->newPasswordRequired),
                 purpose: PasswordPurposeEnum::NEW,
             ),
         );
         $this->addField(
             formField: $this->newPasswordConfirmField = new PasswordField(
                 name: 'newPasswordConfirm',
-                label: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmLabel),
-                requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmRequired),
+                label: HtmlText::fromText(text: $messages->common->newPasswordConfirmLabel),
+                requiredError: HtmlText::fromText(text: $messages->common->newPasswordConfirmRequired),
                 purpose: PasswordPurposeEnum::NEW,
             ),
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->save),
+                submitLabel: HtmlText::fromText(text: $messages->common->save),
             ),
         );
     }

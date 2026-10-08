@@ -21,10 +21,10 @@ use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthSessionRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
+use actra\yuf\core\InputSourceEnum;
 use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlDocument;
@@ -46,24 +46,28 @@ class user extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_IMPERSONATE,
+                source: InputSourceEnum::QUERY,
                 isRequired: false,
             ),
         );
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_ADDED,
+                source: InputSourceEnum::QUERY,
                 isRequired: false,
             ),
         );
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_CHANGED,
+                source: InputSourceEnum::QUERY,
                 isRequired: false,
             ),
         );
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_INVITED,
+                source: InputSourceEnum::QUERY,
                 isRequired: false,
             ),
         );
@@ -88,7 +92,7 @@ class user extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return $this->pageTitle ?? HtmlText::unencoded(textContent: '');
+        return $this->pageTitle ?? HtmlText::fromText(text: '');
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -97,8 +101,8 @@ class user extends BackendView
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
-        $this->pageTitle = HtmlText::unencoded(
-            textContent: $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName,
+        $this->pageTitle = HtmlText::fromText(
+            text: $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName,
         );
         $authUser = MyAuthUser::get();
         $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUser);
@@ -106,9 +110,9 @@ class user extends BackendView
             $canImpersonate
             && $this->getInputString(keyName: user::PARAM_IMPERSONATE) !== null
         ) {
-            AuthSession::logIn(
-                authSessionID: DbAuthSessionRepository::insert(
-                    parentID: AuthSession::getAuthSessionID(),
+            $this->backendContext->actraBackend->getAuthSession()->logIn(
+                authSessionId: DbAuthSessionRepository::insert(
+                    parentID: $this->backendContext->actraBackend->getAuthSession()->getAuthSessionId(),
                     userID: $dbAuthUser->ID,
                 ),
             );
@@ -121,7 +125,10 @@ class user extends BackendView
                     . 'impersonation.',
                 );
             }
-            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: $firstNavigationItem->href);
+            HttpResponse::redirectAndExit(
+                relativeOrAbsoluteUri: $firstNavigationItem->href,
+                httpRequest: $this->context->httpRequest,
+            );
         }
         $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
         $messages = ActraBackend::messages()->user;
@@ -167,22 +174,22 @@ class user extends BackendView
         );
         $replacements->addHtmlText(
             identifier: 'deleteConfirm',
-            htmlText: HtmlText::unencoded(textContent: MessageTemplate::fill(
+            htmlText: HtmlText::fromText(text: MessageTemplate::fill(
                 template: $messages->deleteConfirm,
                 values: ['name' => $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName],
             )),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'userModHref',
-            content: userMod::getPath(ID: $dbAuthUser->ID),
+            html: userMod::getPath(ID: $dbAuthUser->ID),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'impersonateHref',
-            content: $canImpersonate ? '?' . user::PARAM_IMPERSONATE : '',
+            html: $canImpersonate ? '?' . user::PARAM_IMPERSONATE : '',
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'removeHref',
-            content: userDelete::getPath(ID: $dbAuthUser->ID),
+            html: userDelete::getPath(ID: $dbAuthUser->ID),
         );
         $replacements->addBool(
             identifier: 'added',
@@ -200,54 +207,54 @@ class user extends BackendView
             identifier: 'isInvited',
             booleanValue: $dbAuthUser->isInvited(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'inviteHref',
-            content: userInvite::getPath(ID: $dbAuthUser->ID),
+            html: userInvite::getPath(ID: $dbAuthUser->ID),
         );
-        $replacements->addUnencodedText(
+        $replacements->addText(
             identifier: 'firstName',
-            content: $dbAuthUser->firstName,
+            text: $dbAuthUser->firstName,
         );
-        $replacements->addUnencodedText(
+        $replacements->addText(
             identifier: 'lastName',
-            content: $dbAuthUser->lastName,
+            text: $dbAuthUser->lastName,
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'email',
-            content: $dbAuthUser->email,
+            html: $dbAuthUser->email,
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'phone',
-            content: $dbAuthUser->renderPhone(),
+            html: $dbAuthUser->renderPhone(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'registered',
-            content: $dbAuthUser->registered->format(format: $dateTimeFormat),
+            html: $dbAuthUser->registered->format(format: $dateTimeFormat),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'invitedDate',
-            content: $dbAuthUser->invitedDate?->format(format: $dateTimeFormat) ?? '',
+            html: $dbAuthUser->invitedDate?->format(format: $dateTimeFormat) ?? '',
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'lastLogin',
-            content: $dbAuthUser->renderLastLogin(),
+            html: $dbAuthUser->renderLastLogin(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'visitsHref',
-            content: visits::getPath(userID: $dbAuthUser->ID),
+            html: visits::getPath(userID: $dbAuthUser->ID),
         );
         $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
         $replacements->addBool(
             identifier: 'hasMultipleLanguages',
             booleanValue: $userLanguageOptions->isSelectable(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'language',
-            content: $userLanguageOptions->render(languageCode: $dbAuthUser->languageCode),
+            html: $userLanguageOptions->render(languageCode: $dbAuthUser->languageCode),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'active',
-            content: $dbAuthUser->isActive ? $messages->yes : $messages->no,
+            html: $dbAuthUser->isActive ? $messages->yes : $messages->no,
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
@@ -261,21 +268,21 @@ class user extends BackendView
         if (!$hasApi) {
             return;
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'generatedApiKey',
-            content: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? '',
+            html: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? '',
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'apiKey',
-            content: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
+            html: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'generateApiKeyHref',
-            content: $dbAuthUser->ipWhitelist !== [] ? userGenerateApiKey::getPath(ID: $dbAuthUser->ID) : '',
+            html: $dbAuthUser->ipWhitelist !== [] ? userGenerateApiKey::getPath(ID: $dbAuthUser->ID) : '',
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'removeApiKeyHref',
-            content: userRemoveApiKey::getPath(ID: $dbAuthUser->ID),
+            html: userRemoveApiKey::getPath(ID: $dbAuthUser->ID),
         );
         $this->addTexts(
             replacements: $replacements,

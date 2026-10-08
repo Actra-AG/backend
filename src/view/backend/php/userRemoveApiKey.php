@@ -49,7 +49,7 @@ class userRemoveApiKey extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->common->removeApiKeyTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -63,18 +63,25 @@ class userRemoveApiKey extends BackendView
             throw new NotFoundException();
         }
         $userPath = user::getPath(ID: $dbAuthUser->ID);
-        $apiKeyRemoveForm = new ApiKeyRemoveForm(userID: $dbAuthUser->ID, cancelLink: $userPath);
+        $apiKeyRemoveForm = new ApiKeyRemoveForm(
+            context: $this->backendContext,
+            userID: $dbAuthUser->ID,
+            cancelLink: $userPath,
+        );
         if ($apiKeyRemoveForm->process()) {
-            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: $userPath . '?' . user::PARAM_CHANGED);
+            HttpResponse::redirectAndExit(
+                relativeOrAbsoluteUri: $userPath . '?' . user::PARAM_CHANGED,
+                httpRequest: $this->context->httpRequest,
+            );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyConfirm),
+            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->removeApiKeyConfirm),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $apiKeyRemoveForm->render(),
+            html: $apiKeyRemoveForm->render(),
         );
     }
 

@@ -13,7 +13,6 @@ use actra\backend\ActraBackend;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\view\backend\php\passwordReset;
-use actra\yuf\core\HttpRequest;
 
 class EmailPasswordResetLink
 {
@@ -22,7 +21,8 @@ class EmailPasswordResetLink
         string $token,
         int $expirationInMinutes,
     ): void {
-        $host = HttpRequest::getHost();
+        $httpRequest = ActraBackend::get()->getViewContext()->httpRequest;
+        $host = $httpRequest->getHost();
         $messages = ActraBackend::messages();
         $emailMessages = $messages->email;
         Mailer::sendTextMail(
@@ -39,7 +39,7 @@ class EmailPasswordResetLink
                     ),
                     '',
                     $emailMessages->passwordResetLinkInstruction,
-                    HttpRequest::getProtocol() . '://' . $host . passwordReset::getPath(token: $token),
+                    $httpRequest->getProtocol()->value . '://' . $host . passwordReset::getPath(token: $token),
                     '',
                     MessageTemplate::fill(
                         template: $emailMessages->passwordResetValidity,

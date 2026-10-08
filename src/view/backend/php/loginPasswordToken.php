@@ -14,7 +14,6 @@ use actra\backend\BackendView;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\LoginTokenForm;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -27,42 +26,42 @@ class loginPasswordToken extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->loginPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->auth->loginPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        AuthSession::logOut();
+        $this->backendContext->actraBackend->getAuthSession()->logOut();
         $htmlDocument->templateName = 'authentication';
         $messages = ActraBackend::messages()->auth;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenIntro),
+            htmlText: HtmlText::fromText(text: $messages->loginTokenIntro),
         );
         $replacements->addHtmlText(
             identifier: 'tipLabel',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipLabel),
+            htmlText: HtmlText::fromText(text: $messages->loginTokenTipLabel),
         );
         $replacements->addHtmlText(
             identifier: 'tipText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipText),
+            htmlText: HtmlText::fromText(text: $messages->loginTokenTipText),
         );
         $replacements->addHtmlText(
             identifier: 'backToLoginText',
-            htmlText: HtmlText::unencoded(textContent: $messages->backToLogin),
+            htmlText: HtmlText::fromText(text: $messages->backToLogin),
         );
-        $loginTokenForm = new LoginTokenForm();
+        $loginTokenForm = new LoginTokenForm(context: $this->backendContext);
         if ($loginTokenForm->process()) {
             MyAuthUser::get()->redirectToFirstAllowedPage();
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $loginTokenForm->render(),
+            html: $loginTokenForm->render(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'loginPasswordHref',
-            content: loginPassword::getPath(),
+            html: loginPassword::getPath(),
         );
     }
 

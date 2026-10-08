@@ -9,13 +9,12 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\backend\ActraBackend;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\common\StringUtils;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
-use actra\yuf\session\AbstractSessionHandler;
 
 class DbAuthTokenRepository
 {
@@ -70,10 +69,12 @@ class DbAuthTokenRepository
 
     private static function getClientData(): string
     {
+        $httpRequest = ActraBackend::get()->getViewContext()->httpRequest;
+
         return json_encode(value: [
-            'userAgent' => HttpRequest::getUserAgent(),
-            'ipAddress' => HttpRequest::getRemoteAddress(),
-            'sessionId' => AbstractSessionHandler::getSessionHandler()->getID(),
+            'userAgent' => $httpRequest->getUserAgent(),
+            'ipAddress' => $httpRequest->getRemoteAddress(),
+            'sessionId' => ActraBackend::get()->getAuthSession()->getSessionId(),
         ]);
     }
 

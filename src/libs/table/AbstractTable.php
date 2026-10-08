@@ -15,27 +15,28 @@ use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DB;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
-use actra\yuf\common\CSVFile;
+use actra\yuf\common\CsvFile;
 use actra\yuf\db\DbQuery;
-use actra\yuf\db\FrameworkDB;
+use actra\yuf\db\FrameworkDb;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\renderer\TablePaginationRenderer;
 use actra\yuf\table\table\DbResultTable;
 use actra\yuf\table\table\SmartTable;
+use LogicException;
 
 abstract class AbstractTable extends DbResultTable
 {
     protected readonly BackendViewContext $backendContext;
 
     /**
-     * @param ?FrameworkDB $db The database of the backend (`DB::get()`) if `null`
+     * @param ?FrameworkDb $db The database of the backend (`DB::get()`) if `null`
      */
     public function __construct(
         BackendViewContext $context,
         string $identifier,
         DbQuery $dbQuery,
         int $itemsPerPage = 25,
-        ?FrameworkDB $db = null,
+        ?FrameworkDb $db = null,
         private readonly Clock $clock = new SystemClock(),
     ) {
         $this->backendContext = $context;
@@ -44,6 +45,9 @@ abstract class AbstractTable extends DbResultTable
             identifier: $identifier,
             db: $db ?? DB::get(),
             dbQuery: $dbQuery,
+            templateEngine: $context->viewContext->templateEngine,
+            httpRequest: $context->viewContext->httpRequest,
+            session: $context->viewContext->session ?? throw new LogicException(message: 'Tables need a session.'),
             tablePaginationRenderer: new TablePaginationRenderer(
                 previousTitle: $common->paginationPrevious,
                 nextTitle: $common->paginationNext,
@@ -55,7 +59,11 @@ abstract class AbstractTable extends DbResultTable
     public function render(): string
     {
         $this->setMessages();
-        $this->fullHtml = DbResultTable::filter . SmartTable::totalAmount . DbResultTable::pagination . '<div class="table-wrap">' . SmartTable::table . '</div>' . DbResultTable::pagination;
+        $this->fullHtml = DbResultTable::FILTER
+            . SmartTable::TOTAL_AMOUNT
+            . DbResultTable::PAGINATION
+            . '<div class="table-wrap">' . SmartTable::TABLE . '</div>'
+            . DbResultTable::PAGINATION;
         return parent::render();
     }
 
@@ -82,14 +90,14 @@ abstract class AbstractTable extends DbResultTable
             }
             $list[] = $item;
         }
-        $csvFile = new CSVFile(
+        $csvFile = new CsvFile(
             fileName: $this->clock->now()->format(format: 'Y-m-d-H-i-s') . '-' . $name . '.csv',
             headersList: $headersList,
         );
         foreach ($list as $item) {
             $csvFile->addRow(data: $item);
         }
-        $csvFile->pushDownloadAndExit();
+        $csvFile->pushDownloadAndExit(httpRequest: $this->backendContext->viewContext->httpRequest);
     }
 
     /**
@@ -98,7 +106,7 @@ abstract class AbstractTable extends DbResultTable
     private function setMessages(): void
     {
         $common = ActraBackend::messages()->common;
-        $this->noDataHtml = DbResultTable::filter
+        $this->noDataHtml = DbResultTable::FILTER
             . '<p class="no-entry">' . HtmlEncoder::encode(value: $common->tableNoEntries) . '</p>';
         $this->totalAmountMessage_oneResult = MessageTemplate::fill(
             template: HtmlEncoder::encode(value: $common->tableOneResult),
@@ -106,7 +114,7 @@ abstract class AbstractTable extends DbResultTable
         );
         $this->totalAmountMessage_numResults = MessageTemplate::fill(
             template: HtmlEncoder::encode(value: $common->tableResults),
-            values: ['count' => '<strong>' . SmartTable::amount . '</strong>'],
+            values: ['count' => '<strong>' . SmartTable::AMOUNT . '</strong>'],
         );
     }
 }

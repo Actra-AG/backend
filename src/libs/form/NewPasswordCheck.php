@@ -28,8 +28,8 @@ final readonly class NewPasswordCheck
         $newPassword = $newPasswordField->getValueAsString();
         if (mb_strlen(string: $newPassword) < NewPasswordCheck::MIN_LENGTH) {
             $newPasswordField->addError(
-                errorMessage: HtmlText::unencoded(
-                    textContent: MessageTemplate::fill(
+                errorMessage: HtmlText::fromText(
+                    text: MessageTemplate::fill(
                         template: $this->messages->newPasswordTooShort,
                         values: ['minLength' => (string) NewPasswordCheck::MIN_LENGTH],
                     ),
@@ -40,7 +40,7 @@ final readonly class NewPasswordCheck
         }
         if ($newPassword !== $newPasswordConfirmField->getValueAsString()) {
             $newPasswordConfirmField->addError(
-                errorMessage: HtmlText::unencoded(textContent: $this->messages->newPasswordsDoNotMatch),
+                errorMessage: HtmlText::fromText(text: $this->messages->newPasswordsDoNotMatch),
             );
 
             return false;

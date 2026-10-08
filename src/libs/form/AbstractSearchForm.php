@@ -12,10 +12,12 @@ namespace actra\backend\libs\form;
 use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\yuf\common\SearchHelper;
+use actra\yuf\core\InputSourceEnum;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\NullField;
 use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextField;
+use LogicException;
 
 abstract class AbstractSearchForm extends Form
 {
@@ -25,8 +27,18 @@ abstract class AbstractSearchForm extends Form
     public function __construct(BackendViewContext $context, string $name)
     {
         $this->backendContext = $context;
-        $this->searchHelper = SearchHelper::getInstance(instanceName: $name);
-        parent::__construct(name: $name, messages: ActraBackend::messages()->form);
+        $this->searchHelper = SearchHelper::create(
+            instanceName: $name,
+            httpRequest: $context->viewContext->httpRequest,
+            valueSource: InputSourceEnum::POST,
+            session: $context->viewContext->session
+                ?? throw new LogicException(message: 'Search forms need a session.'),
+        );
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: $name,
+            messages: ActraBackend::messages()->form,
+        );
     }
 
     /**

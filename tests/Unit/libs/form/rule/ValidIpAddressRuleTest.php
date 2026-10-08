@@ -30,7 +30,7 @@ final class ValidIpAddressRuleTest extends TestCase
     #[DataProvider('validIpAddressProvider')]
     public function testRuleAcceptsValidIpAddress(string $ipAddress): void
     {
-        $rule = new ValidIpAddressRule(errorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]'));
+        $rule = new ValidIpAddressRule(errorMessage: HtmlText::fromHtml(html: 'Ungültige IP-Adresse [ipAddress]'));
 
         $this->assertTrue($rule->validate(value: $ipAddress));
     }
@@ -50,14 +50,14 @@ final class ValidIpAddressRuleTest extends TestCase
     #[DataProvider('invalidIpAddressProvider')]
     public function testRuleFailsForInvalidIpAddress(string $ipAddress): void
     {
-        $rule = new ValidIpAddressRule(errorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]'));
+        $rule = new ValidIpAddressRule(errorMessage: HtmlText::fromHtml(html: 'Ungültige IP-Adresse [ipAddress]'));
 
         $this->assertFalse($rule->validate(value: $ipAddress));
     }
 
     public function testErrorMessageNamesTheInvalidIpAddressEncoded(): void
     {
-        $rule = new ValidIpAddressRule(errorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]'));
+        $rule = new ValidIpAddressRule(errorMessage: HtmlText::fromHtml(html: 'Ungültige IP-Adresse [ipAddress]'));
 
         $rule->validate(value: '<b>1.2.3</b>');
 
@@ -66,7 +66,7 @@ final class ValidIpAddressRuleTest extends TestCase
 
     public function testErrorMessageNamesTheLastInvalidIpAddress(): void
     {
-        $rule = new ValidIpAddressRule(errorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]'));
+        $rule = new ValidIpAddressRule(errorMessage: HtmlText::fromHtml(html: 'Ungültige IP-Adresse [ipAddress]'));
 
         $rule->validate(value: 'first');
         $rule->validate(value: 'second');

@@ -31,7 +31,7 @@ class DbAuthGroupCollection
         foreach ($this->items as $dbAuthGroup) {
             $formOptions->addItem(
                 key: (string) $dbAuthGroup->ID,
-                htmlText: HtmlText::encoded(textContent: $dbAuthGroup->title),
+                htmlText: HtmlText::fromHtml(html: $dbAuthGroup->title),
             );
         }
 

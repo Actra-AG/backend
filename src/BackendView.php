@@ -18,13 +18,12 @@ use actra\backend\view\backend\php\logout;
 use actra\backend\view\backend\php\profile;
 use actra\backend\view\backend\php\user;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\UnauthorizedAccessRightException;
 use actra\yuf\core\BaseView;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
+use actra\yuf\core\InputSourceEnum;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
@@ -57,29 +56,32 @@ abstract class BackendView extends BaseView
         $this->backendContext = $context;
         $actraBackend = $context->actraBackend;
         // Texts and links of this request follow the language of its route
-        $actraBackend->activateRoute(route: $context->viewContext->route);
+        $actraBackend->activateRequest(viewContext: $context->viewContext);
+        $authSession = $actraBackend->getAuthSession();
         if ($forceLogout) {
-            AuthSession::logOut();
+            $authSession->logOut();
         }
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
+                source: InputSourceEnum::QUERY,
                 name: BackendView::PARAM_FROM_LOGIN,
                 isRequired: false,
             ),
         );
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
+                source: InputSourceEnum::QUERY,
                 name: BackendView::PARAM_CANCEL_SESSION_CHANGE,
                 isRequired: false,
             ),
         );
         $ipWhitelist = $actraBackend->actraBackendSettings->ipWhitelist;
-        if (AuthSession::isLoggedIn()) {
+        if ($authSession->isLoggedIn()) {
             try {
                 $myAuthUser = MyAuthUser::get();
             } catch (UnauthorizedException) {
                 $myAuthUser = null;
-                AuthSession::logOut();
+                $authSession->logOut();
             }
         } else {
             $myAuthUser = null;
@@ -120,13 +122,16 @@ abstract class BackendView extends BaseView
                 && $this->getInputString(keyName: BackendView::PARAM_FROM_LOGIN) === null
                 && $context->viewContext->content->getContentType()->isHtml()
             ) {
-                MyAuthUser::setRequestedPageAfterLogin(path: HttpRequest::getURI());
-                HttpResponse::redirectAndExit(relativeOrAbsoluteUri: login::getPath());
+                MyAuthUser::setRequestedPageAfterLogin(path: $context->viewContext->httpRequest->getUri());
+                HttpResponse::redirectAndExit(
+                    relativeOrAbsoluteUri: login::getPath(),
+                    httpRequest: $context->viewContext->httpRequest,
+                );
             }
             throw $unauthorizedAccessRightException;
         }
         if ($myAuthUser !== null) {
-            DbAuthSessionRepository::updateLastAction(ID: AuthSession::getAuthSessionID());
+            DbAuthSessionRepository::updateLastAction(ID: $authSession->getAuthSessionId());
         }
     }
 
@@ -134,16 +139,19 @@ abstract class BackendView extends BaseView
 
     public function execute(): void
     {
-        if (AuthSession::isLoggedIn()) {
+        if ($this->backendContext->actraBackend->getAuthSession()->isLoggedIn()) {
             $myAuthUser = MyAuthUser::get();
             $parentSessionID = $myAuthUser->parentSessionID;
             if (
                 $parentSessionID !== null
                 && $this->getInputString(keyName: BackendView::PARAM_CANCEL_SESSION_CHANGE) !== null
             ) {
-                $impersonatedUserID = $myAuthUser->ID;
-                AuthSession::logIn(authSessionID: $parentSessionID);
-                HttpResponse::redirectAndExit(relativeOrAbsoluteUri: user::getPath(ID: $impersonatedUserID));
+                $impersonatedUserID = $myAuthUser->id;
+                $this->backendContext->actraBackend->getAuthSession()->logIn(authSessionId: $parentSessionID);
+                HttpResponse::redirectAndExit(
+                    relativeOrAbsoluteUri: user::getPath(ID: $impersonatedUserID),
+                    httpRequest: $this->context->httpRequest,
+                );
             }
         }
         $actraBackend = $this->backendContext->actraBackend;
@@ -161,21 +169,21 @@ abstract class BackendView extends BaseView
             identifier: 'pageTitle',
             htmlText: $this->getPageTitle(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'backendTitle',
-            content: strip_tags(string: $actraBackendSettings->backendName),
+            html: strip_tags(string: $actraBackendSettings->backendName),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'backendName',
-            content: $actraBackendSettings->backendName,
+            html: $actraBackendSettings->backendName,
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'frontendHref',
-            content: $actraBackendSettings->frontendHref,
+            html: $actraBackendSettings->frontendHref,
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'frontendName',
-            content: $actraBackendSettings->frontendName,
+            html: $actraBackendSettings->frontendName,
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'javaScriptPaths',
@@ -188,10 +196,10 @@ abstract class BackendView extends BaseView
         $this->renderLegacyBreadcrumb(
             htmlDocument: $htmlDocument,
         );
-        if (!AuthSession::isLoggedIn()) {
-            $replacements->addEncodedText(
+        if (!$this->backendContext->actraBackend->getAuthSession()->isLoggedIn()) {
+            $replacements->addHtml(
                 identifier: 'firstPageHref',
-                content: login::getPath(),
+                html: login::getPath(),
             );
             $replacements->addHtmlDataObjectCollection(
                 identifier: 'mainNavigation',
@@ -210,9 +218,9 @@ abstract class BackendView extends BaseView
         if ($firstNavigationItem === null) {
             throw new UnauthorizedException();
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'firstPageHref',
-            content: $firstNavigationItem->href,
+            html: $firstNavigationItem->href,
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'mainNavigation',
@@ -227,28 +235,28 @@ abstract class BackendView extends BaseView
             identifier: 'isLoggedIn',
             booleanValue: true,
         );
-        $replacements->addUnencodedText(
+        $replacements->addText(
             identifier: 'userName',
-            content: $myAuthUser->getUserName(),
+            text: $myAuthUser->getUserName(),
         );
         if ($myAuthUser->isSessionChange()) {
-            $replacements->addEncodedText(
+            $replacements->addHtml(
                 identifier: 'cancelSessionChangeLink',
-                content: '?' . BackendView::PARAM_CANCEL_SESSION_CHANGE,
+                html: '?' . BackendView::PARAM_CANCEL_SESSION_CHANGE,
             );
         } else {
-            $replacements->addEncodedText(
+            $replacements->addHtml(
                 identifier: 'cancelSessionChangeLink',
-                content: '',
+                html: '',
             );
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'profileHref',
-            content: profile::getPath(),
+            html: profile::getPath(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'logoutHref',
-            content: logout::getPath(),
+            html: logout::getPath(),
         );
         $replacements->addBool(
             identifier: 'hasApi',
@@ -280,7 +288,7 @@ abstract class BackendView extends BaseView
         $languageSwitcher = new LanguageSwitcher(
             backendRouteCollection: $this->backendContext->actraBackend->backendRouteCollection,
             currentRoute: $this->backendContext->actraBackend->currentRoute,
-            currentUri: HttpRequest::getURI(),
+            currentUri: $this->context->httpRequest->getUri(),
         );
         $replacements->addBool(identifier: 'hasLanguageSwitcher', booleanValue: $languageSwitcher->isAvailable());
         $replacements->addHtmlDataObjectCollection(
@@ -299,7 +307,7 @@ abstract class BackendView extends BaseView
         foreach ($texts as $identifier => $text) {
             $replacements->addHtmlText(
                 identifier: $identifier,
-                htmlText: HtmlText::unencoded(textContent: $text),
+                htmlText: HtmlText::fromText(text: $text),
             );
         }
     }
@@ -344,9 +352,9 @@ abstract class BackendView extends BaseView
         } else {
             $breadcrumb = null;
         }
-        $htmlDocument->replacements->addEncodedText(
+        $htmlDocument->replacements->addHtml(
             identifier: 'breadcrumb',
-            content: $breadcrumb,
+            html: $breadcrumb,
         );
     }
 }

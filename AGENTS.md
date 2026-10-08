@@ -83,7 +83,8 @@ Temporary, legacy code migrated step by step (see [docs/standard-migration/plan.
 New code follows the global standard; existing names are kept until their step is done, because renaming them breaks
 consuming projects:
 
-- Static accessors `ActraBackend::get()`, `messages()` and `path()` and static repositories instead of constructor
-  injection; they move into `BackendViewContext` step by step (plan steps 14 and 15).
+- Static accessors `ActraBackend::get()`, `messages()` and `path()`, static repositories and helpers instead of
+  constructor injection; outside views they take request and session from `ActraBackend::get()->getViewContext()`.
+  They move into `BackendViewContext` step by step (plan steps 14 and 15).
 - Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.
 - Interfaces with `Interface` suffix, classes that are not `final`.

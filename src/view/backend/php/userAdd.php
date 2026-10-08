@@ -41,23 +41,24 @@ class userAdd extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->addUserTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->user->addUserTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $replacements = $htmlDocument->replacements;
-        $userAddForm = new UserAddForm();
+        $userAddForm = new UserAddForm(context: $this->backendContext);
         if ($userAddForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: user::getPath(
                     ID: $userAddForm->newUserID,
                 ) . '?' . user::PARAM_ADDED,
+                httpRequest: $this->context->httpRequest,
             );
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $userAddForm->render(),
+            html: $userAddForm->render(),
         );
     }
 

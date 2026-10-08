@@ -40,8 +40,8 @@ class DbAuthUserCollection
         foreach ($this->items as $dbAuthUser) {
             $formOptions->addItem(
                 key: (string) $dbAuthUser->ID,
-                htmlText: HtmlText::encoded(
-                    textContent: $dbAuthUser->email . ' (' . $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName . ')',
+                htmlText: HtmlText::fromHtml(
+                    html: $dbAuthUser->email . ' (' . $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName . ')',
                 ),
             );
         }

@@ -21,10 +21,9 @@ readonly class DbAuthGroup
     public function render(): HtmlDataObject
     {
         $htmlDataObject = new HtmlDataObject();
-        $htmlDataObject->addTextElement(
+        $htmlDataObject->addText(
             propertyName: 'name',
-            content: $this->title,
-            isEncodedForRendering: true,
+            text: $this->title,
         );
         return $htmlDataObject;
     }

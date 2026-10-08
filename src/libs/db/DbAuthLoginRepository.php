@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
-use actra\yuf\auth\AuthResult;
+use actra\yuf\auth\AuthResultEnum;
 
 class DbAuthLoginRepository
 {
@@ -18,7 +18,7 @@ class DbAuthLoginRepository
         string $sessionID,
         string $ipAddress,
         string $inputEmail,
-        AuthResult $authResult,
+        AuthResultEnum $authResult,
     ): void {
         DB::get()->execute(
             sql: '

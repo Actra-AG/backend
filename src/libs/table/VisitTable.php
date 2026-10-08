@@ -13,7 +13,7 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserLoginRepository;
 use actra\backend\libs\form\VisitSearchForm;
-use actra\yuf\auth\AuthResult;
+use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\common\SearchHelper;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
@@ -114,7 +114,7 @@ class VisitTable extends AbstractTable
                 label: $messages->log->statusLabel,
                 callbackFunction: static fn(TableItem $tableItem): string => HtmlEncoder::encode(
                     value: $messages->log->authResult(
-                        authResult: $tableItem->getRow()->getEnum(column: 'result', enumClass: AuthResult::class),
+                        authResult: $tableItem->getRow()->getEnum(column: 'result', enumClass: AuthResultEnum::class),
                     ),
                 ),
             ),

@@ -176,7 +176,9 @@ new OrderSearchForm(context: $this->backendContext, name: 'OrderSearch');
 parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQuery);
 ```
 
-New services of the backend are added to `BackendViewContext`, so these constructors do not change again.
+The values of a search form come from the posted form (`reset` and `find` from the query string), and tables and
+search forms keep their state in the session. New services of the backend are added to `BackendViewContext`, so these
+constructors do not change again.
 
 ### Languages
 
@@ -352,11 +354,12 @@ API clients should send the generated key as a bearer token:
 Authorization: Bearer api_key_<public-id>_<secret>
 ```
 
-To validate the bearer token and retrieve the authenticated user ID, use:
+To validate the bearer token and retrieve the authenticated user ID, pass the request (in a view:
+`$this->context->httpRequest`):
 
 ```php
 use actra\backend\libs\db\DbAuthApiKeyRepository;
-$userID = DbAuthApiKeyRepository::getUserIDForBearerOrThrow();
+$userID = DbAuthApiKeyRepository::getUserIDForBearerOrThrow(httpRequest: $this->context->httpRequest);
 ```
 
 If the bearer token is missing, malformed, unknown, or invalid, an `UnauthorizedException` is thrown.
@@ -375,7 +378,6 @@ in yuf's README, section [Static analysis and tests](https://github.com/Actra-AG
 // tests/bootstrap.php
 DB::useConnection(
     dbSettings: new DbSettings(
-        identifier: 'test',
         hostName: 'db',
         databaseName: 'app_test',
         userName: 'db',

@@ -37,8 +37,8 @@ final class ValidIpAddressRule extends StringRule
             return true;
         }
         $this->setErrorMessage(
-            errorMessage: HtmlText::encoded(
-                textContent: str_replace(
+            errorMessage: HtmlText::fromHtml(
+                html: str_replace(
                     search: ValidIpAddressRule::PLACEHOLDER_IP_ADDRESS,
                     replace: HtmlEncoder::encode(value: $value),
                     subject: $this->errorMessageTemplate->render(),

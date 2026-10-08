@@ -213,7 +213,7 @@ class DbAuthUserRepository
             ],
         );
 
-        return $db->lastInsertId();
+        return $db->getLastInsertId();
     }
 
     public static function update(

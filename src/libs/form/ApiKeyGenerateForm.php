@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\GeneratedApiKeyFlash;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\yuf\form\component\collection\Form;
@@ -22,15 +23,20 @@ use actra\yuf\html\HtmlText;
 final class ApiKeyGenerateForm extends Form
 {
     public function __construct(
+        BackendViewContext $context,
         private readonly int $userID,
         string $cancelLink,
     ) {
-        parent::__construct(name: 'ApiKeyGenerateForm', messages: ActraBackend::messages()->form);
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: 'ApiKeyGenerateForm',
+            messages: ActraBackend::messages()->form,
+        );
         $this->addCssClass(className: 'form');
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'generate',
-                submitLabel: HtmlText::unencoded(textContent: ActraBackend::messages()->common->generateApiKeyTitle),
+                submitLabel: HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyTitle),
                 cancelLink: $cancelLink,
             ),
         );

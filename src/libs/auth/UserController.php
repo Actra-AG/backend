@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\auth;
 
+use actra\backend\ActraBackend;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthIpWhitelistRepository;
@@ -17,7 +18,6 @@ use actra\backend\libs\db\DbAuthSessionRepository;
 use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
-use actra\yuf\auth\AuthSession;
 use Throwable;
 
 class UserController
@@ -47,8 +47,8 @@ class UserController
             $db->rollBack();
             throw $throwable;
         }
-        if (MyAuthUser::get()->ID === $userID) {
-            AuthSession::logOut();
+        if (MyAuthUser::get()->id === $userID) {
+            ActraBackend::get()->getAuthSession()->logOut();
         }
     }
 }

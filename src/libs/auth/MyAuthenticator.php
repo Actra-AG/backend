@@ -14,8 +14,8 @@ use actra\backend\libs\db\DbAuthLoginRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\Authenticator;
-use actra\yuf\auth\AuthMethod;
-use actra\yuf\auth\AuthResult;
+use actra\yuf\auth\AuthMethodEnum;
+use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\auth\AuthUser;
 
 class MyAuthenticator extends Authenticator
@@ -27,6 +27,8 @@ class MyAuthenticator extends Authenticator
     {
         MyAuthenticator::$instance = $this;
         parent::__construct(
+            httpRequest: ActraBackend::get()->getViewContext()->httpRequest,
+            authSession: ActraBackend::get()->getAuthSession(),
             maxAllowedWrongPasswordAttempts: ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts,
         );
     }
@@ -43,7 +45,7 @@ class MyAuthenticator extends Authenticator
             return false;
         }
         return $this->doLogin(
-            authMethod: AuthMethod::OTP,
+            authMethod: AuthMethodEnum::OTP,
             userName: $dbAuthToken->email,
             passwordToCheck: null,
         );
@@ -65,15 +67,15 @@ class MyAuthenticator extends Authenticator
     }
 
     public function logAuthResult(
-        ?int $userID,
-        string $sessionID,
+        ?int $userId,
+        string $sessionId,
         string $ip,
         string $userName,
-        AuthResult $authResult,
+        AuthResultEnum $authResult,
     ): void {
         DbAuthLoginRepository::insert(
-            userID: $userID,
-            sessionID: $sessionID,
+            userID: $userId,
+            sessionID: $sessionId,
             ipAddress: $ip,
             inputEmail: $userName,
             authResult: $authResult,

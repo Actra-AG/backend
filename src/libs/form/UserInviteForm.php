@@ -10,11 +10,11 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\libs\email\EmailAuthUser;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\form\component\field\TextField;
@@ -26,9 +26,15 @@ final class UserInviteForm extends Form
     private readonly TextField $subjectField;
     private readonly TextAreaField $bodyField;
 
-    public function __construct(private readonly DbAuthUser $dbAuthUser)
-    {
-        parent::__construct(name: 'UserInviteForm', messages: ActraBackend::messages()->form);
+    public function __construct(
+        BackendViewContext $context,
+        private readonly DbAuthUser $dbAuthUser,
+    ) {
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: 'UserInviteForm',
+            messages: ActraBackend::messages()->form,
+        );
         $this->addCssClass(className: 'form');
         $common = ActraBackend::messages()->common;
         $messages = ActraBackend::messages()->user;
@@ -37,15 +43,15 @@ final class UserInviteForm extends Form
         $this->addField(
             formField: $this->subjectField = new TextField(
                 name: 'subjectField',
-                label: HtmlText::unencoded(textContent: $common->subjectLabel),
+                label: HtmlText::fromText(text: $common->subjectLabel),
                 value: $recipientMessages->user->inviteDefaultSubject,
-                requiredError: HtmlText::unencoded(textContent: $common->subjectRequired),
+                requiredError: HtmlText::fromText(text: $common->subjectRequired),
             ),
         );
         $this->addField(
             formField: $this->bodyField = new TextAreaField(
                 name: 'bodyField',
-                label: HtmlText::unencoded(textContent: $common->messageBodyLabel),
+                label: HtmlText::fromText(text: $common->messageBodyLabel),
                 value: implode(
                     separator: PHP_EOL,
                     array: [
@@ -58,7 +64,8 @@ final class UserInviteForm extends Form
                         ),
                         '',
                         $recipientMessages->user->inviteAccessCreated,
-                        HttpRequest::getProtocol() . '://' . HttpRequest::getHost() . $recipientRoute->path,
+                        $this->context->httpRequest->getProtocol()->value . '://'
+                        . $this->context->httpRequest->getHost() . $recipientRoute->path,
                         '',
                         MessageTemplate::fill(
                             template: $recipientMessages->user->inviteLoginInstructions,
@@ -70,13 +77,13 @@ final class UserInviteForm extends Form
                         ActraBackend::get()->mailerSettings->signature,
                     ],
                 ),
-                requiredError: HtmlText::unencoded(textContent: $common->messageBodyRequired),
+                requiredError: HtmlText::fromText(text: $common->messageBodyRequired),
             ),
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
-                submitLabel: HtmlText::unencoded(textContent: $messages->inviteSubmitButton),
+                submitLabel: HtmlText::fromText(text: $messages->inviteSubmitButton),
             ),
         );
     }

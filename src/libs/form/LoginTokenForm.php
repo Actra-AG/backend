@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\MyAuthenticator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\TextField;
@@ -20,18 +21,22 @@ final class LoginTokenForm extends Form
 {
     private readonly TextField $tokenField;
 
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $messages = ActraBackend::messages();
-        parent::__construct(name: 'LoginTokenForm', messages: $messages->form);
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: 'LoginTokenForm',
+            messages: $messages->form,
+        );
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
             formField: $this->tokenField = new TextField(
                 name: 'token',
-                label: HtmlText::unencoded(textContent: $messages->auth->tokenLabel),
+                label: HtmlText::fromText(text: $messages->auth->tokenLabel),
                 value: null,
-                requiredError: HtmlText::unencoded(textContent: $messages->auth->tokenRequired),
+                requiredError: HtmlText::fromText(text: $messages->auth->tokenRequired),
             ),
         );
         $this->tokenField->autoFocus = true;
@@ -39,7 +44,7 @@ final class LoginTokenForm extends Form
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
-                submitLabel: HtmlText::unencoded(textContent: $messages->auth->tokenSubmitLabel),
+                submitLabel: HtmlText::fromText(text: $messages->auth->tokenSubmitLabel),
             ),
         );
     }
@@ -51,7 +56,7 @@ final class LoginTokenForm extends Form
         }
         if (!MyAuthenticator::get()->tokenLogin(inputToken: $this->tokenField->getValueAsString())) {
             $this->tokenField->addError(
-                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->auth->tokenInvalid),
+                errorMessage: HtmlText::fromText(text: ActraBackend::messages()->auth->tokenInvalid),
             );
             return false;
         }

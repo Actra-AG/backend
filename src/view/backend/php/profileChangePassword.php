@@ -42,7 +42,7 @@ class profileChangePassword extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->profile->changePasswordPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->profile->changePasswordPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -53,17 +53,19 @@ class profileChangePassword extends BackendView
         }
         $replacements = $htmlDocument->replacements;
         $profilePasswordForm = new ProfilePasswordForm(
+            context: $this->backendContext,
             dbAuthUser: $dbAuthUser,
             removePassword: false,
         );
         if ($profilePasswordForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
+                httpRequest: $this->context->httpRequest,
             );
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $profilePasswordForm->render(),
+            html: $profilePasswordForm->render(),
         );
     }
 

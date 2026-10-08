@@ -14,7 +14,6 @@ use actra\backend\BackendView;
 use actra\backend\libs\db\DbAuthSessionRepository;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\AuthUser;
 use actra\yuf\auth\Password;
 use actra\yuf\core\HttpResponse;
@@ -30,7 +29,7 @@ class MyAuthUser extends AuthUser
     ) {
         MyAuthUser::$instance = $this;
         parent::__construct(
-            ID: $dbAuthUser->ID,
+            id: $dbAuthUser->ID,
             isActive: (
                 $dbAuthUser->isActive
                 && !$dbAuthUser->accessRightCollection->isEmpty()
@@ -59,7 +58,10 @@ class MyAuthUser extends AuthUser
 
     public function redirectToFirstAllowedPage(): void
     {
-        HttpResponse::redirectAndExit(relativeOrAbsoluteUri: $this->getFirstAllowedPage());
+        HttpResponse::redirectAndExit(
+            relativeOrAbsoluteUri: $this->getFirstAllowedPage(),
+            httpRequest: ActraBackend::get()->getViewContext()->httpRequest,
+        );
     }
 
     public function getFirstAllowedPage(): string
@@ -110,7 +112,8 @@ class MyAuthUser extends AuthUser
         if (MyAuthUser::$instance !== null) {
             return MyAuthUser::$instance;
         }
-        $dbAuthSession = DbAuthSessionRepository::selectByID(ID: AuthSession::getAuthSessionID());
+        $authSessionId = ActraBackend::get()->getAuthSession()->getAuthSessionId();
+        $dbAuthSession = DbAuthSessionRepository::selectByID(ID: $authSessionId);
         if ($dbAuthSession === null) {
             throw new UnauthorizedException();
         }
@@ -130,7 +133,7 @@ class MyAuthUser extends AuthUser
         if ($this->isSessionChange()) {
             return false;
         }
-        if ($dbAuthUser->ID === $this->ID) {
+        if ($dbAuthUser->ID === $this->id) {
             return false;
         }
         if (!$dbAuthUser->isActive) {
@@ -150,16 +153,16 @@ class MyAuthUser extends AuthUser
 
     protected function dbIncreaseWrongPasswordAttempts(): void
     {
-        DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $this->ID);
+        DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $this->id);
     }
 
     protected function dbConfirmSuccessfulLogin(): int
     {
-        DbAuthUserRepository::dbConfirmSuccessfulLogin(ID: $this->ID);
+        DbAuthUserRepository::dbConfirmSuccessfulLogin(ID: $this->id);
 
         return DbAuthSessionRepository::insert(
             parentID: $this->parentSessionID,
-            userID: $this->ID,
+            userID: $this->id,
         );
     }
 

@@ -3,6 +3,99 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.9.0 (2026-10-08)
+
+### ⚠️ Requires `actra/yuf` `^4.34`
+
+Was `^4.15`. One step over yuf v4.16–v4.34: yuf v4.18.0–v4.31.0 ship `FrameworkDb`, `CsvFile`, `SmtpMailer` and
+`SimpleXmlExtended` in files with the old case (`FrameworkDB.php`, …), which `actra/autoloader` cannot load on a
+case-sensitive file system; v4.32.0 fixed them. Migrate the own code of the project with yuf's `UPGRADE.md`
+(v4.16.0–v4.34.0): request and session are objects (`$this->context->httpRequest`, `->session`, `->authSession`),
+forms need `context: $this->context->formContext`, the new template engine, `fromText()` / `fromHtml()`, `DbSettings`
+without `identifier`.
+
+Effects on running installations:
+
+- Every user is logged out once: yuf keeps its session data under `$_SESSION['yuf']` and the auth session under the
+  key `authSessionId`.
+- Delete the compiled templates in the cache directory of the project (new template engine).
+- CSV exports prefix cells starting with `=`, `+`, `-`, `@`, tab or carriage return with `'` (formula protection),
+  also phone numbers like `+41 …`.
+- Security: the group names of a user, the IP addresses of a whitelist and the JavaScript and CSS paths of the page
+  templates are escaped (they were output unescaped).
+
+### ⚠️ Names from yuf
+
+```php
+// Before
+MyAuthUser::get()->ID;
+$myAuthenticator->logAuthResult(userID: $id, sessionID: $sessionId, ip: $ip, userName: $name, authResult: $result);
+AuthResult::ERROR_WRONG_PASSWORD;
+
+// After
+MyAuthUser::get()->id;
+$myAuthenticator->logAuthResult(userId: $id, sessionId: $sessionId, ip: $ip, userName: $name, authResult: $result);
+AuthResultEnum::ERROR_WRONG_PASSWORD; // also in LogMessages::authResult()
+```
+
+### ⚠️ Forms of the backend get the `BackendViewContext`
+
+Like the search forms in v1.8.0, the forms of the backend (`LoginForm`, `LoginTokenForm`, `UserModForm`, …) take the
+context as first argument:
+
+```php
+// Before
+new LoginTokenForm();
+
+// After
+new LoginTokenForm(context: $this->backendContext);
+```
+
+### ⚠️ `getUserIDForBearerOrThrow()` needs the request
+
+API views are not based on `BackendView`, so the request is passed:
+
+```php
+// Before
+$userID = DbAuthApiKeyRepository::getUserIDForBearerOrThrow();
+
+// After
+$userID = DbAuthApiKeyRepository::getUserIDForBearerOrThrow(httpRequest: $this->context->httpRequest);
+```
+
+### ⚠️ `DbSettings` without `identifier`
+
+`ActraBackend::init(dbSettings:)` and `DB::useConnection(dbSettings:)` take yuf's `DbSettings`, which has no
+`identifier` any more; `DB` connects with `DbConnectionParameters::forMysql()`.
+
+```php
+// Before
+new DbSettings(identifier: 'backend', hostName: 'db', databaseName: 'db', userName: 'db', password: 'db');
+
+// After
+new DbSettings(hostName: 'db', databaseName: 'db', userName: 'db', password: 'db');
+```
+
+### ⚠️ Search forms read the posted values, tables and search forms need a session
+
+`AbstractSearchForm` reads its field values from the posted form only (before: also from the query string); `reset`
+and `find` still come from the query string. Tables and search forms throw a `LogicException` on a route without
+session.
+
+### Request of a backend view
+
+`BackendView` makes the `ViewContext` of its request current: `ActraBackend::get()->getViewContext()`,
+`findViewContext()` (`null` outside a backend request, e.g. in a CLI script) and `getAuthSession()`. The static helpers
+(`MyAuthUser::get()`, `Mailer`, the repositories and emails) use it, so their signatures stay the same. `Mailer` names
+the server to the SMTP server with the address of the request, in a CLI script with `gethostname()`.
+
+Search your project for: `->ID` (on `MyAuthUser`), `logAuthResult(`, `AuthResult`, `AuthMethod`, `identifier:` (in
+`DbSettings`), `getUserIDForBearerOrThrow(`, `new LoginTokenForm(` and the other backend forms, `FrameworkDB`,
+`CSVFile`, `SMTPMailer`, `HttpRequest::`, `AuthSession::`, `AbstractSessionHandler::getSessionHandler(`,
+`HtmlText::unencoded(`, `HtmlText::encoded(`, `addEncodedText(`, `addUnencodedText(`, `addTextElement(`,
+`isEncodedForRendering`, `new InputParameter(`, `redirectAndExit(`, `pushDownloadAndExit(`, `lastInsertId(`,
+`new Form(`, `SearchHelper::getInstance(`.
+
 ## v1.8.1 (2026-10-08)
 
 ### README links the yuf setup of static analysis and tests

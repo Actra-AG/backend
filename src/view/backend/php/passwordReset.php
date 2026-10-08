@@ -16,7 +16,6 @@ use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\PasswordResetForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
@@ -39,12 +38,12 @@ class passwordReset extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->passwordResetPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordResetPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        AuthSession::logOut();
+        $this->backendContext->actraBackend->getAuthSession()->logOut();
         $dbAuthToken = DbAuthTokenRepository::getClaimable(
             authTokenType: AuthTokenTypeEnum::PASSWORD,
             token: $this->getRequiredPathVarAsString(nr: 1),
@@ -57,17 +56,18 @@ class passwordReset extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordResetIntro),
+            htmlText: HtmlText::fromText(text: $messages->passwordResetIntro),
         );
-        $passwordResetForm = new PasswordResetForm(dbAuthToken: $dbAuthToken);
+        $passwordResetForm = new PasswordResetForm(context: $this->backendContext, dbAuthToken: $dbAuthToken);
         if ($passwordResetForm->validateAndUpdatePassword()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: passwordResetRes::getPath(),
+                httpRequest: $this->context->httpRequest,
             );
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $passwordResetForm->render(),
+            html: $passwordResetForm->render(),
         );
     }
 

@@ -61,7 +61,7 @@ class tokens extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->log->tokensPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->log->tokensPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -78,13 +78,13 @@ class tokens extends BackendView
         $pageIdentifier = 'TokenSearch-' . (int) $filterUserID;
         $tokenSearchForm = new TokenSearchForm(context: $this->backendContext, name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'searchForm',
-            content: $tokenSearchForm->render(),
+            html: $tokenSearchForm->render(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'table',
-            content: new TokenTable(
+            html: new TokenTable(
                 context: $this->backendContext,
                 identifier: $pageIdentifier . 'Table',
                 filterUserID: $filterUserID,

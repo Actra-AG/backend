@@ -35,18 +35,18 @@ final class TokenSearchForm extends AbstractSearchForm
         foreach (AuthTokenTypeEnum::cases() as $authTokenTypeEnum) {
             $typeFilterOptions->addItem(
                 key: 'option_' . $authTokenTypeEnum->value,
-                htmlText: HtmlText::unencoded(
-                    textContent: $authTokenTypeEnum->render(messages: $messages->log),
+                htmlText: HtmlText::fromText(
+                    text: $authTokenTypeEnum->render(messages: $messages->log),
                 ),
             );
         }
         $this->addField(
             formField: $this->typeFilterField = new SearchSelectOptionsField(
                 name: 'typeFilterField',
-                label: HtmlText::unencoded(textContent: $messages->log->typeLabel),
+                label: HtmlText::fromText(text: $messages->log->typeLabel),
                 formOptions: $typeFilterOptions,
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::unencoded(textContent: $messages->common->filterAll),
+                individualEmptyValueLabel: HtmlText::fromText(text: $messages->common->filterAll),
             ),
         );
         $this->authTokenTypeEnum = AuthTokenTypeEnum::tryFrom(
@@ -60,7 +60,7 @@ final class TokenSearchForm extends AbstractSearchForm
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->searchButton),
+                submitLabel: HtmlText::fromText(text: $messages->common->searchButton),
             ),
         );
     }

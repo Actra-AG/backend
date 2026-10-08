@@ -41,7 +41,6 @@ final class ActraBackendTestInstance
                     stylesPaths: [],
                 ),
                 dbSettings: new DbSettings(
-                    identifier: 'backend-test-instance',
                     hostName: 'db.example.com',
                     databaseName: 'example',
                     userName: 'example',

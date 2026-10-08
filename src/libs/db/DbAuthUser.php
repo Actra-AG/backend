@@ -98,10 +98,9 @@ readonly class DbAuthUser
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         foreach ($this->ipWhitelist as $ip) {
             $htmlDataObject = new HtmlDataObject();
-            $htmlDataObject->addTextElement(
+            $htmlDataObject->addText(
                 propertyName: 'ipAddress',
-                content: $ip,
-                isEncodedForRendering: true,
+                text: $ip,
             );
             $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
         }

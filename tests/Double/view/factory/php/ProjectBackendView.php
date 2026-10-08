@@ -42,6 +42,6 @@ final class ProjectBackendView extends BackendView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: 'Project view');
+        return HtmlText::fromText(text: 'Project view');
     }
 }

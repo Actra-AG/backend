@@ -13,9 +13,7 @@ use actra\backend\BackendViewFactory;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\view\factory\php\PlainView;
 use actra\backend\tests\Double\view\factory\php\ProjectBackendView;
-use actra\yuf\core\ContentHandler;
-use actra\yuf\core\ContentType;
-use actra\yuf\core\PathVars;
+use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\core\Route;
 use actra\yuf\core\ViewContext;
 use LogicException;
@@ -31,17 +29,14 @@ final class BackendViewFactoryTest extends TestCase
 
     private function createContext(string $fileTitle): ViewContext
     {
-        return new ViewContext(
+        return ViewContextFactory::create(
             route: new Route(
                 path: '/factory/',
                 viewDirectory: __DIR__,
                 viewClassPrefix: 'actra\\backend\\tests\\Double',
                 viewGroup: 'factory',
             ),
-            fileGroup: null,
             fileTitle: $fileTitle,
-            pathVars: new PathVars(values: [0 => $fileTitle]),
-            content: new ContentHandler(contentType: ContentType::createHtml()),
         );
     }
 

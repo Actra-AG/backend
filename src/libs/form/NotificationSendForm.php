@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthUserNotificationRecipientRepository;
 use actra\backend\libs\db\DbAuthUserNotificationRepository;
@@ -30,32 +31,36 @@ final class NotificationSendForm extends Form
     private readonly TextAreaField $messageField;
     public private(set) int $notificationID;
 
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $messages = ActraBackend::messages();
-        parent::__construct(name: 'NotificationSendForm', messages: ActraBackend::messages()->form);
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: 'NotificationSendForm',
+            messages: ActraBackend::messages()->form,
+        );
         $this->addCssClass(className: 'form');
         $this->addField(
             formField: $this->authUserGroupField = new SelectOptionsField(
                 name: 'authUserGroupField',
-                label: HtmlText::unencoded(textContent: $messages->common->userGroupLabel),
+                label: HtmlText::fromText(text: $messages->common->userGroupLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValue: null,
-                requiredError: HtmlText::unencoded(textContent: $messages->notification->userGroupRequired),
+                requiredError: HtmlText::fromText(text: $messages->notification->userGroupRequired),
             ),
         );
         $this->addField(
             formField: $this->subjectField = new TextField(
                 name: 'subjectField',
-                label: HtmlText::unencoded(textContent: $messages->common->subjectLabel),
+                label: HtmlText::fromText(text: $messages->common->subjectLabel),
                 value: '',
-                requiredError: HtmlText::unencoded(textContent: $messages->common->subjectRequired),
+                requiredError: HtmlText::fromText(text: $messages->common->subjectRequired),
             ),
         );
         $this->addField(
             formField: $this->messageField = new TextAreaField(
                 name: 'messageField',
-                label: HtmlText::unencoded(textContent: $messages->common->messageBodyLabel),
+                label: HtmlText::fromText(text: $messages->common->messageBodyLabel),
                 value: implode(
                     separator: PHP_EOL,
                     array: [
@@ -68,13 +73,13 @@ final class NotificationSendForm extends Form
                         ActraBackend::get()->mailerSettings->signature,
                     ],
                 ),
-                requiredError: HtmlText::unencoded(textContent: $messages->common->messageBodyRequired),
+                requiredError: HtmlText::fromText(text: $messages->common->messageBodyRequired),
             ),
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->send),
+                submitLabel: HtmlText::fromText(text: $messages->common->send),
                 cancelLink: notifications::getPath(),
             ),
         );

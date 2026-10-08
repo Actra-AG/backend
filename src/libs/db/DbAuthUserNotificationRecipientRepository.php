@@ -47,6 +47,6 @@ class DbAuthUserNotificationRecipientRepository
                 $email,
             ],
         );
-        return $db->lastInsertId();
+        return $db->getLastInsertId();
     }
 }

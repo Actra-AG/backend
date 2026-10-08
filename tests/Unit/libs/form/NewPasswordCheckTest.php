@@ -23,8 +23,8 @@ final class NewPasswordCheckTest extends TestCase
     {
         $field = new PasswordField(
             name: $name,
-            label: HtmlText::unencoded(textContent: $name),
-            requiredError: HtmlText::unencoded(textContent: 'Required'),
+            label: HtmlText::fromText(text: $name),
+            requiredError: HtmlText::fromText(text: 'Required'),
             purpose: PasswordPurposeEnum::NEW,
         );
         $field->validate(input: FormInput::fromArray(data: [$name => $input]));

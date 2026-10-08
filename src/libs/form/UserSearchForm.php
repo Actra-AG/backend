@@ -34,10 +34,10 @@ final class UserSearchForm extends AbstractSearchForm
         $this->addField(
             formField: $this->userGroupField = new SearchSelectOptionsField(
                 name: 'userGroup',
-                label: HtmlText::unencoded(textContent: $common->userGroupLabel),
+                label: HtmlText::fromText(text: $common->userGroupLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::unencoded(textContent: $common->filterAll),
+                individualEmptyValueLabel: HtmlText::fromText(text: $common->filterAll),
             ),
         );
         $this->dbAuthGroup = DbAuthGroupRepository::selectByID(
@@ -50,7 +50,7 @@ final class UserSearchForm extends AbstractSearchForm
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::unencoded(textContent: $common->searchButton),
+                submitLabel: HtmlText::fromText(text: $common->searchButton),
             ),
         );
     }

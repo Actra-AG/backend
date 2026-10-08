@@ -17,6 +17,7 @@ use actra\backend\libs\table\UserTable;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
+use actra\yuf\core\InputSourceEnum;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
@@ -29,7 +30,11 @@ class users extends BackendView
     {
         $inputParameterCollection = new InputParameterCollection();
         $inputParameterCollection->add(
-            inputParameter: new InputParameter(name: users::PARAM_REMOVED, isRequired: false),
+            inputParameter: new InputParameter(
+                name: users::PARAM_REMOVED,
+                source: InputSourceEnum::QUERY,
+                isRequired: false,
+            ),
         );
         parent::__construct(
             context: $context,
@@ -67,7 +72,7 @@ class users extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->usersTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->user->usersTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -78,31 +83,31 @@ class users extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'addUserTitle',
-            htmlText: HtmlText::unencoded(textContent: $messages->addUserTitle),
+            htmlText: HtmlText::fromText(text: $messages->addUserTitle),
         );
         $replacements->addHtmlText(
             identifier: 'successLabel',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel),
+            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->successLabel),
         );
         $replacements->addHtmlText(
             identifier: 'removedMessage',
-            htmlText: HtmlText::unencoded(textContent: $messages->removedMessage),
+            htmlText: HtmlText::fromText(text: $messages->removedMessage),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'addHref',
-            content: userAdd::getPath(),
+            html: userAdd::getPath(),
         );
         $replacements->addBool(
             identifier: 'removed',
             booleanValue: $this->getInputString(keyName: users::PARAM_REMOVED) !== null,
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'searchForm',
-            content: $userSearchForm->render(),
+            html: $userSearchForm->render(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'table',
-            content: new UserTable(context: $this->backendContext, userSearchForm: $userSearchForm)->render(),
+            html: new UserTable(context: $this->backendContext, userSearchForm: $userSearchForm)->render(),
         );
     }
 }

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\UserController;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\view\backend\php\user;
@@ -19,14 +20,20 @@ use actra\yuf\html\HtmlText;
 
 final class UserDeleteForm extends Form
 {
-    public function __construct(private readonly DbAuthUser $dbAuthUser)
-    {
-        parent::__construct(name: 'UserDeleteForm', messages: ActraBackend::messages()->form);
+    public function __construct(
+        BackendViewContext $context,
+        private readonly DbAuthUser $dbAuthUser,
+    ) {
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: 'UserDeleteForm',
+            messages: ActraBackend::messages()->form,
+        );
         $this->addCssClass(className: 'form');
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'delete',
-                submitLabel: HtmlText::unencoded(textContent: ActraBackend::messages()->user->deleteButton),
+                submitLabel: HtmlText::fromText(text: ActraBackend::messages()->user->deleteButton),
                 cancelLink: user::getPath(ID: $dbAuthUser->ID),
             ),
         );

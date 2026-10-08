@@ -10,14 +10,15 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\backend\ActraBackend;
+use actra\yuf\db\DbConnectionParameters;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
 use actra\yuf\db\DbSettings;
-use actra\yuf\db\FrameworkDB;
+use actra\yuf\db\FrameworkDb;
 use LogicException;
 use PDOException;
 
-class DB extends FrameworkDB
+class DB extends FrameworkDb
 {
     private static ?DB $instance = null;
 
@@ -26,7 +27,9 @@ class DB extends FrameworkDB
         if (DB::$instance !== null) {
             return DB::$instance;
         }
-        return DB::$instance = new DB(dbSettings: ActraBackend::get()->dbSettings);
+        return DB::$instance = new DB(
+            connectionParameters: DbConnectionParameters::forMysql(dbSettings: ActraBackend::get()->dbSettings),
+        );
     }
 
     /**
@@ -41,7 +44,7 @@ class DB extends FrameworkDB
         if (DB::$instance !== null) {
             throw new LogicException(message: 'The database connection has already been created.');
         }
-        return DB::$instance = new DB(dbSettings: $dbSettings);
+        return DB::$instance = new DB(connectionParameters: DbConnectionParameters::forMysql(dbSettings: $dbSettings));
     }
 
     /**
@@ -53,7 +56,7 @@ class DB extends FrameworkDB
 
         return $this->selectRows(
             sql: $dbQueryData->query,
-            parameters: array_values(array: $dbQueryData->params),
+            parameters: $dbQueryData->params,
         );
     }
 }

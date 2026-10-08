@@ -23,11 +23,11 @@ final class IpWhitelistFieldTest extends TestCase
     {
         return new IpWhitelistField(
             name: 'ipWhitelist',
-            label: HtmlText::encoded(textContent: 'IP-Whitelist'),
+            label: HtmlText::fromHtml(html: 'IP-Whitelist'),
             value: $initialIpAddresses,
-            invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]'),
+            invalidErrorMessage: HtmlText::fromHtml(html: 'Ungültige IP-Adresse [ipAddress]'),
             requiredError: $requiredError,
-            fieldInfo: HtmlText::unencoded(textContent: 'One IP address per line.'),
+            fieldInfo: HtmlText::fromText(text: 'One IP address per line.'),
         );
     }
 
@@ -73,7 +73,7 @@ final class IpWhitelistFieldTest extends TestCase
 
     public function testRequiredErrorForEmptyInput(): void
     {
-        $field = $this->createField(requiredError: HtmlText::encoded(textContent: 'Pflichtfeld'));
+        $field = $this->createField(requiredError: HtmlText::fromHtml(html: 'Pflichtfeld'));
 
         $this->assertFalse($field->validate(input: FormInput::fromArray(data: ['ipWhitelist' => " \n "])));
     }

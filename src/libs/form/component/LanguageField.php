@@ -25,10 +25,10 @@ final class LanguageField extends SelectOptionsField
     ) {
         parent::__construct(
             name: 'language',
-            label: HtmlText::unencoded(textContent: ActraBackend::messages()->common->languageLabel),
+            label: HtmlText::fromText(text: ActraBackend::messages()->common->languageLabel),
             formOptions: $userLanguageOptions->createFormOptions(),
             initialValue: $initialValue,
-            individualEmptyValueLabel: HtmlText::unencoded(textContent: $userLanguageOptions->getDefaultLabel()),
+            individualEmptyValueLabel: HtmlText::fromText(text: $userLanguageOptions->getDefaultLabel()),
         );
     }
 

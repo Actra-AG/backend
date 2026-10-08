@@ -13,7 +13,6 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\libs\form\PasswordForgottenForm;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
@@ -27,7 +26,7 @@ class passwordForgotten extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->passwordForgottenPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordForgottenPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -37,19 +36,20 @@ class passwordForgotten extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenIntro),
+            htmlText: HtmlText::fromText(text: $messages->passwordForgottenIntro),
         );
-        AuthSession::logOut();
+        $this->backendContext->actraBackend->getAuthSession()->logOut();
 
-        $passwordForgottenForm = new PasswordForgottenForm();
+        $passwordForgottenForm = new PasswordForgottenForm(context: $this->backendContext);
         if ($passwordForgottenForm->validateAndSendTokenEmail()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: passwordForgottenRes::getPath(),
+                httpRequest: $this->context->httpRequest,
             );
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $passwordForgottenForm->render(),
+            html: $passwordForgottenForm->render(),
         );
     }
 

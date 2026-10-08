@@ -21,7 +21,7 @@ final class SearchQueryField extends TextField
     {
         parent::__construct(
             name: 'searchQuery',
-            label: HtmlText::unencoded(textContent: ActraBackend::messages()->common->searchLabel),
+            label: HtmlText::fromText(text: ActraBackend::messages()->common->searchLabel),
         );
     }
 

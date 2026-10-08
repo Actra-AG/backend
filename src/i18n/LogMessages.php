@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\i18n;
 
 use actra\backend\settings\AuthTokenTypeEnum;
-use actra\yuf\auth\AuthResult;
+use actra\yuf\auth\AuthResultEnum;
 
 /**
  * Texts of the visit and token logs.
@@ -98,25 +98,25 @@ final readonly class LogMessages
     }
 
     /**
-     * Label of a visit status (replaces yuf's German AuthResult::render()).
+     * Label of a visit status (replaces yuf's German AuthResultEnum::render()).
      */
-    public function authResult(AuthResult $authResult): string
+    public function authResult(AuthResultEnum $authResult): string
     {
         return match ($authResult) {
-            AuthResult::UNDEFINED => $this->authResultUndefined,
-            AuthResult::SUCCESSFUL_PASSWORD_LOGIN => $this->authResultSuccessfulPasswordLogin,
-            AuthResult::ERROR_NO_EMAIL_ADDRESS => $this->authResultErrorNoEmailAddress,
-            AuthResult::ERROR_NO_PASSWORD => $this->authResultErrorNoPassword,
-            AuthResult::ERROR_UNKNOWN_USER_NAME => $this->authResultErrorUnknownUserName,
-            AuthResult::ERROR_INACTIVE => $this->authResultErrorInactive,
-            AuthResult::ERROR_IP_NOT_ALLOWED => $this->authResultErrorIpNotAllowed,
-            AuthResult::ERROR_OUT_TRIED => $this->authResultErrorOutTried,
-            AuthResult::ERROR_WRONG_PASSWORD => $this->authResultErrorWrongPassword,
-            AuthResult::SUCCESSFUL_SSO_LOGIN => $this->authResultSuccessfulSsoLogin,
-            AuthResult::ERROR_NO_PASSWORD_LOGIN_ACTIVE => $this->authResultErrorNoPasswordLoginActive,
-            AuthResult::FAILED_SSO_LOGIN => $this->authResultFailedSsoLogin,
-            AuthResult::SUCCESSFUL_OTP_LOGIN => $this->authResultSuccessfulOtpLogin,
-            AuthResult::SUCCESSFUL_MICROSOFT_LOGIN => $this->authResultSuccessfulMicrosoftLogin,
+            AuthResultEnum::UNDEFINED => $this->authResultUndefined,
+            AuthResultEnum::SUCCESSFUL_PASSWORD_LOGIN => $this->authResultSuccessfulPasswordLogin,
+            AuthResultEnum::ERROR_NO_EMAIL_ADDRESS => $this->authResultErrorNoEmailAddress,
+            AuthResultEnum::ERROR_NO_PASSWORD => $this->authResultErrorNoPassword,
+            AuthResultEnum::ERROR_UNKNOWN_USER_NAME => $this->authResultErrorUnknownUserName,
+            AuthResultEnum::ERROR_INACTIVE => $this->authResultErrorInactive,
+            AuthResultEnum::ERROR_IP_NOT_ALLOWED => $this->authResultErrorIpNotAllowed,
+            AuthResultEnum::ERROR_OUT_TRIED => $this->authResultErrorOutTried,
+            AuthResultEnum::ERROR_WRONG_PASSWORD => $this->authResultErrorWrongPassword,
+            AuthResultEnum::SUCCESSFUL_SSO_LOGIN => $this->authResultSuccessfulSsoLogin,
+            AuthResultEnum::ERROR_NO_PASSWORD_LOGIN_ACTIVE => $this->authResultErrorNoPasswordLoginActive,
+            AuthResultEnum::FAILED_SSO_LOGIN => $this->authResultFailedSsoLogin,
+            AuthResultEnum::SUCCESSFUL_OTP_LOGIN => $this->authResultSuccessfulOtpLogin,
+            AuthResultEnum::SUCCESSFUL_MICROSOFT_LOGIN => $this->authResultSuccessfulMicrosoftLogin,
         };
     }
 

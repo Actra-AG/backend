@@ -10,10 +10,10 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\view\backend\php\loginPassword;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
@@ -24,19 +24,23 @@ final class PasswordForgottenForm extends Form
 {
     private readonly EmailField $emailField;
 
-    public function __construct()
+    public function __construct(BackendViewContext $context)
     {
         $messages = ActraBackend::messages();
-        parent::__construct(name: 'PasswordForgottenForm', messages: $messages->form);
+        parent::__construct(
+            context: $context->viewContext->formContext,
+            name: 'PasswordForgottenForm',
+            messages: $messages->form,
+        );
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
         $this->addField(
             formField: $this->emailField = new EmailField(
                 name: 'email',
-                label: HtmlText::unencoded(textContent: $messages->common->emailLabel),
+                label: HtmlText::fromText(text: $messages->common->emailLabel),
                 value: null,
-                invalidError: HtmlText::unencoded(textContent: $messages->auth->emailInvalid),
-                requiredError: HtmlText::unencoded(textContent: $messages->auth->emailRequired),
+                invalidError: HtmlText::fromText(text: $messages->auth->emailInvalid),
+                requiredError: HtmlText::fromText(text: $messages->auth->emailRequired),
             ),
         );
         $this->emailField->autoFocus = true;
@@ -44,7 +48,7 @@ final class PasswordForgottenForm extends Form
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->send),
+                submitLabel: HtmlText::fromText(text: $messages->common->send),
                 cancelLink: loginPassword::getPath(),
             ),
         );
@@ -65,7 +69,7 @@ final class PasswordForgottenForm extends Form
                 $dbAuthUser->ipWhitelist !== []
                 && !IpValidator::isInWhitelist(
                     whiteList: $dbAuthUser->ipWhitelist,
-                    ipAddressToCheck: HttpRequest::getRemoteAddress(),
+                    ipAddressToCheck: $this->context->httpRequest->getRemoteAddress(),
                 )
             )
         ) {

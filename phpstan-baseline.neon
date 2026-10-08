@@ -253,42 +253,6 @@ parameters:
 			path: src/libs/db/DbAuthUserNotificationCollection.php
 
 		-
-			rawMessage: 'Call to method actra\yuf\mailer\AbstractMail::addBCC() with incorrect case: addBcc'
-			identifier: method.nameCase
-			count: 1
-			path: src/libs/email/Mailer.php
-
-		-
-			rawMessage: 'Call to method actra\yuf\mailer\AbstractMail::addCC() with incorrect case: addCc'
-			identifier: method.nameCase
-			count: 1
-			path: src/libs/email/Mailer.php
-
-		-
-			rawMessage: 'Method actra\backend\libs\email\Mailer::sendTextMail() has parameter $bcc with no value type specified in iterable type array.'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/libs/email/Mailer.php
-
-		-
-			rawMessage: 'Method actra\backend\libs\email\Mailer::sendTextMail() has parameter $cc with no value type specified in iterable type array.'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/libs/email/Mailer.php
-
-		-
-			rawMessage: 'Parameter $inputEmail of method actra\yuf\mailer\AbstractMail::addBCC() expects string, mixed given.'
-			identifier: argument.type
-			count: 1
-			path: src/libs/email/Mailer.php
-
-		-
-			rawMessage: 'Parameter $inputEmail of method actra\yuf\mailer\AbstractMail::addCC() expects string, mixed given.'
-			identifier: argument.type
-			count: 1
-			path: src/libs/email/Mailer.php
-
-		-
 			rawMessage: 'Method actra\backend\libs\form\LoginForm::checkCredentials() never returns false so the return type can be changed to true.'
 			identifier: return.tooWideBool
 			count: 1

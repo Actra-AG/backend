@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -25,7 +24,7 @@ class passwordResetRes extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->passwordResetPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordResetPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -35,12 +34,12 @@ class passwordResetRes extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'doneText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordResetDone),
+            htmlText: HtmlText::fromText(text: $messages->passwordResetDone),
         );
-        AuthSession::logOut();
-        $replacements->addEncodedText(
+        $this->backendContext->actraBackend->getAuthSession()->logOut();
+        $replacements->addHtml(
             identifier: 'loginHref',
-            content: loginPassword::getPath(),
+            html: loginPassword::getPath(),
         );
     }
 

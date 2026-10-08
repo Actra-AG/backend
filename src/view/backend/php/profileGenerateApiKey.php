@@ -47,7 +47,7 @@ final class profileGenerateApiKey extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->common->generateApiKeyTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -59,18 +59,25 @@ final class profileGenerateApiKey extends BackendView
         ) {
             throw new NotFoundException();
         }
-        $apiKeyGenerateForm = new ApiKeyGenerateForm(userID: $dbAuthUser->ID, cancelLink: profile::getPath());
+        $apiKeyGenerateForm = new ApiKeyGenerateForm(
+            context: $this->backendContext,
+            userID: $dbAuthUser->ID,
+            cancelLink: profile::getPath(),
+        );
         if ($apiKeyGenerateForm->process()) {
-            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: profile::getPath());
+            HttpResponse::redirectAndExit(
+                relativeOrAbsoluteUri: profile::getPath(),
+                httpRequest: $this->context->httpRequest,
+            );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->generateApiKeyConfirm),
+            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->generateApiKeyConfirm),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $apiKeyGenerateForm->render(),
+            html: $apiKeyGenerateForm->render(),
         );
     }
 

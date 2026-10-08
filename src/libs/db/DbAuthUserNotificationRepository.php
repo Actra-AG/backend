@@ -99,11 +99,11 @@ class DbAuthUserNotificationRepository
             ',
             parameters: [
                 $authGroupID,
-                MyAuthUser::get()->ID,
+                MyAuthUser::get()->id,
                 $subject,
                 $message,
             ],
         );
-        return $db->lastInsertId();
+        return $db->getLastInsertId();
     }
 }

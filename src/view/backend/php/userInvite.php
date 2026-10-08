@@ -44,7 +44,7 @@ class userInvite extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->inviteTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->user->inviteTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -53,31 +53,32 @@ class userInvite extends BackendView
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
-        $userInviteForm = new UserInviteForm(dbAuthUser: $dbAuthUser);
+        $userInviteForm = new UserInviteForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($userInviteForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: user::getPath(
                     ID: $dbAuthUser->ID,
                 ) . '?' . user::PARAM_INVITED,
+                httpRequest: $this->context->httpRequest,
             );
         }
         $messages = ActraBackend::messages()->user;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'inviteIntro',
-            htmlText: HtmlText::unencoded(textContent: $messages->inviteIntro),
+            htmlText: HtmlText::fromText(text: $messages->inviteIntro),
         );
         $replacements->addHtmlText(
             identifier: 'recipientLabel',
-            htmlText: HtmlText::unencoded(textContent: $messages->recipientLabel),
+            htmlText: HtmlText::fromText(text: $messages->recipientLabel),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'recipient',
-            content: $dbAuthUser->email,
+            html: $dbAuthUser->email,
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $userInviteForm->render(),
+            html: $userInviteForm->render(),
         );
     }
 

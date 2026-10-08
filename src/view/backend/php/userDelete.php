@@ -49,7 +49,7 @@ class userDelete extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->deleteButton);
+        return HtmlText::fromText(text: ActraBackend::messages()->user->deleteButton);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -58,21 +58,24 @@ class userDelete extends BackendView
         if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
-        $userDeleteForm = new UserDeleteForm(dbAuthUser: $dbAuthUser);
+        $userDeleteForm = new UserDeleteForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($userDeleteForm->process()) {
-            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: users::getPath() . '?' . users::PARAM_REMOVED);
+            HttpResponse::redirectAndExit(
+                relativeOrAbsoluteUri: users::getPath() . '?' . users::PARAM_REMOVED,
+                httpRequest: $this->context->httpRequest,
+            );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'deleteConfirm',
-            htmlText: HtmlText::unencoded(textContent: MessageTemplate::fill(
+            htmlText: HtmlText::fromText(text: MessageTemplate::fill(
                 template: ActraBackend::messages()->user->deleteConfirm,
                 values: ['name' => $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName],
             )),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $userDeleteForm->render(),
+            html: $userDeleteForm->render(),
         );
     }
 

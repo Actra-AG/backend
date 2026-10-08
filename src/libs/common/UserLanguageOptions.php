@@ -56,7 +56,7 @@ final readonly class UserLanguageOptions
         foreach ($this->backendRouteCollection->listLanguageCodes() as $languageCode) {
             $formOptions->addItem(
                 key: $languageCode,
-                htmlText: HtmlText::unencoded(textContent: $this->getDisplayName(languageCode: $languageCode)),
+                htmlText: HtmlText::fromText(text: $this->getDisplayName(languageCode: $languageCode)),
             );
         }
 

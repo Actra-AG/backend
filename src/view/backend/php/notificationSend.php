@@ -42,32 +42,33 @@ class notificationSend extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->notification->sendTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->notification->sendTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $replacements = $htmlDocument->replacements;
-        $notificationSendForm = new NotificationSendForm();
+        $notificationSendForm = new NotificationSendForm(context: $this->backendContext);
         if ($notificationSendForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: notification::getPath(
                     ID: $notificationSendForm->notificationID,
                 ) . '?' . notification::PARAM_SENT,
+                httpRequest: $this->context->httpRequest,
             );
         }
         $replacements->addHtmlText(
             identifier: 'sendInfo',
-            htmlText: HtmlText::unencoded(
-                textContent: MessageTemplate::fill(
+            htmlText: HtmlText::fromText(
+                text: MessageTemplate::fill(
                     template: ActraBackend::messages()->notification->sendInfo,
                     values: ['send' => ActraBackend::messages()->common->send],
                 ),
             ),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $notificationSendForm->render(),
+            html: $notificationSendForm->render(),
         );
     }
 

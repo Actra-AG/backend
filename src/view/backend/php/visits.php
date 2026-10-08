@@ -61,7 +61,7 @@ class visits extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->log->visitsPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->log->visitsPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -78,13 +78,13 @@ class visits extends BackendView
         $pageIdentifier = 'VisitSearch-' . (int) $filterUserID;
         $visitSearchForm = new VisitSearchForm(context: $this->backendContext, name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'searchForm',
-            content: $visitSearchForm->render(),
+            html: $visitSearchForm->render(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'table',
-            content: new VisitTable(
+            html: new VisitTable(
                 context: $this->backendContext,
                 identifier: $pageIdentifier . 'Table',
                 filterUserID: $filterUserID,

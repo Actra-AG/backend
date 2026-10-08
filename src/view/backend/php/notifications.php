@@ -57,7 +57,7 @@ class notifications extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->notification->title);
+        return HtmlText::fromText(text: ActraBackend::messages()->notification->title);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -65,15 +65,15 @@ class notifications extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'sendTitle',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->notification->sendTitle),
+            htmlText: HtmlText::fromText(text: ActraBackend::messages()->notification->sendTitle),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'sendHref',
-            content: notificationSend::getPath(),
+            html: notificationSend::getPath(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'table',
-            content: new NotificationTable(context: $this->backendContext)->render(),
+            html: new NotificationTable(context: $this->backendContext)->render(),
         );
     }
 }

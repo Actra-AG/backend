@@ -77,10 +77,10 @@ class DbAuthApiKeyRepository
         return $dbAuthApiKeyCollection->isEmpty() ? null : $dbAuthApiKeyCollection->getFirst();
     }
 
-    public static function getUserIDForBearerOrThrow(): int
+    public static function getUserIDForBearerOrThrow(HttpRequest $httpRequest): int
     {
-        $bearer = HttpRequest::getBearer();
-        if ($bearer === false || $bearer === '') {
+        $bearer = $httpRequest->getBearerToken();
+        if ($bearer === null) {
             throw new UnauthorizedException();
         }
         $apiKeyParts = DbAuthApiKeyRepository::parseBearer(bearer: $bearer);

@@ -66,21 +66,21 @@ modified from this repository). Steps that change views, templates or HTML are c
 | 0  | ^4.10 | Tooling green (code style, test errors, coding standard ^1.3)              | small  | direct | –       |
 | 1  | ^4.14 | `DbSettings`, `TableItem`                                                  | small  | direct | v1.7.0  |
 | 2  | ^4.15 | `BackendViewContext`, view factory, `ViewContext` in all views             | large  | direct | v1.8.0  |
-| 3  | ^4.23 | Auth and acronym names of yuf, static handlers gone                        | medium | direct | v1.9.0  |
-| 4  | ^4.28 | `HtmlText` / replacement names, template engine, tables                    | medium | direct | v1.10.0 |
-| 5  | ^4.30 | `HttpRequest` instance, `Session`, `AuthSession`, `FormContext`            | large  | direct | v1.11.0 |
-| 6  | ^4.30 | No `$_SESSION`; breadcrumb on `Session` and fixed                          | medium | direct | v1.12.0 |
-| 7  | ^4.34 | Db connection, `CsvFile`, `getLastInsertId()`                              | small  | direct | v1.13.0 |
-| 8  | ^4.37 | Passwords (`dbUpdatePassword()`), API keys with `SecretTokenHash`, tables  | medium | direct | v1.14.0 |
-| 9  | ^4.41 | Mailer, form attributes, `IpTypeEnum::IP`                                  | small  | direct | v1.15.0 |
-| 10 | ^4.57 | Search state, resolved route, navigation, `createHtmlTag()`, rest          | medium | direct | v1.16.0 |
-| 11 | ^4.57 | Empty baseline, line lengths, no superglobals rule, constant names         | small  | direct | v1.17.0 |
-| 12 | ^4.57 | `final`, extension points, `@internal`                                     | medium | direct | v1.18.0 |
-| 13 | ^4.57 | Interfaces without suffix                                                  | small  | direct | v1.19.0 |
-| 14 | ^4.57 | No static `ActraBackend`: messages, path, navigation in the context        | large  | direct | v1.20.0 |
-| 15 | ^4.57 | Repositories, `DB`, current user, mailer as services                       | large  | direct | v1.21.0 |
-| 16 | ^4.57 | Acronyms of the backend API (`ID` → `id`, …)                               | large  | Sonnet | v1.22.0 |
-| 17 | ^4.57 | snake_case database tables and columns                                     | large  | Sonnet | v1.23.0 |
+| 3  | ^4.34 | yuf v4.16–v4.34 in one step (former steps 3, 4, 5 and 7, see below)        | large  | direct | v1.9.0  |
+| 4  | –     | merged into step 3                                                         | –      | –      | –       |
+| 5  | –     | merged into step 3                                                         | –      | –      | –       |
+| 6  | ^4.34 | No `$_SESSION`; breadcrumb on `Session` and fixed                          | medium | direct | v1.10.0 |
+| 7  | –     | merged into step 3                                                         | –      | –      | –       |
+| 8  | ^4.37 | Passwords (`dbUpdatePassword()`), API keys with `SecretTokenHash`, tables  | medium | direct | v1.11.0 |
+| 9  | ^4.41 | Mailer, form attributes, `IpTypeEnum::IP`                                  | small  | direct | v1.12.0 |
+| 10 | ^4.57 | Search state, resolved route, navigation, `createHtmlTag()`, rest          | medium | direct | v1.13.0 |
+| 11 | ^4.57 | Empty baseline, line lengths, no superglobals rule, constant names         | small  | direct | v1.14.0 |
+| 12 | ^4.57 | `final`, extension points, `@internal`                                     | medium | direct | v1.15.0 |
+| 13 | ^4.57 | Interfaces without suffix                                                  | small  | direct | v1.16.0 |
+| 14 | ^4.57 | No static `ActraBackend`: messages, path, navigation in the context        | large  | direct | v1.17.0 |
+| 15 | ^4.57 | Repositories, `DB`, current user, mailer as services                       | large  | direct | v1.18.0 |
+| 16 | ^4.57 | Acronyms of the backend API (`ID` → `id`, …)                               | large  | Sonnet | v1.19.0 |
+| 17 | ^4.57 | snake_case database tables and columns                                     | large  | Sonnet | v1.20.0 |
 
 `^4.57` in the table means `^4.57.3` (the current yuf release). "Sonnet" marks the only steps that are long, mechanical and self-contained enough for a separate session; the main
 session decides again when the step starts. The release numbers are the expected order; a major version (v2.0.0) for
@@ -120,7 +120,15 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   (`BackendViewContext`), so their constructors also change only once (they change in steps 4 and 5).
 - ⚠️ Projects: every view constructor, every route with backend views. UPGRADE.md with a search list.
 
-### Step 3 – yuf ^4.23 (v4.16–v4.23)
+### Step 3 – yuf ^4.34 (v4.16–v4.34, former steps 3, 4, 5 and 7)
+
+yuf v4.18.0–v4.31.0 ship `FrameworkDb`, `CsvFile`, `SmtpMailer` and `SimpleXmlExtended` in files with the old case
+(`FrameworkDB.php`, …); `actra/autoloader` cannot load them on a case-sensitive file system (DDEV, Linux servers).
+yuf v4.32.0 fixed the file names. A backend release requiring ^4.23, ^4.28 or ^4.30 would not work, so these steps are
+one step and one release against yuf ^4.34 (decision 2026-10-08). Former step 6 (`$_SESSION`, breadcrumb) does not
+depend on these versions and follows as its own step.
+
+#### Part from v4.16–v4.23
 
 - `AuthResult` / `AuthMethod` → `…Enum`; `MyAuthUser::$ID` → `$id` (inherited); `MyAuthenticator::logAuthResult()`
   arguments `userId`, `sessionId`; `getAuthSessionId()`, `logIn(authSessionId:)`, `getId()`.
@@ -128,7 +136,7 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   `TOTAL_AMOUNT`, `TABLE`, `AMOUNT`, same HTML).
 - ⚠️ Projects: `MyAuthUser::get()->ID` → `->id`. Every user is logged out once (session key `authSessionId`).
 
-### Step 4 – yuf ^4.28 (v4.24–v4.28)
+#### Part from v4.24–v4.28
 
 - `HtmlText::unencoded()` → `fromText(text:)`, `encoded()` → `fromHtml(html:)`, `addEncodedText()` → `addHtml()`,
   `addUnencodedText()` → `addText()`, `addTextElement()`, `DetailDataObject(isHtml:)` (about 90 files, mechanical;
@@ -137,7 +145,7 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   verify the templates (`loadSubTpl`, `if` comparisons, `else`) in the browser.
 - ⚠️ Projects: tables (if not already covered by step 2), own templates, delete compiled templates in the cache.
 
-### Step 5 – yuf ^4.30 (v4.29–v4.30, one refactoring)
+#### Part from v4.29–v4.30
 
 - `HttpRequest` instance: `getUri()`, `getRemoteAddress()`, `getProtocol()->value`, `getBearerToken()`;
   `InputParameter(source: InputSourceEnum::QUERY)`; `redirectAndExit(httpRequest:)`; `CsvFile::pushDownloadAndExit()`.
@@ -149,7 +157,7 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
 - ⚠️ Projects: forms (`context:`), search forms, repository calls, one-time logout (yuf session data moves under
   `$_SESSION['yuf']`).
 
-### Step 6 – yuf ^4.30: no `$_SESSION`, breadcrumb fixed
+### Step 6 – yuf ^4.34: no `$_SESSION`, breadcrumb fixed
 
 - `AuthTokenTypeEnum`, `GeneratedApiKeyFlash`, `MyAuthUser` (page after login) use `Session`; tests with
   `ArraySessionStorage` instead of `$_SESSION = []`.
@@ -157,7 +165,7 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   `docs/breadcrumb/analysis.md` section 4 (characterization tests of the current trail first).
 - Required before yuf v4.46 (lazy session start).
 
-### Step 7 – yuf ^4.34 (v4.31–v4.34)
+#### Part from v4.31–v4.34 (belongs to step 3)
 
 - `new DB(connectionParameters: DbConnectionParameters::forMysql(dbSettings:))`; `DbSettings` without `identifier`
   (`DBTest`, README); `getLastInsertId()` in 4 repositories.
@@ -317,3 +325,27 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   deviation wording for lowercase view classes is used in `AGENTS.md`.
 - Next: step 3 (yuf ^4.23), no decision needed.
 
+
+### Step 3 – done (2026-10-08)
+
+- `actra/yuf` ^4.34 (checked against v4.34.0; intermediate checks against v4.23.0, v4.28.0 and v4.30.0 while working,
+  where only `DBTest` failed because of the file names), `actra/coding-standard` ^1.6.0.
+- v4.16–v4.23: `AuthResultEnum`, `AuthMethodEnum`, `MyAuthUser::$id` (inherited), `logAuthResult(userId:,
+  sessionId:)`, `getAuthSessionId()`, `getId()`, `getUri()`, `FrameworkDb`, `CsvFile`, `SmtpMailer`, table constants.
+- v4.24–v4.28: `fromText()` / `fromHtml()`, `addHtml()` / `addText()` (script with a parser for nested calls). Data
+  objects that were output unescaped (group name, whitelist IPs, asset paths) are escaped now (`addText()`); the
+  notification details stay HTML (encoded before). `AbstractTable` gets the template engine from the context. The
+  templates were checked by search against the removed and stricter constructs of the new engine (none used; all `if`
+  compare with `true`, `false`, `null` or `""`); rendering them is part of the browser check after the plan.
+- v4.29–v4.30: decision of this step: `ActraBackend::activateRequest(ViewContext)` (called by `BackendView`) keeps
+  the request; `getViewContext()`, `findViewContext()`, `getAuthSession()` serve the static helpers (`MyAuthUser`,
+  `MyAuthenticator`, repositories, emails, `UserController`), so their project-facing signatures stay until step 15.
+  Exception: `getUserIDForBearerOrThrow(HttpRequest)` (API views have no backend request). Forms take the
+  `BackendViewContext` (request via `Form::$context`), `AbstractSearchForm` reads `POST` values, `AbstractTable` gets
+  request and session from the context, `InputParameter` with `QUERY`, `redirectAndExit(httpRequest:)`. `Mailer` uses
+  the server address of the request or `gethostname()` (CLI).
+- v4.31–v4.34: `DbConnectionParameters::forMysql()`, `getLastInsertId()`, `DbSettings` without `identifier`.
+- `tests/Double/ViewContextFactory` builds the `ViewContext` with an in-memory session. 89 tests, baseline 144 → 138
+  entries. No new line over 120 characters (single-line calls split by a script).
+- Open for step 6: `$_SESSION` in `MyAuthUser` (page after login), `GeneratedApiKeyFlash`, `AuthTokenTypeEnum`,
+  `OldNavigator`; `GeneratedApiKeyFlashTest` still sets `$_SESSION`.

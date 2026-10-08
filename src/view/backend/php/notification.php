@@ -17,6 +17,7 @@ use actra\backend\libs\table\NotificationRecipientTable;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
+use actra\yuf\core\InputSourceEnum;
 use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
@@ -33,6 +34,7 @@ class notification extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: notification::PARAM_SENT,
+                source: InputSourceEnum::QUERY,
                 isRequired: false,
             ),
         );
@@ -66,26 +68,26 @@ class notification extends BackendView
         if ($dbAuthUserNotification === null) {
             throw new NotFoundException();
         }
-        $this->pageTitle = HtmlText::unencoded(
-            textContent: $dbAuthUserNotification->subject,
+        $this->pageTitle = HtmlText::fromText(
+            text: $dbAuthUserNotification->subject,
         );
         $replacements = $htmlDocument->replacements;
         $messages = ActraBackend::messages()->notification;
         $replacements->addHtmlText(
             identifier: 'successLabel',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel),
+            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->successLabel),
         );
         $replacements->addHtmlText(
             identifier: 'sentSuccess',
-            htmlText: HtmlText::unencoded(textContent: $messages->sentSuccess),
+            htmlText: HtmlText::fromText(text: $messages->sentSuccess),
         );
         $replacements->addHtmlText(
             identifier: 'detailsHeading',
-            htmlText: HtmlText::unencoded(textContent: $messages->detailsHeading),
+            htmlText: HtmlText::fromText(text: $messages->detailsHeading),
         );
         $replacements->addHtmlText(
             identifier: 'recipientsLabel',
-            htmlText: HtmlText::unencoded(textContent: $messages->recipientsLabel),
+            htmlText: HtmlText::fromText(text: $messages->recipientsLabel),
         );
         $replacements->addBool(
             identifier: 'sent',
@@ -95,9 +97,9 @@ class notification extends BackendView
             identifier: 'detailFields',
             htmlDataObjectCollection: $dbAuthUserNotification->render(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'recipients',
-            content: new NotificationRecipientTable(
+            html: new NotificationRecipientTable(
                 context: $this->backendContext,
                 notificationID: $dbAuthUserNotification->ID,
             )->render(),

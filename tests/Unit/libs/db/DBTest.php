@@ -25,7 +25,6 @@ final class DBTest extends TestCase
     public function testUseConnectionSetsTheInstanceReturnedByGetOnlyOnce(): void
     {
         $dbSettings = new DbSettings(
-            identifier: 'backend-db-test',
             hostName: $this->env(name: 'TEST_DB_HOST', default: 'db'),
             databaseName: $this->env(name: 'TEST_DB_NAME', default: 'db'),
             userName: $this->env(name: 'TEST_DB_USER', default: 'db'),

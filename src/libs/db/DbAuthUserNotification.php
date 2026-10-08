@@ -70,7 +70,7 @@ readonly class DbAuthUserNotification
         return new DetailDataObject(
             name: HtmlEncoder::encode(value: $label),
             value: $valueHtml,
-            isEncodedForRendering: true,
+            isHtml: true,
         );
     }
 }

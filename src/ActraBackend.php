@@ -22,9 +22,11 @@ use actra\backend\view\backend\php\tokens;
 use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\auth\AuthSession;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\Route;
 use actra\yuf\core\RouteCollection;
+use actra\yuf\core\ViewContext;
 use actra\yuf\db\DbSettings;
 use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
@@ -49,6 +51,8 @@ class ActraBackend
     private static ?ActraBackend $instance = null;
     /** The route of the current request (the main route until a backend view activates one) */
     public private(set) BackendRoute $currentRoute;
+    /** The `ViewContext` of the current request, set by `BackendView` (`null` before and outside a backend view) */
+    private ?ViewContext $viewContext = null;
 
     /**
      * @param string $path The path of the main route; use `ActraBackend::path()` for the path of the current route
@@ -126,6 +130,49 @@ class ActraBackend
      * Makes the backend route of the request current: its texts and path are used from now on. A route that does not
      * belong to the backend (e.g. a project view based on `BackendView`) selects the backend route of its language.
      */
+    /**
+     * Makes the request of a backend view current: its route (see `activateRoute()`) and its request and session, which
+     * the static helpers of the backend (`MyAuthUser::get()`, the repositories, the emails) use until they are services
+     * of `BackendViewContext`.
+     */
+    public function activateRequest(ViewContext $viewContext): void
+    {
+        $this->viewContext = $viewContext;
+        $this->activateRoute(route: $viewContext->route);
+    }
+
+    /**
+     * The `ViewContext` of the current request, `null` outside a request of a backend view (e.g. in a CLI script).
+     */
+    public function findViewContext(): ?ViewContext
+    {
+        return $this->viewContext;
+    }
+
+    /**
+     * The `ViewContext` of the current request.
+     *
+     * @throws LogicException outside a request of a backend view (e.g. in a CLI script)
+     */
+    public function getViewContext(): ViewContext
+    {
+        return $this->viewContext ?? throw new LogicException(
+            message: 'No backend request is active. This is only available in views based on BackendView.',
+        );
+    }
+
+    /**
+     * The `AuthSession` of the current request.
+     *
+     * @throws LogicException outside a backend request or without session
+     */
+    public function getAuthSession(): AuthSession
+    {
+        return $this->getViewContext()->authSession ?? throw new LogicException(
+            message: 'The backend needs a session: do not disable individualSessionHandler for backend routes.',
+        );
+    }
+
     public function activateRoute(Route $route): void
     {
         $this->currentRoute = $this->backendRouteCollection->findByPath(path: $route->path)
@@ -221,10 +268,9 @@ class ActraBackend
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         foreach ($paths as $path) {
             $htmlDataObject = new HtmlDataObject();
-            $htmlDataObject->addTextElement(
+            $htmlDataObject->addText(
                 propertyName: 'src',
-                content: $path,
-                isEncodedForRendering: true,
+                text: $path,
             );
             $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
         }

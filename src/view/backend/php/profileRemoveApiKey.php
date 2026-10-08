@@ -47,7 +47,7 @@ class profileRemoveApiKey extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->common->removeApiKeyTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -59,20 +59,25 @@ class profileRemoveApiKey extends BackendView
         ) {
             throw new NotFoundException();
         }
-        $apiKeyRemoveForm = new ApiKeyRemoveForm(userID: $userID, cancelLink: profile::getPath());
+        $apiKeyRemoveForm = new ApiKeyRemoveForm(
+            context: $this->backendContext,
+            userID: $userID,
+            cancelLink: profile::getPath(),
+        );
         if ($apiKeyRemoveForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
+                httpRequest: $this->context->httpRequest,
             );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyConfirm),
+            htmlText: HtmlText::fromText(text: ActraBackend::messages()->common->removeApiKeyConfirm),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $apiKeyRemoveForm->render(),
+            html: $apiKeyRemoveForm->render(),
         );
     }
 

@@ -17,10 +17,10 @@ use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\form\ProfileForm;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
+use actra\yuf\core\InputSourceEnum;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
 use actra\yuf\html\HtmlText;
@@ -35,6 +35,7 @@ class profile extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: profile::PARAM_CHANGED,
+                source: InputSourceEnum::QUERY,
                 isRequired: false,
             ),
         );
@@ -56,17 +57,18 @@ class profile extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->profile->profilePageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->profile->profilePageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $dbAuthUser = MyAuthUser::get()->dbAuthUser;
         $hasApi = ActraBackend::get()->actraBackendSettings->hasApi;
-        $profileForm = new ProfileForm(dbAuthUser: $dbAuthUser);
+        $profileForm = new ProfileForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($profileForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
+                httpRequest: $this->context->httpRequest,
             );
         }
         $replacements = $htmlDocument->replacements;
@@ -75,51 +77,52 @@ class profile extends BackendView
             identifier: 'changed',
             booleanValue: $this->getInputString(keyName: profile::PARAM_CHANGED) !== null,
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $profileForm->render(),
+            html: $profileForm->render(),
         );
         if ($dbAuthUser->password === null) {
-            $replacements->addEncodedText(
+            $replacements->addHtml(
                 identifier: 'createPasswordHref',
-                content: profileCreatePassword::getPath(),
+                html: profileCreatePassword::getPath(),
             );
         } else {
-            $replacements->addEncodedText(
+            $replacements->addHtml(
                 identifier: 'createPasswordHref',
-                content: '',
+                html: '',
             );
-            $replacements->addEncodedText(
+            $replacements->addHtml(
                 identifier: 'loginPasswordHref',
-                content: HttpRequest::getProtocol() . '://' . HttpRequest::getHost() . loginPassword::getPath(),
+                html: $this->context->httpRequest->getProtocol()->value . '://'
+                    . $this->context->httpRequest->getHost() . loginPassword::getPath(),
             );
-            $replacements->addEncodedText(
+            $replacements->addHtml(
                 identifier: 'changePasswordHref',
-                content: profileChangePassword::getPath(),
+                html: profileChangePassword::getPath(),
             );
-            $replacements->addEncodedText(
+            $replacements->addHtml(
                 identifier: 'removePasswordHref',
-                content: profileRemovePassword::getPath(),
+                html: profileRemovePassword::getPath(),
             );
         }
         if (!$hasApi) {
             return;
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'apiKey',
-            content: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
+            html: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'generateApiKeyHref',
-            content: $dbAuthUser->ipWhitelist !== [] ? profileGenerateApiKey::getPath() : '',
+            html: $dbAuthUser->ipWhitelist !== [] ? profileGenerateApiKey::getPath() : '',
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'removeApiKeyHref',
-            content: profileRemoveApiKey::getPath(),
+            html: profileRemoveApiKey::getPath(),
         );
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'generatedApiKey',
-            content: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? '',
+            html: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? '',
         );
     }
 

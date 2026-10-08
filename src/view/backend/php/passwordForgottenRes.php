@@ -12,7 +12,6 @@ namespace actra\backend\view\backend\php;
 use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\AuthSession;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -25,7 +24,7 @@ class passwordForgottenRes extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->auth->passwordForgottenPageTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->auth->passwordForgottenPageTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -35,9 +34,9 @@ class passwordForgottenRes extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'resultText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenResult),
+            htmlText: HtmlText::fromText(text: $messages->passwordForgottenResult),
         );
-        AuthSession::logOut();
+        $this->backendContext->actraBackend->getAuthSession()->logOut();
     }
 
     public static function getPath(): string

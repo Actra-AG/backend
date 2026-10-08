@@ -9,11 +9,11 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\backend\ActraBackend;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbRow;
 
 class DbAuthSessionRepository
@@ -56,12 +56,12 @@ class DbAuthSessionRepository
             parameters: [
                 $parentID,
                 $userID,
-                session_id(),
-                HttpRequest::getRemoteAddress(),
+                ActraBackend::get()->getAuthSession()->getSessionId(),
+                ActraBackend::get()->getViewContext()->httpRequest->getRemoteAddress(),
             ],
         );
 
-        return $db->lastInsertId();
+        return $db->getLastInsertId();
     }
 
     public static function selectByID(int $ID): ?DbAuthSession

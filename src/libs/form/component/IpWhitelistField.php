@@ -42,8 +42,8 @@ final class IpWhitelistField extends TextAreaField
             requiredError: $requiredError,
         );
         $this->initialIpAddresses = $this->getValues();
-        $this->fieldInfo = $fieldInfo ?? HtmlText::unencoded(
-            textContent: ActraBackend::messages()->common->ipWhitelistInfo,
+        $this->fieldInfo = $fieldInfo ?? HtmlText::fromText(
+            text: ActraBackend::messages()->common->ipWhitelistInfo,
         );
         $this->addEachRule(formRule: new ValidIpAddressRule(errorMessage: $invalidErrorMessage));
     }

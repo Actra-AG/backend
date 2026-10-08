@@ -66,20 +66,17 @@ final readonly class LanguageSwitcher
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         foreach ($this->createEntries() as $entry) {
             $htmlDataObject = new HtmlDataObject();
-            $htmlDataObject->addTextElement(
+            $htmlDataObject->addText(
                 propertyName: 'languageCode',
-                content: $entry->languageCode,
-                isEncodedForRendering: false,
+                text: $entry->languageCode,
             );
-            $htmlDataObject->addTextElement(
+            $htmlDataObject->addText(
                 propertyName: 'label',
-                content: $entry->label,
-                isEncodedForRendering: false,
+                text: $entry->label,
             );
-            $htmlDataObject->addTextElement(
+            $htmlDataObject->addText(
                 propertyName: 'href',
-                content: $entry->href,
-                isEncodedForRendering: false,
+                text: $entry->href,
             );
             $htmlDataObject->addBooleanValue(propertyName: 'isCurrent', booleanValue: $entry->isCurrent);
             $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);

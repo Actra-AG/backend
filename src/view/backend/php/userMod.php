@@ -44,7 +44,7 @@ class userMod extends BackendView
 
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::unencoded(textContent: ActraBackend::messages()->user->editUserTitle);
+        return HtmlText::fromText(text: ActraBackend::messages()->user->editUserTitle);
     }
 
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
@@ -54,17 +54,18 @@ class userMod extends BackendView
             throw new NotFoundException();
         }
         $replacements = $htmlDocument->replacements;
-        $userModForm = new UserModForm(dbAuthUser: $dbAuthUser);
+        $userModForm = new UserModForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($userModForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: user::getPath(
                     ID: $dbAuthUser->ID,
                 ) . '?' . user::PARAM_CHANGED,
+                httpRequest: $this->context->httpRequest,
             );
         }
-        $replacements->addEncodedText(
+        $replacements->addHtml(
             identifier: 'form',
-            content: $userModForm->render(),
+            html: $userModForm->render(),
         );
     }
 

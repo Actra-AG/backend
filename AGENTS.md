@@ -19,9 +19,8 @@ This project follows the Actra coding standard, installed as development depende
   [yuf framework](https://github.com/Actra-AG/yuf) (`actra/yuf`). Its public API includes the database tables and the
   generated HTML, CSS and JavaScript (`standards/versioning.md`).
 - Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`.
-- yuf is developed in parallel (local checkout usually at `../yuf`). Its `UPGRADE.md` describes every change of the yuf
-  API; follow it when raising the yuf requirement. The yuf version range in `composer.json` must match the API used in
-  `src/`.
+- yuf is developed in parallel (local checkout usually at `../yuf`); raise it as described in
+  `standards/versioning.md`, section 8.
 - Ongoing goal: bring the backend to the current yuf and to the global standard, without project deviations (see
   [docs/standard-migration/plan.md](docs/standard-migration/plan.md)).
 
@@ -47,14 +46,12 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`. Development
-  dependencies: `actra/coding-standard` and PHPUnit only.
+- Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`.
 - yuf has no Composer autoload configuration: `tests/bootstrap.php` loads its classes with `actra/autoloader`, and
   `phpstan.neon` makes them known with `scanDirectories: vendor/actra/yuf/src`.
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).
-- Custom fields are unit tested with `FormInput::fromArray()`.
 
 ### Forms (yuf form API)
 
@@ -69,11 +66,6 @@ This project follows the Actra coding standard, installed as development depende
   `MessageTemplate::fill()` and checked by `tests/Unit/i18n/MessagesTest.php`.
 - One route per language: `ActraBackend::messages()` and `ActraBackend::path()` belong to the current route. Text for
   another user (e.g. an email) uses that user's route: `ActraBackend::get()->getRouteForLanguage()`.
-
-### CSS and JavaScript
-
-- JavaScript: one ES module per purpose in `src/assets/js/modules/`, no external libraries.
-- CSS: plain CSS in `src/assets/css/` (entry `backend.css`, one file per block in `blocks/`), no preprocessor.
 
 ### Releases
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -33,7 +34,7 @@ final class userGenerateApiKey extends BackendView
                 'users',
                 'userList',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -67,11 +68,11 @@ final class userGenerateApiKey extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->generateApiKeyConfirm)
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->generateApiKeyConfirm),
         );
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $apiKeyGenerateForm->render()
+            content: $apiKeyGenerateForm->render(),
         );
     }
 

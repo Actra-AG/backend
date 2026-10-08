@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -38,8 +39,8 @@ final class UserInviteForm extends Form
                 name: 'subjectField',
                 label: HtmlText::unencoded(textContent: $common->subjectLabel),
                 value: $recipientMessages->user->inviteDefaultSubject,
-                requiredError: HtmlText::unencoded(textContent: $common->subjectRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $common->subjectRequired),
+            ),
         );
         $this->addField(
             formField: $this->bodyField = new TextAreaField(
@@ -53,7 +54,7 @@ final class UserInviteForm extends Form
                             values: [
                                 'firstName' => $dbAuthUser->firstName,
                                 'lastName' => $dbAuthUser->lastName,
-                            ]
+                            ],
                         ),
                         '',
                         $recipientMessages->user->inviteAccessCreated,
@@ -61,22 +62,22 @@ final class UserInviteForm extends Form
                         '',
                         MessageTemplate::fill(
                             template: $recipientMessages->user->inviteLoginInstructions,
-                            values: ['email' => $dbAuthUser->email]
+                            values: ['email' => $dbAuthUser->email],
                         ),
                         '',
                         $recipientMessages->common->closingGreeting,
                         '',
                         ActraBackend::get()->mailerSettings->signature,
-                    ]
+                    ],
                 ),
-                requiredError: HtmlText::unencoded(textContent: $common->messageBodyRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $common->messageBodyRequired),
+            ),
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
-                submitLabel: HtmlText::unencoded(textContent: $messages->inviteSubmitButton)
-            )
+                submitLabel: HtmlText::unencoded(textContent: $messages->inviteSubmitButton),
+            ),
         );
     }
 
@@ -89,7 +90,7 @@ final class UserInviteForm extends Form
         EmailAuthUser::send(
             dbAuthUser: $dbAuthUser,
             subject: $this->subjectField->getValueAsString(),
-            message: $this->bodyField->getValueAsString()
+            message: $this->bodyField->getValueAsString(),
         );
         DbAuthUserRepository::sentInvitation(ID: $dbAuthUser->ID);
 

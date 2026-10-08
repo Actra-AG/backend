@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -33,7 +34,7 @@ class userDelete extends BackendView
                 'users',
                 'userList',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -64,12 +65,12 @@ class userDelete extends BackendView
             identifier: 'deleteConfirm',
             htmlText: HtmlText::unencoded(textContent: MessageTemplate::fill(
                 template: ActraBackend::messages()->user->deleteConfirm,
-                values: ['name' => $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName]
-            ))
+                values: ['name' => $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName],
+            )),
         );
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $userDeleteForm->render()
+            content: $userDeleteForm->render(),
         );
     }
 

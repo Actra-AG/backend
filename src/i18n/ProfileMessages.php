@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -31,9 +32,8 @@ final readonly class ProfileMessages
         public string $changeLink = 'Change',
         public string $currentPasswordLabel = 'Current password',
         public string $currentPasswordRequired = 'Please enter the current password.',
-        public string $currentPasswordIncorrect = 'The current password is not correct.'
-    ) {
-    }
+        public string $currentPasswordIncorrect = 'The current password is not correct.',
+    ) {}
 
     public static function german(): ProfileMessages
     {
@@ -52,7 +52,7 @@ final readonly class ProfileMessages
             changeLink: 'Ändern',
             currentPasswordLabel: 'Aktuelles Passwort',
             currentPasswordRequired: 'Bitte geben Sie das aktuelle Passwort ein.',
-            currentPasswordIncorrect: 'Das aktuelle Passwort ist nicht korrekt.'
+            currentPasswordIncorrect: 'Das aktuelle Passwort ist nicht korrekt.',
         );
     }
 }

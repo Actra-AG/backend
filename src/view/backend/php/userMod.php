@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -28,7 +29,7 @@ class userMod extends BackendView
                 'users',
                 'userList',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -55,13 +56,13 @@ class userMod extends BackendView
         if ($userModForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: user::getPath(
-                    ID: $dbAuthUser->ID
-                ) . '?' . user::PARAM_CHANGED
+                    ID: $dbAuthUser->ID,
+                ) . '?' . user::PARAM_CHANGED,
             );
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $userModForm->render()
+            content: $userModForm->render(),
         );
     }
 

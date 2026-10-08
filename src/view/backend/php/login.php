@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -40,7 +41,7 @@ class login extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginIntro)
+            htmlText: HtmlText::unencoded(textContent: $messages->loginIntro),
         );
         $loginForm = new LoginForm();
         if ($loginForm->process()) {
@@ -48,7 +49,7 @@ class login extends BackendView
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $loginForm->render()
+            content: $loginForm->render(),
         );
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -37,13 +38,13 @@ abstract class AbstractSearchForm extends Form
         if ($searchField instanceof TextField) {
             $value = $searchHelper->checkString(
                 fieldName: $searchField->name,
-                default: $searchField->getValueAsString()
+                default: $searchField->getValueAsString(),
             );
         } else {
             $value = $searchHelper->checkFilter(
                 array: ['' => 'all'] + $searchField->formOptions->data,
                 fieldName: $searchField->name,
-                default: $searchField->getValueAsString()
+                default: $searchField->getValueAsString(),
             );
         }
         $searchField->setValue(value: $value);

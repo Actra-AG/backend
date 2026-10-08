@@ -1,5 +1,8 @@
 # Plan: adopt the shared tooling of `actra/coding-standard`
 
+Closed 2026-10-08: the remaining tasks continue in [../standard-migration/plan.md](../standard-migration/plan.md)
+(step 0: code style and tests, step 11: empty baseline).
+
 `actra/backend` uses `actra/coding-standard` (v1.1.1) as development dependency. Its rules replace the former
 `docs/code-quality.md`; `AGENTS.md` only keeps the project-specific rules. The shared PHPStan and PHP-CS-Fixer
 configurations are wired in, but the existing code does not meet them yet, so `composer check` is red until the tasks

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -25,7 +26,7 @@ class passwordReset extends BackendView
     public function __construct()
     {
         parent::__construct(
-            maxAllowedPathVars: 1
+            maxAllowedPathVars: 1,
         );
     }
 
@@ -44,7 +45,7 @@ class passwordReset extends BackendView
         AuthSession::logOut();
         $dbAuthToken = DbAuthTokenRepository::getClaimable(
             authTokenType: AuthTokenTypeEnum::PASSWORD,
-            token: $this->getRequiredPathVarAsString(nr: 1)
+            token: $this->getRequiredPathVarAsString(nr: 1),
         );
         if ($dbAuthToken === null) {
             throw new NotFoundException();
@@ -54,17 +55,17 @@ class passwordReset extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordResetIntro)
+            htmlText: HtmlText::unencoded(textContent: $messages->passwordResetIntro),
         );
         $passwordResetForm = new PasswordResetForm(dbAuthToken: $dbAuthToken);
         if ($passwordResetForm->validateAndUpdatePassword()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: passwordResetRes::getPath()
+                relativeOrAbsoluteUri: passwordResetRes::getPath(),
             );
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $passwordResetForm->render()
+            content: $passwordResetForm->render(),
         );
     }
 

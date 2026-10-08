@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -14,16 +15,16 @@ readonly class DbAuthGroup
 {
     public function __construct(
         public int $ID,
-        public string $title
-    ) {
-    }
+        public string $title,
+    ) {}
 
-    public function render(): HtmlDataObject {
+    public function render(): HtmlDataObject
+    {
         $htmlDataObject = new HtmlDataObject();
         $htmlDataObject->addTextElement(
             propertyName: 'name',
             content: $this->title,
-            isEncodedForRendering: true
+            isEncodedForRendering: true,
         );
         return $htmlDataObject;
     }

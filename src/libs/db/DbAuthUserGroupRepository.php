@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -12,7 +13,7 @@ class DbAuthUserGroupRepository
 {
     public static function insert(
         int $userID,
-        int $groupID
+        int $groupID,
     ): void {
         DB::get()->execute(
             sql: '
@@ -23,13 +24,13 @@ class DbAuthUserGroupRepository
             parameters: [
                 $userID,
                 $groupID,
-            ]
+            ],
         );
     }
 
     public static function delete(
         int $userID,
-        int $groupID
+        int $groupID,
     ): void {
         DB::get()->execute(
             sql: '
@@ -40,7 +41,7 @@ class DbAuthUserGroupRepository
             parameters: [
                 $userID,
                 $groupID,
-            ]
+            ],
         );
     }
 
@@ -54,7 +55,7 @@ class DbAuthUserGroupRepository
             ',
             parameters: [
                 $userID,
-            ]
+            ],
         );
     }
 }

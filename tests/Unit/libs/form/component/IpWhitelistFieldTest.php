@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,7 +27,7 @@ final class IpWhitelistFieldTest extends TestCase
             value: $initialIpAddresses,
             invalidErrorMessage: HtmlText::encoded(textContent: 'Ungültige IP-Adresse [ipAddress]'),
             requiredError: $requiredError,
-            fieldInfo: HtmlText::unencoded(textContent: 'One IP address per line.')
+            fieldInfo: HtmlText::unencoded(textContent: 'One IP address per line.'),
         );
     }
 

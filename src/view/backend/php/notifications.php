@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -25,7 +26,7 @@ class notifications extends BackendView
                 'users',
                 'notifications',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -36,7 +37,7 @@ class notifications extends BackendView
             href: notifications::getPath() . '?reset',
             svgPath: '',
             title: ActraBackend::messages()->notification->title,
-            requiredAccessRights: notifications::getRequiredAccessRights()
+            requiredAccessRights: notifications::getRequiredAccessRights(),
         );
     }
 
@@ -62,15 +63,15 @@ class notifications extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'sendTitle',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->notification->sendTitle)
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->notification->sendTitle),
         );
         $replacements->addEncodedText(
             identifier: 'sendHref',
-            content: notificationSend::getPath()
+            content: notificationSend::getPath(),
         );
         $replacements->addEncodedText(
             identifier: 'table',
-            content: new NotificationTable()->render()
+            content: new NotificationTable()->render(),
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -34,8 +35,8 @@ final class TokenSearchForm extends AbstractSearchForm
             $typeFilterOptions->addItem(
                 key: 'option_' . $authTokenTypeEnum->value,
                 htmlText: HtmlText::unencoded(
-                    textContent: $authTokenTypeEnum->render(messages: $messages->log)
-                )
+                    textContent: $authTokenTypeEnum->render(messages: $messages->log),
+                ),
             );
         }
         $this->addField(
@@ -44,13 +45,13 @@ final class TokenSearchForm extends AbstractSearchForm
                 label: HtmlText::unencoded(textContent: $messages->log->typeLabel),
                 formOptions: $typeFilterOptions,
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::unencoded(textContent: $messages->common->filterAll)
-            )
+                individualEmptyValueLabel: HtmlText::unencoded(textContent: $messages->common->filterAll),
+            ),
         );
         $this->authTokenTypeEnum = AuthTokenTypeEnum::tryFrom(
             value: $this->validateSearchField(
-                searchField: $this->typeFilterField
-            )
+                searchField: $this->typeFilterField,
+            ),
         );
 
         $this->addField(formField: $this->searchQueryField = new SearchQueryField());
@@ -58,8 +59,8 @@ final class TokenSearchForm extends AbstractSearchForm
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->searchButton)
-            )
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->searchButton),
+            ),
         );
     }
 }

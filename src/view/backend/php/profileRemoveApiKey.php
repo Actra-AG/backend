@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -31,7 +32,7 @@ class profileRemoveApiKey extends BackendView
             activeHtmlIdList: [
                 'profile',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -59,17 +60,17 @@ class profileRemoveApiKey extends BackendView
         $apiKeyRemoveForm = new ApiKeyRemoveForm(userID: $userID, cancelLink: profile::getPath());
         if ($apiKeyRemoveForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED
+                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
             );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyConfirm)
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyConfirm),
         );
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $apiKeyRemoveForm->render()
+            content: $apiKeyRemoveForm->render(),
         );
     }
 

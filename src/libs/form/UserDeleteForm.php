@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,8 +27,8 @@ final class UserDeleteForm extends Form
             formComponent: new FormControl(
                 name: 'delete',
                 submitLabel: HtmlText::unencoded(textContent: ActraBackend::messages()->user->deleteButton),
-                cancelLink: user::getPath(ID: $dbAuthUser->ID)
-            )
+                cancelLink: user::getPath(ID: $dbAuthUser->ID),
+            ),
         );
     }
 

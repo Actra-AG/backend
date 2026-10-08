@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,7 +27,7 @@ final readonly class BackendRoute
         public string $path,
         public Language $language,
         public bool $isDefaultForLanguage = false,
-        ?BackendMessages $messages = null
+        ?BackendMessages $messages = null,
     ) {
         $this->messages = $messages ?? BackendMessages::forLanguageCode(languageCode: $language->code);
     }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -18,7 +19,6 @@ readonly class MailerSettings
         public string $password,
         public int $port,
         public bool $tls,
-        public string $signature
-    ) {
-    }
+        public string $signature,
+    ) {}
 }

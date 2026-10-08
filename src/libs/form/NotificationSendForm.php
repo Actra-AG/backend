@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,7 +28,7 @@ final class NotificationSendForm extends Form
     private readonly SelectOptionsField $authUserGroupField;
     private readonly TextField $subjectField;
     private readonly TextAreaField $messageField;
-    private(set) int $notificationID;
+    public private(set) int $notificationID;
 
     public function __construct()
     {
@@ -40,16 +41,16 @@ final class NotificationSendForm extends Form
                 label: HtmlText::unencoded(textContent: $messages->common->userGroupLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValue: null,
-                requiredError: HtmlText::unencoded(textContent: $messages->notification->userGroupRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $messages->notification->userGroupRequired),
+            ),
         );
         $this->addField(
             formField: $this->subjectField = new TextField(
                 name: 'subjectField',
                 label: HtmlText::unencoded(textContent: $messages->common->subjectLabel),
                 value: '',
-                requiredError: HtmlText::unencoded(textContent: $messages->common->subjectRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $messages->common->subjectRequired),
+            ),
         );
         $this->addField(
             formField: $this->messageField = new TextAreaField(
@@ -65,17 +66,17 @@ final class NotificationSendForm extends Form
                         $messages->common->closingGreeting,
                         '',
                         ActraBackend::get()->mailerSettings->signature,
-                    ]
+                    ],
                 ),
-                requiredError: HtmlText::unencoded(textContent: $messages->common->messageBodyRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $messages->common->messageBodyRequired),
+            ),
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::unencoded(textContent: $messages->common->send),
-                cancelLink: notifications::getPath()
-            )
+                cancelLink: notifications::getPath(),
+            ),
         );
     }
 
@@ -84,13 +85,13 @@ final class NotificationSendForm extends Form
         if (!parent::validate()) {
             return false;
         }
-        $authGroupID = (int)$this->authUserGroupField->getValueAsString();
+        $authGroupID = (int) $this->authUserGroupField->getValueAsString();
         $subject = $this->subjectField->getValueAsString();
         $message = $this->messageField->getValueAsString();
         $this->notificationID = DbAuthUserNotificationRepository::insert(
             authGroupID: $authGroupID,
             subject: $subject,
-            message: $message
+            message: $message,
         );
         foreach (DbAuthUserRepository::selectByUserGroup(groupID: $authGroupID)->items as $dbAuthUser) {
             EmailAuthUser::send(
@@ -105,13 +106,13 @@ final class NotificationSendForm extends Form
                         $dbAuthUser->firstName,
                         $dbAuthUser->lastName,
                     ],
-                    subject: $message
+                    subject: $message,
                 ),
             );
             DbAuthUserNotificationRecipientRepository::insert(
                 notificationID: $this->notificationID,
                 authUserID: $dbAuthUser->ID,
-                email: $dbAuthUser->email
+                email: $dbAuthUser->email,
             );
             sleep(seconds: 1);
         }

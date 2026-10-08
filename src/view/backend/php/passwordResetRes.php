@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -34,12 +35,12 @@ class passwordResetRes extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'doneText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordResetDone)
+            htmlText: HtmlText::unencoded(textContent: $messages->passwordResetDone),
         );
         AuthSession::logOut();
         $replacements->addEncodedText(
             identifier: 'loginHref',
-            content: loginPassword::getPath()
+            content: loginPassword::getPath(),
         );
     }
 

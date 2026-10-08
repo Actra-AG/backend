@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -29,7 +30,7 @@ class visits extends BackendView
                 'users',
                 'visits',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -40,7 +41,7 @@ class visits extends BackendView
             href: visits::getPath(userID: null) . '?reset',
             svgPath: '',
             title: ActraBackend::messages()->log->visitsNavigationTitle,
-            requiredAccessRights: visits::getRequiredAccessRights()
+            requiredAccessRights: visits::getRequiredAccessRights(),
         );
     }
 
@@ -72,20 +73,20 @@ class visits extends BackendView
         } else {
             $filterUserID = null;
         }
-        $pageIdentifier = 'VisitSearch-' . (int)$filterUserID;
+        $pageIdentifier = 'VisitSearch-' . (int) $filterUserID;
         $visitSearchForm = new VisitSearchForm(name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
             identifier: 'searchForm',
-            content: $visitSearchForm->render()
+            content: $visitSearchForm->render(),
         );
         $replacements->addEncodedText(
             identifier: 'table',
             content: new VisitTable(
                 identifier: $pageIdentifier . 'Table',
                 filterUserID: $filterUserID,
-                tokenSearchForm: $visitSearchForm
-            )->render()
+                tokenSearchForm: $visitSearchForm,
+            )->render(),
         );
     }
 }

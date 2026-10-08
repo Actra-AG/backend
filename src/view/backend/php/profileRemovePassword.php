@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,7 +27,7 @@ class profileRemovePassword extends BackendView
             activeHtmlIdList: [
                 'profile',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -51,16 +52,16 @@ class profileRemovePassword extends BackendView
         $replacements = $htmlDocument->replacements;
         $profilePasswordForm = new ProfilePasswordForm(
             dbAuthUser: $dbAuthUser,
-            removePassword: true
+            removePassword: true,
         );
         if ($profilePasswordForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED
+                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
             );
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $profilePasswordForm->render()
+            content: $profilePasswordForm->render(),
         );
     }
 

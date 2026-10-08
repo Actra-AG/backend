@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,9 +28,8 @@ final readonly class UserLanguageOptions
     public function __construct(
         private BackendRouteCollection $backendRouteCollection,
         private string $displayLocale,
-        private string $defaultTemplate
-    ) {
-    }
+        private string $defaultTemplate,
+    ) {}
 
     public static function forCurrentRoute(): UserLanguageOptions
     {
@@ -38,7 +38,7 @@ final readonly class UserLanguageOptions
         return new UserLanguageOptions(
             backendRouteCollection: $actraBackend->backendRouteCollection,
             displayLocale: $actraBackend->currentRoute->language->locale,
-            defaultTemplate: ActraBackend::messages()->common->languageDefault
+            defaultTemplate: ActraBackend::messages()->common->languageDefault,
         );
     }
 
@@ -56,7 +56,7 @@ final readonly class UserLanguageOptions
         foreach ($this->backendRouteCollection->listLanguageCodes() as $languageCode) {
             $formOptions->addItem(
                 key: $languageCode,
-                htmlText: HtmlText::unencoded(textContent: $this->getDisplayName(languageCode: $languageCode))
+                htmlText: HtmlText::unencoded(textContent: $this->getDisplayName(languageCode: $languageCode)),
             );
         }
 
@@ -82,9 +82,9 @@ final readonly class UserLanguageOptions
             template: $this->defaultTemplate,
             values: [
                 'language' => $this->getDisplayName(
-                    languageCode: $this->backendRouteCollection->getMainRoute()->language->code
+                    languageCode: $this->backendRouteCollection->getMainRoute()->language->code,
                 ),
-            ]
+            ],
         );
     }
 

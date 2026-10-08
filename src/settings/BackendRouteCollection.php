@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -35,7 +36,7 @@ final readonly class BackendRouteCollection
             if (in_array(needle: $languageCode, haystack: $languageCodes, strict: true)) {
                 throw new LogicException(
                     message: 'The backend has two routes for the language ' . $languageCode
-                        . '. Use one route per language.'
+                        . '. Use one route per language.',
                 );
             }
             $paths[] = $route->path;
@@ -53,7 +54,7 @@ final readonly class BackendRouteCollection
     {
         return array_find(
             array: $this->routes,
-            callback: static fn(BackendRoute $route): bool => $route->path === $path
+            callback: static fn(BackendRoute $route): bool => $route->path === $path,
         );
     }
 
@@ -61,7 +62,7 @@ final readonly class BackendRouteCollection
     {
         return array_find(
             array: $this->routes,
-            callback: static fn(BackendRoute $route): bool => $route->language->code === $languageCode
+            callback: static fn(BackendRoute $route): bool => $route->language->code === $languageCode,
         );
     }
 
@@ -104,7 +105,7 @@ final readonly class BackendRouteCollection
     {
         return array_map(
             callback: static fn(BackendRoute $route): string => $route->language->code,
-            array: $this->routes
+            array: $this->routes,
         );
     }
 }

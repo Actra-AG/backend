@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -25,7 +26,7 @@ class userAdd extends BackendView
                 'users',
                 'userList',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -48,13 +49,13 @@ class userAdd extends BackendView
         if ($userAddForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: user::getPath(
-                    ID: $userAddForm->newUserID
-                ) . '?' . user::PARAM_ADDED
+                    ID: $userAddForm->newUserID,
+                ) . '?' . user::PARAM_ADDED,
             );
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $userAddForm->render()
+            content: $userAddForm->render(),
         );
     }
 

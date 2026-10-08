@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,7 +27,7 @@ class profileCreatePassword extends BackendView
             activeHtmlIdList: [
                 'profile',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -51,16 +52,16 @@ class profileCreatePassword extends BackendView
         $replacements = $htmlDocument->replacements;
         $profilePasswordForm = new ProfilePasswordForm(
             dbAuthUser: $dbAuthUser,
-            removePassword: false
+            removePassword: false,
         );
         if ($profilePasswordForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED
+                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
             );
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $profilePasswordForm->render()
+            content: $profilePasswordForm->render(),
         );
     }
 

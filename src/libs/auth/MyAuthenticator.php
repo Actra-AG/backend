@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -20,13 +21,13 @@ use actra\yuf\auth\AuthUser;
 class MyAuthenticator extends Authenticator
 {
     private static ?MyAuthenticator $instance = null;
-    private(set) MyAuthUser $user;
+    public private(set) MyAuthUser $user;
 
     private function __construct()
     {
         MyAuthenticator::$instance = $this;
         parent::__construct(
-            maxAllowedWrongPasswordAttempts: ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts
+            maxAllowedWrongPasswordAttempts: ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts,
         );
     }
 
@@ -44,7 +45,7 @@ class MyAuthenticator extends Authenticator
         return $this->doLogin(
             authMethod: AuthMethod::OTP,
             userName: $dbAuthToken->email,
-            passwordToCheck: null
+            passwordToCheck: null,
         );
     }
 
@@ -68,14 +69,14 @@ class MyAuthenticator extends Authenticator
         string $sessionID,
         string $ip,
         string $userName,
-        AuthResult $authResult
+        AuthResult $authResult,
     ): void {
         DbAuthLoginRepository::insert(
             userID: $userID,
             sessionID: $sessionID,
             ipAddress: $ip,
             inputEmail: $userName,
-            authResult: $authResult
+            authResult: $authResult,
         );
     }
 }

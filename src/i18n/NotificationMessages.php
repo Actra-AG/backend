@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -30,9 +31,8 @@ final readonly class NotificationMessages
         public string $dateLabel = 'Date',
         public string $userGroupRequired = 'Please select a user group.',
         public string $defaultGreeting = 'Hello [firstName] [lastName]',
-        public string $defaultMessage = 'Message...'
-    ) {
-    }
+        public string $defaultMessage = 'Message...',
+    ) {}
 
     public static function german(): NotificationMessages
     {
@@ -50,7 +50,7 @@ final readonly class NotificationMessages
             dateLabel: 'Datum',
             userGroupRequired: 'Bitte wählen Sie eine Benutzergruppe aus.',
             defaultGreeting: 'Guten Tag [firstName] [lastName]',
-            defaultMessage: 'Nachricht...'
+            defaultMessage: 'Nachricht...',
         );
     }
 }

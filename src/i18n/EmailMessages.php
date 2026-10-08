@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,9 +28,8 @@ final readonly class EmailMessages
         public string $passwordResetIntro = 'You told [host] that you have forgotten your password.',
         public string $passwordResetLinkInstruction = 'Click the following link to choose a new password:',
         public string $passwordResetValidity = 'Please note that this link can only be used once and expires after [minutes] minutes.',
-        public string $passwordResetIgnore = 'If you do not want to reset the password for the email address [email], you can ignore this email.'
-    ) {
-    }
+        public string $passwordResetIgnore = 'If you do not want to reset the password for the email address [email], you can ignore this email.',
+    ) {}
 
     public static function german(): EmailMessages
     {
@@ -44,7 +44,7 @@ final readonly class EmailMessages
             passwordResetIntro: 'Sie haben bei [host] angegeben, dass Sie das Passwort vergessen haben.',
             passwordResetLinkInstruction: 'Klicken Sie auf den folgenden Link, um ein neues Passwort zu wählen:',
             passwordResetValidity: 'Bitte beachten Sie, dass dieser Link nur einmal verwendet werden kann und nach [minutes] Minuten verfällt.',
-            passwordResetIgnore: 'Wenn Sie das Passwort für die E-Mail-Adresse [email] nicht zurücksetzen möchten, können Sie diese E-Mail ignorieren.'
+            passwordResetIgnore: 'Wenn Sie das Passwort für die E-Mail-Adresse [email] nicht zurücksetzen möchten, können Sie diese E-Mail ignorieren.',
         );
     }
 }

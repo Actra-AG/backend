@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,7 +28,7 @@ abstract class AbstractTable extends DbResultTable
         FrameworkDB $db,
         DbQuery $dbQuery,
         int $itemsPerPage = 25,
-        private readonly Clock $clock = new SystemClock()
+        private readonly Clock $clock = new SystemClock(),
     ) {
         $common = ActraBackend::messages()->common;
         parent::__construct(
@@ -36,9 +37,9 @@ abstract class AbstractTable extends DbResultTable
             dbQuery: $dbQuery,
             tablePaginationRenderer: new TablePaginationRenderer(
                 previousTitle: $common->paginationPrevious,
-                nextTitle: $common->paginationNext
+                nextTitle: $common->paginationNext,
             ),
-            itemsPerPage: $itemsPerPage
+            itemsPerPage: $itemsPerPage,
         );
     }
 
@@ -66,7 +67,7 @@ abstract class AbstractTable extends DbResultTable
                     $item[] = preg_replace(
                         pattern: '/\s+/',
                         replacement: ' ',
-                        subject: (string)$val
+                        subject: (string) $val,
                     );
                 }
             }
@@ -74,7 +75,7 @@ abstract class AbstractTable extends DbResultTable
         }
         $csvFile = new CSVFile(
             fileName: $this->clock->now()->format(format: 'Y-m-d-H-i-s') . '-' . $name . '.csv',
-            headersList: $headersList
+            headersList: $headersList,
         );
         foreach ($list as $item) {
             $csvFile->addRow(data: $item);
@@ -92,11 +93,11 @@ abstract class AbstractTable extends DbResultTable
             . '<p class="no-entry">' . HtmlEncoder::encode(value: $common->tableNoEntries) . '</p>';
         $this->totalAmountMessage_oneResult = MessageTemplate::fill(
             template: HtmlEncoder::encode(value: $common->tableOneResult),
-            values: ['count' => '<strong>1</strong>']
+            values: ['count' => '<strong>1</strong>'],
         );
         $this->totalAmountMessage_numResults = MessageTemplate::fill(
             template: HtmlEncoder::encode(value: $common->tableResults),
-            values: ['count' => '<strong>' . SmartTable::amount . '</strong>']
+            values: ['count' => '<strong>' . SmartTable::amount . '</strong>'],
         );
     }
 }

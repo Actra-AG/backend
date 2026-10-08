@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -38,7 +39,7 @@ final class LoginForm extends Form
                 value: null,
                 invalidError: HtmlText::unencoded(textContent: $messages->auth->emailInvalid),
                 requiredError: HtmlText::unencoded(textContent: $messages->auth->emailRequired),
-            )
+            ),
         );
         $this->emailField->autoFocus = true;
         $this->emailField->renderRequiredAbbr = false;
@@ -46,7 +47,7 @@ final class LoginForm extends Form
             formComponent: new FormControl(
                 name: 'submit',
                 submitLabel: HtmlText::unencoded(textContent: $messages->auth->loginSubmitLabel),
-            )
+            ),
         );
     }
 
@@ -71,7 +72,7 @@ final class LoginForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_UNKNOWN_USER_NAME
+                authResult: AuthResult::ERROR_UNKNOWN_USER_NAME,
             );
             return true;
         }
@@ -79,7 +80,7 @@ final class LoginForm extends Form
             $dbAuthUser->ipWhitelist !== []
             && !IpValidator::isInWhitelist(
                 whiteList: $dbAuthUser->ipWhitelist,
-                ipAddressToCheck: $ipAddress
+                ipAddressToCheck: $ipAddress,
             )
         ) {
             $myAuthenticator->logAuthResult(
@@ -87,7 +88,7 @@ final class LoginForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_IP_NOT_ALLOWED
+                authResult: AuthResult::ERROR_IP_NOT_ALLOWED,
             );
             return true;
         }
@@ -99,7 +100,7 @@ final class LoginForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_INACTIVE
+                authResult: AuthResult::ERROR_INACTIVE,
             );
             return true;
         }
@@ -109,13 +110,13 @@ final class LoginForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_NO_PASSWORD
+                authResult: AuthResult::ERROR_NO_PASSWORD,
             );
             return true;
         }
         AuthTokenTypeEnum::LOGIN->createAndSend(
             dbAuthUser: $dbAuthUser,
-            usedPasswordLogin: false
+            usedPasswordLogin: false,
         );
         return true;
     }

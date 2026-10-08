@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -53,9 +54,8 @@ final readonly class LogMessages
         public string $authResultSuccessfulMicrosoftLogin = 'Microsoft login',
         public string $authTokenTypePassword = 'Password reset',
         public string $authTokenTypeActivation = 'Activation',
-        public string $authTokenTypeLogin = 'Login'
-    ) {
-    }
+        public string $authTokenTypeLogin = 'Login',
+    ) {}
 
     public static function german(): LogMessages
     {
@@ -93,7 +93,7 @@ final readonly class LogMessages
             authResultSuccessfulMicrosoftLogin: 'Microsoft-Anmeldung',
             authTokenTypePassword: 'Passwort-Reset',
             authTokenTypeActivation: 'Aktivierung',
-            authTokenTypeLogin: 'Anmeldung'
+            authTokenTypeLogin: 'Anmeldung',
         );
     }
 

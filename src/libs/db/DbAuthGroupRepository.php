@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -23,7 +24,7 @@ class DbAuthGroupRepository
     {
         return array_find(
             array: DbAuthGroupRepository::listAll()->items,
-            callback: fn($dbAuthGroup) => $ID === $dbAuthGroup->ID
+            callback: fn($dbAuthGroup) => $ID === $dbAuthGroup->ID,
         );
     }
 
@@ -32,7 +33,7 @@ class DbAuthGroupRepository
         if (DbAuthGroupRepository::$cache === null) {
             DbAuthGroupRepository::$cache = DbAuthGroupRepository::listByCond(
                 whereCond: '',
-                parameters: []
+                parameters: [],
             );
         }
 
@@ -48,7 +49,7 @@ class DbAuthGroupRepository
         foreach (
             DB::get()->selectRows(
                 sql: DbAuthGroupRepository::SELECT_QUERY . $whereCond . ' ORDER BY auth_group.title',
-                parameters: $parameters
+                parameters: $parameters,
             ) as $row
         ) {
             $dbAuthGroupCollection->add(dbAuthGroup: DbAuthGroupRepository::createDbAuthGroup(row: $row));
@@ -61,7 +62,7 @@ class DbAuthGroupRepository
     {
         return new DbAuthGroup(
             ID: $row->getInt(column: 'ID'),
-            title: $row->getString(column: 'title')
+            title: $row->getString(column: 'title'),
         );
     }
 
@@ -71,7 +72,7 @@ class DbAuthGroupRepository
             whereCond: 'WHERE auth_group.ID IN (SELECT groupID FROM auth_user_group WHERE userID=?)',
             parameters: [
                 $userID,
-            ]
+            ],
         );
     }
 }

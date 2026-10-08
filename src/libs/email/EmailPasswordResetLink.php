@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -19,7 +20,7 @@ class EmailPasswordResetLink
     public static function send(
         DbAuthUser $dbAuthUser,
         string $token,
-        int $expirationInMinutes
+        int $expirationInMinutes,
     ): void {
         $host = HttpRequest::getHost();
         $messages = ActraBackend::messages();
@@ -34,7 +35,7 @@ class EmailPasswordResetLink
                     '',
                     MessageTemplate::fill(
                         template: $emailMessages->passwordResetIntro,
-                        values: ['host' => $host]
+                        values: ['host' => $host],
                     ),
                     '',
                     $emailMessages->passwordResetLinkInstruction,
@@ -42,19 +43,19 @@ class EmailPasswordResetLink
                     '',
                     MessageTemplate::fill(
                         template: $emailMessages->passwordResetValidity,
-                        values: ['minutes' => (string)$expirationInMinutes]
+                        values: ['minutes' => (string) $expirationInMinutes],
                     ),
                     '',
                     MessageTemplate::fill(
                         template: $emailMessages->passwordResetIgnore,
-                        values: ['email' => $dbAuthUser->email]
+                        values: ['email' => $dbAuthUser->email],
                     ),
                     '',
                     $messages->common->closingGreeting,
                     '',
                     ActraBackend::get()->mailerSettings->signature,
-                ]
-            )
+                ],
+            ),
         );
     }
 }

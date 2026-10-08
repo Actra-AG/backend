@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -34,10 +35,10 @@ final class DBTest extends TestCase
         try {
             $db = DB::useConnection(dbSettingsModel: $dbSettingsModel);
         } catch (PDOException $pdoException) {
-            $this->markTestSkipped('No test database available: ' . $pdoException->getMessage());
+            DBTest::markTestSkipped('No test database available: ' . $pdoException->getMessage());
         }
 
-        self::assertSame($db, DB::get());
+        $this->assertSame($db, DB::get());
 
         $this->expectException(LogicException::class);
         DB::useConnection(dbSettingsModel: $dbSettingsModel);

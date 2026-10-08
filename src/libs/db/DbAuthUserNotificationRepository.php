@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -31,7 +32,7 @@ class DbAuthUserNotificationRepository
                 FROM auth_user_notification
                     INNER JOIN auth_group ON auth_user_notification.authGroupID = auth_group.ID
                     INNER JOIN auth_user ON auth_user.ID = auth_user_notification.sentByID
-            '
+            ',
         );
     }
 
@@ -47,7 +48,7 @@ class DbAuthUserNotificationRepository
             groupName: $row->getString(column: 'groupName'),
             firstName: $row->getString(column: 'firstName'),
             lastName: $row->getString(column: 'lastName'),
-            recipients: $row->getInt(column: 'recipients')
+            recipients: $row->getInt(column: 'recipients'),
         );
     }
 
@@ -58,7 +59,7 @@ class DbAuthUserNotificationRepository
             wherePart: 'auth_user_notification.ID=?',
             parameters: [
                 $ID,
-            ]
+            ],
         );
         $dbAuthUserNotificationCollection = DbAuthUserNotificationRepository::select(dbQuery: $dbQuery);
         return $dbAuthUserNotificationCollection->isEmpty() ? null : $dbAuthUserNotificationCollection->first();
@@ -71,11 +72,11 @@ class DbAuthUserNotificationRepository
             DB::get()->selectRowsFromQuery(
                 dbQuery: $dbQuery,
                 offset: 0,
-                rowCount: 1000
+                rowCount: 1000,
             ) as $row
         ) {
             $dbAuthUserNotificationCollection->add(
-                dbAuthUserNotification: DbAuthUserNotificationRepository::createItem(row: $row)
+                dbAuthUserNotification: DbAuthUserNotificationRepository::createItem(row: $row),
             );
         }
 
@@ -85,7 +86,7 @@ class DbAuthUserNotificationRepository
     public static function insert(
         int $authGroupID,
         string $subject,
-        string $message
+        string $message,
     ): int {
         $db = DB::get();
         $db->execute(
@@ -101,7 +102,7 @@ class DbAuthUserNotificationRepository
                 MyAuthUser::get()->ID,
                 $subject,
                 $message,
-            ]
+            ],
         );
         return $db->lastInsertId();
     }

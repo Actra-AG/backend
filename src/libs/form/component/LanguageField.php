@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -20,14 +21,14 @@ final class LanguageField extends SelectOptionsField
 {
     public function __construct(
         UserLanguageOptions $userLanguageOptions,
-        ?string $initialValue
+        ?string $initialValue,
     ) {
         parent::__construct(
             name: 'language',
             label: HtmlText::unencoded(textContent: ActraBackend::messages()->common->languageLabel),
             formOptions: $userLanguageOptions->createFormOptions(),
             initialValue: $initialValue,
-            individualEmptyValueLabel: HtmlText::unencoded(textContent: $userLanguageOptions->getDefaultLabel())
+            individualEmptyValueLabel: HtmlText::unencoded(textContent: $userLanguageOptions->getDefaultLabel()),
         );
     }
 

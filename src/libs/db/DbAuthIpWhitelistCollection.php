@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -13,11 +14,9 @@ use actra\yuf\datacheck\validatorTypes\IpValidator;
 class DbAuthIpWhitelistCollection
 {
     /** @var DbAuthIpWhitelist[] $items */
-    private(set) array $items = [];
+    public private(set) array $items = [];
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function add(DbAuthIpWhitelist $dbAuthIpWhitelist): void
     {
@@ -31,7 +30,7 @@ class DbAuthIpWhitelistCollection
 
     public function check(
         string $ip,
-        bool $returnTrueIfEmpty
+        bool $returnTrueIfEmpty,
     ): bool {
         if ($this->isEmpty()) {
             return $returnTrueIfEmpty;
@@ -40,8 +39,8 @@ class DbAuthIpWhitelistCollection
             array: $this->items,
             callback: fn(DbAuthIpWhitelist $dbAuthIpWhitelist) => IpValidator::isInWhitelist(
                 whiteList: [$dbAuthIpWhitelist->ipAddress],
-                ipAddressToCheck: $ip
-            )
+                ipAddressToCheck: $ip,
+            ),
         );
     }
 }

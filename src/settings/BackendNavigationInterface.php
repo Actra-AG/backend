@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -23,6 +24,6 @@ interface BackendNavigationInterface
      */
     public function addNavigationItems(
         NavigationItemCollection $navigationItemCollection,
-        BackendRoute $backendRoute
+        BackendRoute $backendRoute,
     ): void;
 }

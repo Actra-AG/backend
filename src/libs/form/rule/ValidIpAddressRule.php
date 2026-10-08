@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -40,9 +41,9 @@ final class ValidIpAddressRule extends StringRule
                 textContent: str_replace(
                     search: ValidIpAddressRule::PLACEHOLDER_IP_ADDRESS,
                     replace: HtmlEncoder::encode(value: $value),
-                    subject: $this->errorMessageTemplate->render()
-                )
-            )
+                    subject: $this->errorMessageTemplate->render(),
+                ),
+            ),
         );
 
         return false;

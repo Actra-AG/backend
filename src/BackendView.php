@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -47,7 +48,7 @@ abstract class BackendView extends BaseView
         private readonly array $activeHtmlIdList = [],
         private readonly bool $useNavigator = false,
         private readonly bool $resetNavigator = false,
-        private readonly string $legacyBreadcrumbSeparator = ' '
+        private readonly string $legacyBreadcrumbSeparator = ' ',
     ) {
         // Texts and links of this request follow the language of its route
         ActraBackend::get()->activateRoute(route: RequestHandler::get()->route);
@@ -57,14 +58,14 @@ abstract class BackendView extends BaseView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: BackendView::PARAM_FROM_LOGIN,
-                isRequired: false
-            )
+                isRequired: false,
+            ),
         );
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: BackendView::PARAM_CANCEL_SESSION_CHANGE,
-                isRequired: false
-            )
+                isRequired: false,
+            ),
         );
         $ipWhitelist = ActraBackend::get()->actraBackendSettings->ipWhitelist;
         if (AuthSession::isLoggedIn()) {
@@ -91,7 +92,7 @@ abstract class BackendView extends BaseView
             foreach ($userIpWhitelist as $ipAddress) {
                 if (!in_array(
                     needle: $ipAddress,
-                    haystack: $ipWhitelist
+                    haystack: $ipWhitelist,
                 )) {
                     $ipWhitelist[] = $ipAddress;
                 }
@@ -104,7 +105,7 @@ abstract class BackendView extends BaseView
                 authUser: $myAuthUser,
                 requiredAccessRights: static::getRequiredAccessRights(),
                 inputParameterCollection: $inputParameterCollection,
-                maxAllowedPathVars: $maxAllowedPathVars
+                maxAllowedPathVars: $maxAllowedPathVars,
             );
         } catch (UnauthorizedAccessRightException $unauthorizedAccessRightException) {
             if (
@@ -151,47 +152,47 @@ abstract class BackendView extends BaseView
         $this->addLanguageSwitcher(replacements: $replacements);
         $replacements->addHtmlText(
             identifier: 'pageTitle',
-            htmlText: $this->getPageTitle()
+            htmlText: $this->getPageTitle(),
         );
         $replacements->addEncodedText(
             identifier: 'backendTitle',
-            content: strip_tags(string: $actraBackendSettings->backendName)
+            content: strip_tags(string: $actraBackendSettings->backendName),
         );
         $replacements->addEncodedText(
             identifier: 'backendName',
-            content: $actraBackendSettings->backendName
+            content: $actraBackendSettings->backendName,
         );
         $replacements->addEncodedText(
             identifier: 'frontendHref',
-            content: $actraBackendSettings->frontendHref
+            content: $actraBackendSettings->frontendHref,
         );
         $replacements->addEncodedText(
             identifier: 'frontendName',
-            content: $actraBackendSettings->frontendName
+            content: $actraBackendSettings->frontendName,
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'javaScriptPaths',
-            htmlDataObjectCollection: $actraBackend->renderJavaScriptPaths()
+            htmlDataObjectCollection: $actraBackend->renderJavaScriptPaths(),
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'stylesPaths',
-            htmlDataObjectCollection: $actraBackend->renderStylesPaths()
+            htmlDataObjectCollection: $actraBackend->renderStylesPaths(),
         );
         $this->renderLegacyBreadcrumb(
-            htmlDocument: $htmlDocument
+            htmlDocument: $htmlDocument,
         );
         if (!AuthSession::isLoggedIn()) {
             $replacements->addEncodedText(
                 identifier: 'firstPageHref',
-                content: login::getPath()
+                content: login::getPath(),
             );
             $replacements->addHtmlDataObjectCollection(
                 identifier: 'mainNavigation',
-                htmlDataObjectCollection: null
+                htmlDataObjectCollection: null,
             );
             $replacements->addBool(
                 identifier: 'isLoggedIn',
-                booleanValue: false
+                booleanValue: false,
             );
             return;
         }
@@ -204,47 +205,47 @@ abstract class BackendView extends BaseView
         }
         $replacements->addEncodedText(
             identifier: 'firstPageHref',
-            content: $firstNavigationItem->href
+            content: $firstNavigationItem->href,
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'mainNavigation',
             htmlDataObjectCollection: $navigationItemCollection->prepareForRenderer(
                 activeSubNavigationItem: $htmlDocument->isActiveHtmlIdSet(key: 1) ? $htmlDocument->getActiveHtmlId(
-                    key: 1
+                    key: 1,
                 ) : '',
-                accessRightCollection: $accessRightCollection
-            )
+                accessRightCollection: $accessRightCollection,
+            ),
         );
         $replacements->addBool(
             identifier: 'isLoggedIn',
-            booleanValue: true
+            booleanValue: true,
         );
         $replacements->addUnencodedText(
             identifier: 'userName',
-            content: $myAuthUser->getUserName()
+            content: $myAuthUser->getUserName(),
         );
         if ($myAuthUser->isSessionChange()) {
             $replacements->addEncodedText(
                 identifier: 'cancelSessionChangeLink',
-                content: '?' . BackendView::PARAM_CANCEL_SESSION_CHANGE
+                content: '?' . BackendView::PARAM_CANCEL_SESSION_CHANGE,
             );
         } else {
             $replacements->addEncodedText(
                 identifier: 'cancelSessionChangeLink',
-                content: ''
+                content: '',
             );
         }
         $replacements->addEncodedText(
             identifier: 'profileHref',
-            content: profile::getPath()
+            content: profile::getPath(),
         );
         $replacements->addEncodedText(
             identifier: 'logoutHref',
-            content: logout::getPath()
+            content: logout::getPath(),
         );
         $replacements->addBool(
             identifier: 'hasApi',
-            booleanValue: $actraBackendSettings->hasApi
+            booleanValue: $actraBackendSettings->hasApi,
         );
     }
 
@@ -272,12 +273,12 @@ abstract class BackendView extends BaseView
         $languageSwitcher = new LanguageSwitcher(
             backendRouteCollection: ActraBackend::get()->backendRouteCollection,
             currentRoute: ActraBackend::get()->currentRoute,
-            currentUri: HttpRequest::getURI()
+            currentUri: HttpRequest::getURI(),
         );
         $replacements->addBool(identifier: 'hasLanguageSwitcher', booleanValue: $languageSwitcher->isAvailable());
         $replacements->addHtmlDataObjectCollection(
             identifier: 'languageSwitcher',
-            htmlDataObjectCollection: $languageSwitcher->render()
+            htmlDataObjectCollection: $languageSwitcher->render(),
         );
     }
 
@@ -291,7 +292,7 @@ abstract class BackendView extends BaseView
         foreach ($texts as $identifier => $text) {
             $replacements->addHtmlText(
                 identifier: $identifier,
-                htmlText: HtmlText::unencoded(textContent: $text)
+                htmlText: HtmlText::unencoded(textContent: $text),
             );
         }
     }
@@ -306,7 +307,7 @@ abstract class BackendView extends BaseView
             $oldNavigator = new OldNavigator(
                 pathVars: RequestHandler::get()->pathVars,
                 navigationLevels: $htmlDocument->listActiveHtmlIds(),
-                separator: $this->legacyBreadcrumbSeparator
+                separator: $this->legacyBreadcrumbSeparator,
             );
             if ($this->resetNavigator) {
                 $oldNavigator->resetBreadcrumb();
@@ -323,7 +324,7 @@ abstract class BackendView extends BaseView
         }
         $htmlDocument->replacements->addEncodedText(
             identifier: 'breadcrumb',
-            content: $breadcrumb
+            content: $breadcrumb,
         );
     }
 }

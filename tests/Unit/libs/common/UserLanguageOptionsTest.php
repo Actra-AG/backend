@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -21,26 +22,26 @@ final class UserLanguageOptionsTest extends TestCase
      */
     private function createOptions(
         array $additionalLanguageCodes,
-        string $displayLocale = 'de_CH'
+        string $displayLocale = 'de_CH',
     ): UserLanguageOptions {
         $additionalRoutes = array_map(
             callback: static fn(string $languageCode): BackendRoute => new BackendRoute(
                 path: '/' . $languageCode . '/backend/',
-                language: new Language(code: $languageCode, locale: $languageCode)
+                language: new Language(code: $languageCode, locale: $languageCode),
             ),
-            array: $additionalLanguageCodes
+            array: $additionalLanguageCodes,
         );
 
         return new UserLanguageOptions(
             backendRouteCollection: new BackendRouteCollection(
                 mainRoute: new BackendRoute(
                     path: '/backend/',
-                    language: new Language(code: 'de', locale: 'de_CH')
+                    language: new Language(code: 'de', locale: 'de_CH'),
                 ),
-                additionalRoutes: $additionalRoutes
+                additionalRoutes: $additionalRoutes,
             ),
             displayLocale: $displayLocale,
-            defaultTemplate: 'Standard ([language])'
+            defaultTemplate: 'Standard ([language])',
         );
     }
 
@@ -74,14 +75,15 @@ final class UserLanguageOptionsTest extends TestCase
         $formOptions = $this->createOptions(additionalLanguageCodes: ['en', 'fr'])->createFormOptions();
 
         $this->assertSame(['de', 'en', 'fr'], array_map(strval(...), array_keys($formOptions->data)));
-        $this->assertSame('Französisch', $formOptions->data['fr']->render());
+        $french = $formOptions->data['fr'] ?? UserLanguageOptionsTest::fail('No option fr');
+        $this->assertSame('Französisch', $french->render());
     }
 
     public function testDefaultLabelNamesTheLanguageOfTheMainRoute(): void
     {
         $this->assertSame(
             'Standard (Deutsch)',
-            $this->createOptions(additionalLanguageCodes: ['en'])->getDefaultLabel()
+            $this->createOptions(additionalLanguageCodes: ['en'])->getDefaultLabel(),
         );
     }
 

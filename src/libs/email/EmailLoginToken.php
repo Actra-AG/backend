@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -18,7 +19,7 @@ class EmailLoginToken
         DbAuthUser $dbAuthUser,
         string $token,
         int $expirationInMinutes,
-        bool $usedPasswordLogin
+        bool $usedPasswordLogin,
     ): void {
         $messages = ActraBackend::messages();
         $emailMessages = $messages->email;
@@ -26,7 +27,7 @@ class EmailLoginToken
             recipient: $dbAuthUser->email,
             subject: MessageTemplate::fill(
                 template: $emailMessages->loginTokenSubject,
-                values: ['token' => $token]
+                values: ['token' => $token],
             ),
             textBody: implode(
                 separator: PHP_EOL,
@@ -41,19 +42,19 @@ class EmailLoginToken
                     '',
                     MessageTemplate::fill(
                         template: $emailMessages->loginTokenValidity,
-                        values: ['minutes' => (string)$expirationInMinutes]
+                        values: ['minutes' => (string) $expirationInMinutes],
                     ),
                     '',
                     MessageTemplate::fill(
                         template: $emailMessages->loginTokenIgnore,
-                        values: ['email' => $dbAuthUser->email]
+                        values: ['email' => $dbAuthUser->email],
                     ),
                     '',
                     $messages->common->closingGreeting,
                     '',
                     ActraBackend::get()->mailerSettings->signature,
-                ]
-            )
+                ],
+            ),
         );
     }
 }

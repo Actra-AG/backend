@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,7 +28,7 @@ class users extends BackendView
     {
         $inputParameterCollection = new InputParameterCollection();
         $inputParameterCollection->add(
-            inputParameter: new InputParameter(name: users::PARAM_REMOVED, isRequired: false)
+            inputParameter: new InputParameter(name: users::PARAM_REMOVED, isRequired: false),
         );
         parent::__construct(
             inputParameterCollection: $inputParameterCollection,
@@ -35,7 +36,7 @@ class users extends BackendView
                 'users',
                 'userList',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -46,7 +47,7 @@ class users extends BackendView
             href: users::getPath() . '?reset',
             svgPath: '',
             title: ActraBackend::messages()->user->navigationUserList,
-            requiredAccessRights: users::getRequiredAccessRights()
+            requiredAccessRights: users::getRequiredAccessRights(),
         );
     }
 
@@ -75,31 +76,31 @@ class users extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'addUserTitle',
-            htmlText: HtmlText::unencoded(textContent: $messages->addUserTitle)
+            htmlText: HtmlText::unencoded(textContent: $messages->addUserTitle),
         );
         $replacements->addHtmlText(
             identifier: 'successLabel',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel)
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel),
         );
         $replacements->addHtmlText(
             identifier: 'removedMessage',
-            htmlText: HtmlText::unencoded(textContent: $messages->removedMessage)
+            htmlText: HtmlText::unencoded(textContent: $messages->removedMessage),
         );
         $replacements->addEncodedText(
             identifier: 'addHref',
-            content: userAdd::getPath()
+            content: userAdd::getPath(),
         );
         $replacements->addBool(
             identifier: 'removed',
-            booleanValue: $this->getInputString(keyName: users::PARAM_REMOVED) !== null
+            booleanValue: $this->getInputString(keyName: users::PARAM_REMOVED) !== null,
         );
         $replacements->addEncodedText(
             identifier: 'searchForm',
-            content: $userSearchForm->render()
+            content: $userSearchForm->render(),
         );
         $replacements->addEncodedText(
             identifier: 'table',
-            content: new UserTable(userSearchForm: $userSearchForm)->render()
+            content: new UserTable(userSearchForm: $userSearchForm)->render(),
         );
     }
 }

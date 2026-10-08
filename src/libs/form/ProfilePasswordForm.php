@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,7 +28,7 @@ final class ProfilePasswordForm extends Form
 
     public function __construct(
         private readonly DbAuthUser $dbAuthUser,
-        bool $removePassword
+        bool $removePassword,
     ) {
         $messages = ActraBackend::messages();
         parent::__construct(name: 'ProfilePasswordForm', messages: $messages->form);
@@ -38,8 +39,8 @@ final class ProfilePasswordForm extends Form
                     name: 'oldPassword',
                     label: HtmlText::unencoded(textContent: $messages->profile->currentPasswordLabel),
                     requiredError: HtmlText::unencoded(textContent: $messages->profile->currentPasswordRequired),
-                    purpose: PasswordPurposeEnum::CURRENT
-                )
+                    purpose: PasswordPurposeEnum::CURRENT,
+                ),
             );
         } else {
             $this->currentPasswordField = null;
@@ -50,16 +51,16 @@ final class ProfilePasswordForm extends Form
                     name: 'newPassword',
                     label: HtmlText::unencoded(textContent: $messages->common->newPasswordLabel),
                     requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordRequired),
-                    purpose: PasswordPurposeEnum::NEW
-                )
+                    purpose: PasswordPurposeEnum::NEW,
+                ),
             );
             $this->addField(
                 formField: $this->newPasswordConfirmField = new PasswordField(
                     name: 'newPasswordConfirm',
                     label: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmLabel),
                     requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmRequired),
-                    purpose: PasswordPurposeEnum::NEW
-                )
+                    purpose: PasswordPurposeEnum::NEW,
+                ),
             );
         } else {
             $this->newPasswordField = null;
@@ -69,8 +70,8 @@ final class ProfilePasswordForm extends Form
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::unencoded(textContent: $messages->common->save),
-                cancelLink: profile::getPath()
-            )
+                cancelLink: profile::getPath(),
+            ),
         );
     }
 
@@ -87,7 +88,7 @@ final class ProfilePasswordForm extends Form
             && !$currentPassword->isValid(rawPassword: $this->currentPasswordField->getValueAsString())
         ) {
             $this->currentPasswordField->addError(
-                errorMessage: HtmlText::unencoded(textContent: $messages->profile->currentPasswordIncorrect)
+                errorMessage: HtmlText::unencoded(textContent: $messages->profile->currentPasswordIncorrect),
             );
             return false;
         }
@@ -101,13 +102,13 @@ final class ProfilePasswordForm extends Form
         $newPasswordCheck = new NewPasswordCheck(messages: $messages->common);
         if (!$newPasswordCheck->isValid(
             newPasswordField: $newPasswordField,
-            newPasswordConfirmField: $newPasswordConfirmField
+            newPasswordConfirmField: $newPasswordConfirmField,
         )) {
             return false;
         }
         DbAuthUserRepository::setPassword(
             ID: $userID,
-            newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString())
+            newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
         );
         return true;
     }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -36,7 +37,7 @@ readonly class DbAuthUser
         public ?string $languageCode,
         public ?Password $password,
         public int $wrongLoginAttempts,
-        string $rawIpWhitelist
+        string $rawIpWhitelist,
     ) {
         if ($this->password !== null) {
             $this->accessRightCollection->add(accessRight: AccessRightCollection::ACCESS_DO_PASSWORD_LOGIN);
@@ -46,7 +47,7 @@ readonly class DbAuthUser
             foreach (
                 explode(
                     separator: ',',
-                    string: $rawIpWhitelist
+                    string: $rawIpWhitelist,
                 ) as $ipAddress
             ) {
                 if ($ipAddress === '') {
@@ -87,8 +88,8 @@ readonly class DbAuthUser
         return PhoneRenderer::renderInternationalFormat(
             phoneNumber: PhoneNumber::createFromString(
                 input: $this->phone,
-                defaultCountryCode: 'CH'
-            )
+                defaultCountryCode: 'CH',
+            ),
         );
     }
 
@@ -100,7 +101,7 @@ readonly class DbAuthUser
             $htmlDataObject->addTextElement(
                 propertyName: 'ipAddress',
                 content: $ip,
-                isEncodedForRendering: true
+                isEncodedForRendering: true,
             );
             $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
         }

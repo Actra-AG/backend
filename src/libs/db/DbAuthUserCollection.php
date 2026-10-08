@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -14,11 +15,9 @@ use actra\yuf\html\HtmlText;
 class DbAuthUserCollection
 {
     /** @var DbAuthUser[] $items */
-    private(set) array $items = [];
+    public private(set) array $items = [];
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function add(DbAuthUser $dbAuthUser): void
     {
@@ -40,10 +39,10 @@ class DbAuthUserCollection
         $formOptions = new FormOptions();
         foreach ($this->items as $dbAuthUser) {
             $formOptions->addItem(
-                key: (string)$dbAuthUser->ID,
+                key: (string) $dbAuthUser->ID,
                 htmlText: HtmlText::encoded(
-                    textContent: $dbAuthUser->email . ' (' . $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName . ')'
-                )
+                    textContent: $dbAuthUser->email . ' (' . $dbAuthUser->firstName . ' ' . $dbAuthUser->lastName . ')',
+                ),
             );
         }
         return $formOptions;

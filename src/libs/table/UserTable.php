@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -31,25 +32,25 @@ class UserTable extends AbstractTable
                 wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
                 parameters: [
                     $dbAuthGroup->ID,
-                ]
+                ],
             );
         }
         $searchQuery = $userSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchHelper::createBooleanQuery(
                 spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_user.email',
-                queryText: $searchQuery
+                queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
                 wherePart: $booleanQuery->query,
-                parameters: $booleanQuery->params
+                parameters: $booleanQuery->params,
             );
         }
         parent::__construct(
             identifier: 'UserTable',
             db: DB::get(),
             dbQuery: $dbQuery,
-            itemsPerPage: 100
+            itemsPerPage: 100,
         );
         $common = ActraBackend::messages()->common;
         $messages = ActraBackend::messages()->user;
@@ -57,65 +58,61 @@ class UserTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'fullName',
                 label: $messages->nameColumn,
-                callbackFunction: static function (TableItemModel $tableItemModel): string {
-                    return '<a href="' . user::getPath(
-                            ID: $tableItemModel->getRow()->getInt(column: 'ID')
-                        ) . '">' . $tableItemModel->renderValue(name: 'fullName') . '</a>';
-                },
-                isSortable: true
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => '<a href="' . user::getPath(
+                    ID: $tableItemModel->getRow()->getInt(column: 'ID'),
+                ) . '">' . $tableItemModel->renderValue(name: 'fullName') . '</a>',
+                isSortable: true,
             ),
-            isDefaultSortColumn: true
+            isDefaultSortColumn: true,
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
                 label: $common->emailLabel,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new BooleanColumn(
                 identifier: 'active',
                 label: $messages->activeColumn,
                 isSortable: true,
-                sortAscendingByDefault: false
-            )
+                sortAscendingByDefault: false,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'rightGroups',
                 label: $messages->rightGroupsColumn,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'ipWhitelist',
                 label: $common->ipWhitelistLabel,
-                callbackFunction: static function (TableItemModel $tableItemModel): string {
-                    return str_replace(
-                        search: ',',
-                        replace: '<br>',
-                        subject: $tableItemModel->renderValue(name: 'ipWhitelist')
-                    );
-                },
-                isSortable: true
-            )
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => str_replace(
+                    search: ',',
+                    replace: '<br>',
+                    subject: $tableItemModel->renderValue(name: 'ipWhitelist'),
+                ),
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: $registeredColumn = new DateColumn(
                 identifier: 'registered',
                 label: $messages->registeredColumn,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $registeredColumn->format = $common->dateFormat;
         $this->addColumn(
             abstractTableColumn: $invitedColumn = new DateColumn(
                 identifier: 'invited',
                 label: $messages->invitedColumn,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $invitedColumn->format = $common->dateFormat;
     }

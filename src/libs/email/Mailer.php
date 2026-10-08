@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -20,7 +21,7 @@ class Mailer
         string $textBody,
         ?string $replyTo = null,
         array $cc = [],
-        array $bcc = []
+        array $bcc = [],
     ): void {
         $mailerSettings = ActraBackend::get()->mailerSettings;
         $textMail = new TextMail(
@@ -30,7 +31,7 @@ class Mailer
             toEmail: $recipient,
             toName: $recipient,
             subject: $subject,
-            textBody: $textBody
+            textBody: $textBody,
         );
         if ($replyTo !== null) {
             $textMail->addReplyTo(inputEmail: $replyTo);
@@ -47,8 +48,8 @@ class Mailer
                 smtpUserName: $mailerSettings->username,
                 smtpPassword: $mailerSettings->password,
                 port: $mailerSettings->port,
-                useTls: $mailerSettings->tls
-            )
+                useTls: $mailerSettings->tls,
+            ),
         );
     }
 }

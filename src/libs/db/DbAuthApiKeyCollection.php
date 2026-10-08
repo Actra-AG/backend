@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -11,11 +12,9 @@ namespace actra\backend\libs\db;
 class DbAuthApiKeyCollection
 {
     /** @var DbAuthApiKey[] $items */
-    private(set) array $items = [];
+    public private(set) array $items = [];
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function add(DbAuthApiKey $dbAuthApiKey): void
     {

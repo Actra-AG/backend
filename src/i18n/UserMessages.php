@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -55,9 +56,8 @@ final readonly class UserMessages
         public string $activeColumn = 'Active',
         public string $rightGroupsColumn = 'Permission group(s)',
         public string $registeredColumn = 'Registered',
-        public string $invitedColumn = 'Invited'
-    ) {
-    }
+        public string $invitedColumn = 'Invited',
+    ) {}
 
     public static function german(): UserMessages
     {
@@ -100,7 +100,7 @@ final readonly class UserMessages
             activeColumn: 'Aktiv',
             rightGroupsColumn: 'Rechtegruppe(n)',
             registeredColumn: 'erfasst',
-            invitedColumn: 'eingeladen'
+            invitedColumn: 'eingeladen',
         );
     }
 }

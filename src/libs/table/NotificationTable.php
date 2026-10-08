@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,52 +28,48 @@ class NotificationTable extends AbstractTable
             identifier: 'NotificationTable',
             db: DB::get(),
             dbQuery: $dbQuery,
-            itemsPerPage: 100
+            itemsPerPage: 100,
         );
         $messages = ActraBackend::messages();
         $sentDateColumn = new DateColumn(
             identifier: 'sentDate',
             label: $messages->notification->sentDateLabel,
-            sortAscendingByDefault: false
+            sortAscendingByDefault: false,
         );
         $sentDateColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(
             abstractTableColumn: $sentDateColumn,
-            isDefaultSortColumn: true
+            isDefaultSortColumn: true,
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'subject',
                 label: $messages->common->subjectLabel,
-                callbackFunction: static function (TableItemModel $tableItemModel): string {
-                    return '<a href="' . HtmlEncoder::encode(
-                            value: notification::getPath(ID: $tableItemModel->getRow()->getInt(column: 'ID'))
-                        ) . '">' . $tableItemModel->renderValue(name: 'subject') . '</a>';
-                }
-            )
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => '<a href="' . HtmlEncoder::encode(
+                    value: notification::getPath(ID: $tableItemModel->getRow()->getInt(column: 'ID')),
+                ) . '">' . $tableItemModel->renderValue(name: 'subject') . '</a>',
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'firstName',
                 label: $messages->notification->senderLabel,
-                callbackFunction: static function (TableItemModel $tableItemModel): string {
-                    return $tableItemModel->renderValue(name: 'firstName') . ' ' . $tableItemModel->renderValue(
-                            name: 'lastName'
-                        );
-                }
-            )
+                callbackFunction: static fn(TableItemModel $tableItemModel): string => $tableItemModel->renderValue(name: 'firstName') . ' ' . $tableItemModel->renderValue(
+                    name: 'lastName',
+                ),
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'groupName',
-                label: $messages->common->userGroupLabel
-            )
+                label: $messages->common->userGroupLabel,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'recipients',
-                label: $messages->notification->recipientsLabel
-            )
+                label: $messages->notification->recipientsLabel,
+            ),
         );
     }
 }

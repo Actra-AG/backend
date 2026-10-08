@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -18,7 +19,7 @@ final class ApiKeyRemoveForm extends Form
 {
     public function __construct(
         private readonly int $userID,
-        string $cancelLink
+        string $cancelLink,
     ) {
         parent::__construct(name: 'ApiKeyRemoveForm', messages: ActraBackend::messages()->form);
         $this->addCssClass(className: 'form');
@@ -26,8 +27,8 @@ final class ApiKeyRemoveForm extends Form
             formComponent: new FormControl(
                 name: 'remove',
                 submitLabel: HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyTitle),
-                cancelLink: $cancelLink
-            )
+                cancelLink: $cancelLink,
+            ),
         );
     }
 

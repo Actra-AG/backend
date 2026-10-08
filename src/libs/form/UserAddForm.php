@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -10,11 +11,11 @@ namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
 use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\db\DbAuthGroupRepository;
 use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUserGroupRepository;
 use actra\backend\libs\db\DbAuthUserRepository;
-use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\libs\form\component\LanguageField;
 use actra\backend\view\backend\php\users;
@@ -29,7 +30,7 @@ use actra\yuf\html\HtmlText;
 
 final class UserAddForm extends Form
 {
-    private(set) int $newUserID;
+    public private(set) int $newUserID;
     private readonly TextField $firstNameField;
     private readonly TextField $lastNameField;
     private readonly EmailField $emailField;
@@ -49,15 +50,15 @@ final class UserAddForm extends Form
             formField: $this->firstNameField = new TextField(
                 name: 'firstName',
                 label: HtmlText::unencoded(textContent: $common->firstNameLabel),
-                requiredError: HtmlText::unencoded(textContent: $common->firstNameRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $common->firstNameRequired),
+            ),
         );
         $this->addField(
             formField: $this->lastNameField = new TextField(
                 name: 'lastName',
                 label: HtmlText::unencoded(textContent: $common->lastNameLabel),
-                requiredError: HtmlText::unencoded(textContent: $common->lastNameRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $common->lastNameRequired),
+            ),
         );
         $this->addField(
             formField: $this->emailField = new EmailField(
@@ -65,23 +66,23 @@ final class UserAddForm extends Form
                 label: HtmlText::unencoded(textContent: $common->emailLabel),
                 value: null,
                 invalidError: HtmlText::unencoded(textContent: $common->emailInvalid),
-                requiredError: HtmlText::unencoded(textContent: $common->emailRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $common->emailRequired),
+            ),
         );
         $this->addField(
             formField: $this->phoneNumberField = new PhoneNumberField(
                 name: 'phone',
                 label: HtmlText::unencoded(textContent: $common->phoneLabel),
                 value: null,
-                invalidErrorMessage: HtmlText::unencoded(textContent: $common->phoneInvalid)
-            )
+                invalidErrorMessage: HtmlText::unencoded(textContent: $common->phoneInvalid),
+            ),
         );
         $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
         $languageField = null;
         if ($userLanguageOptions->isSelectable()) {
             $languageField = new LanguageField(
                 userLanguageOptions: $userLanguageOptions,
-                initialValue: null
+                initialValue: null,
             );
             $this->addField(formField: $languageField);
         }
@@ -90,8 +91,8 @@ final class UserAddForm extends Form
             formField: $this->activeField = new BooleanField(
                 name: 'active',
                 label: HtmlText::unencoded(textContent: $userMessages->activeAccessLabel),
-                isCheckedByDefault: false
-            )
+                isCheckedByDefault: false,
+            ),
         );
         $this->addField(
             formField: $this->userGroupsField = new CheckboxOptionsField(
@@ -99,23 +100,23 @@ final class UserAddForm extends Form
                 label: HtmlText::unencoded(textContent: $common->userGroupsLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValues: [],
-                requiredError: HtmlText::unencoded(textContent: $userMessages->userGroupsRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $userMessages->userGroupsRequired),
+            ),
         );
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
                 name: 'ipWhitelistField',
                 label: HtmlText::unencoded(textContent: $common->ipWhitelistLabel),
                 value: [],
-                invalidErrorMessage: HtmlText::unencoded(textContent: $common->ipWhitelistInvalid)
-            )
+                invalidErrorMessage: HtmlText::unencoded(textContent: $common->ipWhitelistInvalid),
+            ),
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
                 submitLabel: HtmlText::unencoded(textContent: $common->save),
-                cancelLink: users::getPath()
-            )
+                cancelLink: users::getPath(),
+            ),
         );
     }
 
@@ -126,7 +127,7 @@ final class UserAddForm extends Form
         }
         if (DbAuthUserRepository::selectByEmail(email: $this->emailField->getValueAsString()) !== null) {
             $this->addError(
-                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->common->emailAlreadyInUse)
+                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->common->emailAlreadyInUse),
             );
 
             return false;
@@ -138,18 +139,18 @@ final class UserAddForm extends Form
             active: $this->activeField->isChecked(),
             firstName: $this->firstNameField->getValueAsString(),
             lastName: $this->lastNameField->getValueAsString(),
-            languageCode: $this->languageField?->getLanguageCode()
+            languageCode: $this->languageField?->getLanguageCode(),
         );
         foreach ($this->userGroupsField->getValues() as $userGroupValue) {
             DbAuthUserGroupRepository::insert(
                 userID: $newUserID,
-                groupID: (int)$userGroupValue
+                groupID: (int) $userGroupValue,
             );
         }
         foreach ($this->ipWhitelistField->getValues() as $ip) {
             DbAuthIpWhitelistRepository::insert(
                 userID: $newUserID,
-                ipAddress: $ip
+                ipAddress: $ip,
             );
         }
         $this->newUserID = $newUserID;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -35,21 +36,21 @@ final class UserSearchForm extends AbstractSearchForm
                 label: HtmlText::unencoded(textContent: $common->userGroupLabel),
                 formOptions: DbAuthGroupRepository::listAll()->getFormOptions(),
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::unencoded(textContent: $common->filterAll)
-            )
+                individualEmptyValueLabel: HtmlText::unencoded(textContent: $common->filterAll),
+            ),
         );
         $this->dbAuthGroup = DbAuthGroupRepository::selectByID(
-            ID: (int)$this->validateSearchField(
-                searchField: $this->userGroupField
-            )
+            ID: (int) $this->validateSearchField(
+                searchField: $this->userGroupField,
+            ),
         );
         $this->addField(formField: $this->searchQueryField = new SearchQueryField());
         $this->searchQuery = $this->validateSearchField(searchField: $this->searchQueryField);
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::unencoded(textContent: $common->searchButton)
-            )
+                submitLabel: HtmlText::unencoded(textContent: $common->searchButton),
+            ),
         );
     }
 }

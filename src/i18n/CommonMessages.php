@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -73,9 +74,8 @@ final readonly class CommonMessages
         public string $removeApiKeyConfirm = 'Really remove the API key?',
         public string $generateApiKeyTitle = 'Generate API key',
         public string $generateApiKeyConfirm = 'Generate a new API key? An existing API key is replaced and stops working.',
-        public string $generateApiKeyConfirmLabel = 'Yes, generate'
-    ) {
-    }
+        public string $generateApiKeyConfirmLabel = 'Yes, generate',
+    ) {}
 
     public static function german(): CommonMessages
     {
@@ -136,7 +136,7 @@ final readonly class CommonMessages
             removeApiKeyConfirm: 'Den API-Key wirklich entfernen?',
             generateApiKeyTitle: 'API-Key generieren',
             generateApiKeyConfirm: 'Einen neuen API-Key generieren? Ein bestehender API-Key wird ersetzt und funktioniert nicht mehr.',
-            generateApiKeyConfirmLabel: 'Ja, generieren'
+            generateApiKeyConfirmLabel: 'Ja, generieren',
         );
     }
 }

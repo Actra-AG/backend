@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -19,7 +20,7 @@ class logout extends BackendView
     public function __construct()
     {
         parent::__construct(
-            forceLogout: true
+            forceLogout: true,
         );
     }
 
@@ -40,19 +41,19 @@ class logout extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'heading',
-            htmlText: HtmlText::unencoded(textContent: $messages->logoutHeading)
+            htmlText: HtmlText::unencoded(textContent: $messages->logoutHeading),
         );
         $replacements->addHtmlText(
             identifier: 'statusText',
-            htmlText: HtmlText::unencoded(textContent: $messages->logoutStatus)
+            htmlText: HtmlText::unencoded(textContent: $messages->logoutStatus),
         );
         $replacements->addHtmlText(
             identifier: 'loginText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginLink)
+            htmlText: HtmlText::unencoded(textContent: $messages->loginLink),
         );
         $replacements->addEncodedText(
             identifier: 'loginHref',
-            content: login::getPath()
+            content: login::getPath(),
         );
     }
 

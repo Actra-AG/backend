@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -17,7 +18,7 @@ final class MessageTemplateTest extends TestCase
     {
         $text = MessageTemplate::fill(
             template: 'The code expires in [minutes] minutes, [minutes] at most. Sent to [email].',
-            values: ['minutes' => '10', 'email' => 'a@example.com']
+            values: ['minutes' => '10', 'email' => 'a@example.com'],
         );
 
         $this->assertSame('The code expires in 10 minutes, 10 at most. Sent to a@example.com.', $text);
@@ -39,7 +40,7 @@ final class MessageTemplateTest extends TestCase
     {
         $this->assertSame(
             ['email', 'minutes'],
-            MessageTemplate::listPlaceholderNames(template: '[minutes] [email] [minutes] [not a placeholder]')
+            MessageTemplate::listPlaceholderNames(template: '[minutes] [email] [minutes] [not a placeholder]'),
         );
     }
 }

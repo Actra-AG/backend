@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -17,7 +18,7 @@ class OldNavigator
         array $pathVars,
         private array $navigationLevels,
         string $currentPage = '',
-        private readonly string $separator = ' '
+        private readonly string $separator = ' ',
     ) {
         if ($currentPage === '') {
             $this->currentPage = $pathVars[0];
@@ -26,11 +27,11 @@ class OldNavigator
         }
         $this->currentLink = implode(
             separator: '-',
-            array: $pathVars
+            array: $pathVars,
         );
         if (array_key_exists(
             key: 'reset',
-            array: $_GET
+            array: $_GET,
         )) {
             $this->resetBreadcrumb();
         }
@@ -40,7 +41,7 @@ class OldNavigator
     {
         if (array_key_exists(
             key: 'sess_breadcrumb',
-            array: $_SESSION
+            array: $_SESSION,
         )) {
             unset($_SESSION['sess_breadcrumb']);
         }
@@ -50,7 +51,7 @@ class OldNavigator
     {
         if (!array_key_exists(
             key: 'sess_breadcrumb',
-            array: $_SESSION
+            array: $_SESSION,
         )) {
             $_SESSION['sess_breadcrumb'] = [];
         }
@@ -65,7 +66,7 @@ class OldNavigator
         if (
             array_key_exists(
                 key: 'sess_breadcrumb',
-                array: $_SESSION
+                array: $_SESSION,
             )
         ) {
             $xArr = [];
@@ -83,10 +84,10 @@ class OldNavigator
                     }
                 }
             }
-            $breadcrumb = "<p class=\"breadcrumb\">" . implode(
-                    separator: $this->separator,
-                    array: $xArr
-                ) . "</p>";
+            $breadcrumb = '<p class="breadcrumb">' . implode(
+                separator: $this->separator,
+                array: $xArr,
+            ) . '</p>';
             if (count(value: $_SESSION['sess_breadcrumb']) <= 1) {
                 $breadcrumb = '';
             }
@@ -102,8 +103,8 @@ class OldNavigator
         }
         if (isset($_GET['n'])) {
             $_SESSION['sess_navistufe'] = explode(
-                separator: "|",
-                string: $_GET['n']
+                separator: '|',
+                string: $_GET['n'],
             );
         }
         foreach ($_SESSION['sess_navistufe'] as $key => $val) {

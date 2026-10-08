@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -10,11 +11,11 @@ namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
 use actra\backend\i18n\MessageTemplate;
+use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\db\DbAuthApiKeyRepository;
 use actra\backend\libs\db\DbAuthIpWhitelistRepository;
 use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
-use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\libs\form\component\LanguageField;
 use actra\yuf\core\HttpRequest;
@@ -45,31 +46,31 @@ final class ProfileForm extends Form
                 name: 'firstName',
                 label: HtmlText::unencoded(textContent: $messages->common->firstNameLabel),
                 value: $dbAuthUser->firstName,
-                requiredError: HtmlText::unencoded(textContent: $messages->common->firstNameRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $messages->common->firstNameRequired),
+            ),
         );
         $this->addField(
             formField: $this->lastNameField = new TextField(
                 name: 'lastName',
                 label: HtmlText::unencoded(textContent: $messages->common->lastNameLabel),
                 value: $dbAuthUser->lastName,
-                requiredError: HtmlText::unencoded(textContent: $messages->common->lastNameRequired)
-            )
+                requiredError: HtmlText::unencoded(textContent: $messages->common->lastNameRequired),
+            ),
         );
         $this->addField(
             formField: $this->phoneNumberField = new PhoneNumberField(
                 name: 'phone',
                 label: HtmlText::unencoded(textContent: $messages->common->phoneLabel),
                 value: $dbAuthUser->phone,
-                invalidErrorMessage: HtmlText::unencoded(textContent: $messages->common->phoneInvalid)
-            )
+                invalidErrorMessage: HtmlText::unencoded(textContent: $messages->common->phoneInvalid),
+            ),
         );
         $userLanguageOptions = UserLanguageOptions::forCurrentRoute();
         $languageField = null;
         if ($userLanguageOptions->isSelectable()) {
             $languageField = new LanguageField(
                 userLanguageOptions: $userLanguageOptions,
-                initialValue: $dbAuthUser->languageCode
+                initialValue: $dbAuthUser->languageCode,
             );
             $this->addField(formField: $languageField);
         }
@@ -79,17 +80,17 @@ final class ProfileForm extends Form
                 name: 'ipWhitelistField',
                 label: HtmlText::unencoded(textContent: $messages->common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
-                invalidErrorMessage: HtmlText::unencoded(textContent: $messages->common->ipWhitelistInvalid)
-            )
+                invalidErrorMessage: HtmlText::unencoded(textContent: $messages->common->ipWhitelistInvalid),
+            ),
         );
         $this->ipWhitelistField->fieldInfo = HtmlText::unencoded(
-            textContent: $messages->profile->ipWhitelistInfo
+            textContent: $messages->profile->ipWhitelistInfo,
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->save)
-            )
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->save),
+            ),
         );
     }
 
@@ -101,7 +102,7 @@ final class ProfileForm extends Form
         $messages = ActraBackend::messages();
         if (!$this->hasChanges()) {
             $this->addError(
-                errorMessage: HtmlText::unencoded(textContent: $messages->common->noChanges)
+                errorMessage: HtmlText::unencoded(textContent: $messages->common->noChanges),
             );
 
             return false;
@@ -114,23 +115,23 @@ final class ProfileForm extends Form
         ) {
             $this->addError(
                 errorMessage: HtmlText::unencoded(
-                    textContent: $messages->common->apiKeyBlocksEmptyIpWhitelist
-                )
+                    textContent: $messages->common->apiKeyBlocksEmptyIpWhitelist,
+                ),
             );
 
             return false;
         }
         if (!$this->currentIpIsAllowed(
             currentIpAddress: $currentIpAddress,
-            ipWhitelist: $newIpWhitelist
+            ipWhitelist: $newIpWhitelist,
         )) {
             $this->addError(
                 errorMessage: HtmlText::unencoded(
                     textContent: MessageTemplate::fill(
                         template: $messages->profile->currentIpMustBeAllowed,
-                        values: ['ipAddress' => $currentIpAddress]
-                    )
-                )
+                        values: ['ipAddress' => $currentIpAddress],
+                    ),
+                ),
             );
 
             return false;
@@ -145,17 +146,17 @@ final class ProfileForm extends Form
             lastName: $this->lastNameField->getValueAsString(),
             languageCode: $this->languageField === null
                 ? $this->dbAuthUser->languageCode
-                : $this->languageField->getLanguageCode()
+                : $this->languageField->getLanguageCode(),
         );
         foreach ($newIpWhitelist as $ip) {
             if (!in_array(
                 needle: $ip,
                 haystack: $this->dbAuthUser->ipWhitelist,
-                strict: true
+                strict: true,
             )) {
                 DbAuthIpWhitelistRepository::insert(
                     userID: $userID,
-                    ipAddress: $ip
+                    ipAddress: $ip,
                 );
             }
         }
@@ -163,11 +164,11 @@ final class ProfileForm extends Form
             if (!in_array(
                 needle: $ip,
                 haystack: $newIpWhitelist,
-                strict: true
+                strict: true,
             )) {
                 DbAuthIpWhitelistRepository::delete(
                     userID: $userID,
-                    ipAddress: $ip
+                    ipAddress: $ip,
                 );
             }
         }
@@ -184,7 +185,7 @@ final class ProfileForm extends Form
                     return false;
                 }
                 return $field->valueHasChanged();
-            }
+            },
         );
     }
 
@@ -193,7 +194,7 @@ final class ProfileForm extends Form
      */
     private function currentIpIsAllowed(
         string $currentIpAddress,
-        array $ipWhitelist
+        array $ipWhitelist,
     ): bool {
         if ($ipWhitelist === []) {
             return true;
@@ -202,8 +203,8 @@ final class ProfileForm extends Form
             array: $ipWhitelist,
             callback: fn(string $ipAddress): bool => IpValidator::isInWhitelist(
                 whiteList: [$ipAddress],
-                ipAddressToCheck: $currentIpAddress
-            )
+                ipAddressToCheck: $currentIpAddress,
+            ),
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -52,7 +53,7 @@ class DB extends FrameworkDB
 
         return $this->selectRows(
             sql: $dbQueryData->query,
-            parameters: array_values(array: $dbQueryData->params)
+            parameters: array_values(array: $dbQueryData->params),
         );
     }
 }

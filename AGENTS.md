@@ -16,15 +16,13 @@ This project follows the Actra coding standard, installed as development depende
 
 - `actra/backend` is a public Composer library: a ready-to-use backend (user management, password and one-time token
   login via email, profile, API keys, IP whitelists, notifications, visit and token logs) for projects built on the
-  [yuf framework](https://github.com/Actra-AG/yuf) (`actra/yuf`). Every public class, method, argument name, enum case,
-  database table and generated output is API (see `standards/versioning.md`).
-- Minimum PHP version: 8.5. Releases are Git tags (`vMAJOR.MINOR.PATCH`) with a section in `UPGRADE.md`.
+  [yuf framework](https://github.com/Actra-AG/yuf) (`actra/yuf`). Its public API includes the database tables and the
+  generated HTML, CSS and JavaScript (`standards/versioning.md`).
+- Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`.
 - yuf is developed in parallel (local checkout usually at `../yuf`). Its `UPGRADE.md` describes every change of the yuf
   API; follow it when raising the yuf requirement. The yuf version range in `composer.json` must match the API used in
   `src/`.
-- Ongoing goal: bring the existing code up to the shared PHP-CS-Fixer and PHPStan configuration (see
-  [docs/coding-standard/plan.md](docs/coding-standard/plan.md)).
-- Ongoing goal: migrate the remaining differences to the global standard, without project deviations (see
+- Ongoing goal: bring the backend to the current yuf and to the global standard, without project deviations (see
   [docs/standard-migration/plan.md](docs/standard-migration/plan.md)).
 
 ## Directory layout
@@ -50,19 +48,13 @@ This project follows the Actra coding standard, installed as development depende
 ### Dependencies and tooling
 
 - Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`. Development
-  dependencies are `actra/coding-standard` and PHPUnit only: no mocking, fixture or faker libraries.
+  dependencies: `actra/coding-standard` and PHPUnit only.
 - yuf has no Composer autoload configuration: `tests/bootstrap.php` loads its classes with `actra/autoloader`, and
   `phpstan.neon` makes them known with `scanDirectories: vendor/actra/yuf/src`.
-- `.ddev/config.yaml` provides PHP 8.5 and MariaDB. If DDEV is not running, ask the user to start it.
+- `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - There is no running app in this repository. Changes to views, forms, tables, templates or assets are checked in a
-  consuming project (one that requires `actra/backend`), ideally with this checkout as Composer path repository.
-- Code that needs a real database, session, mail server or HTTP request (forms with repositories, views) is kept thin
-  and checked in a consuming project. Custom fields are unit tested with `FormInput::fromArray()`.
-
-### Code
-
-- Exceptions: specific SPL exceptions or the yuf exceptions.
-- Settings are readonly value objects in `src/settings/` (like `ActraBackendSettings`), not "options" arrays.
+  consuming project with this checkout as Composer path repository (`../drogeriehaas.ch`, set up by the user).
+- Custom fields are unit tested with `FormInput::fromArray()`.
 
 ### Forms (yuf form API)
 
@@ -88,32 +80,19 @@ This project follows the Actra coding standard, installed as development depende
   return the texts and the path of the current route: never cache texts or build links from a fixed path. Text for
   another user (e.g. an email) uses that user's route: `ActraBackend::get()->getRouteForLanguage()`.
 
-### Security
+### CSS and JavaScript
 
-- Keep the existing security features (CSRF tokens, IP whitelists, login attempt limits, token confirmation, hashed
-  API keys and passwords) working.
-
-### HTML output, CSS and JavaScript
-
-- JavaScript in `src/assets/js/` is progressive enhancement only: vanilla ES modules, one module per purpose in
-  `src/assets/js/modules/`, attached via `data-*` attributes or CSS classes, no external libraries.
+- JavaScript: one ES module per purpose in `src/assets/js/modules/`, no external libraries.
 - CSS: plain CSS in `src/assets/css/` (entry `backend.css`, one file per block in `blocks/`), no preprocessor.
-- Changes to generated HTML, CSS classes or assets are breaking changes for projects that customize them; their
-  `UPGRADE.md` entry says whether projects must rebuild or republish their JavaScript and CSS bundles.
+- The `UPGRADE.md` entry of a change to the assets says whether projects must rebuild or republish their JavaScript
+  and CSS bundles.
 
 ### Releases
 
 - Database changes come with `db/updates/<version>.sql` and an updated `db/schema.sql` (and `db/data.sql` if needed),
   and are listed in `UPGRADE.md`.
-- Update `README.md` when installation, initialization or documented usage changes.
 - Changes are prepared in `UPGRADE.md` in the format of `standards/versioning.md`. Sections up to v1.5.2 use the
   former format (split into "HTML & CSS (Frontend)" and "Backend & API") and stay as they are.
-
-### Files
-
-- Development files (`AGENTS.md`, `CLAUDE.md`, `docs/`, `tests/`, PHPStan, PHP-CS-Fixer and PHPUnit config,
-  `.editorconfig`) are excluded from the Composer dist package with `export-ignore` in `.gitattributes`. Add new
-  development files there as well.
 
 ## Deviations from the global standard
 
@@ -125,4 +104,4 @@ names are kept until their task in the plan is done, because renaming them break
   injection (views are created by yuf without constructor arguments).
 - View classes named like their route (`login`, `userMod`), as required by the yuf routing.
 - Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.
-- Settings classes without `Model` suffix, interfaces with `Interface` suffix, classes that are not `final`.
+- Interfaces with `Interface` suffix, classes that are not `final`.

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -24,44 +25,44 @@ class DbAuthIpWhitelistRepository
                ',
                 parameters: [
                     $userID,
-                ]
+                ],
             ) as $row
         ) {
             $dbAuthIpWhitelistCollection->add(
                 dbAuthIpWhitelist: new DbAuthIpWhitelist(
                     ID: $row->getInt(column: 'ID'),
                     userID: $row->getInt(column: 'userID'),
-                    ipAddress: $row->getString(column: 'ipAddress')
-                )
+                    ipAddress: $row->getString(column: 'ipAddress'),
+                ),
             );
         }
 
         return $dbAuthIpWhitelistCollection;
     }
-    
+
     public static function insert(
         int $userID,
-        string $ipAddress
+        string $ipAddress,
     ): void {
         DB::get()->execute(
             sql: 'INSERT INTO auth_ipWhitelist (userID, ipAddress) VALUES (?, ?)',
             parameters: [
                 $userID,
                 $ipAddress,
-            ]
+            ],
         );
     }
 
     public static function delete(
         int $userID,
-        string $ipAddress
+        string $ipAddress,
     ): void {
         DB::get()->execute(
             sql: 'DELETE FROM auth_ipWhitelist WHERE userID=? AND ipAddress=?',
             parameters: [
                 $userID,
                 $ipAddress,
-            ]
+            ],
         );
     }
 
@@ -71,7 +72,7 @@ class DbAuthIpWhitelistRepository
             sql: 'DELETE FROM auth_ipWhitelist WHERE userID=?',
             parameters: [
                 $userID,
-            ]
+            ],
         );
     }
 }

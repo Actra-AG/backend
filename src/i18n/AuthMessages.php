@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -45,9 +46,8 @@ final readonly class AuthMessages
         public string $tokenLabel = 'Code',
         public string $tokenRequired = 'Enter the code.',
         public string $tokenInvalid = 'You have entered an invalid code.',
-        public string $tokenSubmitLabel = 'Log in'
-    ) {
-    }
+        public string $tokenSubmitLabel = 'Log in',
+    ) {}
 
     public static function german(): AuthMessages
     {
@@ -80,7 +80,7 @@ final readonly class AuthMessages
             tokenLabel: 'Code',
             tokenRequired: 'Geben Sie den Code ein.',
             tokenInvalid: 'Sie haben einen ungültigen Code eingegeben.',
-            tokenSubmitLabel: 'anmelden'
+            tokenSubmitLabel: 'anmelden',
         );
     }
 }

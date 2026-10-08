@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,9 +27,8 @@ final readonly class LanguageSwitcher
     public function __construct(
         private BackendRouteCollection $backendRouteCollection,
         private BackendRoute $currentRoute,
-        private string $currentUri
-    ) {
-    }
+        private string $currentUri,
+    ) {}
 
     /**
      * A language can only be switched if the backend has more than one.
@@ -51,7 +51,7 @@ final readonly class LanguageSwitcher
                 languageCode: $languageCode,
                 label: $this->getLanguageName(languageCode: $languageCode),
                 href: $this->backendRouteCollection->translatePath(uri: $uriWithoutQuery, targetRoute: $route),
-                isCurrent: $route->path === $this->currentRoute->path
+                isCurrent: $route->path === $this->currentRoute->path,
             );
         }
 
@@ -69,17 +69,17 @@ final readonly class LanguageSwitcher
             $htmlDataObject->addTextElement(
                 propertyName: 'languageCode',
                 content: $entry->languageCode,
-                isEncodedForRendering: false
+                isEncodedForRendering: false,
             );
             $htmlDataObject->addTextElement(
                 propertyName: 'label',
                 content: $entry->label,
-                isEncodedForRendering: false
+                isEncodedForRendering: false,
             );
             $htmlDataObject->addTextElement(
                 propertyName: 'href',
                 content: $entry->href,
-                isEncodedForRendering: false
+                isEncodedForRendering: false,
             );
             $htmlDataObject->addBooleanValue(propertyName: 'isCurrent', booleanValue: $entry->isCurrent);
             $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);

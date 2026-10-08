@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,7 +27,7 @@ class TokenTable extends AbstractTable
     public function __construct(
         string $identifier,
         ?int $filterUserID,
-        TokenSearchForm $tokenSearchForm
+        TokenSearchForm $tokenSearchForm,
     ) {
         $dbQuery = DbAuthTokenRepository::getDbQuery();
         if ($filterUserID !== null) {
@@ -34,7 +35,7 @@ class TokenTable extends AbstractTable
                 wherePart: 'auth_token.userID=?',
                 parameters: [
                     $filterUserID,
-                ]
+                ],
             );
         }
         $authTokenTypeEnum = $tokenSearchForm->authTokenTypeEnum;
@@ -43,32 +44,32 @@ class TokenTable extends AbstractTable
                 wherePart: 'auth_token.type=?',
                 parameters: [
                     $authTokenTypeEnum->value,
-                ]
+                ],
             );
         }
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchHelper::createBooleanQuery(
                 spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_token.token auth_token.registeredClient auth_token.claimedClient',
-                queryText: $searchQuery
+                queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
                 wherePart: $booleanQuery->query,
-                parameters: $booleanQuery->params
+                parameters: $booleanQuery->params,
             );
         }
         parent::__construct(
             identifier: $identifier,
             db: DB::get(),
             dbQuery: $dbQuery,
-            itemsPerPage: 100
+            itemsPerPage: 100,
         );
         $messages = ActraBackend::messages();
         $registeredColumn = new DateColumn(
             identifier: 'registered',
             label: $messages->log->tokenCreatedDateColumn,
             isSortable: true,
-            sortAscendingByDefault: false
+            sortAscendingByDefault: false,
         );
         $registeredColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(abstractTableColumn: $registeredColumn, isDefaultSortColumn: true);
@@ -77,10 +78,10 @@ class TokenTable extends AbstractTable
                 identifier: 'registeredClient',
                 label: $messages->log->tokenCreatedClientColumn,
                 callbackFunction: static fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
-                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'registeredClient')
+                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'registeredClient'),
                 ),
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
@@ -89,16 +90,16 @@ class TokenTable extends AbstractTable
                 callbackFunction: static fn(TableItemModel $tableItemModel): string => HtmlEncoder::encode(
                     value: $tableItemModel->getRow()->getEnum(
                         column: 'type',
-                        enumClass: AuthTokenTypeEnum::class
-                    )->render(messages: $messages->log)
+                        enumClass: AuthTokenTypeEnum::class,
+                    )->render(messages: $messages->log),
                 ),
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $claimedColumn = new DateColumn(
             identifier: 'claimed',
             label: $messages->log->tokenClaimedDateColumn,
-            isSortable: true
+            isSortable: true,
         );
         $claimedColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(abstractTableColumn: $claimedColumn);
@@ -107,17 +108,17 @@ class TokenTable extends AbstractTable
                 identifier: 'claimedClient',
                 label: $messages->log->tokenClaimedClientColumn,
                 callbackFunction: static fn(TableItemModel $tableItemModel): string => TokenTable::renderClient(
-                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'claimedClient')
+                    clientJson: $tableItemModel->getRow()->getNullableString(column: 'claimedClient'),
                 ),
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'token',
                 label: $messages->log->tokenColumn,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
     }
 
@@ -137,7 +138,7 @@ class TokenTable extends AbstractTable
         foreach (get_object_vars(object: $client) as $key => $value) {
             // Client data is sent by the browser: always encode it
             $list[] = HtmlEncoder::encode(
-                value: $key . ': ' . (is_scalar(value: $value) ? (string)$value : json_encode(value: $value))
+                value: $key . ': ' . (is_scalar(value: $value) ? (string) $value : json_encode(value: $value)),
             );
         }
 

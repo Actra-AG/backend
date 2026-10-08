@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -31,20 +32,20 @@ class DbAuthTokenRepository
 				               auth_token.token
 				        FROM auth_token
 				            INNER JOIN auth_user ON auth_user.ID=auth_token.userID
-				    '
+				    ',
         );
     }
 
     public static function createToken(
         DbAuthUser $dbAuthUser,
         AuthTokenTypeEnum $authTokenTypeEnum,
-        Clock $clock = new SystemClock()
+        Clock $clock = new SystemClock(),
     ): string {
         $token = strtoupper(
             string: StringUtils::randomString(
                 requiredStringLength: 6,
-                noSpecialChars: true
-            )
+                noSpecialChars: true,
+            ),
         );
         DB::get()->execute(
             sql: '
@@ -61,7 +62,7 @@ class DbAuthTokenRepository
                 $token,
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
                 DbAuthTokenRepository::getClientData(),
-            ]
+            ],
         );
 
         return $token;
@@ -79,7 +80,7 @@ class DbAuthTokenRepository
     public static function getClaimable(
         AuthTokenTypeEnum $authTokenType,
         string $token,
-        Clock $clock = new SystemClock()
+        Clock $clock = new SystemClock(),
     ): ?DbAuthToken {
         $rows = DB::get()->selectRows(
             sql: '
@@ -105,7 +106,7 @@ class DbAuthTokenRepository
                 $token,
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
                 $authTokenType->getExpirationInMinutes(),
-            ]
+            ],
         );
         if (count(value: $rows) !== 1) {
             return null;
@@ -115,7 +116,7 @@ class DbAuthTokenRepository
         return new DbAuthToken(
             ID: $row->getInt(column: 'ID'),
             userID: $row->getInt(column: 'userID'),
-            email: $row->getString(column: 'email')
+            email: $row->getString(column: 'email'),
         );
     }
 
@@ -132,7 +133,7 @@ class DbAuthTokenRepository
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
                 DbAuthTokenRepository::getClientData(),
                 $dbAuthToken->ID,
-            ]
+            ],
         );
     }
 
@@ -145,7 +146,7 @@ class DbAuthTokenRepository
             ',
             parameters: [
                 $userID,
-            ]
+            ],
         );
     }
 }

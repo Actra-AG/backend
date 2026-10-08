@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -34,7 +35,7 @@ class passwordForgottenRes extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'resultText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenResult)
+            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenResult),
         );
         AuthSession::logOut();
     }

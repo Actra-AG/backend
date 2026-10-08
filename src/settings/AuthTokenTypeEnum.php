@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -42,11 +43,11 @@ enum AuthTokenTypeEnum: string
 
     public function createAndSend(
         DbAuthUser $dbAuthUser,
-        bool $usedPasswordLogin
+        bool $usedPasswordLogin,
     ): void {
         $token = DbAuthTokenRepository::createToken(
             dbAuthUser: $dbAuthUser,
-            authTokenTypeEnum: $this
+            authTokenTypeEnum: $this,
         );
         $_SESSION['auth_token_' . $this->value] = $token;
         $_SESSION['failed_attempts_' . $this->value] = 0;
@@ -55,14 +56,14 @@ enum AuthTokenTypeEnum: string
                 dbAuthUser: $dbAuthUser,
                 token: $token,
                 expirationInMinutes: $this->getExpirationInMinutes(),
-                usedPasswordLogin: $usedPasswordLogin
+                usedPasswordLogin: $usedPasswordLogin,
             ),
             AuthTokenTypeEnum::PASSWORD => EmailPasswordResetLink::send(
                 dbAuthUser: $dbAuthUser,
                 token: $token,
-                expirationInMinutes: $this->getExpirationInMinutes()
+                expirationInMinutes: $this->getExpirationInMinutes(),
             ),
-            AuthTokenTypeEnum::ACTIVATION => throw new Exception(message: 'To be implemented')
+            AuthTokenTypeEnum::ACTIVATION => throw new Exception(message: 'To be implemented'),
         };
     }
 
@@ -74,7 +75,7 @@ enum AuthTokenTypeEnum: string
         if (
             !array_key_exists(
                 key: 'auth_token_' . $this->value,
-                array: $_SESSION
+                array: $_SESSION,
             )
             || $_SESSION['auth_token_' . $this->value] !== $inputToken
         ) {
@@ -84,7 +85,7 @@ enum AuthTokenTypeEnum: string
         unset($_SESSION['auth_token_' . $this->value]);
         $dbAuthToken = DbAuthTokenRepository::getClaimable(
             authTokenType: AuthTokenTypeEnum::LOGIN,
-            token: $inputToken
+            token: $inputToken,
         );
         if ($dbAuthToken === null) {
             return null;
@@ -97,7 +98,7 @@ enum AuthTokenTypeEnum: string
     {
         return array_key_exists(
             key: 'failed_attempts_' . $this->value,
-            array: $_SESSION
+            array: $_SESSION,
         ) ? $_SESSION['failed_attempts_' . $this->value] : 0;
     }
 

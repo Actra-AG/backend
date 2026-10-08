@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -37,17 +38,17 @@ final class VisitSearchForm extends AbstractSearchForm
             $statusFilterOptions->addItem(
                 key: 'option_' . $authResult->value,
                 htmlText: HtmlText::unencoded(
-                    textContent: $messages->log->authResult(authResult: $authResult)
-                )
+                    textContent: $messages->log->authResult(authResult: $authResult),
+                ),
             );
         }
         $statusFilterOptions->addItem(
             key: 'option_6',
-            htmlText: HtmlText::unencoded(textContent: $messages->log->filterNoAccess)
+            htmlText: HtmlText::unencoded(textContent: $messages->log->filterNoAccess),
         );
         $statusFilterOptions->addItem(
             key: 'option_9',
-            htmlText: HtmlText::unencoded(textContent: $messages->log->filterUnconfirmedAccess)
+            htmlText: HtmlText::unencoded(textContent: $messages->log->filterUnconfirmedAccess),
         );
         $this->addField(
             formField: $this->statusFilterField = new SearchSelectOptionsField(
@@ -55,18 +56,18 @@ final class VisitSearchForm extends AbstractSearchForm
                 label: HtmlText::unencoded(textContent: $messages->log->statusLabel),
                 formOptions: $statusFilterOptions,
                 initialValue: '',
-                individualEmptyValueLabel: HtmlText::unencoded(textContent: $messages->common->filterAll)
-            )
+                individualEmptyValueLabel: HtmlText::unencoded(textContent: $messages->common->filterAll),
+            ),
         );
-        $this->status = (int)$this->validateSearchField(searchField: $this->statusFilterField);
+        $this->status = (int) $this->validateSearchField(searchField: $this->statusFilterField);
 
         $this->addField(formField: $this->searchQueryField = new SearchQueryField());
         $this->searchQuery = $this->validateSearchField(searchField: $this->searchQueryField);
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->searchButton)
-            )
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->searchButton),
+            ),
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -33,14 +34,14 @@ class profile extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: profile::PARAM_CHANGED,
-                isRequired: false
-            )
+                isRequired: false,
+            ),
         );
         parent::__construct(
             inputParameterCollection: $inputParameterCollection,
             activeHtmlIdList: [
                 'profile',
-            ]
+            ],
         );
     }
 
@@ -63,40 +64,40 @@ class profile extends BackendView
         $profileForm = new ProfileForm(dbAuthUser: $dbAuthUser);
         if ($profileForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED
+                relativeOrAbsoluteUri: profile::getPath() . '?' . profile::PARAM_CHANGED,
             );
         }
         $replacements = $htmlDocument->replacements;
         $this->addProfileTexts(replacements: $replacements);
         $replacements->addBool(
             identifier: 'changed',
-            booleanValue: $this->getInputString(keyName: profile::PARAM_CHANGED) !== null
+            booleanValue: $this->getInputString(keyName: profile::PARAM_CHANGED) !== null,
         );
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $profileForm->render()
+            content: $profileForm->render(),
         );
         if ($dbAuthUser->password === null) {
             $replacements->addEncodedText(
                 identifier: 'createPasswordHref',
-                content: profileCreatePassword::getPath()
+                content: profileCreatePassword::getPath(),
             );
         } else {
             $replacements->addEncodedText(
                 identifier: 'createPasswordHref',
-                content: ''
+                content: '',
             );
             $replacements->addEncodedText(
                 identifier: 'loginPasswordHref',
-                content: HttpRequest::getProtocol() . '://' . HttpRequest::getHost() . loginPassword::getPath()
+                content: HttpRequest::getProtocol() . '://' . HttpRequest::getHost() . loginPassword::getPath(),
             );
             $replacements->addEncodedText(
                 identifier: 'changePasswordHref',
-                content: profileChangePassword::getPath()
+                content: profileChangePassword::getPath(),
             );
             $replacements->addEncodedText(
                 identifier: 'removePasswordHref',
-                content: profileRemovePassword::getPath()
+                content: profileRemovePassword::getPath(),
             );
         }
         if (!$hasApi) {
@@ -104,19 +105,19 @@ class profile extends BackendView
         }
         $replacements->addEncodedText(
             identifier: 'apiKey',
-            content: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : ''
+            content: DbAuthApiKeyRepository::hasByUserID(userID: $dbAuthUser->ID) ? '***' : '',
         );
         $replacements->addEncodedText(
             identifier: 'generateApiKeyHref',
-            content: $dbAuthUser->ipWhitelist !== [] ? profileGenerateApiKey::getPath() : ''
+            content: $dbAuthUser->ipWhitelist !== [] ? profileGenerateApiKey::getPath() : '',
         );
         $replacements->addEncodedText(
             identifier: 'removeApiKeyHref',
-            content: profileRemoveApiKey::getPath()
+            content: profileRemoveApiKey::getPath(),
         );
         $replacements->addEncodedText(
             identifier: 'generatedApiKey',
-            content: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? ''
+            content: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? '',
         );
     }
 
@@ -147,7 +148,7 @@ class profile extends BackendView
                 'apiKeyNone' => $common->apiKeyNone,
                 'generateApiKeyLink' => $common->generateApiKeyLink,
                 'apiKeyNeedsIpWhitelist' => $common->apiKeyNeedsIpWhitelist,
-            ]
+            ],
         );
     }
 

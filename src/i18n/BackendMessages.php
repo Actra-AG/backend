@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,9 +27,8 @@ final readonly class BackendMessages
         public ProfileMessages $profile = new ProfileMessages(),
         public NotificationMessages $notification = new NotificationMessages(),
         public LogMessages $log = new LogMessages(),
-        public EmailMessages $email = new EmailMessages()
-    ) {
-    }
+        public EmailMessages $email = new EmailMessages(),
+    ) {}
 
     public static function english(): BackendMessages
     {
@@ -58,7 +58,7 @@ final readonly class BackendMessages
         ?ProfileMessages $profile = null,
         ?NotificationMessages $notification = null,
         ?LogMessages $log = null,
-        ?EmailMessages $email = null
+        ?EmailMessages $email = null,
     ): BackendMessages {
         return new BackendMessages(
             form: $form ?? $this->form,
@@ -69,7 +69,7 @@ final readonly class BackendMessages
             profile: $profile ?? $this->profile,
             notification: $notification ?? $this->notification,
             log: $log ?? $this->log,
-            email: $email ?? $this->email
+            email: $email ?? $this->email,
         );
     }
 
@@ -84,7 +84,7 @@ final readonly class BackendMessages
             profile: ProfileMessages::german(),
             notification: NotificationMessages::german(),
             log: LogMessages::german(),
-            email: EmailMessages::german()
+            email: EmailMessages::german(),
         );
     }
 }

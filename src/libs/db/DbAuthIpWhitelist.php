@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -13,7 +14,6 @@ readonly class DbAuthIpWhitelist
     public function __construct(
         public int $ID,
         public int $userID,
-        public string $ipAddress
-    ) {
-    }
+        public string $ipAddress,
+    ) {}
 }

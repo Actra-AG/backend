@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -24,7 +25,7 @@ final class NewPasswordCheckTest extends TestCase
             name: $name,
             label: HtmlText::unencoded(textContent: $name),
             requiredError: HtmlText::unencoded(textContent: 'Required'),
-            purpose: PasswordPurposeEnum::NEW
+            purpose: PasswordPurposeEnum::NEW,
         );
         $field->validate(input: FormInput::fromArray(data: [$name => $input]));
 
@@ -38,7 +39,7 @@ final class NewPasswordCheckTest extends TestCase
 
         $isValid = new NewPasswordCheck(messages: new CommonMessages())->isValid(
             newPasswordField: $newPasswordField,
-            newPasswordConfirmField: $confirmField
+            newPasswordConfirmField: $confirmField,
         );
 
         $this->assertTrue($isValid);
@@ -53,13 +54,13 @@ final class NewPasswordCheckTest extends TestCase
 
         $isValid = new NewPasswordCheck(messages: CommonMessages::german())->isValid(
             newPasswordField: $newPasswordField,
-            newPasswordConfirmField: $confirmField
+            newPasswordConfirmField: $confirmField,
         );
 
         $this->assertFalse($isValid);
         $this->assertSame(
             'Das neue Passwort muss mindestens 8 Zeichen lang sein.',
-            $newPasswordField->errorCollection->getFirstError()->render()
+            $newPasswordField->errorCollection->getFirstError()->render(),
         );
         $this->assertFalse($confirmField->hasErrors(withChildElements: false));
     }
@@ -71,7 +72,7 @@ final class NewPasswordCheckTest extends TestCase
 
         $isValid = new NewPasswordCheck(messages: new CommonMessages())->isValid(
             newPasswordField: $newPasswordField,
-            newPasswordConfirmField: $confirmField
+            newPasswordConfirmField: $confirmField,
         );
 
         $this->assertFalse($isValid);

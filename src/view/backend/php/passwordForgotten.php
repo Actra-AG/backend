@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -36,19 +37,19 @@ class passwordForgotten extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenIntro)
+            htmlText: HtmlText::unencoded(textContent: $messages->passwordForgottenIntro),
         );
         AuthSession::logOut();
 
         $passwordForgottenForm = new PasswordForgottenForm();
         if ($passwordForgottenForm->validateAndSendTokenEmail()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: passwordForgottenRes::getPath()
+                relativeOrAbsoluteUri: passwordForgottenRes::getPath(),
             );
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $passwordForgottenForm->render()
+            content: $passwordForgottenForm->render(),
         );
     }
 

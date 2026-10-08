@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -39,7 +40,7 @@ class DbAuthUserRepository
                        CONCAT_WS(\' \', auth_user.firstName, auth_user.lastName) AS fullName,
                        (SELECT GROUP_CONCAT(auth_ipWhitelist.ipAddress) FROM auth_ipWhitelist WHERE auth_ipWhitelist.userID=auth_user.ID) AS ipWhitelist
                 FROM auth_user
-            '
+            ',
         );
     }
 
@@ -58,17 +59,18 @@ class DbAuthUserRepository
             accessRightCollection: AccessRightCollection::createFromStringArray(
                 input: explode(
                     separator: ',',
-                    string: $row->getNullableString(column: 'accessRights') ?? ''
-                )
+                    string: $row->getNullableString(column: 'accessRights') ?? '',
+                ),
             ),
             firstName: $row->getString(column: 'firstName'),
             lastName: $row->getString(column: 'lastName'),
             languageCode: $row->getNullableString(column: 'language'),
             password: $passwordSalt === null ? null : new Password(
-                salt: $passwordSalt, hash: $row->getString(column: 'passwordHash')
+                salt: $passwordSalt,
+                hash: $row->getString(column: 'passwordHash'),
             ),
             wrongLoginAttempts: $row->getInt(column: 'wrongLoginAttempts'),
-            rawIpWhitelist: $row->getNullableString(column: 'ipWhitelist') ?? ''
+            rawIpWhitelist: $row->getNullableString(column: 'ipWhitelist') ?? '',
         );
     }
 
@@ -79,11 +81,11 @@ class DbAuthUserRepository
             DB::get()->selectRowsFromQuery(
                 dbQuery: $dbQuery,
                 offset: 0,
-                rowCount: 1000
+                rowCount: 1000,
             ) as $row
         ) {
             $dbAuthUserCollection->add(
-                dbAuthUser: DbAuthUserRepository::createItem(row: $row)
+                dbAuthUser: DbAuthUserRepository::createItem(row: $row),
             );
         }
 
@@ -97,7 +99,7 @@ class DbAuthUserRepository
             wherePart: 'auth_user.ID=?',
             parameters: [
                 $ID,
-            ]
+            ],
         );
         $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
@@ -110,7 +112,7 @@ class DbAuthUserRepository
             wherePart: 'auth_user.email=?',
             parameters: [
                 $email,
-            ]
+            ],
         );
         $dbAuthUserCollection = DbAuthUserRepository::select(dbQuery: $dbQuery);
         return $dbAuthUserCollection->isEmpty() ? null : $dbAuthUserCollection->first();
@@ -118,19 +120,19 @@ class DbAuthUserRepository
 
     public static function selectByUserGroup(
         int $groupID,
-        bool $mustBeActive = true
+        bool $mustBeActive = true,
     ): DbAuthUserCollection {
         $dbQuery = DbAuthUserRepository::getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user.ID IN (SELECT userID FROM auth_user_group WHERE groupID=?)',
             parameters: [
                 $groupID,
-            ]
+            ],
         );
         if ($mustBeActive) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_user.active=1',
-                parameters: []
+                parameters: [],
             );
         }
         return DbAuthUserRepository::select(dbQuery: $dbQuery);
@@ -147,7 +149,7 @@ class DbAuthUserRepository
             parameters: [
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
                 $ID,
-            ]
+            ],
         );
     }
 
@@ -162,7 +164,7 @@ class DbAuthUserRepository
             parameters: [
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
                 $ID,
-            ]
+            ],
         );
     }
 
@@ -175,7 +177,7 @@ class DbAuthUserRepository
                     ',
             parameters: [
                 $ID,
-            ]
+            ],
         );
     }
 
@@ -186,7 +188,7 @@ class DbAuthUserRepository
         bool $active,
         string $firstName,
         string $lastName,
-        ?string $languageCode
+        ?string $languageCode,
     ): int {
         $db = DB::get();
         $db->execute(
@@ -208,7 +210,7 @@ class DbAuthUserRepository
                 $firstName,
                 $lastName,
                 $languageCode,
-            ]
+            ],
         );
 
         return $db->lastInsertId();
@@ -221,7 +223,7 @@ class DbAuthUserRepository
         bool $active,
         string $firstName,
         string $lastName,
-        ?string $languageCode
+        ?string $languageCode,
     ): void {
         $db = DB::get();
         $db->execute(
@@ -243,7 +245,7 @@ class DbAuthUserRepository
                 $languageCode,
                 $active ? 1 : 0,
                 $ID,
-            ]
+            ],
         );
     }
 
@@ -251,13 +253,13 @@ class DbAuthUserRepository
     {
         DB::get()->execute(
             sql: 'UPDATE auth_user SET wrongLoginAttempts=wrongLoginAttempts+1 WHERE ID=?',
-            parameters: [$ID]
+            parameters: [$ID],
         );
     }
 
     public static function setPassword(
         int $ID,
-        Password $newPassword
+        Password $newPassword,
     ): void {
         DB::get()->execute(
             sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=?, wrongLoginAttempts=0 WHERE ID=?',
@@ -265,7 +267,7 @@ class DbAuthUserRepository
                 $newPassword->salt,
                 $newPassword->hash,
                 $ID,
-            ]
+            ],
         );
     }
 
@@ -277,7 +279,7 @@ class DbAuthUserRepository
                 null,
                 null,
                 $ID,
-            ]
+            ],
         );
     }
 }

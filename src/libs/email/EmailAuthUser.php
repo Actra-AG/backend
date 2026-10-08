@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -15,12 +16,12 @@ class EmailAuthUser
     public static function send(
         DbAuthUser $dbAuthUser,
         string $subject,
-        string $message
+        string $message,
     ): void {
         Mailer::sendTextMail(
             recipient: $dbAuthUser->email,
             subject: $subject,
-            textBody: $message
+            textBody: $message,
         );
     }
 }

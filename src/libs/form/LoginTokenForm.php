@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -31,7 +32,7 @@ final class LoginTokenForm extends Form
                 label: HtmlText::unencoded(textContent: $messages->auth->tokenLabel),
                 value: null,
                 requiredError: HtmlText::unencoded(textContent: $messages->auth->tokenRequired),
-            )
+            ),
         );
         $this->tokenField->autoFocus = true;
         $this->tokenField->renderRequiredAbbr = false;
@@ -39,7 +40,7 @@ final class LoginTokenForm extends Form
             formComponent: new FormControl(
                 name: 'submit',
                 submitLabel: HtmlText::unencoded(textContent: $messages->auth->tokenSubmitLabel),
-            )
+            ),
         );
     }
 
@@ -50,7 +51,7 @@ final class LoginTokenForm extends Form
         }
         if (!MyAuthenticator::get()->tokenLogin(inputToken: $this->tokenField->getValueAsString())) {
             $this->tokenField->addError(
-                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->auth->tokenInvalid)
+                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->auth->tokenInvalid),
             );
             return false;
         }

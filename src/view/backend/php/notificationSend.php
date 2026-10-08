@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,7 +27,7 @@ class notificationSend extends BackendView
                 'users',
                 'notifications',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -49,8 +50,8 @@ class notificationSend extends BackendView
         if ($notificationSendForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: notification::getPath(
-                    ID: $notificationSendForm->notificationID
-                ) . '?' . notification::PARAM_SENT
+                    ID: $notificationSendForm->notificationID,
+                ) . '?' . notification::PARAM_SENT,
             );
         }
         $replacements->addHtmlText(
@@ -58,13 +59,13 @@ class notificationSend extends BackendView
             htmlText: HtmlText::unencoded(
                 textContent: MessageTemplate::fill(
                     template: ActraBackend::messages()->notification->sendInfo,
-                    values: ['send' => ActraBackend::messages()->common->send]
-                )
-            )
+                    values: ['send' => ActraBackend::messages()->common->send],
+                ),
+            ),
         );
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $notificationSendForm->render()
+            content: $notificationSendForm->render(),
         );
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -31,8 +32,8 @@ class notification extends BackendView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: notification::PARAM_SENT,
-                isRequired: false
-            )
+                isRequired: false,
+            ),
         );
         parent::__construct(
             inputParameterCollection: $inputParameterCollection,
@@ -41,7 +42,7 @@ class notification extends BackendView
                 'users',
                 'notifications',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -64,39 +65,39 @@ class notification extends BackendView
             throw new NotFoundException();
         }
         $this->pageTitle = HtmlText::unencoded(
-            textContent: $dbAuthUserNotification->subject
+            textContent: $dbAuthUserNotification->subject,
         );
         $replacements = $htmlDocument->replacements;
         $messages = ActraBackend::messages()->notification;
         $replacements->addHtmlText(
             identifier: 'successLabel',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel)
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->successLabel),
         );
         $replacements->addHtmlText(
             identifier: 'sentSuccess',
-            htmlText: HtmlText::unencoded(textContent: $messages->sentSuccess)
+            htmlText: HtmlText::unencoded(textContent: $messages->sentSuccess),
         );
         $replacements->addHtmlText(
             identifier: 'detailsHeading',
-            htmlText: HtmlText::unencoded(textContent: $messages->detailsHeading)
+            htmlText: HtmlText::unencoded(textContent: $messages->detailsHeading),
         );
         $replacements->addHtmlText(
             identifier: 'recipientsLabel',
-            htmlText: HtmlText::unencoded(textContent: $messages->recipientsLabel)
+            htmlText: HtmlText::unencoded(textContent: $messages->recipientsLabel),
         );
         $replacements->addBool(
             identifier: 'sent',
-            booleanValue: $this->getInputString(keyName: notification::PARAM_SENT) !== null
+            booleanValue: $this->getInputString(keyName: notification::PARAM_SENT) !== null,
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'detailFields',
-            htmlDataObjectCollection: $dbAuthUserNotification->render()
+            htmlDataObjectCollection: $dbAuthUserNotification->render(),
         );
         $replacements->addEncodedText(
             identifier: 'recipients',
             content: new NotificationRecipientTable(
-                notificationID: $dbAuthUserNotification->ID
-            )->render()
+                notificationID: $dbAuthUserNotification->ID,
+            )->render(),
         );
     }
 

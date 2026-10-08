@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -23,14 +24,14 @@ class DbAuthUserNotificationRecipientRepository
                        auth_user.lastName
                 FROM auth_user_notification_recipient
                     INNER JOIN auth_user ON auth_user.ID = auth_user_notification_recipient.authUserID
-            '
+            ',
         );
     }
 
     public static function insert(
         int $notificationID,
         int $authUserID,
-        string $email
+        string $email,
     ): int {
         $db = DB::get();
         $db->execute(
@@ -44,7 +45,7 @@ class DbAuthUserNotificationRecipientRepository
                 $notificationID,
                 $authUserID,
                 $email,
-            ]
+            ],
         );
         return $db->lastInsertId();
     }

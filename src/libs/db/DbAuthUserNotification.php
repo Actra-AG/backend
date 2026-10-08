@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,16 +27,15 @@ readonly class DbAuthUserNotification
         public string $groupName,
         public string $firstName,
         public string $lastName,
-        public int $recipients
-    ) {
-    }
+        public int $recipients,
+    ) {}
 
     public function render(): HtmlDataObjectCollection
     {
         $messages = ActraBackend::messages();
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         $details = [
-            ['ID', (string)$this->ID],
+            ['ID', (string) $this->ID],
             [
                 $messages->notification->sentDateLabel,
                 $this->sentDate->format(format: $messages->common->dateTimeFormat),
@@ -48,15 +48,15 @@ readonly class DbAuthUserNotification
             $htmlDataObjectCollection->add(
                 htmlDataObject: DbAuthUserNotification::createDetail(
                     label: $label,
-                    valueHtml: HtmlEncoder::encode(value: $value)
-                )
+                    valueHtml: HtmlEncoder::encode(value: $value),
+                ),
             );
         }
         $htmlDataObjectCollection->add(
             htmlDataObject: DbAuthUserNotification::createDetail(
                 label: $messages->notification->messageLabel,
-                valueHtml: nl2br(string: HtmlEncoder::encode(value: $this->message))
-            )
+                valueHtml: nl2br(string: HtmlEncoder::encode(value: $this->message)),
+            ),
         );
 
         return $htmlDataObjectCollection;
@@ -70,7 +70,7 @@ readonly class DbAuthUserNotification
         return new DetailDataObject(
             name: HtmlEncoder::encode(value: $label),
             value: $valueHtml,
-            isEncodedForRendering: true
+            isEncodedForRendering: true,
         );
     }
 }

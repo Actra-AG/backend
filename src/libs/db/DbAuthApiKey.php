@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -15,7 +16,6 @@ readonly class DbAuthApiKey
     public function __construct(
         public int $userID,
         public string $publicID,
-        public Password $key
-    ) {
-    }
+        public Password $key,
+    ) {}
 }

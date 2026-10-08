@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -25,7 +26,7 @@ class MyAuthUser extends AuthUser
 
     private function __construct(
         public readonly DbAuthUser $dbAuthUser,
-        public readonly ?int $parentSessionID
+        public readonly ?int $parentSessionID,
     ) {
         MyAuthUser::$instance = $this;
         parent::__construct(
@@ -37,9 +38,9 @@ class MyAuthUser extends AuthUser
             wrongPasswordAttempts: $dbAuthUser->wrongLoginAttempts,
             accessRightCollection: $dbAuthUser->accessRightCollection,
             password: $dbAuthUser->password === null ? Password::generateNew(
-                rawPassword: 'unused'
+                rawPassword: 'unused',
             ) : $dbAuthUser->password,
-            ipWhitelist: $dbAuthUser->ipWhitelist
+            ipWhitelist: $dbAuthUser->ipWhitelist,
         );
     }
 
@@ -47,7 +48,7 @@ class MyAuthUser extends AuthUser
     {
         return new MyAuthUser(
             dbAuthUser: $dbAuthUser,
-            parentSessionID: null
+            parentSessionID: null,
         );
     }
 
@@ -76,7 +77,7 @@ class MyAuthUser extends AuthUser
     private function getFirstNavigationHref(): string
     {
         $navigationItem = ActraBackend::get()->navigationItemCollection->getFirst(
-            accessRightCollection: $this->dbAuthUser->accessRightCollection
+            accessRightCollection: $this->dbAuthUser->accessRightCollection,
         );
         if ($navigationItem === null) {
             throw new UnauthorizedException();
@@ -115,7 +116,7 @@ class MyAuthUser extends AuthUser
         }
         return new MyAuthUser(
             dbAuthUser: $dbAuthSession->dbAuthUser,
-            parentSessionID: $dbAuthSession->parentID
+            parentSessionID: $dbAuthSession->parentID,
         );
     }
 
@@ -158,14 +159,14 @@ class MyAuthUser extends AuthUser
 
         return DbAuthSessionRepository::insert(
             parentID: $this->parentSessionID,
-            userID: $this->ID
+            userID: $this->ID,
         );
     }
 
     public function canManageUsers(): bool
     {
         return $this->dbAuthUser->accessRightCollection->hasAccessRight(
-            accessRight: ActraBackend::RIGHT_MANAGE_USERS
+            accessRight: ActraBackend::RIGHT_MANAGE_USERS,
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -22,7 +23,7 @@ final class ApiKeyGenerateForm extends Form
 {
     public function __construct(
         private readonly int $userID,
-        string $cancelLink
+        string $cancelLink,
     ) {
         parent::__construct(name: 'ApiKeyGenerateForm', messages: ActraBackend::messages()->form);
         $this->addCssClass(className: 'form');
@@ -30,8 +31,8 @@ final class ApiKeyGenerateForm extends Form
             formComponent: new FormControl(
                 name: 'generate',
                 submitLabel: HtmlText::unencoded(textContent: ActraBackend::messages()->common->generateApiKeyTitle),
-                cancelLink: $cancelLink
-            )
+                cancelLink: $cancelLink,
+            ),
         );
     }
 
@@ -42,7 +43,7 @@ final class ApiKeyGenerateForm extends Form
         }
         GeneratedApiKeyFlash::store(
             userID: $this->userID,
-            apiKey: DbAuthApiKeyRepository::createForUserID(userID: $this->userID)
+            apiKey: DbAuthApiKeyRepository::createForUserID(userID: $this->userID),
         );
 
         return true;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -33,7 +34,7 @@ class userRemoveApiKey extends BackendView
                 'users',
                 'userList',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -67,11 +68,11 @@ class userRemoveApiKey extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'confirmMessage',
-            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyConfirm)
+            htmlText: HtmlText::unencoded(textContent: ActraBackend::messages()->common->removeApiKeyConfirm),
         );
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $apiKeyRemoveForm->render()
+            content: $apiKeyRemoveForm->render(),
         );
     }
 

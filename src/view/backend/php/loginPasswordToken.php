@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -37,19 +38,19 @@ class loginPasswordToken extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenIntro)
+            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenIntro),
         );
         $replacements->addHtmlText(
             identifier: 'tipLabel',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipLabel)
+            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipLabel),
         );
         $replacements->addHtmlText(
             identifier: 'tipText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipText)
+            htmlText: HtmlText::unencoded(textContent: $messages->loginTokenTipText),
         );
         $replacements->addHtmlText(
             identifier: 'backToLoginText',
-            htmlText: HtmlText::unencoded(textContent: $messages->backToLogin)
+            htmlText: HtmlText::unencoded(textContent: $messages->backToLogin),
         );
         $loginTokenForm = new LoginTokenForm();
         if ($loginTokenForm->process()) {
@@ -57,11 +58,11 @@ class loginPasswordToken extends BackendView
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $loginTokenForm->render()
+            content: $loginTokenForm->render(),
         );
         $replacements->addEncodedText(
             identifier: 'loginPasswordHref',
-            content: loginPassword::getPath()
+            content: loginPassword::getPath(),
         );
     }
 

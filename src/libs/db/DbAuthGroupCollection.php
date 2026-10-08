@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -15,11 +16,9 @@ use actra\yuf\html\HtmlText;
 class DbAuthGroupCollection
 {
     /** @var array<int, DbAuthGroup> */
-    private(set) array $items = [];
+    public private(set) array $items = [];
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function add(DbAuthGroup $dbAuthGroup): void
     {
@@ -31,8 +30,8 @@ class DbAuthGroupCollection
         $formOptions = new FormOptions();
         foreach ($this->items as $dbAuthGroup) {
             $formOptions->addItem(
-                key: (string)$dbAuthGroup->ID,
-                htmlText: HtmlText::encoded(textContent: $dbAuthGroup->title)
+                key: (string) $dbAuthGroup->ID,
+                htmlText: HtmlText::encoded(textContent: $dbAuthGroup->title),
             );
         }
 
@@ -54,7 +53,7 @@ class DbAuthGroupCollection
      */
     public function listFormOptionKeys(): array
     {
-        return array_map(callback: static fn(int $ID): string => (string)$ID, array: $this->listIDs());
+        return array_map(callback: static fn(int $ID): string => (string) $ID, array: $this->listIDs());
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -41,7 +42,7 @@ class DbAuthSessionRepository
 
     public static function insert(
         ?int $parentID,
-        int $userID
+        int $userID,
     ): int {
         $db = DB::get();
         $db->execute(
@@ -57,7 +58,7 @@ class DbAuthSessionRepository
                 $userID,
                 session_id(),
                 HttpRequest::getRemoteAddress(),
-            ]
+            ],
         );
 
         return $db->lastInsertId();
@@ -69,7 +70,7 @@ class DbAuthSessionRepository
             sql: DbAuthSessionRepository::SELECT_QUERY . ' WHERE auth_session.ID=?',
             parameters: [
                 $ID,
-            ]
+            ],
         );
 
         return $row === null ? null : DbAuthSessionRepository::createDbAuthSession(row: $row);
@@ -93,18 +94,19 @@ class DbAuthSessionRepository
                 accessRightCollection: AccessRightCollection::createFromStringArray(
                     input: explode(
                         separator: ',',
-                        string: $row->getNullableString(column: 'accessRights') ?? ''
-                    )
+                        string: $row->getNullableString(column: 'accessRights') ?? '',
+                    ),
                 ),
                 firstName: $row->getString(column: 'firstName'),
                 lastName: $row->getString(column: 'lastName'),
                 languageCode: $row->getNullableString(column: 'language'),
                 password: $passwordSalt === null ? null : new Password(
-                    salt: $passwordSalt, hash: $row->getString(column: 'passwordHash')
+                    salt: $passwordSalt,
+                    hash: $row->getString(column: 'passwordHash'),
                 ),
                 wrongLoginAttempts: $row->getInt(column: 'wrongLoginAttempts'),
-                rawIpWhitelist: $row->getNullableString(column: 'ipWhitelist') ?? ''
-            )
+                rawIpWhitelist: $row->getNullableString(column: 'ipWhitelist') ?? '',
+            ),
         );
     }
 
@@ -116,7 +118,7 @@ class DbAuthSessionRepository
                     SET lastAction=?
                     WHERE ID=?
                 ',
-            parameters: [$clock->now()->format(format: 'Y-m-d H:i:s'), $ID]
+            parameters: [$clock->now()->format(format: 'Y-m-d H:i:s'), $ID],
         );
     }
 
@@ -131,7 +133,7 @@ class DbAuthSessionRepository
                 ',
             parameters: [
                 $userID,
-            ]
+            ],
         );
         $db->execute(
             sql: '
@@ -140,7 +142,7 @@ class DbAuthSessionRepository
                 ',
             parameters: [
                 $userID,
-            ]
+            ],
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -20,9 +21,7 @@ final readonly class NewPasswordCheck
 {
     public const int MIN_LENGTH = 8;
 
-    public function __construct(private CommonMessages $messages)
-    {
-    }
+    public function __construct(private CommonMessages $messages) {}
 
     public function isValid(PasswordField $newPasswordField, PasswordField $newPasswordConfirmField): bool
     {
@@ -32,16 +31,16 @@ final readonly class NewPasswordCheck
                 errorMessage: HtmlText::unencoded(
                     textContent: MessageTemplate::fill(
                         template: $this->messages->newPasswordTooShort,
-                        values: ['minLength' => (string)NewPasswordCheck::MIN_LENGTH]
-                    )
-                )
+                        values: ['minLength' => (string) NewPasswordCheck::MIN_LENGTH],
+                    ),
+                ),
             );
 
             return false;
         }
         if ($newPassword !== $newPasswordConfirmField->getValueAsString()) {
             $newPasswordConfirmField->addError(
-                errorMessage: HtmlText::unencoded(textContent: $this->messages->newPasswordsDoNotMatch)
+                errorMessage: HtmlText::unencoded(textContent: $this->messages->newPasswordsDoNotMatch),
             );
 
             return false;

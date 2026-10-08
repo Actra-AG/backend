@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -35,8 +36,8 @@ use RuntimeException;
 Autoloader::get()->addPath(
     autoloaderPath: new AutoloaderPath(
         path: __DIR__ . DIRECTORY_SEPARATOR,
-        prefix: 'actra\\backend\\'
-    )
+        prefix: 'actra\\backend\\',
+    ),
 );
 
 class ActraBackend
@@ -47,7 +48,7 @@ class ActraBackend
     private const string NAVIGATION_SVG_PATH_USERS = 'M2 22C2 17.5817 5.58172 14 10 14C14.4183 14 18 17.5817 18 22H16C16 18.6863 13.3137 16 10 16C6.68629 16 4 18.6863 4 22H2ZM10 13C6.685 13 4 10.315 4 7C4 3.685 6.685 1 10 1C13.315 1 16 3.685 16 7C16 10.315 13.315 13 10 13ZM10 11C12.21 11 14 9.21 14 7C14 4.79 12.21 3 10 3C7.79 3 6 4.79 6 7C6 9.21 7.79 11 10 11ZM18.2837 14.7028C21.0644 15.9561 23 18.752 23 22H21C21 19.564 19.5483 17.4671 17.4628 16.5271L18.2837 14.7028ZM17.5962 3.41321C19.5944 4.23703 21 6.20361 21 8.5C21 11.3702 18.8042 13.7252 16 13.9776V11.9646C17.6967 11.7222 19 10.264 19 8.5C19 7.11935 18.2016 5.92603 17.041 5.35635L17.5962 3.41321Z';
     private static ?ActraBackend $instance = null;
     /** The route of the current request (the main route until a backend view activates one) */
-    private(set) BackendRoute $currentRoute;
+    public private(set) BackendRoute $currentRoute;
 
     /**
      * @param string $path The path of the main route; use `ActraBackend::path()` for the path of the current route
@@ -59,7 +60,7 @@ class ActraBackend
         public readonly MailerSettings $mailerSettings,
         public readonly NavigationItemCollection $navigationItemCollection,
         public readonly string $templateDirectory,
-        public readonly BackendRouteCollection $backendRouteCollection
+        public readonly BackendRouteCollection $backendRouteCollection,
     ) {
         $this->currentRoute = $backendRouteCollection->getMainRoute();
     }
@@ -86,9 +87,9 @@ class ActraBackend
                 path: $path,
                 language: $actraBackendSettings->language,
                 isDefaultForLanguage: $isDefaultForLanguage,
-                messages: $actraBackendSettings->messages
+                messages: $actraBackendSettings->messages,
             ),
-            additionalRoutes: $actraBackendSettings->additionalRoutes
+            additionalRoutes: $actraBackendSettings->additionalRoutes,
         );
         $actraBackend = new ActraBackend(
             path: $path,
@@ -97,7 +98,7 @@ class ActraBackend
             mailerSettings: $mailerSettings,
             navigationItemCollection: $navigationItemCollection,
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',
-            backendRouteCollection: $backendRouteCollection
+            backendRouteCollection: $backendRouteCollection,
         );
         ActraBackend::$instance = $actraBackend;
         foreach ($backendRouteCollection->routes as $backendRoute) {
@@ -109,7 +110,7 @@ class ActraBackend
     public static function get(): ActraBackend
     {
         return ActraBackend::$instance ?? throw new LogicException(
-            message: 'ActraBackend is not initialized. Call ActraBackend::init() first.'
+            message: 'ActraBackend is not initialized. Call ActraBackend::init() first.',
         );
     }
 
@@ -151,7 +152,7 @@ class ActraBackend
             isDefaultForLanguage: $backendRoute->isDefaultForLanguage,
             defaultContentType: ContentType::createHtml(),
             language: $backendRoute->language,
-            acceptedExtension: ContentType::HTML
+            acceptedExtension: ContentType::HTML,
         );
     }
 
@@ -164,7 +165,7 @@ class ActraBackend
         $this->navigationItemCollection->addItem(navigationItem: $this->createNavigationItem());
         $this->actraBackendSettings->projectNavigation?->addNavigationItems(
             navigationItemCollection: $this->navigationItemCollection,
-            backendRoute: $this->currentRoute
+            backendRoute: $this->currentRoute,
         );
     }
 
@@ -185,7 +186,7 @@ class ActraBackend
             svgPath: ActraBackend::NAVIGATION_SVG_PATH_USERS,
             title: $this->currentRoute->messages->layout->navigationTitleUsers,
             requiredAccessRights: AccessRightCollection::createEmpty(),
-            childNavigation: $childNavigation
+            childNavigation: $childNavigation,
         );
     }
 
@@ -213,7 +214,7 @@ class ActraBackend
             $htmlDataObject->addTextElement(
                 propertyName: 'src',
                 content: $path,
-                isEncodedForRendering: true
+                isEncodedForRendering: true,
             );
             $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
         }

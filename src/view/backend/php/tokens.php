@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -29,7 +30,7 @@ class tokens extends BackendView
                 'users',
                 'tokens',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -40,7 +41,7 @@ class tokens extends BackendView
             href: tokens::getPath(userID: null) . '?reset',
             svgPath: '',
             title: ActraBackend::messages()->log->tokensNavigationTitle,
-            requiredAccessRights: tokens::getRequiredAccessRights()
+            requiredAccessRights: tokens::getRequiredAccessRights(),
         );
     }
 
@@ -72,20 +73,20 @@ class tokens extends BackendView
         } else {
             $filterUserID = null;
         }
-        $pageIdentifier = 'TokenSearch-' . (int)$filterUserID;
+        $pageIdentifier = 'TokenSearch-' . (int) $filterUserID;
         $tokenSearchForm = new TokenSearchForm(name: $pageIdentifier . 'Form');
         $replacements = $htmlDocument->replacements;
         $replacements->addEncodedText(
             identifier: 'searchForm',
-            content: $tokenSearchForm->render()
+            content: $tokenSearchForm->render(),
         );
         $replacements->addEncodedText(
             identifier: 'table',
             content: new TokenTable(
                 identifier: $pageIdentifier . 'Table',
                 filterUserID: $filterUserID,
-                tokenSearchForm: $tokenSearchForm
-            )->render()
+                tokenSearchForm: $tokenSearchForm,
+            )->render(),
         );
     }
 }

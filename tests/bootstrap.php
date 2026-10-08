@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -21,6 +22,6 @@ $autoloader = Autoloader::register(cacheFilePath: $autoloaderCacheFilePath);
 $autoloader->addPath(
     autoloaderPath: new AutoloaderPath(
         path: __DIR__ . '/../vendor/actra/yuf/src/',
-        prefix: 'actra\\yuf\\'
-    )
+        prefix: 'actra\\yuf\\',
+    ),
 );

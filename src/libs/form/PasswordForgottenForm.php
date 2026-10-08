@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -36,7 +37,7 @@ final class PasswordForgottenForm extends Form
                 value: null,
                 invalidError: HtmlText::unencoded(textContent: $messages->auth->emailInvalid),
                 requiredError: HtmlText::unencoded(textContent: $messages->auth->emailRequired),
-            )
+            ),
         );
         $this->emailField->autoFocus = true;
         $this->emailField->renderRequiredAbbr = false;
@@ -44,8 +45,8 @@ final class PasswordForgottenForm extends Form
             formComponent: new FormControl(
                 name: 'submit',
                 submitLabel: HtmlText::unencoded(textContent: $messages->common->send),
-                cancelLink: loginPassword::getPath()
-            )
+                cancelLink: loginPassword::getPath(),
+            ),
         );
     }
 
@@ -64,7 +65,7 @@ final class PasswordForgottenForm extends Form
                 $dbAuthUser->ipWhitelist !== []
                 && !IpValidator::isInWhitelist(
                     whiteList: $dbAuthUser->ipWhitelist,
-                    ipAddressToCheck: HttpRequest::getRemoteAddress()
+                    ipAddressToCheck: HttpRequest::getRemoteAddress(),
                 )
             )
         ) {
@@ -72,7 +73,7 @@ final class PasswordForgottenForm extends Form
         }
         AuthTokenTypeEnum::PASSWORD->createAndSend(
             dbAuthUser: $dbAuthUser,
-            usedPasswordLogin: false
+            usedPasswordLogin: false,
         );
 
         return true;

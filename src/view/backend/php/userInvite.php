@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -28,7 +29,7 @@ class userInvite extends BackendView
                 'users',
                 'userList',
             ],
-            useNavigator: true
+            useNavigator: true,
         );
     }
 
@@ -54,27 +55,27 @@ class userInvite extends BackendView
         if ($userInviteForm->process()) {
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: user::getPath(
-                    ID: $dbAuthUser->ID
-                ) . '?' . user::PARAM_INVITED
+                    ID: $dbAuthUser->ID,
+                ) . '?' . user::PARAM_INVITED,
             );
         }
         $messages = ActraBackend::messages()->user;
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'inviteIntro',
-            htmlText: HtmlText::unencoded(textContent: $messages->inviteIntro)
+            htmlText: HtmlText::unencoded(textContent: $messages->inviteIntro),
         );
         $replacements->addHtmlText(
             identifier: 'recipientLabel',
-            htmlText: HtmlText::unencoded(textContent: $messages->recipientLabel)
+            htmlText: HtmlText::unencoded(textContent: $messages->recipientLabel),
         );
         $replacements->addEncodedText(
             identifier: 'recipient',
-            content: $dbAuthUser->email
+            content: $dbAuthUser->email,
         );
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $userInviteForm->render()
+            content: $userInviteForm->render(),
         );
     }
 

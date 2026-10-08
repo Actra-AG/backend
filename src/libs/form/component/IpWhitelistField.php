@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -32,17 +33,17 @@ final class IpWhitelistField extends TextAreaField
         array $value,
         HtmlText $invalidErrorMessage,
         ?HtmlText $requiredError = null,
-        ?HtmlText $fieldInfo = null
+        ?HtmlText $fieldInfo = null,
     ) {
         parent::__construct(
             name: $name,
             label: $label,
             value: implode(separator: PHP_EOL, array: $value),
-            requiredError: $requiredError
+            requiredError: $requiredError,
         );
         $this->initialIpAddresses = $this->getValues();
         $this->fieldInfo = $fieldInfo ?? HtmlText::unencoded(
-            textContent: ActraBackend::messages()->common->ipWhitelistInfo
+            textContent: ActraBackend::messages()->common->ipWhitelistInfo,
         );
         $this->addEachRule(formRule: new ValidIpAddressRule(errorMessage: $invalidErrorMessage));
     }

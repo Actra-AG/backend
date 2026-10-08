@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -17,15 +18,15 @@ class DbAuthLoginRepository
         string $sessionID,
         string $ipAddress,
         string $inputEmail,
-        AuthResult $authResult
+        AuthResult $authResult,
     ): void {
         DB::get()->execute(
             sql: '
                 INSERT INTO auth_login
-                SET userID=?, 
-                    sessionId=?, 
-                    ipAddress=?, 
-                    email=?, 
+                SET userID=?,
+                    sessionId=?,
+                    ipAddress=?,
+                    email=?,
                     result=?
             ',
             parameters: [
@@ -34,7 +35,7 @@ class DbAuthLoginRepository
                 $ipAddress,
                 $inputEmail,
                 $authResult->value,
-            ]
+            ],
         );
     }
 
@@ -46,7 +47,7 @@ class DbAuthLoginRepository
             ',
             parameters: [
                 $userID,
-            ]
+            ],
         );
     }
 }

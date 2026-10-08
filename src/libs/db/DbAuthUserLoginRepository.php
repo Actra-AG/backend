@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -26,7 +27,7 @@ class DbAuthUserLoginRepository
                        auth_login.result
                 FROM auth_login
                     INNER JOIN auth_user ON auth_user.ID=auth_login.userID
-            '
+            ',
         );
     }
 }

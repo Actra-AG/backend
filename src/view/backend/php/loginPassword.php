@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -37,7 +38,7 @@ class loginPassword extends BackendView
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(
             identifier: 'introText',
-            htmlText: HtmlText::unencoded(textContent: $messages->loginPasswordIntro)
+            htmlText: HtmlText::unencoded(textContent: $messages->loginPasswordIntro),
         );
         $loginPasswordForm = new LoginPasswordForm();
         if ($loginPasswordForm->process()) {
@@ -45,7 +46,7 @@ class loginPassword extends BackendView
         }
         $replacements->addEncodedText(
             identifier: 'form',
-            content: $loginPasswordForm->render()
+            content: $loginPasswordForm->render(),
         );
     }
 

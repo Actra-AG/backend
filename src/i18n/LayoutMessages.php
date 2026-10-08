@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -27,9 +28,8 @@ final readonly class LayoutMessages
         public string $logout = 'Log out',
         public string $deleteConfirmation = 'Really delete?',
         public string $dialogCancel = 'Cancel',
-        public string $dialogConfirmDelete = 'Yes, delete'
-    ) {
-    }
+        public string $dialogConfirmDelete = 'Yes, delete',
+    ) {}
 
     public static function german(): LayoutMessages
     {
@@ -44,7 +44,7 @@ final readonly class LayoutMessages
             logout: 'Abmelden',
             deleteConfirmation: 'Wirklich löschen?',
             dialogCancel: 'Abbrechen',
-            dialogConfirmDelete: 'Ja, löschen'
+            dialogConfirmDelete: 'Ja, löschen',
         );
     }
 }

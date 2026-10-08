@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -37,7 +38,7 @@ readonly class ActraBackendSettings
         public bool $hasApi = false,
         ?BackendMessages $messages = null,
         public array $additionalRoutes = [],
-        public ?BackendNavigationInterface $projectNavigation = null
+        public ?BackendNavigationInterface $projectNavigation = null,
     ) {
         $this->messages = $messages ?? BackendMessages::forLanguageCode(languageCode: $language->code);
     }

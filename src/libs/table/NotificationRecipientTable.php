@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -21,46 +22,46 @@ class NotificationRecipientTable extends AbstractTable
         $dbQuery = DbAuthUserNotificationRecipientRepository::getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_user_notification_recipient.notificationID=?',
-            parameters: [$notificationID]
+            parameters: [$notificationID],
         );
         parent::__construct(
             identifier: 'NotificationRecipientTable-' . $notificationID,
             db: DB::get(),
             dbQuery: $dbQuery,
-            itemsPerPage: 100
+            itemsPerPage: 100,
         );
         $messages = ActraBackend::messages();
         $sentDateColumn = new DateColumn(
             identifier: 'sentDate',
             label: $messages->notification->dateLabel,
             isSortable: true,
-            sortAscendingByDefault: false
+            sortAscendingByDefault: false,
         );
         $sentDateColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(
             abstractTableColumn: $sentDateColumn,
-            isDefaultSortColumn: true
+            isDefaultSortColumn: true,
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
                 label: $messages->common->emailLabel,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'firstName',
                 label: $messages->common->firstNameLabel,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'lastName',
                 label: $messages->common->lastNameLabel,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
     }
 }

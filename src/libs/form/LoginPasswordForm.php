@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -42,7 +43,7 @@ final class LoginPasswordForm extends Form
                 value: null,
                 invalidError: HtmlText::unencoded(textContent: $messages->auth->emailInvalid),
                 requiredError: HtmlText::unencoded(textContent: $messages->auth->emailRequired),
-            )
+            ),
         );
         $this->emailField->autoFocus = true;
         $this->emailField->renderRequiredAbbr = false;
@@ -51,8 +52,8 @@ final class LoginPasswordForm extends Form
                 name: 'password',
                 label: HtmlText::unencoded(textContent: $messages->auth->passwordLabel),
                 requiredError: HtmlText::unencoded(textContent: $messages->auth->passwordRequired),
-                purpose: PasswordPurposeEnum::CURRENT
-            )
+                purpose: PasswordPurposeEnum::CURRENT,
+            ),
         );
         $this->passwordField->renderRequiredAbbr = false;
         $this->addComponent(
@@ -60,8 +61,8 @@ final class LoginPasswordForm extends Form
                 name: 'submit',
                 submitLabel: HtmlText::unencoded(textContent: $messages->auth->loginPasswordSubmitLabel),
                 cancelLink: passwordForgotten::getPath(),
-                cancelLabel: HtmlText::unencoded(textContent: $messages->auth->passwordForgottenLinkLabel)
-            )
+                cancelLabel: HtmlText::unencoded(textContent: $messages->auth->passwordForgottenLinkLabel),
+            ),
         );
     }
 
@@ -72,7 +73,7 @@ final class LoginPasswordForm extends Form
         }
         if (!$this->checkCredentials()) {
             $this->addError(
-                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->auth->credentialsInvalid)
+                errorMessage: HtmlText::unencoded(textContent: ActraBackend::messages()->auth->credentialsInvalid),
             );
             return false;
         }
@@ -93,7 +94,7 @@ final class LoginPasswordForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_UNKNOWN_USER_NAME
+                authResult: AuthResult::ERROR_UNKNOWN_USER_NAME,
             );
             return false;
         }
@@ -101,7 +102,7 @@ final class LoginPasswordForm extends Form
             $dbAuthUser->ipWhitelist !== []
             && !IpValidator::isInWhitelist(
                 whiteList: $dbAuthUser->ipWhitelist,
-                ipAddressToCheck: $ipAddress
+                ipAddressToCheck: $ipAddress,
             )
         ) {
             $myAuthenticator->logAuthResult(
@@ -109,7 +110,7 @@ final class LoginPasswordForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_IP_NOT_ALLOWED
+                authResult: AuthResult::ERROR_IP_NOT_ALLOWED,
             );
             return false;
         }
@@ -121,7 +122,7 @@ final class LoginPasswordForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_INACTIVE
+                authResult: AuthResult::ERROR_INACTIVE,
             );
             return false;
         }
@@ -131,7 +132,7 @@ final class LoginPasswordForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_NO_PASSWORD_LOGIN_ACTIVE
+                authResult: AuthResult::ERROR_NO_PASSWORD_LOGIN_ACTIVE,
             );
             return false;
         }
@@ -141,7 +142,7 @@ final class LoginPasswordForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_OUT_TRIED
+                authResult: AuthResult::ERROR_OUT_TRIED,
             );
             return false;
         }
@@ -152,13 +153,13 @@ final class LoginPasswordForm extends Form
                 sessionID: $sessionID,
                 ip: $ipAddress,
                 userName: $inputEmail,
-                authResult: AuthResult::ERROR_WRONG_PASSWORD
+                authResult: AuthResult::ERROR_WRONG_PASSWORD,
             );
             return false;
         }
         AuthTokenTypeEnum::LOGIN->createAndSend(
             dbAuthUser: $dbAuthUser,
-            usedPasswordLogin: true
+            usedPasswordLogin: true,
         );
         return true;
     }

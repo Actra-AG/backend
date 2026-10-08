@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -9,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\common;
 
 use actra\backend\libs\common\LanguageSwitcher;
+use actra\backend\libs\common\LanguageSwitcherEntry;
 use actra\backend\settings\BackendRoute;
 use actra\backend\settings\BackendRouteCollection;
 use actra\yuf\core\Language;
@@ -24,15 +26,19 @@ final class LanguageSwitcherTest extends TestCase
     /**
      * @param list<BackendRoute> $additionalRoutes
      */
-    private function createSwitcher(string $currentUri, array $additionalRoutes, int $currentIndex = 0): LanguageSwitcher
-    {
+    private function createSwitcher(
+        string $currentUri,
+        array $additionalRoutes,
+        int $currentIndex = 0,
+    ): LanguageSwitcher {
         $mainRoute = $this->createRoute(path: '/backend/', languageCode: 'de');
         $collection = new BackendRouteCollection(mainRoute: $mainRoute, additionalRoutes: $additionalRoutes);
 
         return new LanguageSwitcher(
             backendRouteCollection: $collection,
-            currentRoute: $collection->routes[$currentIndex],
-            currentUri: $currentUri
+            currentRoute: $collection->routes[$currentIndex]
+                ?? LanguageSwitcherTest::fail('No route at index ' . $currentIndex),
+            currentUri: $currentUri,
         );
     }
 
@@ -47,21 +53,19 @@ final class LanguageSwitcherTest extends TestCase
     {
         $switcher = $this->createSwitcher(
             currentUri: '/backend/user-5.html',
-            additionalRoutes: [$this->createRoute(path: '/en/backend/', languageCode: 'en')]
+            additionalRoutes: [$this->createRoute(path: '/en/backend/', languageCode: 'en')],
         );
 
         $entries = $switcher->createEntries();
 
         $this->assertTrue($switcher->isAvailable());
-        $this->assertCount(2, $entries);
-        $this->assertSame('de', $entries[0]->languageCode);
-        $this->assertSame('Deutsch', $entries[0]->label);
-        $this->assertSame('/backend/user-5.html', $entries[0]->href);
-        $this->assertTrue($entries[0]->isCurrent);
-        $this->assertSame('en', $entries[1]->languageCode);
-        $this->assertSame('English', $entries[1]->label);
-        $this->assertSame('/en/backend/user-5.html', $entries[1]->href);
-        $this->assertFalse($entries[1]->isCurrent);
+        $this->assertSame(
+            [
+                ['de', 'Deutsch', '/backend/user-5.html', true],
+                ['en', 'English', '/en/backend/user-5.html', false],
+            ],
+            $this->describeEntries(entries: $entries),
+        );
     }
 
     public function testQueryIsNotCarriedOver(): void
@@ -69,29 +73,51 @@ final class LanguageSwitcherTest extends TestCase
         $switcher = $this->createSwitcher(
             currentUri: '/en/backend/profile.html?generateApiKey=1',
             additionalRoutes: [$this->createRoute(path: '/en/backend/', languageCode: 'en')],
-            currentIndex: 1
+            currentIndex: 1,
         );
 
         $entries = $switcher->createEntries();
 
-        $this->assertSame('/backend/profile.html', $entries[0]->href);
-        $this->assertFalse($entries[0]->isCurrent);
-        $this->assertSame('/en/backend/profile.html', $entries[1]->href);
-        $this->assertTrue($entries[1]->isCurrent);
+        $this->assertSame(
+            [
+                ['de', 'Deutsch', '/backend/profile.html', false],
+                ['en', 'English', '/en/backend/profile.html', true],
+            ],
+            $this->describeEntries(entries: $entries),
+        );
     }
 
     public function testRenderCreatesOneDataObjectPerEntryWithEncodedValues(): void
     {
         $switcher = $this->createSwitcher(
             currentUri: '/backend/?a=1',
-            additionalRoutes: [$this->createRoute(path: '/fr/backend/', languageCode: 'fr')]
+            additionalRoutes: [$this->createRoute(path: '/fr/backend/', languageCode: 'fr')],
         );
 
         $data = $switcher->render()->items;
 
         $this->assertCount(2, $data);
-        $this->assertSame('Français', $data[1]->data->label);
-        $this->assertSame('/fr/backend/', $data[1]->data->href);
-        $this->assertFalse($data[1]->data->isCurrent);
+        $french = $data[1] ?? LanguageSwitcherTest::fail('No data object for the second entry');
+        $this->assertSame('Français', $french->data->label);
+        $this->assertSame('/fr/backend/', $french->data->href);
+        $this->assertFalse($french->data->isCurrent);
+    }
+
+    /**
+     * @param list<LanguageSwitcherEntry> $entries
+     *
+     * @return list<array{string, string, string, bool}>
+     */
+    private function describeEntries(array $entries): array
+    {
+        return array_map(
+            callback: static fn(LanguageSwitcherEntry $entry): array => [
+                $entry->languageCode,
+                $entry->label,
+                $entry->href,
+                $entry->isCurrent,
+            ],
+            array: $entries,
+        );
     }
 }

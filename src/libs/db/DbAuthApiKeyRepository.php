@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -11,8 +12,8 @@ namespace actra\backend\libs\db;
 use actra\yuf\auth\Password;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
-use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\db\DbRow;
+use actra\yuf\exception\UnauthorizedException;
 
 class DbAuthApiKeyRepository
 {
@@ -30,7 +31,7 @@ class DbAuthApiKeyRepository
                        auth_api_key.apiKey,
                        auth_api_key.salt
                 FROM auth_api_key
-            '
+            ',
         );
     }
 
@@ -41,8 +42,8 @@ class DbAuthApiKeyRepository
             publicID: $row->getString(column: 'publicID'),
             key: new Password(
                 salt: $row->getString(column: 'salt'),
-                hash: $row->getString(column: 'apiKey')
-            )
+                hash: $row->getString(column: 'apiKey'),
+            ),
         );
     }
 
@@ -53,11 +54,11 @@ class DbAuthApiKeyRepository
             DB::get()->selectRowsFromQuery(
                 dbQuery: $dbQuery,
                 offset: 0,
-                rowCount: 1000
+                rowCount: 1000,
             ) as $row
         ) {
             $dbAuthApiKeyCollection->add(
-                dbAuthApiKey: DbAuthApiKeyRepository::createItem(row: $row)
+                dbAuthApiKey: DbAuthApiKeyRepository::createItem(row: $row),
             );
         }
         return $dbAuthApiKeyCollection;
@@ -70,7 +71,7 @@ class DbAuthApiKeyRepository
             wherePart: 'auth_api_key.publicID=?',
             parameters: [
                 $publicID,
-            ]
+            ],
         );
         $dbAuthApiKeyCollection = DbAuthApiKeyRepository::select(dbQuery: $dbQuery);
         return $dbAuthApiKeyCollection->isEmpty() ? null : $dbAuthApiKeyCollection->getFirst();
@@ -87,7 +88,7 @@ class DbAuthApiKeyRepository
             throw new UnauthorizedException();
         }
         $dbAuthApiKey = DbAuthApiKeyRepository::selectByPublicID(
-            publicID: $apiKeyParts['publicID']
+            publicID: $apiKeyParts['publicID'],
         );
         if ($dbAuthApiKey === null) {
             throw new UnauthorizedException();
@@ -102,7 +103,7 @@ class DbAuthApiKeyRepository
     {
         $parts = explode(
             separator: '_',
-            string: $bearer
+            string: $bearer,
         );
 
         if (count(value: $parts) !== 4) {
@@ -128,7 +129,7 @@ class DbAuthApiKeyRepository
         $dbQuery = DbAuthApiKeyRepository::getDbQuery();
         $dbQuery->addWherePart(
             wherePart: 'auth_api_key.userID=?',
-            parameters: [$userID]
+            parameters: [$userID],
         );
         $dbAuthApiKeyCollection = DbAuthApiKeyRepository::select(dbQuery: $dbQuery);
         return $dbAuthApiKeyCollection->isEmpty() === false;
@@ -141,7 +142,7 @@ class DbAuthApiKeyRepository
             for ($i = 0; $i < DbAuthApiKeyRepository::PUBLIC_ID_BYTES; $i++) {
                 $publicID .= DbAuthApiKeyRepository::PUBLIC_ID_CHARS[random_int(
                     min: 0,
-                    max: strlen(string: DbAuthApiKeyRepository::PUBLIC_ID_CHARS) - 1
+                    max: strlen(string: DbAuthApiKeyRepository::PUBLIC_ID_CHARS) - 1,
                 )];
             }
         } while (DbAuthApiKeyRepository::selectByPublicID(publicID: $publicID) !== null);
@@ -155,7 +156,7 @@ class DbAuthApiKeyRepository
         $secret = bin2hex(string: random_bytes(length: DbAuthApiKeyRepository::SECRET_BYTES));
         $apiKey = DbAuthApiKeyRepository::API_KEY_PREFIX . '_' . $publicID . '_' . $secret;
         $password = Password::generateNew(
-            rawPassword: $secret
+            rawPassword: $secret,
         );
         $db = DB::get();
         $db->execute(
@@ -171,7 +172,7 @@ class DbAuthApiKeyRepository
                 $publicID,
                 $password->hash,
                 $password->salt,
-            ]
+            ],
         );
 
         return $apiKey;
@@ -186,7 +187,7 @@ class DbAuthApiKeyRepository
             ',
             parameters: [
                 $userID,
-            ]
+            ],
         );
     }
 }

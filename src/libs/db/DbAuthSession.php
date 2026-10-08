@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -13,7 +14,6 @@ readonly class DbAuthSession
     public function __construct(
         public int $ID,
         public ?int $parentID,
-        public DbAuthUser $dbAuthUser
-    ) {
-    }
+        public DbAuthUser $dbAuthUser,
+    ) {}
 }

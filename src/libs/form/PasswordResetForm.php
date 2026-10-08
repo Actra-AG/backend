@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -34,22 +35,22 @@ final class PasswordResetForm extends Form
                 name: 'newPassword',
                 label: HtmlText::unencoded(textContent: $messages->common->newPasswordLabel),
                 requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordRequired),
-                purpose: PasswordPurposeEnum::NEW
-            )
+                purpose: PasswordPurposeEnum::NEW,
+            ),
         );
         $this->addField(
             formField: $this->newPasswordConfirmField = new PasswordField(
                 name: 'newPasswordConfirm',
                 label: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmLabel),
                 requiredError: HtmlText::unencoded(textContent: $messages->common->newPasswordConfirmRequired),
-                purpose: PasswordPurposeEnum::NEW
-            )
+                purpose: PasswordPurposeEnum::NEW,
+            ),
         );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
-                submitLabel: HtmlText::unencoded(textContent: $messages->common->save)
-            )
+                submitLabel: HtmlText::unencoded(textContent: $messages->common->save),
+            ),
         );
     }
 
@@ -62,13 +63,13 @@ final class PasswordResetForm extends Form
         $newPasswordCheck = new NewPasswordCheck(messages: ActraBackend::messages()->common);
         if (!$newPasswordCheck->isValid(
             newPasswordField: $newPasswordField,
-            newPasswordConfirmField: $this->newPasswordConfirmField
+            newPasswordConfirmField: $this->newPasswordConfirmField,
         )) {
             return false;
         }
         DbAuthUserRepository::setPassword(
             ID: $this->dbAuthToken->userID,
-            newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString())
+            newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
         );
 
         return true;

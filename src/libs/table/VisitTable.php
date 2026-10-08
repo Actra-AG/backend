@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -25,7 +26,7 @@ class VisitTable extends AbstractTable
     public function __construct(
         string $identifier,
         ?int $filterUserID,
-        VisitSearchForm $tokenSearchForm
+        VisitSearchForm $tokenSearchForm,
     ) {
         $dbQuery = DbAuthUserLoginRepository::getDbQuery();
         if ($filterUserID !== null) {
@@ -33,7 +34,7 @@ class VisitTable extends AbstractTable
                 wherePart: 'auth_login.userID=?',
                 parameters: [
                     $filterUserID,
-                ]
+                ],
             );
         }
         $status = $tokenSearchForm->status;
@@ -42,32 +43,32 @@ class VisitTable extends AbstractTable
                 wherePart: 'auth_login.result=?',
                 parameters: [
                     $status,
-                ]
+                ],
             );
         }
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchHelper::createBooleanQuery(
                 spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_login.sessionId auth_login.ipAddress auth_login.email',
-                queryText: $searchQuery
+                queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
                 wherePart: $booleanQuery->query,
-                parameters: $booleanQuery->params
+                parameters: $booleanQuery->params,
             );
         }
         parent::__construct(
             identifier: $identifier,
             db: DB::get(),
             dbQuery: $dbQuery,
-            itemsPerPage: 100
+            itemsPerPage: 100,
         );
         $messages = ActraBackend::messages();
         $dateColumn = new DateColumn(
             identifier: 'registered',
             label: $messages->log->visitDateColumn,
             isSortable: true,
-            sortAscendingByDefault: false
+            sortAscendingByDefault: false,
         );
         $dateColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(abstractTableColumn: $dateColumn, isDefaultSortColumn: true);
@@ -75,36 +76,36 @@ class VisitTable extends AbstractTable
             abstractTableColumn: new DefaultColumn(
                 identifier: 'firstName',
                 label: $messages->common->firstNameLabel,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'lastName',
                 label: $messages->common->lastNameLabel,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'sessionId',
                 label: $messages->log->visitSessionIdColumn,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'ipAddress',
                 label: $messages->log->visitIpAddressColumn,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
                 label: $messages->log->visitEmailColumn,
-                isSortable: true
-            )
+                isSortable: true,
+            ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
@@ -112,10 +113,10 @@ class VisitTable extends AbstractTable
                 label: $messages->log->statusLabel,
                 callbackFunction: static fn(TableItemModel $tableItemModel): string => HtmlEncoder::encode(
                     value: $messages->log->authResult(
-                        authResult: $tableItemModel->getRow()->getEnum(column: 'result', enumClass: AuthResult::class)
-                    )
-                )
-            )
+                        authResult: $tableItemModel->getRow()->getEnum(column: 'result', enumClass: AuthResult::class),
+                    ),
+                ),
+            ),
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -29,7 +30,7 @@ final class BackendRouteCollectionTest extends TestCase
             additionalRoutes: [
                 $this->createRoute(path: '/en/backend/', languageCode: 'en'),
                 $this->createRoute(path: '/fr/backend/', languageCode: 'fr'),
-            ]
+            ],
         );
     }
 
@@ -76,7 +77,7 @@ final class BackendRouteCollectionTest extends TestCase
 
         new BackendRouteCollection(
             mainRoute: $this->createRoute(path: '/backend/', languageCode: 'de'),
-            additionalRoutes: [$this->createRoute(path: '/backend/', languageCode: 'en')]
+            additionalRoutes: [$this->createRoute(path: '/backend/', languageCode: 'en')],
         );
     }
 
@@ -86,7 +87,7 @@ final class BackendRouteCollectionTest extends TestCase
 
         new BackendRouteCollection(
             mainRoute: $this->createRoute(path: '/backend/', languageCode: 'de'),
-            additionalRoutes: [$this->createRoute(path: '/de/backend/', languageCode: 'de')]
+            additionalRoutes: [$this->createRoute(path: '/de/backend/', languageCode: 'de')],
         );
     }
 
@@ -103,11 +104,11 @@ final class BackendRouteCollectionTest extends TestCase
 
         $this->assertSame(
             '/en/backend/user-5.html?changed&fromLogin',
-            $collection->translatePath(uri: '/backend/user-5.html?changed&fromLogin', targetRoute: $english)
+            $collection->translatePath(uri: '/backend/user-5.html?changed&fromLogin', targetRoute: $english),
         );
         $this->assertSame(
             '/backend/users.html',
-            $collection->translatePath(uri: '/fr/backend/users.html', targetRoute: $collection->getMainRoute())
+            $collection->translatePath(uri: '/fr/backend/users.html', targetRoute: $collection->getMainRoute()),
         );
     }
 
@@ -115,12 +116,12 @@ final class BackendRouteCollectionTest extends TestCase
     {
         $collection = new BackendRouteCollection(
             mainRoute: $this->createRoute(path: '/backend/', languageCode: 'de'),
-            additionalRoutes: [$this->createRoute(path: '/backend/en/', languageCode: 'en')]
+            additionalRoutes: [$this->createRoute(path: '/backend/en/', languageCode: 'en')],
         );
 
         $this->assertSame(
             '/backend/users.html',
-            $collection->translatePath(uri: '/backend/en/users.html', targetRoute: $collection->getMainRoute())
+            $collection->translatePath(uri: '/backend/en/users.html', targetRoute: $collection->getMainRoute()),
         );
     }
 
@@ -130,7 +131,7 @@ final class BackendRouteCollectionTest extends TestCase
 
         $this->assertSame(
             '/shop/cart.html',
-            $collection->translatePath(uri: '/shop/cart.html', targetRoute: $collection->getMainRoute())
+            $collection->translatePath(uri: '/shop/cart.html', targetRoute: $collection->getMainRoute()),
         );
     }
 }

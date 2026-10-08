@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Actra AG - https://www.actra.ch
  * @license   MIT
@@ -23,7 +24,6 @@ final readonly class LanguageSwitcherEntry
         public string $languageCode,
         public string $label,
         public string $href,
-        public bool $isCurrent
-    ) {
-    }
+        public bool $isCurrent,
+    ) {}
 }

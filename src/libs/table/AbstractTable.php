@@ -56,6 +56,7 @@ abstract class AbstractTable extends DbResultTable
         );
     }
 
+    #[\Override]
     public function render(): string
     {
         $this->setMessages();
@@ -108,11 +109,11 @@ abstract class AbstractTable extends DbResultTable
         $common = ActraBackend::messages()->common;
         $this->noDataHtml = DbResultTable::FILTER
             . '<p class="no-entry">' . HtmlEncoder::encode(value: $common->tableNoEntries) . '</p>';
-        $this->totalAmountMessage_oneResult = MessageTemplate::fill(
+        $this->totalAmountMessageOneResult = MessageTemplate::fill(
             template: HtmlEncoder::encode(value: $common->tableOneResult),
             values: ['count' => '<strong>1</strong>'],
         );
-        $this->totalAmountMessage_numResults = MessageTemplate::fill(
+        $this->totalAmountMessageNumResults = MessageTemplate::fill(
             template: HtmlEncoder::encode(value: $common->tableResults),
             values: ['count' => '<strong>' . SmartTable::AMOUNT . '</strong>'],
         );

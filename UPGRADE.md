@@ -3,6 +3,57 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.11.0 (2026-10-08)
+
+### ⚠️ Requires `actra/yuf` `~4.37.0` (minor version locked)
+
+Was `^4.34`. From now on the backend locks the minor version of yuf (`~4.37.0` = patches of v4.37 only) and raises it
+with its own releases (coding standard v1.7.0, `versioning.md` section 8): yuf has breaking changes in minor versions,
+and with `^` a `composer update` installed yuf versions the backend did not support yet.
+
+v1.7.0–v1.10.0 work only with the yuf version their section names (e.g. v1.10.0 with yuf v4.34.x): with a newer yuf,
+v1.10.0 fails with a fatal error (`MyAuthUser` lacks `dbUpdatePassword()` of yuf v4.37). Projects that stay on one of
+these versions pin yuf (`"actra/yuf": "~4.34.0"`); better update to this version.
+
+Read yuf's `UPGRADE.md` v4.35.0–v4.37.0 for the own code of the project (tables: `TableSortDirectionEnum`, encoded
+labels, renamed properties; mailer: enums, `MailerException`, TLS fails closed; passwords: `password_hash()`).
+
+### Database: `db/updates/1.11.0.sql`
+
+`auth_user.passwordHash` is `varchar(255)` (was 200): the hashes of `password_hash()` (Argon2id) need up to 255
+characters.
+
+### Passwords: Argon2id, lazy upgrade at login
+
+New passwords are stored with `password_hash()` (Argon2id) and an empty `passwordSalt`. Existing passwords (salt and
+SHA-256) stay valid and are upgraded at the next successful password login. A login with an unknown email address,
+an inactive user or a user without password takes the same time as a password check, so the response time does not
+tell whether the address exists. Users without password no longer cost an Argon2id hash per request.
+
+### ⚠️ API keys with `SecretTokenHash`
+
+New API keys are stored as SHA-256 hash of their random secret (`SecretTokenHash`, empty `salt`): the check costs
+microseconds instead of one Argon2id verification (about 50 ms, 64 MB) per API request. Existing keys keep working
+with their former hash until they are generated again. `DbAuthApiKey::$key` is `Password|SecretTokenHash` now; check
+a key with `DbAuthApiKey::isValid(secret:)`:
+
+```php
+// Before
+$dbAuthApiKey->key->isValid(rawPassword: $secret);
+
+// After
+$dbAuthApiKey->isValid(secret: $secret);
+```
+
+### Behaviour of yuf
+
+- SMTP with `tls: true` verifies the certificate and the host name and fails instead of sending unencrypted; use
+  `tls: false` only for a local mail catcher. SMTP messages contain no `Bcc` header.
+- `AuthSession::logIn()` regenerates the session ID: `auth_session.sessionId` is the ID before the login.
+
+Search your project for: `"actra/yuf"` (constraint), `->key->isValid(`, `Password::createWithSalt(`,
+`HASH_ALGORITHM`, `totalAmountMessage_`, `SORT_ASC`, `SORT_DESC`, `MailerFunctions`, `changePassword(`.
+
 ## v1.10.0 (2026-10-08)
 
 ### Breadcrumb with declared parents

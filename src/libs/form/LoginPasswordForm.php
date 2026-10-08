@@ -12,10 +12,12 @@ namespace actra\backend\libs\form;
 use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\MyAuthenticator;
+use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\db\DbAuthUserRepository;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\view\backend\php\passwordForgotten;
 use actra\yuf\auth\AuthResultEnum;
+use actra\yuf\auth\Password;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
@@ -23,6 +25,7 @@ use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\settings\PasswordPurposeEnum;
 use actra\yuf\html\HtmlText;
+use LogicException;
 
 final class LoginPasswordForm extends Form
 {
@@ -86,85 +89,82 @@ final class LoginPasswordForm extends Form
 
     private function checkCredentials(): bool
     {
-        $myAuthenticator = MyAuthenticator::get();
-        $sessionID = ActraBackend::get()->getAuthSession()->getSessionId();
-        $ipAddress = $this->context->httpRequest->getRemoteAddress();
         $inputEmail = $this->emailField->getValueAsString();
+        $inputPassword = $this->passwordField->getValueAsString();
         $dbAuthUser = DbAuthUserRepository::selectByEmail(email: $inputEmail);
-        if ($dbAuthUser === null) {
-            $myAuthenticator->logAuthResult(
-                userId: null,
-                sessionId: $sessionID,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_UNKNOWN_USER_NAME,
-            );
+        $rejection = $this->findRejection(dbAuthUser: $dbAuthUser);
+        if ($rejection !== null) {
+            // Same time as a password check, so the response time does not tell whether the email address exists
+            Password::spendVerificationTime(rawPassword: $inputPassword);
+            $this->logAuthResult(dbAuthUser: $dbAuthUser, inputEmail: $inputEmail, authResult: $rejection);
+
             return false;
         }
-        if (
-            $dbAuthUser->ipWhitelist !== []
-            && !IpValidator::isInWhitelist(
-                whiteList: $dbAuthUser->ipWhitelist,
-                ipAddressToCheck: $ipAddress,
-            )
-        ) {
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_IP_NOT_ALLOWED,
-            );
-            return false;
+        $password = $dbAuthUser?->password;
+        if ($dbAuthUser === null || $password === null) {
+            throw new LogicException(message: 'findRejection() rejects users without password.');
         }
-        if ($dbAuthUser->isActive === false
-            || $dbAuthUser->accessRightCollection->isEmpty()
-        ) {
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_INACTIVE,
-            );
-            return false;
-        }
-        if ($dbAuthUser->password === null) {
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_NO_PASSWORD_LOGIN_ACTIVE,
-            );
-            return false;
-        }
-        if ($dbAuthUser->wrongLoginAttempts >= ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts) {
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_OUT_TRIED,
-            );
-            return false;
-        }
-        if (!$dbAuthUser->password->isValid(rawPassword: $this->passwordField->getValueAsString())) {
+        if (!$password->isValid(rawPassword: $inputPassword)) {
             DbAuthUserRepository::increaseWrongPasswordAttempts(ID: $dbAuthUser->ID);
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->ID,
-                sessionId: $sessionID,
-                ip: $ipAddress,
-                userName: $inputEmail,
+            $this->logAuthResult(
+                dbAuthUser: $dbAuthUser,
+                inputEmail: $inputEmail,
                 authResult: AuthResultEnum::ERROR_WRONG_PASSWORD,
             );
+
             return false;
+        }
+        if ($password->needsRehash()) {
+            // Legacy or outdated hash: store the current algorithm (yuf's Authenticator does not see the password here)
+            DbAuthUserRepository::updatePasswordHash(
+                ID: $dbAuthUser->ID,
+                password: Password::generateNew(rawPassword: $inputPassword),
+            );
         }
         AuthTokenTypeEnum::LOGIN->createAndSend(
             session: ActraBackend::get()->getSession(),
             dbAuthUser: $dbAuthUser,
             usedPasswordLogin: true,
         );
+
         return true;
+    }
+
+    private function findRejection(?DbAuthUser $dbAuthUser): ?AuthResultEnum
+    {
+        if ($dbAuthUser === null) {
+            return AuthResultEnum::ERROR_UNKNOWN_USER_NAME;
+        }
+        if (
+            $dbAuthUser->ipWhitelist !== []
+            && !IpValidator::isInWhitelist(
+                whiteList: $dbAuthUser->ipWhitelist,
+                ipAddressToCheck: $this->context->httpRequest->getRemoteAddress(),
+            )
+        ) {
+            return AuthResultEnum::ERROR_IP_NOT_ALLOWED;
+        }
+        if ($dbAuthUser->isActive === false || $dbAuthUser->accessRightCollection->isEmpty()) {
+            return AuthResultEnum::ERROR_INACTIVE;
+        }
+        if ($dbAuthUser->password === null) {
+            return AuthResultEnum::ERROR_NO_PASSWORD_LOGIN_ACTIVE;
+        }
+        if ($dbAuthUser->wrongLoginAttempts >= ActraBackend::get()->actraBackendSettings->maxAllowedLoginAttempts) {
+            return AuthResultEnum::ERROR_OUT_TRIED;
+        }
+
+        return null;
+    }
+
+    private function logAuthResult(?DbAuthUser $dbAuthUser, string $inputEmail, AuthResultEnum $authResult): void
+    {
+        MyAuthenticator::get()->logAuthResult(
+            userId: $dbAuthUser?->ID,
+            sessionId: ActraBackend::get()->getAuthSession()->getSessionId(),
+            ip: $this->context->httpRequest->getRemoteAddress(),
+            userName: $inputEmail,
+            authResult: $authResult,
+        );
     }
 }

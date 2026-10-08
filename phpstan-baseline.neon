@@ -79,36 +79,6 @@ parameters:
 			path: src/libs/db/DbAuthApiKeyCollection.php
 
 		-
-			rawMessage: 'Method actra\backend\libs\db\DbAuthApiKeyRepository::parseBearer() return type has no value type specified in iterable type array.'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
-			rawMessage: Offset 'publicID' might not exist on array.
-			identifier: offsetAccess.notFound
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
-			rawMessage: Offset 'secret' might not exist on array.
-			identifier: offsetAccess.notFound
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
-			rawMessage: 'Parameter $publicID of static method actra\backend\libs\db\DbAuthApiKeyRepository::selectByPublicID() expects string, mixed given.'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
-			rawMessage: 'Parameter $rawPassword of method actra\yuf\auth\Password::isValid() expects string, mixed given.'
-			identifier: argument.type
-			count: 1
-			path: src/libs/db/DbAuthApiKeyRepository.php
-
-		-
 			rawMessage: 'Offset int might not exist on array<int, actra\backend\libs\db\DbAuthGroup>.'
 			identifier: offsetAccess.notFound
 			count: 1
@@ -179,12 +149,6 @@ parameters:
 			identifier: method.missingOverride
 			count: 1
 			path: src/libs/form/rule/ValidIpAddressRule.php
-
-		-
-			rawMessage: 'Method actra\backend\libs\table\AbstractTable::render() overrides method actra\yuf\table\table\DbResultTable::render() but is missing the #[\Override] attribute.'
-			identifier: method.missingOverride
-			count: 1
-			path: src/libs/table/AbstractTable.php
 
 		-
 			rawMessage: 'Method actra\backend\view\backend\php\login::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'

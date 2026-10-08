@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\auth\Password;
+use actra\yuf\auth\SecretTokenHash;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
@@ -40,11 +41,24 @@ class DbAuthApiKeyRepository
         return new DbAuthApiKey(
             userID: $row->getInt(column: 'userID'),
             publicID: $row->getString(column: 'publicID'),
-            key: new Password(
+            key: DbAuthApiKeyRepository::createKeyHash(
                 salt: $row->getString(column: 'salt'),
                 hash: $row->getString(column: 'apiKey'),
             ),
         );
+    }
+
+    /**
+     * A `SecretTokenHash` for keys since v1.11.0 (empty salt, SHA-256 in hex); a `Password` for older keys: with salt
+     * (SHA-256 with salt) or with an Argon2id hash (generated with yuf v4.37+ before v1.11.0).
+     */
+    public static function createKeyHash(string $salt, string $hash): Password|SecretTokenHash
+    {
+        if ($salt === '' && preg_match(pattern: '/^[0-9a-f]{64}$/D', subject: $hash) === 1) {
+            return new SecretTokenHash(hash: $hash);
+        }
+
+        return new Password(salt: $salt, hash: $hash);
     }
 
     private static function select(DbQuery $dbQuery): DbAuthApiKeyCollection
@@ -93,12 +107,15 @@ class DbAuthApiKeyRepository
         if ($dbAuthApiKey === null) {
             throw new UnauthorizedException();
         }
-        if (!$dbAuthApiKey->key->isValid(rawPassword: $apiKeyParts['secret'])) {
+        if (!$dbAuthApiKey->isValid(secret: $apiKeyParts['secret'])) {
             throw new UnauthorizedException();
         }
         return $dbAuthApiKey->userID;
     }
 
+    /**
+     * @return array{publicID: string, secret: string}|null
+     */
     private static function parseBearer(string $bearer): ?array
     {
         $parts = explode(
@@ -155,9 +172,7 @@ class DbAuthApiKeyRepository
         $publicID = DbAuthApiKeyRepository::createPublicID();
         $secret = bin2hex(string: random_bytes(length: DbAuthApiKeyRepository::SECRET_BYTES));
         $apiKey = DbAuthApiKeyRepository::API_KEY_PREFIX . '_' . $publicID . '_' . $secret;
-        $password = Password::generateNew(
-            rawPassword: $secret,
-        );
+        $keyHash = SecretTokenHash::fromSecret(secret: $secret);
         $db = DB::get();
         $db->execute(
             sql: '
@@ -170,8 +185,8 @@ class DbAuthApiKeyRepository
             parameters: [
                 $userID,
                 $publicID,
-                $password->hash,
-                $password->salt,
+                $keyHash->hash,
+                '',
             ],
         );
 

@@ -128,7 +128,7 @@ ActraBackend::init(
         username: 'mailer@example.com',
         password: 'smtp_password',
         port: 587,
-        tls: true,
+        tls: true, // certificate and host name are verified; false only for a local mail catcher
         signature: 'Best regards, Your Team'
     ),
     navigationItemCollection: $navigationItemCollection
@@ -363,8 +363,9 @@ Users with management access can generate, replace, or remove a user's API key o
 can also manage their own API key on their profile page.
 
 API keys can only be generated if an IP whitelist is configured for the user. If an API key exists, the user's IP
-whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored hashed
-with a salt.
+whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored as
+SHA-256 hash of the random secret (yuf's `SecretTokenHash`, fast enough for every API request); keys generated before
+v1.11.0 keep their former hash until they are generated again.
 
 Generating and removing a key run only on POST, through the confirmation pages `userGenerateApiKey-{ID}.html`,
 `userRemoveApiKey-{ID}.html`, `profileGenerateApiKey.html` and `profileRemoveApiKey.html` (see "Confirmation Dialog

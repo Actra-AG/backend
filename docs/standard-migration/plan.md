@@ -12,7 +12,8 @@ Sources: `../yuf/docs/standard-migration/remaining.md` (follow-up for the backen
 - One step = one release (minor version, see `standards/versioning.md`), small enough to be released on its own.
   `ddev composer check` is green at the end of every step, the PHPStan baseline only shrinks.
 - yuf steps raise `actra/yuf` to the lowest version that contains the step's changes, so each release works with a
-  real yuf version.
+  real yuf version. From step 8 on the constraint locks the minor version (`~4.37.0`, decision 2026-10-08, coding
+  standard v1.7.0): with `^`, projects got newer yuf versions the backend did not support yet.
 - Every step adds an `UPGRADE.md` section with ⚠️ before/after for each breaking change and a "Search your project
   for …" list (like yuf), updates `README.md` where affected and appends a handover note below.
 - Characterization tests first where behaviour changes; hand-written doubles in `tests/Double/`, no reflection on
@@ -363,3 +364,20 @@ depend on these versions and follows as its own step.
   cases of the enum); `MyAuthUser` (page after login) uses `ActraBackend::getSession()`. `claim()` uses its own type.
 - No superglobal left in `src/`; tests use `ArraySessionStorage`. 103 tests, baseline 138 → 117 entries (a
   regeneration had picked up two `tests/` entries, removed again: `tests/` never has baseline entries).
+
+### Step 8 – done (2026-10-08)
+
+- `actra/yuf` `~4.37.0` (checked against v4.37.0). Finding: with `^4.x`, backend v1.7.0–v1.10.0 get yuf v4.57 in
+  projects and fail (v1.10.0: `dbUpdatePassword()` missing). Decision: libraries lock the minor version; rule added to
+  the coding standard (`versioning.md` section 8, v1.7.0 in `../coding-standard`, not yet tagged).
+- Passwords: `MyAuthUser::dbUpdatePassword()` and `DbAuthUserRepository::updatePasswordHash()` (keeps the wrong
+  attempts). The backend checks the password itself in `LoginPasswordForm` and logs in with the token afterwards, so
+  yuf's rehash never runs: the form upgrades outdated hashes after a successful check. Every rejection before the
+  check spends the verification time (`Password::spendVerificationTime()`), otherwise Argon2id would reveal existing
+  email addresses by the response time. Users without password get a constant hash `'!'` (matches no input).
+- API keys: new keys `SecretTokenHash::fromSecret()` (hex secret stays, the bearer format splits at `_`), empty salt;
+  `createKeyHash()` chooses `SecretTokenHash` for an empty salt with 64 hex characters, otherwise `Password` (salted
+  legacy keys, and Argon2id keys created with yuf v4.37+ before this release). `DbAuthApiKey::isValid()`.
+- `db/updates/1.11.0.sql`: `passwordHash` `varchar(255)` (yuf v4.37). Tables: renamed message properties (v4.35),
+  `#[\Override]` on `render()`.
+- 106 tests, baseline 117 → 111 entries.

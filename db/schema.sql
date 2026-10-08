@@ -167,7 +167,7 @@ CREATE TABLE `auth_user`
     `active`              tinyint(3) UNSIGNED   NOT NULL,
     `lastSuccessfulLogin` datetime                       DEFAULT NULL,
     `passwordSalt`        char(16)                       DEFAULT NULL,
-    `passwordHash`        varchar(200)                   DEFAULT NULL,
+    `passwordHash`        varchar(255)                   DEFAULT NULL,
     `wrongLoginAttempts`  tinyint(3) UNSIGNED   NOT NULL DEFAULT 0
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4

@@ -36,11 +36,18 @@ class MyAuthUser extends AuthUser
             ),
             wrongPasswordAttempts: $dbAuthUser->wrongLoginAttempts,
             accessRightCollection: $dbAuthUser->accessRightCollection,
-            password: $dbAuthUser->password === null ? Password::generateNew(
-                rawPassword: 'unused',
-            ) : $dbAuthUser->password,
+            password: $dbAuthUser->password ?? MyAuthUser::createPasswordOfUserWithoutPassword(),
             ipWhitelist: $dbAuthUser->ipWhitelist,
         );
+    }
+
+    /**
+     * A user without password cannot log in with a password: no input matches this hash (not a valid hash format), and
+     * no Argon2id hash has to be computed for every loaded user.
+     */
+    private static function createPasswordOfUserWithoutPassword(): Password
+    {
+        return new Password(salt: '', hash: '!');
     }
 
     public static function createFromDbAuthUser(DbAuthUser $dbAuthUser): MyAuthUser
@@ -165,6 +172,12 @@ class MyAuthUser extends AuthUser
             parentID: $this->parentSessionID,
             userID: $this->id,
         );
+    }
+
+    #[\Override]
+    protected function dbUpdatePassword(Password $newPassword): void
+    {
+        DbAuthUserRepository::updatePasswordHash(ID: $this->id, password: $newPassword);
     }
 
     public function canManageUsers(): bool

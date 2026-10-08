@@ -257,6 +257,17 @@ class DbAuthUserRepository
         );
     }
 
+    /**
+     * Stores an upgraded hash of the same password (lazy upgrade at login); keeps the wrong login attempts.
+     */
+    public static function updatePasswordHash(int $ID, Password $password): void
+    {
+        DB::get()->execute(
+            sql: 'UPDATE auth_user SET passwordSalt=?, passwordHash=? WHERE ID=?',
+            parameters: [$password->salt, $password->hash, $ID],
+        );
+    }
+
     public static function setPassword(
         int $ID,
         Password $newPassword,

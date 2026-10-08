@@ -52,6 +52,10 @@ modified from this repository). Steps that change views, templates or HTML are c
 - Legacy breadcrumb: migrate `OldNavigator` to yuf's `Session` and fix the stale trail with the proposal of
   `docs/breadcrumb/analysis.md` (step 6).
 - API keys with `SecretTokenHash` in step 8 (decision 2026-10-08, after the Argon2id discussion).
+- No PascalCase for view classes (decision 2026-10-08, former step 16): the views keep the lowercase file name as
+  class name, a documented deviation in `AGENTS.md` (allowed by yuf v4.57.3, same as yuf-skeleton). Constructor
+  dependencies come through `BackendViewFactory` and `BackendViewContext`; project views use the same factory and
+  stay lowercase anyway.
 - Settled by the standard, no decision needed: renamed argument names (`dbSettings:`), snake_case database, acronyms,
   CSV formula protection of yuf (security standard), stricter phone validation of yuf (no switch exists).
 
@@ -75,11 +79,10 @@ modified from this repository). Steps that change views, templates or HTML are c
 | 13 | ^4.57 | Interfaces without suffix                                                  | small  | direct | v1.19.0 |
 | 14 | ^4.57 | No static `ActraBackend`: messages, path, navigation in the context        | large  | direct | v1.20.0 |
 | 15 | ^4.57 | Repositories, `DB`, current user, mailer as services                       | large  | direct | v1.21.0 |
-| 16 | ^4.57 | PascalCase view classes                                                    | medium | direct | v1.22.0 |
-| 17 | ^4.57 | Acronyms of the backend API (`ID` → `id`, …)                               | large  | Sonnet | v1.23.0 |
-| 18 | ^4.57 | snake_case database tables and columns                                     | large  | Sonnet | v1.24.0 |
+| 16 | ^4.57 | Acronyms of the backend API (`ID` → `id`, …)                               | large  | Sonnet | v1.22.0 |
+| 17 | ^4.57 | snake_case database tables and columns                                     | large  | Sonnet | v1.23.0 |
 
-"Sonnet" marks the only steps that are long, mechanical and self-contained enough for a separate session; the main
+`^4.57` in the table means `^4.57.3` (the current yuf release). "Sonnet" marks the only steps that are long, mechanical and self-contained enough for a separate session; the main
 session decides again when the step starts. The release numbers are the expected order; a major version (v2.0.0) for
 the final state is an open decision.
 
@@ -180,7 +183,7 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
 - Behaviour notes: fixed production error texts, `NavigationItem` href check, IP whitelist fails closed, escaped
   plain text values in form markup.
 
-### Step 10 – yuf ^4.57.2 (v4.42–v4.57.2)
+### Step 10 – yuf ^4.57.3 (v4.42–v4.57.3)
 
 - `SearchState::create()` in `AbstractSearchForm`, `SearchQueryBuilder::createBooleanQuery()` in 3 tables;
   `ViewContext` route and `PathVars` (v4.49); `createHtmlTag()` (v4.51); `toTemplateData()` in `LanguageSwitcherTest`;
@@ -200,6 +203,8 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   per request comply.
 - `AuthTokenTypeEnum::ACTIVATION` throws `new Exception('To be implemented')`: a specific SPL exception or remove the
   case (check whether projects use it).
+- Tooling like yuf-skeleton: include `vendor/actra/coding-standard/config/phpstan-no-superglobals.neon` (no
+  `actraSuperglobalsAllowIn` needed after step 6); `phpunit.xml` ends with a newline.
 - PHPStan baseline to 0 entries; lines ≤ 120 (51 today); `self::` in `DBTest`; `ActraBackend::viewGroup` →
   `VIEW_GROUP` (deprecated alias); enable `config/phpstan-no-superglobals.neon` of the coding standard.
 
@@ -228,17 +233,12 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
   `AuthTokenTypeEnum` without I/O (logic in a service). Static methods stay as deprecated wrappers for one release
   (416 `DB::get()` calls in projects). Possibly split into 14a (db, repositories) and 14b (user, auth, mailer).
 
-### Step 16 – PascalCase view classes
-
-- The backend view factory maps the file titles to `LoginView`, `UserModView`, … (`ViewMap`); content and language
-  files keep their names. Projects referencing view classes (`login::getPath()`, `visits`) use step 14's paths.
-
-### Step 17 – acronyms of the backend API
+### Step 16 – acronyms of the backend API
 
 - `ID` → `id`, `userID` → `userId`, `getUserIDForBearerOrThrow()` → `…Id…` in properties, methods and argument names;
   properties readable under the old name for one release (deprecated property hook), renamed arguments are breaking.
 
-### Step 18 – snake_case database
+### Step 17 – snake_case database
 
 - `auth_ipWhitelist` → `auth_ip_whitelist`, all camelCase columns to snake_case (`authUserID` → `auth_user_id`,
   `ID` → `id`) with `db/updates/<version>.sql` (`RENAME TABLE`, `RENAME COLUMN`), `schema.sql`, `data.sql` and all
@@ -304,4 +304,16 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
 - yuf's follow-up prompt asked to raise yuf to ^4.57.2 at once; that stays step 10 of this plan (now ^4.57.2), so every
   step keeps a released yuf version.
 - i18n findings added to step 11.
+
+### Coding standard v1.5.0, yuf v4.57.3, yuf-skeleton (2026-10-08)
+
+- `actra/coding-standard` ^1.5.0 (v1.5.0: global rules go into the coding standard first). `ddev composer check`
+  green.
+- yuf v4.57.1–v4.57.3 are documentation only ("Rules for forms", lowercase class names of `ClassNameViewFactory`
+  views). Target of step 10 is ^4.57.3.
+- Former step 16 (PascalCase view classes) dropped, see Decisions; steps 17 and 18 are now 16 and 17.
+- yuf-skeleton compared (tooling only): same coding standard configuration, composer scripts, `.editorconfig` and
+  `CLAUDE.md`. Worth taking over (step 11): `phpstan-no-superglobals.neon`, final newline of `phpunit.xml`. Its
+  deviation wording for lowercase view classes is used in `AGENTS.md`.
+- Next: step 3 (yuf ^4.23), no decision needed.
 

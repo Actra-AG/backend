@@ -82,13 +82,16 @@ This project follows the Actra coding standard, installed as development depende
 
 ## Deviations from the global standard
 
-Temporary only: legacy code that is migrated step by step (see
-[docs/standard-migration/plan.md](docs/standard-migration/plan.md)). New code follows the global standard; existing
-names are kept until their task in the plan is done, because renaming them breaks consuming projects.
+- View classes found by `BackendViewFactory` (the views of the backend in `src/view/backend/php/` and the project views
+  based on `BackendView`) have a lowercase class name equal to the file title (`login`, `userMod`), not PascalCase
+  (`standards/naming.md`). Reason: the factory builds the class name from the requested file name, like yuf's
+  `ClassNameViewFactory` (allowed by yuf's README, section "Views"). Applies only to these view classes.
+
+Temporary, legacy code migrated step by step (see [docs/standard-migration/plan.md](docs/standard-migration/plan.md)).
+New code follows the global standard; existing names are kept until their step is done, because renaming them breaks
+consuming projects:
 
 - Static accessors `ActraBackend::get()`, `messages()` and `path()` and static repositories instead of constructor
   injection; they move into `BackendViewContext` step by step (plan steps 14 and 15).
-- View classes named like their route (`login`, `userMod`), as `BackendViewFactory` builds the class name from the
-  file name (plan step 16).
 - Acronyms in capitals (`ID`, `$userID`) in names and database columns, camelCase database tables and columns.
 - Interfaces with `Interface` suffix, classes that are not `final`.

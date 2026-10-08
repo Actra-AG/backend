@@ -10,8 +10,9 @@ declare(strict_types=1);
 namespace actra\backend;
 
 use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\common\BreadcrumbItemCollection;
 use actra\backend\libs\common\LanguageSwitcher;
-use actra\backend\libs\common\OldNavigator;
+use actra\backend\libs\common\SessionBreadcrumbTrail;
 use actra\backend\libs\db\DbAuthSessionRepository;
 use actra\backend\view\backend\php\login;
 use actra\backend\view\backend\php\logout;
@@ -193,7 +194,7 @@ abstract class BackendView extends BaseView
             identifier: 'stylesPaths',
             htmlDataObjectCollection: $actraBackend->renderStylesPaths(),
         );
-        $this->renderLegacyBreadcrumb(
+        $this->renderBreadcrumb(
             htmlDocument: $htmlDocument,
         );
         if (!$this->backendContext->actraBackend->getAuthSession()->isLoggedIn()) {
@@ -331,26 +332,43 @@ abstract class BackendView extends BaseView
 
     abstract protected function getPageTitle(): HtmlText;
 
-    private function renderLegacyBreadcrumb(HtmlDocument $htmlDocument): void
+    /**
+     * The parent pages of this view for the breadcrumb, from the top level down to the direct parent; `null` (default)
+     * uses the trail of the visited pages (`useNavigator: true`). Called after `prepareHtmlDocument()`, so the view can
+     * use the data it has loaded there. With parents, the trail of the visited pages restarts at this page.
+     */
+    protected function getBreadcrumbParents(): ?BreadcrumbItemCollection
     {
+        return null;
+    }
+
+    private function renderBreadcrumb(HtmlDocument $htmlDocument): void
+    {
+        $breadcrumb = null;
+        $breadcrumbParents = $this->getBreadcrumbParents();
+        $currentTitleHtml = $this->getPageTitle()->render();
         if ($this->useNavigator) {
-            $oldNavigator = new OldNavigator(
+            $trail = new SessionBreadcrumbTrail(
+                session: $this->backendContext->actraBackend->getSession(),
+                httpRequest: $this->context->httpRequest,
                 pathVars: $this->listPathVars(),
                 navigationLevels: $htmlDocument->listActiveHtmlIds(),
                 separator: $this->legacyBreadcrumbSeparator,
             );
-            if ($this->resetNavigator) {
-                $oldNavigator->resetBreadcrumb();
+            if ($this->resetNavigator || $breadcrumbParents !== null) {
+                $trail->reset();
             }
-            $oldNavigator->addBreadcrumb(title: $this->getPageTitle()->render());
-            foreach ($oldNavigator->setNavistufe() as $key => $val) {
-                if (is_int(value: $key) && is_string(value: $val)) {
-                    $htmlDocument->setActiveHtmlId(key: $key, val: $val);
-                }
+            $trail->add(titleHtml: $currentTitleHtml);
+            foreach ($trail->listNavigationLevels() as $key => $val) {
+                $htmlDocument->setActiveHtmlId(key: $key, val: $val);
             }
-            $breadcrumb = $oldNavigator->getBreadcrumb();
-        } else {
-            $breadcrumb = null;
+            $breadcrumb = $trail->render();
+        }
+        if ($breadcrumbParents !== null) {
+            $breadcrumb = $breadcrumbParents->render(
+                currentTitleHtml: $currentTitleHtml,
+                separator: $this->legacyBreadcrumbSeparator,
+            );
         }
         $htmlDocument->replacements->addHtml(
             identifier: 'breadcrumb',

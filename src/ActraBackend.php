@@ -32,6 +32,7 @@ use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
+use actra\yuf\session\Session;
 use LogicException;
 use RuntimeException;
 
@@ -169,6 +170,18 @@ class ActraBackend
     public function getAuthSession(): AuthSession
     {
         return $this->getViewContext()->authSession ?? throw new LogicException(
+            message: 'The backend needs a session: do not disable individualSessionHandler for backend routes.',
+        );
+    }
+
+    /**
+     * The `Session` of the current request.
+     *
+     * @throws LogicException outside a backend request or without session
+     */
+    public function getSession(): Session
+    {
+        return $this->getViewContext()->session ?? throw new LogicException(
             message: 'The backend needs a session: do not disable individualSessionHandler for backend routes.',
         );
     }

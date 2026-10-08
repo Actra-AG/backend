@@ -122,7 +122,10 @@ class profile extends BackendView
         );
         $replacements->addHtml(
             identifier: 'generatedApiKey',
-            html: GeneratedApiKeyFlash::pull(userID: $dbAuthUser->ID) ?? '',
+            html: GeneratedApiKeyFlash::pull(
+                session: $this->backendContext->actraBackend->getSession(),
+                userID: $dbAuthUser->ID,
+            ) ?? '',
         );
     }
 

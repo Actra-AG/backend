@@ -76,6 +76,7 @@ final class PasswordForgottenForm extends Form
             return true;
         }
         AuthTokenTypeEnum::PASSWORD->createAndSend(
+            session: ActraBackend::get()->getSession(),
             dbAuthUser: $dbAuthUser,
             usedPasswordLogin: false,
         );

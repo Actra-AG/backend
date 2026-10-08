@@ -349,3 +349,17 @@ depend on these versions and follows as its own step.
   entries. No new line over 120 characters (single-line calls split by a script).
 - Open for step 6: `$_SESSION` in `MyAuthUser` (page after login), `GeneratedApiKeyFlash`, `AuthTokenTypeEnum`,
   `OldNavigator`; `GeneratedApiKeyFlashTest` still sets `$_SESSION`.
+
+### Step 6 – done (2026-10-08)
+
+- Characterization tests of `OldNavigator` first (7 cases on `$_SESSION` / `$_GET`), then the same cases against the
+  new `SessionBreadcrumbTrail` (`@internal`, `Session` and `HttpRequest`, same session keys); `OldNavigator` and its
+  test removed. The link of a trail entry is escaped (was raw from the URL).
+- Breadcrumb fix (decision 2026-10-08: overridable method): `BackendView::getBreadcrumbParents():
+  ?BreadcrumbItemCollection`, called after `prepareHtmlDocument()`; with parents the breadcrumb is built from them
+  (same markup) and the session trail restarts at the page. 307 project views use `useNavigator: true` and keep
+  working unchanged.
+- `GeneratedApiKeyFlash` and the session methods of `AuthTokenTypeEnum` take the `Session` (projects use only the
+  cases of the enum); `MyAuthUser` (page after login) uses `ActraBackend::getSession()`. `claim()` uses its own type.
+- No superglobal left in `src/`; tests use `ArraySessionStorage`. 103 tests, baseline 138 → 117 entries (a
+  regeneration had picked up two `tests/` entries, removed again: `tests/` never has baseline entries).

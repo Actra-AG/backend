@@ -19,6 +19,12 @@ parameters:
 			path: src/BackendView.php
 
 		-
+			rawMessage: 'Parameter $navigationLevels of class actra\backend\libs\common\SessionBreadcrumbTrail constructor expects array<int, string>, array given.'
+			identifier: argument.type
+			count: 1
+			path: src/BackendView.php
+
+		-
 			rawMessage: 'Method actra\backend\libs\auth\MyAuthUser::dbConfirmSuccessfulLogin() overrides method actra\yuf\auth\AuthUser::dbConfirmSuccessfulLogin() but is missing the #[\Override] attribute.'
 			identifier: method.missingOverride
 			count: 1
@@ -59,126 +65,6 @@ parameters:
 			identifier: ternary.shortNotAllowed
 			count: 1
 			path: src/libs/common/LanguageSwitcher.php
-
-		-
-			rawMessage: 'Argument of an invalid type mixed supplied for foreach, only iterables are supported.'
-			identifier: foreach.nonIterable
-			count: 2
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Calling isset() is forbidden, compare explicitly: array_key_exists(), !== null or a typed property (see standards/php.md).'
-			identifier: disallowed.isset
-			count: 2
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: Cannot access offset 'link' on mixed.
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: Cannot access offset 'title' on mixed.
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: Cannot access offset mixed on mixed.
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: Cannot access offset string on mixed.
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Loose comparison via "==" between int and int is not allowed.'
-			identifier: equal.notAllowed
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Loose comparison via "==" between mixed and string is not allowed.'
-			identifier: equal.notAllowed
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Method actra\backend\libs\common\OldNavigator::__construct() has parameter $navigationLevels with no value type specified in iterable type array.'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Method actra\backend\libs\common\OldNavigator::__construct() has parameter $pathVars with no value type specified in iterable type array.'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Method actra\backend\libs\common\OldNavigator::addBreadcrumb() has parameter $title with no type specified.'
-			identifier: missingType.parameter
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Method actra\backend\libs\common\OldNavigator::setNavistufe() return type has no value type specified in iterable type array.'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: Offset 0 might not exist on array.
-			identifier: offsetAccess.notFound
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Parameter $array of function implode expects array<string>, array given.'
-			identifier: argument.type
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Parameter $string of function explode expects string, mixed given.'
-			identifier: argument.type
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Parameter $value of function count expects array|Countable, mixed given.'
-			identifier: argument.type
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Part $val[''link''] (mixed) of encapsed string cannot be cast to string.'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Part $val[''title''] (mixed) of encapsed string cannot be cast to string.'
-			identifier: encapsedStringPart.nonString
-			count: 2
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: Possibly invalid array key type mixed.
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/libs/common/OldNavigator.php
-
-		-
-			rawMessage: 'Property actra\backend\libs\common\OldNavigator::$currentPage (string) does not accept mixed.'
-			identifier: assign.propertyType
-			count: 1
-			path: src/libs/common/OldNavigator.php
 
 		-
 			rawMessage: Short ternary operator is not allowed. Use null coalesce operator if applicable or consider using long ternary.
@@ -299,18 +185,6 @@ parameters:
 			identifier: method.missingOverride
 			count: 1
 			path: src/libs/table/AbstractTable.php
-
-		-
-			rawMessage: Cannot use ++ on mixed.
-			identifier: postInc.type
-			count: 1
-			path: src/settings/AuthTokenTypeEnum.php
-
-		-
-			rawMessage: 'Method actra\backend\settings\AuthTokenTypeEnum::getFailedAttempts() should return int but returns mixed.'
-			identifier: return.type
-			count: 1
-			path: src/settings/AuthTokenTypeEnum.php
 
 		-
 			rawMessage: 'Method actra\backend\view\backend\php\login::getPageTitle() overrides method actra\backend\BackendView::getPageTitle() but is missing the #[\Override] attribute.'

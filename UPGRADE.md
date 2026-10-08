@@ -3,6 +3,41 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.10.0 (2026-10-08)
+
+### Breadcrumb with declared parents
+
+A view based on `BackendView` can declare its parent pages with `getBreadcrumbParents()` (`BreadcrumbItemCollection`
+of `BreadcrumbItem`, plain text title and link). They replace the trail of the visited pages, which showed stale
+entries after a direct jump between detail pages (bookmark, link in an email). Views without parents keep the trail
+(`useNavigator: true`); no change needed. See README "Breadcrumb".
+
+```php
+protected function getBreadcrumbParents(): ?BreadcrumbItemCollection
+{
+    return new BreadcrumbItemCollection(
+        new BreadcrumbItem(title: $this->event->title, href: event::getPath(ID: $this->event->ID)),
+    );
+}
+```
+
+### Session data through yuf's `Session`
+
+The backend no longer reads or writes `$_SESSION` or `$_GET`: the breadcrumb trail, the active navigation levels
+(`?n=`), the login and password tokens, the generated API key and the page after login use the `Session` of the
+request (same keys, so running sessions keep their data). Needed for yuf v4.46 (the session is started on first use).
+The link of a breadcrumb entry is escaped now (it was output as it came from the URL).
+
+### ⚠️ Removed and changed internal classes
+
+- `OldNavigator` is removed; its behaviour is in the new internal `SessionBreadcrumbTrail`.
+- `GeneratedApiKeyFlash::store()` / `pull()` and `AuthTokenTypeEnum::createAndSend()` / `claim()` take the `Session`
+  as first argument (`session: ActraBackend::get()->getSession()`). `claim()` looks up tokens of its own type (it
+  always used `LOGIN`; only `LOGIN` called it).
+- New: `ActraBackend::getSession()`.
+
+Search your project for: `OldNavigator`, `GeneratedApiKeyFlash::`, `->createAndSend(`, `->claim(`, `$_SESSION['sess_`.
+
 ## v1.9.0 (2026-10-08)
 
 ### ⚠️ Requires `actra/yuf` `^4.34`

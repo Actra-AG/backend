@@ -53,7 +53,7 @@ class MyAuthUser extends AuthUser
 
     public static function setRequestedPageAfterLogin(string $path): void
     {
-        $_SESSION['requestedPageAfterLogin'] = $path;
+        ActraBackend::get()->getSession()->set(key: 'requestedPageAfterLogin', value: $path);
     }
 
     public function redirectToFirstAllowedPage(): void
@@ -66,8 +66,9 @@ class MyAuthUser extends AuthUser
 
     public function getFirstAllowedPage(): string
     {
-        $requestedPage = $_SESSION['requestedPageAfterLogin'] ?? null;
-        unset($_SESSION['requestedPageAfterLogin']);
+        $session = ActraBackend::get()->getSession();
+        $requestedPage = $session->getString(key: 'requestedPageAfterLogin');
+        $session->remove(key: 'requestedPageAfterLogin');
         $target = is_string(value: $requestedPage) && $requestedPage !== ''
             ? $requestedPage
             : $this->getFirstNavigationHref();

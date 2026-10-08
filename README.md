@@ -180,6 +180,29 @@ The values of a search form come from the posted form (`reset` and `find` from t
 search forms keep their state in the session. New services of the backend are added to `BackendViewContext`, so these
 constructors do not change again.
 
+### Breadcrumb
+
+With `useNavigator: true`, a view shows the pages visited before it as breadcrumb (kept in the session; `?reset` in a
+link or `resetNavigator: true` restarts it). A page reached directly (bookmark, link in an email) then shows the trail
+of whatever was visited before. A view that knows its parents declares them instead; they replace the trail, and the
+trail restarts at this page for the views that follow:
+
+```php
+use actra\backend\libs\common\BreadcrumbItem;
+use actra\backend\libs\common\BreadcrumbItemCollection;
+
+protected function getBreadcrumbParents(): ?BreadcrumbItemCollection
+{
+    // called when the page is rendered, after prepareHtmlDocument() has loaded the subscription
+    return new BreadcrumbItemCollection(
+        new BreadcrumbItem(title: $this->event->title, href: event::getPath(ID: $this->event->ID)),
+        new BreadcrumbItem(title: '#' . $this->subscription->ID, href: subscription::getPath(ID: $this->subscription->ID)),
+    );
+}
+```
+
+Titles and links are plain text and escaped; the current page is the page title of the view.
+
 ### Languages
 
 All texts of the backend come from message classes; English and German are included. The texts of a request follow

@@ -21,12 +21,6 @@ use PHPUnit\Framework\TestCase;
 
 final class BackendViewFactoryTest extends TestCase
 {
-    #[\Override]
-    protected function setUp(): void
-    {
-        $_SESSION = [];
-    }
-
     private function createContext(string $fileTitle): ViewContext
     {
         return ViewContextFactory::create(

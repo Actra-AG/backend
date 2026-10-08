@@ -161,6 +161,7 @@ final class LoginPasswordForm extends Form
             return false;
         }
         AuthTokenTypeEnum::LOGIN->createAndSend(
+            session: ActraBackend::get()->getSession(),
             dbAuthUser: $dbAuthUser,
             usedPasswordLogin: true,
         );

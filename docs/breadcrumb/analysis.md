@@ -1,6 +1,7 @@
 # Analysis: stale breadcrumb after a direct jump between detail pages
 
-Status: analysed, not fixed (2026-10-05). The fix needs a decision on the API (see section 4).
+Status: fixed in v1.10.0 (2026-10-08) with `BackendView::getBreadcrumbParents()` (section 4, decision: overridable
+method). The session trail stays for views without parents.
 
 ## 1. Symptom
 

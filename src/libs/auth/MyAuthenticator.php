@@ -40,7 +40,10 @@ class MyAuthenticator extends Authenticator
 
     public function tokenLogin(string $inputToken): bool
     {
-        $dbAuthToken = AuthTokenTypeEnum::LOGIN->claim(inputToken: $inputToken);
+        $dbAuthToken = AuthTokenTypeEnum::LOGIN->claim(
+            session: ActraBackend::get()->getSession(),
+            inputToken: $inputToken,
+        );
         if ($dbAuthToken === null) {
             return false;
         }

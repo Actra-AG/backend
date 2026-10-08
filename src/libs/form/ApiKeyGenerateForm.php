@@ -48,6 +48,7 @@ final class ApiKeyGenerateForm extends Form
             return false;
         }
         GeneratedApiKeyFlash::store(
+            session: ActraBackend::get()->getSession(),
             userID: $this->userID,
             apiKey: DbAuthApiKeyRepository::createForUserID(userID: $this->userID),
         );

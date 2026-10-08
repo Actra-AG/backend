@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\auth;
 
+use actra\yuf\session\Session;
+
 /**
  * Keeps a newly generated API key in the session until the page after the POST redirect has shown it once. The key
  * is never stored in plain text anywhere else, so it must not be put into the redirect URL.
@@ -17,28 +19,27 @@ final class GeneratedApiKeyFlash
 {
     private const string SESSION_KEY = 'actra_backend_generated_api_key';
 
-    public static function store(int $userID, string $apiKey): void
+    public static function store(Session $session, int $userID, string $apiKey): void
     {
-        $_SESSION[GeneratedApiKeyFlash::SESSION_KEY] = [
-            'userID' => $userID,
-            'apiKey' => $apiKey,
-        ];
+        $session->set(key: GeneratedApiKeyFlash::SESSION_KEY, value: ['userID' => $userID, 'apiKey' => $apiKey]);
     }
 
     /**
      * Returns the stored key of the user and removes it, so it is shown only once.
      */
-    public static function pull(int $userID): ?string
+    public static function pull(Session $session, int $userID): ?string
     {
-        $stored = $_SESSION[GeneratedApiKeyFlash::SESSION_KEY] ?? null;
+        $stored = $session->getArray(key: GeneratedApiKeyFlash::SESSION_KEY);
         if (
-            !is_array(value: $stored)
-            || ($stored['userID'] ?? null) !== $userID
-            || !is_string(value: $stored['apiKey'] ?? null)
+            $stored === null
+            || !array_key_exists(key: 'userID', array: $stored)
+            || !array_key_exists(key: 'apiKey', array: $stored)
+            || $stored['userID'] !== $userID
+            || !is_string(value: $stored['apiKey'])
         ) {
             return null;
         }
-        unset($_SESSION[GeneratedApiKeyFlash::SESSION_KEY]);
+        $session->remove(key: GeneratedApiKeyFlash::SESSION_KEY);
 
         return $stored['apiKey'];
     }

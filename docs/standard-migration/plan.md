@@ -180,7 +180,7 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
 - Behaviour notes: fixed production error texts, `NavigationItem` href check, IP whitelist fails closed, escaped
   plain text values in form markup.
 
-### Step 10 – yuf ^4.57 (v4.42–v4.57)
+### Step 10 – yuf ^4.57.2 (v4.42–v4.57.2)
 
 - `SearchState::create()` in `AbstractSearchForm`, `SearchQueryBuilder::createBooleanQuery()` in 3 tables;
   `ViewContext` route and `PathVars` (v4.49); `createHtmlTag()` (v4.51); `toTemplateData()` in `LanguageSwitcherTest`;
@@ -193,6 +193,13 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
 
 ### Step 11 – remaining standard checks
 
+- i18n (`standards/i18n.md`, findings 2026-10-08): dates are formatted with `date()` patterns from the messages
+  (`CommonMessages::$dateFormat`, `$dateTimeFormat`) instead of `IntlDateFormatter`; full names are concatenated
+  (`firstName . ' ' . lastName` in `MyAuthUser`, `NotificationTable`, `DbAuthUserCollection`,
+  `DbAuthUserNotification`, `user`, `userDelete`) instead of a message with placeholders. Templates and the language
+  per request comply.
+- `AuthTokenTypeEnum::ACTIVATION` throws `new Exception('To be implemented')`: a specific SPL exception or remove the
+  case (check whether projects use it).
 - PHPStan baseline to 0 entries; lines ≤ 120 (51 today); `self::` in `DBTest`; `ActraBackend::viewGroup` →
   `VIEW_GROUP` (deprecated alias); enable `config/phpstan-no-superglobals.neon` of the coding standard.
 
@@ -287,3 +294,14 @@ Remaining tasks 1 and 2 of `docs/coding-standard/plan.md`, before any API change
 - `BackendViewFactoryTest` (4 tests) with doubles in `tests/Double/` (`ActraBackendTestInstance` initializes the
   backend once with example settings, no database connection). 89 tests, baseline unchanged (144).
 - Browser check in `../drogeriehaas.ch` pending: the user adapts its views, tables, search forms and routes.
+
+### Between steps 2 and 3 (2026-10-08)
+
+- `actra/coding-standard` ^1.4.1 (v1.4.0: `standards/i18n.md`, library rules; v1.4.1: documentation only).
+- `AGENTS.md`: the forms rules are replaced by a link to "Rules for forms" in yuf's README (yuf v4.57.2); every old
+  rule is covered there, the rule about typed getters is obsolete (yuf has no untyped getters any more). The
+  `vendor/` copy has the section from step 10 on.
+- yuf's follow-up prompt asked to raise yuf to ^4.57.2 at once; that stays step 10 of this plan (now ^4.57.2), so every
+  step keeps a released yuf version.
+- i18n findings added to step 11.
+

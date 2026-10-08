@@ -58,14 +58,9 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Forms (yuf form API)
 
-- Every form passes `messages: ActraBackend::messages()->form` to `Form::__construct()`, so the texts of yuf (cancel
-  link, invalid input, …) have the language of the route like the texts of the backend.
-- Use the typed getters and setters of the fields (`getValueAsString()`, `getValues()`, `isChecked()`, …), never
-  untyped values. Initial values go into the constructor (or `setInitialValue()` in a field subclass).
-- `PasswordField` always gets the matching `PasswordPurposeEnum` (`CURRENT` for login and confirming the current
-  password, `NEW` for setting a password).
-- Field checks are typed rules (`StringRule`, `StringListRule`, …, per line with `addEachRule()`), not overrides of
-  the field's validation. Error messages are `HtmlText`; user input in a message is always encoded.
+- Follow the rules for forms in yuf's README (section "Rules for forms",
+  https://github.com/Actra-AG/yuf/blob/main/README.md#rules-for-forms; in `vendor/actra/yuf/README.md` from yuf
+  v4.57.2 on). The `FormMessages` of the request language are `ActraBackend::messages()->form`.
 
 ### Texts (`standards/i18n.md`)
 

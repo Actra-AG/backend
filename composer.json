@@ -16,7 +16,7 @@
     "ext-mbstring": "*"
   },
   "require-dev": {
-    "actra/coding-standard": "^1.4.1",
+    "actra/coding-standard": "^1.5.0",
     "phpunit/phpunit": "^13.4"
   },
   "autoload": {

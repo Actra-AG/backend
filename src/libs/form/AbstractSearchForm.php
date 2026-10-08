@@ -11,7 +11,7 @@ namespace actra\backend\libs\form;
 
 use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
-use actra\yuf\common\SearchHelper;
+use actra\yuf\common\SearchState;
 use actra\yuf\core\InputSourceEnum;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\NullField;
@@ -21,13 +21,13 @@ use LogicException;
 
 abstract class AbstractSearchForm extends Form
 {
-    public readonly SearchHelper $searchHelper;
+    public readonly SearchState $searchState;
     protected readonly BackendViewContext $backendContext;
 
     public function __construct(BackendViewContext $context, string $name)
     {
         $this->backendContext = $context;
-        $this->searchHelper = SearchHelper::create(
+        $this->searchState = SearchState::create(
             instanceName: $name,
             httpRequest: $context->viewContext->httpRequest,
             valueSource: InputSourceEnum::POST,
@@ -42,21 +42,21 @@ abstract class AbstractSearchForm extends Form
     }
 
     /**
-     * Reads the search value from the request or the session (SearchHelper) and shows it in the field.
+     * Reads the search value from the request or the session (SearchState) and shows it in the field.
      */
     protected function validateSearchField(NullField|SelectOptionsField|TextField $searchField): string
     {
         if ($searchField instanceof NullField) {
             return '';
         }
-        $searchHelper = $this->searchHelper;
+        $searchState = $this->searchState;
         if ($searchField instanceof TextField) {
-            $value = $searchHelper->checkString(
+            $value = $searchState->checkString(
                 fieldName: $searchField->name,
                 default: $searchField->getValueAsString(),
             );
         } else {
-            $value = $searchHelper->checkFilter(
+            $value = $searchState->checkFilter(
                 array: ['' => 'all'] + $searchField->formOptions->data,
                 fieldName: $searchField->name,
                 default: $searchField->getValueAsString(),

@@ -97,10 +97,10 @@ final class LanguageSwitcherTest extends TestCase
         $data = $switcher->render()->items;
 
         $this->assertCount(2, $data);
-        $french = $data[1] ?? LanguageSwitcherTest::fail('No data object for the second entry');
-        $this->assertSame('Français', $french->data->label);
-        $this->assertSame('/fr/backend/', $french->data->href);
-        $this->assertFalse($french->data->isCurrent);
+        $french = $data[1]->toTemplateData();
+        $this->assertSame('Français', $french->label);
+        $this->assertSame('/fr/backend/', $french->href);
+        $this->assertFalse($french->isCurrent);
     }
 
     /**

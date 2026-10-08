@@ -14,7 +14,7 @@ use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUserLoginRepository;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\yuf\auth\AuthResultEnum;
-use actra\yuf\common\SearchHelper;
+use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
@@ -49,7 +49,7 @@ class VisitTable extends AbstractTable
         }
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
-            $booleanQuery = SearchHelper::createBooleanQuery(
+            $booleanQuery = SearchQueryBuilder::createBooleanQuery(
                 spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_login.sessionId auth_login.ipAddress auth_login.email',
                 queryText: $searchQuery,
             );

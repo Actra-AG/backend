@@ -54,6 +54,7 @@ class ActraBackend
     public private(set) BackendRoute $currentRoute;
     /** The `ViewContext` of the current request, set by `BackendView` (`null` before and outside a backend view) */
     private ?ViewContext $viewContext = null;
+    private bool $hasNavigationItems = false;
 
     /**
      * @param string $path The path of the main route; use `ActraBackend::path()` for the path of the current route
@@ -109,7 +110,6 @@ class ActraBackend
         foreach ($backendRouteCollection->routes as $backendRoute) {
             $routeCollection->addRoute(route: $actraBackend->createRoute(backendRoute: $backendRoute));
         }
-        $actraBackend->addNavigationItems();
     }
 
     public static function get(): ActraBackend
@@ -190,7 +190,11 @@ class ActraBackend
     {
         $this->currentRoute = $this->backendRouteCollection->findByPath(path: $route->path)
             ?? $this->backendRouteCollection->getForLanguage(languageCode: $route->language?->code);
-        $this->addNavigationItems();
+        if (!$this->hasNavigationItems) {
+            // Once per request: yuf's NavigationItemCollection rejects a key that is added twice
+            $this->addNavigationItems();
+            $this->hasNavigationItems = true;
+        }
     }
 
     /**
@@ -227,8 +231,7 @@ class ActraBackend
     }
 
     /**
-     * Adds the navigation items of the backend and of the project for the current route. Called again for another
-     * route, the items replace those of the same navigation key at the same position.
+     * Adds the navigation items of the backend and of the project for the current route, once per request.
      */
     private function addNavigationItems(): void
     {

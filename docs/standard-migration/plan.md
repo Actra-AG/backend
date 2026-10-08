@@ -14,6 +14,8 @@ Sources: `../yuf/docs/standard-migration/remaining.md` (follow-up for the backen
 - yuf steps raise `actra/yuf` to the lowest version that contains the step's changes, so each release works with a
   real yuf version. From step 8 on the constraint locks the minor version (`~4.37.0`, decision 2026-10-08, coding
   standard v1.7.0): with `^`, projects got newer yuf versions the backend did not support yet.
+- No backwards compatibility (decision 2026-10-08): the projects update from about v1.0 directly to the final
+  release, so no deprecated wrappers, aliases or transition code; breaking changes are listed in `UPGRADE.md`.
 - Every step adds an `UPGRADE.md` section with ⚠️ before/after for each breaking change and a "Search your project
   for …" list (like yuf), updates `README.md` where affected and appends a handover note below.
 - Characterization tests first where behaviour changes; hand-written doubles in `tests/Double/`, no reflection on
@@ -73,15 +75,15 @@ modified from this repository). Steps that change views, templates or HTML are c
 | 6  | ^4.34 | No `$_SESSION`; breadcrumb on `Session` and fixed                          | medium | direct | v1.10.0 |
 | 7  | –     | merged into step 3                                                         | –      | –      | –       |
 | 8  | ^4.37 | Passwords (`dbUpdatePassword()`), API keys with `SecretTokenHash`, tables  | medium | direct | v1.11.0 |
-| 9  | ^4.41 | Mailer, form attributes, `IpTypeEnum::IP`                                  | small  | direct | v1.12.0 |
-| 10 | ^4.57 | Search state, resolved route, navigation, `createHtmlTag()`, rest          | medium | direct | v1.13.0 |
-| 11 | ^4.57 | Empty baseline, line lengths, no superglobals rule, constant names         | small  | direct | v1.14.0 |
-| 12 | ^4.57 | `final`, extension points, `@internal`                                     | medium | direct | v1.15.0 |
-| 13 | ^4.57 | Interfaces without suffix                                                  | small  | direct | v1.16.0 |
-| 14 | ^4.57 | No static `ActraBackend`: messages, path, navigation in the context        | large  | direct | v1.17.0 |
-| 15 | ^4.57 | Repositories, `DB`, current user, mailer as services                       | large  | direct | v1.18.0 |
-| 16 | ^4.57 | Acronyms of the backend API (`ID` → `id`, …)                               | large  | Sonnet | v1.19.0 |
-| 17 | ^4.57 | snake_case database tables and columns                                     | large  | Sonnet | v1.20.0 |
+| 9  | –     | merged into step 10                                                        | –      | –      | –       |
+| 10 | ~4.57 | yuf v4.38–v4.57.3 (former steps 9 and 10)                                  | medium | direct | v1.12.0 |
+| 11 | ^4.57 | Empty baseline, line lengths, no superglobals rule, constant names         | small  | direct | v1.13.0 |
+| 12 | ^4.57 | `final`, extension points, `@internal`                                     | medium | direct | v1.14.0 |
+| 13 | ^4.57 | Interfaces without suffix                                                  | small  | direct | v1.15.0 |
+| 14 | ^4.57 | No static `ActraBackend`: messages, path, navigation in the context        | large  | direct | v1.16.0 |
+| 15 | ^4.57 | Repositories, `DB`, current user, mailer as services                       | large  | direct | v1.17.0 |
+| 16 | ^4.57 | Acronyms of the backend API (`ID` → `id`, …)                               | large  | Sonnet | v1.18.0 |
+| 17 | ^4.57 | snake_case database tables and columns                                     | large  | Sonnet | v1.19.0 |
 
 `^4.57` in the table means `^4.57.3` (the current yuf release). "Sonnet" marks the only steps that are long, mechanical and self-contained enough for a separate session; the main
 session decides again when the step starts. The release numbers are the expected order; a major version (v2.0.0) for
@@ -226,14 +228,13 @@ depend on these versions and follows as its own step.
 
 ### Step 13 – interfaces without suffix
 
-- `UserDeleteHandler`, `BackendNavigation`; the old names stay as deprecated interfaces extending the new ones for one
-  release.
+- `UserDeleteHandler`, `BackendNavigation`; the old names are removed.
 
 ### Step 14 – no static `ActraBackend`
 
 - `ActraBackend::init()` returns the instance used by the view factory; `BackendViewContext` gets `messages`, the
   current backend route (`path`) and the navigation; the static `getPath()` / `getNavigationItem()` of the views move
-  to a route paths object. `ActraBackend::get()`, `messages()`, `path()` become deprecated wrappers.
+  to a route paths object. `ActraBackend::get()`, `messages()`, `path()` are removed.
 
 ### Step 15 – services instead of static classes
 
@@ -245,7 +246,7 @@ depend on these versions and follows as its own step.
 ### Step 16 – acronyms of the backend API
 
 - `ID` → `id`, `userID` → `userId`, `getUserIDForBearerOrThrow()` → `…Id…` in properties, methods and argument names;
-  properties readable under the old name for one release (deprecated property hook), renamed arguments are breaking.
+  no aliases for the old names.
 
 ### Step 17 – snake_case database
 
@@ -381,3 +382,16 @@ depend on these versions and follows as its own step.
 - `db/updates/1.11.0.sql`: `passwordHash` `varchar(255)` (yuf v4.37). Tables: renamed message properties (v4.35),
   `#[\Override]` on `render()`.
 - 106 tests, baseline 117 → 111 entries.
+
+### Steps 9 and 10 – done (2026-10-08)
+
+- Decision: projects update from about v1.0 directly to the final release; the one-time token login is the standard,
+  password login an option. No backwards compatibility or transition code in the remaining steps; steps 9 and 10
+  merged into one step (yuf `~4.57.3`, checked against v4.57.3), `actra/coding-standard` ^1.7.0.
+- `SearchState` (property `AbstractSearchForm::$searchState`, was `$searchHelper`), `SearchQueryBuilder`,
+  `createHtmlTag()`, `HtmlTagAttribute::fromText()`, `IpTypeEnum::IP`, `toTemplateData()` in the test.
+- Navigation (v4.52 rejects a duplicate key): the items are added once per request in `activateRoute()`, no longer in
+  `init()`; `BackendViewFactoryTest` found the error. `BackendNavigationInterface` and README say "once per request".
+- Transition code removed: the Argon2id case of the API keys.
+- 105 tests, baseline 111 → 110 entries.
+

@@ -19,12 +19,6 @@ parameters:
 			path: src/BackendView.php
 
 		-
-			rawMessage: 'Parameter $navigationLevels of class actra\backend\libs\common\SessionBreadcrumbTrail constructor expects array<int, string>, array given.'
-			identifier: argument.type
-			count: 1
-			path: src/BackendView.php
-
-		-
 			rawMessage: 'Method actra\backend\libs\auth\MyAuthUser::dbConfirmSuccessfulLogin() overrides method actra\yuf\auth\AuthUser::dbConfirmSuccessfulLogin() but is missing the #[\Override] attribute.'
 			identifier: method.missingOverride
 			count: 1

@@ -11,12 +11,12 @@
   ],
   "require": {
     "php": ">=8.5",
-    "actra/yuf": "~4.37.0",
+    "actra/yuf": "~4.57.3",
     "ext-intl": "*",
     "ext-mbstring": "*"
   },
   "require-dev": {
-    "actra/coding-standard": "^1.6.0",
+    "actra/coding-standard": "^1.7.0",
     "phpunit/phpunit": "^13.4"
   },
   "autoload": {

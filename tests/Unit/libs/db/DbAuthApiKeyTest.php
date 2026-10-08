@@ -48,14 +48,4 @@ final class DbAuthApiKeyTest extends TestCase
         $this->assertTrue($apiKey->isValid(secret: DbAuthApiKeyTest::SECRET));
         $this->assertFalse($apiKey->isValid(secret: 'wrong'));
     }
-
-    public function testArgon2idKeyWithoutSaltStaysAPassword(): void
-    {
-        $password = Password::generateNew(rawPassword: DbAuthApiKeyTest::SECRET);
-
-        $apiKey = $this->createApiKey(salt: $password->salt, hash: $password->hash);
-
-        $this->assertInstanceOf(Password::class, $apiKey->key);
-        $this->assertTrue($apiKey->isValid(secret: DbAuthApiKeyTest::SECRET));
-    }
 }

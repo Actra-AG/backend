@@ -28,11 +28,11 @@ final class SearchQueryField extends TextField
     public function getHtmlTag(): HtmlTag
     {
         $divTag = new HtmlTag(name: 'div', selfClosing: false);
-        $labelAttributes = [new HtmlTagAttribute(name: 'for', value: $this->name, valueIsEncodedForRendering: true)];
+        $labelAttributes = [HtmlTagAttribute::fromText(name: 'for', text: $this->name)];
         $labelTag = new HtmlTag(name: 'label', selfClosing: false, htmlTagAttributes: $labelAttributes);
         $labelTag->addText(htmlText: $this->label);
         $divTag->addTag(htmlTag: $labelTag);
-        $divTag->addTag(htmlTag: $this->getDefaultRenderer()->prepareHtmlTag());
+        $divTag->addTag(htmlTag: $this->getDefaultRenderer()->createHtmlTag());
 
         return $divTag;
     }

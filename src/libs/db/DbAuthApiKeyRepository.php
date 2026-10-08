@@ -49,8 +49,8 @@ class DbAuthApiKeyRepository
     }
 
     /**
-     * A `SecretTokenHash` for keys since v1.11.0 (empty salt, SHA-256 in hex); a `Password` for older keys: with salt
-     * (SHA-256 with salt) or with an Argon2id hash (generated with yuf v4.37+ before v1.11.0).
+     * A `SecretTokenHash` for keys since v1.11.0 (empty salt, SHA-256 in hex), a `Password` for older keys (salt and
+     * SHA-256).
      */
     public static function createKeyHash(string $salt, string $hash): Password|SecretTokenHash
     {

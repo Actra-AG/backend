@@ -276,7 +276,7 @@ new ActraBackendSettings(
 );
 ```
 
-The hook is called at init for the main route and again for the route of every backend request.
+The hook is called once per request, for the backend route of the request; each navigation key may be added once.
 
 With several languages, the page header shows a language switcher that links to the same page in each language.
 

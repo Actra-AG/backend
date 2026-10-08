@@ -3,6 +3,40 @@
 This document tracks relevant changes for both frontend and backend developers, newest first. ⚠️ marks breaking
 changes.
 
+## v1.12.0 (2026-10-08)
+
+### ⚠️ Requires `actra/yuf` `~4.57.3`
+
+Was `~4.37.0`. Migrate the own code of the project with yuf's `UPGRADE.md` v4.38.0–v4.57.3, in particular
+`Core::fromEnvironment()` instead of `new Core()` in `index.php` (v4.45), `SearchState` / `SearchQueryBuilder` instead
+of `SearchHelper` (v4.48), `createHtmlTag()` (v4.51), `toTemplateData()` (v4.50), `HtmlTagAttribute::fromText()`,
+`IpTypeEnum::IP`; responses of a view end the script (`redirectAndExit()` returns `never`, v4.44).
+
+Behaviour of yuf: the session starts on first use and is closed after the view (v4.46); a request needs a session to
+remember the language (v4.47); phone numbers that are possible but not valid are rejected (v4.54); IPv4-mapped IPv6
+addresses match IPv4 entries of an IP whitelist (v4.52); production errors show fixed texts (v4.40).
+
+### ⚠️ Search forms: `$searchState`
+
+`AbstractSearchForm::$searchHelper` (yuf `SearchHelper`) is now `$searchState` (yuf `SearchState`, same methods):
+
+```php
+// Before
+$this->searchHelper->checkString(fieldName: 'name');
+
+// After
+$this->searchState->checkString(fieldName: 'name');
+```
+
+### ⚠️ Navigation items once per request
+
+yuf v4.52 rejects a navigation key that is added twice. The backend adds its items and calls
+`BackendNavigationInterface::addNavigationItems()` once per request, for the backend route of the request (no longer
+also at `ActraBackend::init()`). Add each key of the project once.
+
+Search your project for: `searchHelper`, `SearchHelper`, `new Core(`, `prepareHtmlTag(`, `->data->`,
+`new HtmlTagAttribute(`, `IpTypeEnum::ip`, `addNavigationItems(`.
+
 ## v1.11.0 (2026-10-08)
 
 ### ⚠️ Requires `actra/yuf` `~4.37.0` (minor version locked)

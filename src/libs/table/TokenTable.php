@@ -14,7 +14,7 @@ use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthTokenRepository;
 use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\settings\AuthTokenTypeEnum;
-use actra\yuf\common\SearchHelper;
+use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DateColumn;
@@ -50,7 +50,7 @@ class TokenTable extends AbstractTable
         }
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
-            $booleanQuery = SearchHelper::createBooleanQuery(
+            $booleanQuery = SearchQueryBuilder::createBooleanQuery(
                 spaceSeparatedFieldNames: 'auth_user.firstName auth_user.lastName auth_token.token auth_token.registeredClient auth_token.claimedClient',
                 queryText: $searchQuery,
             );

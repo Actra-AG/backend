@@ -47,17 +47,16 @@ This project follows the Actra coding standard, installed as development depende
 ### Dependencies and tooling
 
 - Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`.
-- PHPStan and PHPUnit find the yuf classes as described in yuf's README, section "Static analysis and tests"
-  (https://github.com/Actra-AG/yuf#static-analysis-and-tests).
+- PHPStan and PHPUnit find the yuf classes as described in yuf's README (`vendor/actra/yuf/README.md`, section
+  "Static analysis and tests").
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).
 
 ### Forms (yuf form API)
 
-- Follow the rules for forms in yuf's README (section "Rules for forms",
-  https://github.com/Actra-AG/yuf/blob/main/README.md#rules-for-forms; in `vendor/actra/yuf/README.md` from yuf
-  v4.57.2 on). The `FormMessages` of the request language are `ActraBackend::messages()->form`.
+- Follow the rules for forms in yuf's README (`vendor/actra/yuf/README.md`, section "Rules for forms"). The
+  `FormMessages` of the request language are `ActraBackend::messages()->form`.
 
 ### Texts (`standards/i18n.md`)
 

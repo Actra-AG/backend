@@ -9,8 +9,14 @@ declare(strict_types=1);
 
 namespace actra\backend\settings;
 
+use actra\yuf\common\FileCache;
+
 final readonly class MailerSettings
 {
+    /**
+     * @param ?FileCache $serverNameCache Keeps the host name of the server for a day (`$core->fileCache`), `null` to
+     *                                    look it up for every mail
+     */
     public function __construct(
         public string $senderEmail,
         public string $senderName,
@@ -20,5 +26,6 @@ final readonly class MailerSettings
         public int $port,
         public bool $tls,
         public string $signature,
+        public ?FileCache $serverNameCache,
     ) {}
 }

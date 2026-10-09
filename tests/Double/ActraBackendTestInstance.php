@@ -50,6 +50,7 @@ final class ActraBackendTestInstance
                 port: 587,
                 tls: true,
                 signature: '',
+                serverNameCache: null,
             ),
             navigationItemCollection: new NavigationItemCollection(),
         );

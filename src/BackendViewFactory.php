@@ -13,7 +13,6 @@ use actra\yuf\core\BaseView;
 use actra\yuf\core\ClassNameViewFactory;
 use actra\yuf\core\ViewContext;
 use actra\yuf\core\ViewFactory;
-use LogicException;
 
 /**
  * Creates the view of a request like yuf's `ClassNameViewFactory` (class name from the route and the file name), but
@@ -22,25 +21,23 @@ use LogicException;
  */
 final readonly class BackendViewFactory implements ViewFactory
 {
-    public function __construct(
-        private ActraBackend $actraBackend,
-        private ClassNameViewFactory $classNameViewFactory = new ClassNameViewFactory(),
-    ) {}
+    private ClassNameViewFactory $classNameViewFactory;
+
+    public function __construct(ActraBackend $actraBackend)
+    {
+        $this->classNameViewFactory = new ClassNameViewFactory(
+            create: static fn(string $className, ViewContext $context): BaseView => is_subclass_of(
+                object_or_class: $className,
+                class: BackendView::class,
+            )
+                ? new $className(context: $actraBackend->createContext(viewContext: $context))
+                : new $className(context: $context),
+        );
+    }
 
     #[\Override]
     public function createView(ViewContext $context): ?BaseView
     {
-        $className = $this->classNameViewFactory->createClassName(context: $context);
-        if (!class_exists(class: $className)) {
-            return null;
-        }
-        if (is_subclass_of(object_or_class: $className, class: BackendView::class)) {
-            return new $className(context: $this->actraBackend->createContext(viewContext: $context));
-        }
-        if (!is_subclass_of(object_or_class: $className, class: BaseView::class)) {
-            throw new LogicException(message: 'The class ' . $className . ' must extend ' . BaseView::class . '.');
-        }
-
-        return new $className(context: $context);
+        return $this->classNameViewFactory->createView(context: $context);
     }
 }

@@ -38,42 +38,9 @@ composer require actra/backend
 
 ### 2. Assets
 
-The package ships default assets in `src/assets`.
-
-Projects using this library should include these assets in their own build or asset publishing process. Depending on the
-project setup, this can mean importing them into a npm, Grunt, or other asset pipeline, bundling and minifying them
-together with project-specific assets, or publishing them directly as static files.
-
-The main entrypoints are:
-
-- `src/assets/css/backend.css`
-- `src/assets/js/backend.js`
-
-The default CSS expects the bundled backend fonts to be available below the public font path:
-
-- `/fonts/backend/`
-
-For example, when publishing the package assets directly, publish the backend font files so that
-`/fonts/backend/inter-v18-latin-regular.woff2`, `/fonts/backend/inter-v18-latin-italic.woff2`, and the used bold weights
-are reachable by the browser.
-
-Messages use the `msg` block (`src/assets/css/blocks/_msg.css`) with one variant: `msg-success`, `msg-note`,
-`msg-warning` or `msg-error`. Use `role="status"` for success and notes, `role="alert"` for errors that need
-attention:
-
-```html
-<p class="msg msg-error" role="alert"><strong>Error:</strong> This event has subscriptions and cannot be deleted.</p>
-<p class="msg msg-warning" role="status"><strong>Warning:</strong> The event is fully booked.</p>
-```
-
-After changing the version of `actra/backend`, rebuild (or republish) the CSS and JavaScript bundles of the project.
-
-After the assets are available through the application's public asset URLs, reference them when initializing the
-backend:
-
-```php
-$actraBackend = ActraBackend::init(/* see "Basic Initialization" */);
-```
+Include `src/assets/css/backend.css` and `src/assets/js/backend.js` in the asset build or publishing of the project and
+publish the fonts below `/fonts/backend/` ([docs/assets.md](docs/assets.md)). Rebuild them after every update of
+`actra/backend`.
 
 ### 3. Database Setup
 
@@ -123,14 +90,15 @@ $actraBackend = ActraBackend::init(
     ),
     dbSettings: new DbSettings,
     mailerSettings: new MailerSettings(
-    senderEmail: 'noreply@example.com',
+        senderEmail: 'noreply@example.com',
         senderName: 'My Project',
         hostname: 'smtp.example.com',
         username: 'mailer@example.com',
         password: 'smtp_password',
         port: 587,
         tls: true, // certificate and host name are verified; false only for a local mail catcher
-        signature: 'Best regards, Your Team'
+        signature: 'Best regards, Your Team',
+        serverNameCache: $core->fileCache, // null: look up the server name for every mail
     ),
     navigationItemCollection: $navigationItemCollection
 );
@@ -139,307 +107,15 @@ $actraBackend = ActraBackend::init(
 Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`)
 and adds navigation items to your `NavigationItemCollection`.
 
-### Project Views, Tables and Search Forms
-
-Project views based on `BackendView` receive a `BackendViewContext`: the `ViewContext` of yuf
-(`$this->context`) and the services of the backend (`$this->backendContext`). The routes of these views use the view
-factory of the backend; other views on the same route keep getting the yuf `ViewContext`:
-
-```php
-use actra\backend\ActraBackend;
-use actra\backend\BackendView;
-use actra\backend\BackendViewContext;
-
-new Route(
-    path: '/de/orders/',
-    viewDirectory: $core->viewDirectory,
-    viewGroup: 'orders',
-    viewFactory: $actraBackend->createViewFactory(), // $actraBackend from ActraBackend::init()
-);
-
-final class orders extends BackendView
-{
-    public function __construct(BackendViewContext $context)
-    {
-        parent::__construct(context: $context, requiredViewGroupName: 'orders');
-    }
-}
-```
-
-Tables based on `AbstractTable` and search forms based on `AbstractSearchForm` get the same context as first
-argument; the database of a table defaults to the database of the backend:
-
-```php
-new OrderTable(context: $this->backendContext);
-new OrderSearchForm(context: $this->backendContext, name: 'OrderSearch');
-
-// in OrderTable::__construct(BackendViewContext $context)
-parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQuery);
-```
-
-`BackendViewContext` (`$this->backendContext` in views, tables and search forms) holds the services of the request:
-
-| Property / method | Content |
-|:--|:--|
-| `messages`, `route`, `paths` | Texts, backend route and links of the request language (`$paths->user(id: 5)`) |
-| `repositories` | The repositories (`->users()`, `->groups()`, …, `->db()` for the database of the backend) |
-| `currentUser`, `getCurrentUser()` | The logged-in `MyAuthUser` (`null` / `UnauthorizedException` without login) |
-| `mailer` | Sends emails with the `MailerSettings` (`->sendTextMail()`) |
-| `session`, `authSession`, `viewContext` | yuf's session objects and `ViewContext` |
-| `userController` | `->deleteUser(userId:)` |
-
-Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and `$actraBackend->createMailer()`.
-
-The values of a search form come from the posted form (`reset` and `find` from the query string), and tables and
-search forms keep their state in the session. New services of the backend are added to `BackendViewContext`, so these
-constructors do not change again.
-
-### Breadcrumb
-
-With `useNavigator: true`, a view shows the pages visited before it as breadcrumb (kept in the session; `?reset` in a
-link or `resetNavigator: true` restarts it). A page reached directly (bookmark, link in an email) then shows the trail
-of whatever was visited before. A view that knows its parents declares them instead; they replace the trail, and the
-trail restarts at this page for the views that follow:
-
-```php
-use actra\backend\libs\common\BreadcrumbItem;
-use actra\backend\libs\common\BreadcrumbItemCollection;
-
-protected function getBreadcrumbParents(): ?BreadcrumbItemCollection
-{
-    // called when the page is rendered, after prepareHtmlDocument() has loaded the subscription
-    return new BreadcrumbItemCollection(
-        new BreadcrumbItem(title: $this->event->title, href: $this->eventPath($this->event->id)),
-        new BreadcrumbItem(
-            title: '#' . $this->subscription->id,
-            href: $this->subscriptionPath($this->subscription->id),
-        ),
-    );
-}
-```
-
-Titles and links are plain text and escaped; the current page is the page title of the view.
-
-### Languages
-
-All texts of the backend come from message classes; English and German are included. The texts of a request follow
-the language of its route: the main route (`path` of `$actraBackend = ActraBackend::init()`) uses `ActraBackendSettings::$language`,
-further languages get their own route:
-
-```php
-use actra\backend\settings\BackendRoute;
-use actra\yuf\core\Language;
-
-ActraBackend::init(
-    routeCollection: $routeCollection,
-    path: '/backend/',
-    isDefaultForLanguage: false,
-    actraBackendSettings: new ActraBackendSettings(
-        language: new Language(code: 'de', locale: 'de_CH'), // German texts under /backend/
-        ...
-        additionalRoutes: [
-            // English texts under /en/backend/
-            new BackendRoute(path: '/en/backend/', language: new Language(code: 'en', locale: 'en_GB')),
-        ]
-    ),
-    ...
-);
-```
-
-A route gets German texts for `de` and English texts for every other language. To change single texts, pass own
-messages (`ActraBackendSettings::$messages` for the main route, `messages` of a `BackendRoute`):
-
-```php
-use actra\backend\i18n\AuthMessages;
-use actra\backend\i18n\BackendMessages;
-
-messages: BackendMessages::german()->with(
-    auth: AuthMessages::german()->with(loginPageTitle: 'Login')
-)
-```
-
-The languages of the routes must be available languages of the yuf application if a route is the default route of
-its language (`isDefaultForLanguage`).
-
-With several languages, every user can choose a language (user forms, profile). After login the user continues on
-the backend route of that language, and the welcome email uses it (text and link). Users without a language stay on
-the route they logged in with; their welcome email uses the main route.
-
-Navigation items of the project follow the route language if they are added by a `BackendNavigation`:
-
-```php
-use actra\backend\settings\BackendNavigation;
-use actra\backend\settings\BackendRoute;
-
-final class ProjectNavigation implements BackendNavigation
-{
-    public function addNavigationItems(
-        NavigationItemCollection $navigationItemCollection,
-        BackendRoute $backendRoute
-    ): void {
-        $navigationItemCollection->addItem(navigationItem: new NavigationItem(
-            navKey: 'orders',
-            href: '/' . $backendRoute->language->code . '/orders/', // the project's route of that language
-            svgPath: '...',
-            title: $backendRoute->language->code === 'de' ? 'Bestellungen' : 'Orders',
-            requiredAccessRights: AccessRightCollection::createEmpty()
-        ));
-    }
-}
-
-new ActraBackendSettings(
-    ...
-    projectNavigation: new ProjectNavigation()
-);
-```
-
-The hook is called once per request, for the backend route of the request; each navigation key may be added once.
-
-With several languages, the page header shows a language switcher that links to the same page in each language.
-
-### User Deletion Handler
-
-When a backend user is deleted, the library removes its own user-related records first and then deletes the row from
-`auth_user`. Projects that store additional foreign-key references to `auth_user.id` can register a delete handler to
-remove or update their project-specific records before the user itself is deleted.
-
-In the consuming project, pass the handler in the settings of `ActraBackend::init()`:
-
-```php
-use actra\backend\libs\auth\UserDeleteHandler;
-
-final class ProjectUserDeleteHandler implements UserDeleteHandler {
-    public function beforeDeleteUser(int $userId): void {
-        $this->projectUserProfiles->deleteByUserId(userId: $userId);
-        $this->projectUserSettings->deleteByUserId(userId: $userId);
-    }
-}
-new ActraBackendSettings(
-    ...
-    userDeleteHandler: new ProjectUserDeleteHandler(),
-);
-```
-
-The delete handler is executed inside the same database transaction as the built-in user cleanup and before `auth_user`
-is deleted. If the handler throws an exception, the transaction is rolled back and the user is not deleted.
-
-For simple database relations, projects can alternatively use foreign keys with `ON DELETE CASCADE` or
-`ON DELETE SET NULL`, depending on whether related rows should be removed or preserved without the user reference.
-
-### Confirmation Dialog for Destructive Actions
-
-Destructive actions run only on POST. The backend JavaScript (`initDialog()`, `src/assets/js/modules/dialog.js`)
-enhances a link to a server-side confirmation page: without JavaScript the link opens the confirmation page with the
-POST form; with JavaScript the `#dialog` modal opens, and on confirm the script fetches that page, submits its form
-by POST and follows the redirect of the server. No form is needed on the page with the link.
-
-```html
-<!-- href = confirmation page, data-form = CSS selector of its POST form -->
-<a href="/backend/userDelete-5.html" class="btn btn-danger" data-action="confirm-deletion"
-   data-form="main form" data-confirm="Really delete Jane Doe?">Delete</a>
-```
-
-The confirmation page (`userDelete-5.html`) shows the message and a normal (yuf) POST form with CSRF token and a
-submit button. Its processing redirects after success.
-
-- The script submits the fields of the form, including the CSRF token and the name of the first named submit button.
-- Success is a redirect of the server. Any other result (no form found, network error, a re-rendered page with an
-  error) navigates to the confirmation page, where the user sees the result.
-- Without `data-form`, the previous behaviour stays: a confirmation navigates to the `href` (GET, legacy).
-- The `#dialog` element (`.dialog-message`, `[data-action="modal-submit"]`, `[data-action="modal-cancel"]`) is part of
-  the default page template. `data-confirm` sets the message.
-- `data-confirm-label` (optional) sets the text of the confirm button while the dialog is open (as plain text, no
-  HTML); on close or cancel the button gets its template text back ("Yes, delete" / "Ja, löschen"). Use it for actions
-  that are not a deletion:
-
-```html
-<a href="/backend/subscriptionCancel-42.html" class="btn btn-danger" data-action="confirm-deletion"
-   data-form="main form" data-confirm="Really cancel the subscription?"
-   data-confirm-label="Yes, cancel">Cancel subscription</a>
-```
-
-The same pattern also protects state-changing actions that are not deletions, e.g. generating an API key
-(`userGenerateApiKey-5.html`, `profileGenerateApiKey.html`).
-
-### API Key Authentication
-
-API-key functionality is optional and must be enabled through `ActraBackendSettings`:
-
-```php
-new ActraBackendSettings(
-    ...
-    hasApi: true
-);
-```
-
-Users with management access can generate, replace, or remove a user's API key on the user detail page. Logged-in users
-can also manage their own API key on their profile page.
-
-API keys can only be generated if an IP whitelist is configured for the user. If an API key exists, the user's IP
-whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored as
-SHA-256 hash of the random secret (yuf's `SecretTokenHash`, fast enough for every API request); keys generated before
-v1.11.0 keep their former hash until they are generated again.
-
-Generating and removing a key run only on POST, through the confirmation pages `userGenerateApiKey-{ID}.html`,
-`userRemoveApiKey-{ID}.html`, `profileGenerateApiKey.html` and `profileRemoveApiKey.html` (see "Confirmation Dialog
-for Destructive Actions"). After generating, the new key is kept in the session until the user or profile page has
-shown it once.
-
-API clients should send the generated key as a bearer token:
-
-```http
-Authorization: Bearer api_key_<public-id>_<secret>
-```
-
-To validate the bearer token and retrieve the authenticated user ID, pass the request (in a view:
-`$this->context->httpRequest`):
-
-```php
-$userId = $actraBackend->getRepositories()->apiKeys()->getUserIdForBearerOrThrow(
-    httpRequest: $this->context->httpRequest,
-);
-```
-
-If the bearer token is missing, malformed, unknown, or invalid, an `UnauthorizedException` is thrown.
-
-### Integration Tests
-
-The general setup of PHPStan and the PHPUnit bootstrap for projects using yuf (and therefore the backend) is described
-in yuf's README, section [Static analysis and tests](https://github.com/Actra-AG/yuf#static-analysis-and-tests).
-
-Integration tests connect to a test database with `DB::fromSettings()` and use the repositories on that connection
-(`BackendRepositories::fromDb()`), without `ActraBackend::init()`:
-
-```php
-abstract class DatabaseTestCase extends TestCase
-{
-    protected BackendRepositories $repositories;
-
-    protected function setUp(): void
-    {
-        $db = DB::fromSettings(dbSettings: new DbSettings(
-            hostName: 'db',
-            databaseName: 'app_test',
-            userName: 'db',
-            password: 'db',
-        ));
-        $db->beginTransaction();
-        $this->repositories = BackendRepositories::fromDb(db: $db);
-    }
-
-    protected function tearDown(): void
-    {
-        $this->repositories->db()->rollBack();
-    }
-}
-```
-
-Everything the repositories write inside the test is rolled back. DDL statements (`CREATE`, `ALTER`, `DROP`,
-`TRUNCATE`) cause an implicit commit in MariaDB/MySQL and end the transaction, so do not use them in these tests.
-
 ## Documentation
 
-- [Upgrade Guide](UPGRADE.md) - Record of changes and migration instructions.
+- [Assets](docs/assets.md): CSS, JavaScript, fonts and message blocks.
+- [Project views](docs/views.md): views, tables and search forms of the project in the backend, breadcrumb,
+  confirmation dialogs.
+- [Languages](docs/languages.md): language of the backend, additional language routes, own texts.
+- [Users and API keys](docs/users.md): user deletion handler, API key authentication.
+- [Integration tests](docs/testing.md): tests of project code against the backend tables.
+- [UPGRADE.md](UPGRADE.md): changes and migration instructions.
 
 ## Development
 

@@ -21,41 +21,42 @@ This project follows the Actra coding standard, installed as development depende
 - Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`.
 - yuf is developed in parallel (local checkout usually at `../yuf`); raise it as described in
   `standards/versioning.md`, section 8.
-- The migration to the current yuf and the global standard is complete (v2.0.0); final state and open points in
-  [docs/standard-migration/plan.md](docs/standard-migration/plan.md).
+- The migration to the current yuf and the global standard is complete (v2.0.0); open points in
+  [docs/plans/follow-up/plan.md](docs/plans/follow-up/plan.md).
+- No skeleton project. No example app; views are checked in the consuming project (see "Dependencies and tooling").
 
 ## Directory layout
 
 - `src/` – library code, namespace `actra\backend\` (PSR-4 in `composer.json`; `ActraBackend.php` also registers the
   path with `actra/autoloader`).
-    - `ActraBackend.php`, `BackendView.php` – entry point and base view.
-    - `settings/` – settings value objects and enums.
-    - `i18n/` – the message classes with all user-visible texts (English defaults, `german()` variant).
-    - `libs/auth/`, `libs/db/`, `libs/email/`, `libs/common/` – authentication, repositories and records, mails.
-    - `libs/form/` – the forms (yuf form API), `component/` custom fields, `rule/` custom rules.
-    - `libs/table/` – the tables (yuf `DbResultTable`).
-    - `view/backend/php/` – the views (one class per route), `view/backend/html/` their HTML content templates,
-      `view/backend/templates/` the page templates.
-    - `assets/` – default CSS (`css/backend.css`) and JavaScript (`js/backend.js`, ES modules in `js/modules/`) that
-      projects publish or bundle themselves.
+  - `ActraBackend.php`, `BackendView.php` – entry point and base view.
+  - `settings/` – settings value objects and enums.
+  - `i18n/` – the message classes with all user-visible texts (English defaults, `german()` variant).
+  - `libs/auth/`, `libs/db/`, `libs/email/`, `libs/common/` – authentication, repositories and records, mails.
+  - `libs/form/` – the forms (yuf form API), `component/` custom fields, `rule/` custom rules.
+  - `libs/table/` – the tables (yuf `DbResultTable`).
+  - `view/backend/php/` – the views (one class per route), `view/backend/html/` their HTML content templates,
+    `view/backend/templates/` the page templates.
+  - `assets/` – default CSS (`css/backend.css`) and JavaScript (`js/backend.js`, ES modules in `js/modules/`) that
+    projects publish or bundle themselves.
 - `db/` – `schema.sql` and `data.sql` for new installations, `updates/<version>.sql` for upgrades.
 - `tests/` – PHPUnit tests, `Unit/` only.
-- `docs/` – plans and analyses (`docs/<topic>/`).
+- `docs/` – user documentation (details of `README.md`), `docs/upgrade/v1.md` with the upgrade notes of v1, plans in
+  `docs/plans/`.
 
 ## Project-specific rules
 
 ### Dependencies and tooling
 
 - Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`.
-- PHPStan and PHPUnit find the yuf classes as described in yuf's README (`vendor/actra/yuf/README.md`, section
-  "Static analysis and tests").
+- PHPStan and PHPUnit find the yuf classes as described in `vendor/actra/yuf/docs/testing.md`.
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).
 
 ### Forms (yuf form API)
 
-- Follow the rules for forms in yuf's README (`vendor/actra/yuf/README.md`, section "Rules for forms"). The
+- Follow the rules for forms in `vendor/actra/yuf/docs/forms.md`, section "Rules for forms". The
   `FormMessages` of the request language are `$this->backendContext->messages->form`.
 
 ### Texts (`standards/i18n.md`)
@@ -70,12 +71,13 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Releases
 
-- `UPGRADE.md` sections up to v1.5.2 use the former format (split into "HTML & CSS (Frontend)" and "Backend & API")
-  and stay as they are.
+- The upgrade notes up to v1.5.2 (`docs/upgrade/v1.md`) use the former format (split into "HTML & CSS (Frontend)" and
+  "Backend & API") and stay as they are.
 
 ## Deviations from the global standard
 
 - View classes found by `BackendViewFactory` (the views of the backend in `src/view/backend/php/` and the project views
   based on `BackendView`) have a lowercase class name equal to the file title (`login`, `userMod`), not PascalCase
   (`standards/naming.md`). Reason: the factory builds the class name from the requested file name, like yuf's
-  `ClassNameViewFactory` (allowed by yuf's README, section "Views"). Applies only to these view classes.
+  `ClassNameViewFactory` (allowed by `vendor/actra/yuf/docs/views.md`, section "Views"). Applies only to these view
+  classes.

@@ -78,6 +78,7 @@ final readonly class Mailer
                 hostName: $mailerSettings->hostname,
                 smtpUserName: $mailerSettings->username,
                 smtpPassword: $mailerSettings->password,
+                serverNameCache: $mailerSettings->serverNameCache,
                 port: $mailerSettings->port,
                 useTls: $mailerSettings->tls,
             ),

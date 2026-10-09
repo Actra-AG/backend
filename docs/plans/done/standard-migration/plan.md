@@ -1,6 +1,6 @@
 # Plan: bring `actra/backend` to yuf ^4.57 and the global coding standard
 
-Status: done with v2.0.0 (2026-10-09). Final state and open points at the end.
+Status: done with v2.0.0 (2026-10-09). Final state at the end, open points in `docs/plans/follow-up/plan.md`.
 
 Goal: the same standard in all Actra projects, without project deviations. This plan replaces the task list of
 2026-10-07 (state v1.6.0, yuf ^4.10). It includes the remaining tasks of `docs/coding-standard/plan.md` (tooling).
@@ -464,13 +464,7 @@ depend on these versions and follows as its own step.
 - Database and PHP names follow `naming.md`; the only deviation is documented in `AGENTS.md` (lowercase view classes).
 - Releases v1.7.0–v2.0.0; projects update from about v1.0 directly to v2.0.0 with the `UPGRADE.md` sections.
 
-## Open points after the plan
+## Handover (2026-10-09, v2.1.0)
 
-- Browser check of all views, forms, tables and templates in `../drogeriehaas.ch` (path repository), including the
-  database update `1.11.0.sql` and `2.0.0.sql` on a copy of real data.
-- Token login: the response time can tell whether an email address exists (no email sent for unknown addresses);
-  sending the email after the response would close it.
-- Dates with `IntlDateFormatter` instead of the per-language patterns (needs own table columns).
-- Microsoft Graph mailer (yuf v4.56) for Microsoft 365 without SMTP basic auth.
-- Major version v2.0.0 for this state instead of v2.0.0 (decision).
-
+- Plan moved to `docs/plans/done/` (coding standard v1.16.0). Its open points moved to
+  [../../follow-up/plan.md](../../follow-up/plan.md).

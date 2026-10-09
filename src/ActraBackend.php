@@ -27,7 +27,6 @@ use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\ContentType;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\core\Route;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\core\ViewContext;
@@ -125,14 +124,11 @@ final class ActraBackend
     }
 
     /**
-     * The mailer of the backend; without request (CLI) it names this server by its host name.
+     * The mailer of the backend, also for CLI scripts.
      */
-    public function createMailer(?HttpRequest $httpRequest = null): Mailer
+    public function createMailer(): Mailer
     {
-        return new Mailer(
-            mailerSettings: $this->mailerSettings,
-            serverAddress: Mailer::getServerAddress(httpRequest: $httpRequest),
-        );
+        return Mailer::create(mailerSettings: $this->mailerSettings);
     }
 
     /**
@@ -176,7 +172,7 @@ final class ActraBackend
             route: $route,
             paths: $paths,
             repositories: $repositories,
-            mailer: $this->createMailer(httpRequest: $viewContext->httpRequest),
+            mailer: $this->createMailer(),
             session: $session,
             authSession: $authSession,
             clientData: $clientData,

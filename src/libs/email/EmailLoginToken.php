@@ -27,7 +27,7 @@ final class EmailLoginToken
     ): void {
         $messages = $context->messages;
         $emailMessages = $messages->email;
-        $context->mailer->sendTextMail(
+        $context->mailer->sendTextMailAfterResponse(
             recipient: $dbAuthUser->email,
             subject: MessageTemplate::fill(
                 template: $emailMessages->loginTokenSubject,

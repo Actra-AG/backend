@@ -11,6 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\backend\i18n\BackendMessages;
 use actra\backend\i18n\MessageTemplate;
+use actra\backend\libs\common\DateFormatter;
 use actra\yuf\html\DetailDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlEncoder;
@@ -31,14 +32,14 @@ final readonly class DbAuthUserNotification
         public int $recipients,
     ) {}
 
-    public function render(BackendMessages $messages): HtmlDataObjectCollection
+    public function render(BackendMessages $messages, DateFormatter $dateFormatter): HtmlDataObjectCollection
     {
         $htmlDataObjectCollection = new HtmlDataObjectCollection();
         $details = [
             ['ID', (string) $this->id],
             [
                 $messages->notification->sentDateLabel,
-                $this->sentDate->format(format: $messages->common->dateTimeFormat),
+                $dateFormatter->formatDateTime(dateTime: $this->sentDate),
             ],
             [$messages->common->userGroupLabel, $this->groupName],
             [

@@ -12,6 +12,7 @@ namespace actra\backend\libs\db;
 use actra\backend\i18n\CommonMessages;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\i18n\UserMessages;
+use actra\backend\libs\common\DateFormatter;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\html\HtmlDataObject;
@@ -74,13 +75,13 @@ final readonly class DbAuthUser
         );
     }
 
-    public function renderLastLogin(CommonMessages $messages): string
+    public function renderLastLogin(DateFormatter $dateFormatter): string
     {
         if ($this->lastLogin === null) {
             return '';
         }
 
-        return $this->lastLogin->format(format: $messages->dateTimeFormat);
+        return $dateFormatter->formatDateTime(dateTime: $this->lastLogin);
     }
 
     public function renderActive(UserMessages $messages): string

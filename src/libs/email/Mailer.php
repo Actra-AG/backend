@@ -10,35 +10,34 @@ declare(strict_types=1);
 namespace actra\backend\libs\email;
 
 use actra\backend\settings\MailerSettings;
-use actra\yuf\core\HttpRequest;
-use actra\yuf\mailer\SmtpMailer;
 use actra\yuf\mailer\TextMail;
+use Closure;
 
 /**
- * Sends the emails of the backend with the SMTP settings of the project (`BackendViewContext::$mailer`).
+ * Sends the emails of the backend with the mailer of the project (`BackendViewContext::$mailer`).
  */
 final readonly class Mailer
 {
     /**
-     * @param string $serverAddress Names this server to the SMTP server (see `getServerAddress()`)
+     * @param Closure(Closure(): void): void $runAfterResponse Runs a closure after the response was sent
      */
     public function __construct(
         public MailerSettings $mailerSettings,
-        private string $serverAddress,
+        private Closure $runAfterResponse,
     ) {}
 
     /**
-     * The address of the request, the host name without request (CLI).
+     * Sends the mails of `sendTextMailAfterResponse()` in a shutdown function: with PHP-FPM it runs after
+     * `fastcgi_finish_request()`, so the client does not wait for the mail server.
      */
-    public static function getServerAddress(?HttpRequest $httpRequest): string
+    public static function create(MailerSettings $mailerSettings): Mailer
     {
-        $serverAddress = $httpRequest?->getServerAddress();
-        if ($serverAddress !== null && $serverAddress !== '') {
-            return $serverAddress;
-        }
-        $hostName = gethostname();
-
-        return $hostName === false ? 'localhost' : $hostName;
+        return new Mailer(
+            mailerSettings: $mailerSettings,
+            runAfterResponse: static function (Closure $closure): void {
+                register_shutdown_function(callback: $closure);
+            },
+        );
     }
 
     /**
@@ -72,16 +71,19 @@ final readonly class Mailer
         foreach ($bcc as $bccEmail) {
             $textMail->addBcc(inputEmail: $bccEmail);
         }
-        $textMail->send(
-            abstractMailer: new SmtpMailer(
-                serverAddress: $this->serverAddress,
-                hostName: $mailerSettings->hostname,
-                smtpUserName: $mailerSettings->username,
-                smtpPassword: $mailerSettings->password,
-                serverNameCache: $mailerSettings->serverNameCache,
-                port: $mailerSettings->port,
-                useTls: $mailerSettings->tls,
-            ),
-        );
+        $textMail->send(abstractMailer: $mailerSettings->mailer);
+    }
+
+    /**
+     * Sends the mail after the response, so the response time does not depend on whether a mail is sent (it does not
+     * tell whether an email address exists). A failure is logged by the exception handler; the user does not see it.
+     */
+    public function sendTextMailAfterResponse(string $recipient, string $subject, string $textBody): void
+    {
+        ($this->runAfterResponse)(fn() => $this->sendTextMail(
+            recipient: $recipient,
+            subject: $subject,
+            textBody: $textBody,
+        ));
     }
 }

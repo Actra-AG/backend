@@ -28,7 +28,7 @@ final class EmailPasswordResetLink
         $host = $httpRequest->getHost();
         $messages = $context->messages;
         $emailMessages = $messages->email;
-        $context->mailer->sendTextMail(
+        $context->mailer->sendTextMailAfterResponse(
             recipient: $dbAuthUser->email,
             subject: $emailMessages->passwordResetSubject,
             textBody: implode(

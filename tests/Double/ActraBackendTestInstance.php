@@ -16,6 +16,7 @@ use actra\yuf\core\Language;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\layout\NavigationItemCollection;
+use actra\yuf\mailer\SmtpMailer;
 
 /**
  * An `ActraBackend` with example settings for the tests (no database connection is opened unless a repository is used).
@@ -44,13 +45,14 @@ final class ActraBackendTestInstance
             mailerSettings: new MailerSettings(
                 senderEmail: 'backend@example.com',
                 senderName: 'Backend',
-                hostname: 'smtp.example.com',
-                username: 'example',
-                password: 'example',
-                port: 587,
-                tls: true,
                 signature: '',
-                serverNameCache: null,
+                mailer: new SmtpMailer(
+                    serverAddress: '127.0.0.1',
+                    hostName: 'smtp.example.com',
+                    smtpUserName: 'example',
+                    smtpPassword: 'example',
+                    serverNameCache: null,
+                ),
             ),
             navigationItemCollection: new NavigationItemCollection(),
         );

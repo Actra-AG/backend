@@ -135,7 +135,7 @@ final class user extends BackendView
         $hasApi = $this->backendContext->actraBackend->actraBackendSettings->hasApi;
         $messages = $this->backendContext->messages->user;
         $common = $this->backendContext->messages->common;
-        $dateTimeFormat = $common->dateTimeFormat;
+        $dateFormatter = $this->backendContext->route->dateFormatter;
         $replacements = $htmlDocument->replacements;
         $this->addTexts(
             replacements: $replacements,
@@ -231,15 +231,17 @@ final class user extends BackendView
         );
         $replacements->addText(
             identifier: 'registered',
-            text: $dbAuthUser->registered->format(format: $dateTimeFormat),
+            text: $dateFormatter->formatDateTime(dateTime: $dbAuthUser->registered),
         );
         $replacements->addText(
             identifier: 'invitedDate',
-            text: $dbAuthUser->invitedDate?->format(format: $dateTimeFormat) ?? '',
+            text: $dbAuthUser->invitedDate === null
+                ? ''
+                : $dateFormatter->formatDateTime(dateTime: $dbAuthUser->invitedDate),
         );
         $replacements->addText(
             identifier: 'lastLogin',
-            text: $dbAuthUser->renderLastLogin(messages: $this->backendContext->messages->common),
+            text: $dbAuthUser->renderLastLogin(dateFormatter: $dateFormatter),
         );
         $replacements->addHtml(
             identifier: 'visitsHref',

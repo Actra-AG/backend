@@ -102,7 +102,10 @@ final class notification extends BackendView
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'detailFields',
-            htmlDataObjectCollection: $dbAuthUserNotification->render(messages: $this->backendContext->messages),
+            htmlDataObjectCollection: $dbAuthUserNotification->render(
+                messages: $this->backendContext->messages,
+                dateFormatter: $this->backendContext->route->dateFormatter,
+            ),
         );
         $replacements->addHtml(
             identifier: 'recipients',

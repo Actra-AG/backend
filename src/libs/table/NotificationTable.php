@@ -11,9 +11,9 @@ namespace actra\backend\libs\table;
 
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
+use actra\backend\libs\table\column\LocalizedDateColumn;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
-use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
 
@@ -32,12 +32,13 @@ final class NotificationTable extends AbstractTable
             itemsPerPage: 100,
         );
         $messages = $context->messages;
-        $sentDateColumn = new DateColumn(
+        $sentDateColumn = new LocalizedDateColumn(
             identifier: 'sent_date',
             label: $messages->notification->sentDateLabel,
+            dateFormatter: $context->route->dateFormatter,
+            withTime: true,
             sortAscendingByDefault: false,
         );
-        $sentDateColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(
             abstractTableColumn: $sentDateColumn,
             isDefaultSortColumn: true,

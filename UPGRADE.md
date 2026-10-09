@@ -2,6 +2,27 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.2.0 (2026-10-09)
+
+### ⚠️ `MailerSettings` takes the mailer of the project
+
+Microsoft 365 works with `GraphMailer` (no SMTP basic auth). Before: `new MailerSettings(senderEmail: …,
+senderName: …, hostname: …, username: …, password: …, port: …, tls: …, signature: …, serverNameCache: …)`. After:
+`new MailerSettings(senderEmail: …, senderName: …, signature: …, mailer: new SmtpMailer(…))` or `GraphMailer`
+([README.md](README.md#basic-initialization)). `ActraBackend::createMailer()` has no argument.
+
+### ⚠️ Dates in the format of the locale
+
+Dates are formatted with `IntlDateFormatter` for `Language::$locale` of the route (`09.10.2026, 14:05:33` for `de_CH`,
+`9 Oct 2026, 14:05:33` for `en_GB`). `CommonMessages::$dateFormat` and `$dateTimeFormat` are removed;
+`DbAuthUser::renderLastLogin()` and `DbAuthUserNotification::render()` take a `DateFormatter`
+(`$backendContext->route->dateFormatter`).
+
+### Other changes
+
+- Login codes and password reset links are mailed after the response, so the response time does not tell whether an
+  email address exists. A failing mail server is logged, the user no longer sees an error.
+
 ## v2.1.0 (2026-10-09)
 
 ### ⚠️ Requires `actra/yuf` `~4.67.3`

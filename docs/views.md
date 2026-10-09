@@ -43,7 +43,7 @@ parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQue
 | `messages`, `route`, `paths` | Texts, backend route and links of the request language (`$paths->user(id: 5)`) |
 | `repositories` | The repositories (`->users()`, `->groups()`, …, `->db()` for the database of the backend) |
 | `currentUser`, `getCurrentUser()` | The logged-in `MyAuthUser` (`null` / `UnauthorizedException` without login) |
-| `mailer` | Sends emails with the `MailerSettings` (`->sendTextMail()`) |
+| `mailer` | Sends emails with the mailer of the `MailerSettings` (`->sendTextMail()`) |
 | `session`, `authSession`, `viewContext` | yuf's session objects and `ViewContext` |
 | `userController` | `->deleteUser(userId:)` |
 

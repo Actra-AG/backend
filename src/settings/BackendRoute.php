@@ -10,14 +10,16 @@ declare(strict_types=1);
 namespace actra\backend\settings;
 
 use actra\backend\i18n\BackendMessages;
+use actra\backend\libs\common\DateFormatter;
 use actra\yuf\core\Language;
 
 /**
- * A route (URL path) of the backend in one language. The texts of the route follow its language.
+ * A route (URL path) of the backend in one language. The texts and dates of the route follow its language.
  */
 final readonly class BackendRoute
 {
     public BackendMessages $messages;
+    public DateFormatter $dateFormatter;
 
     /**
      * @param string $path The URL path of the backend in this language, e.g. '/en/backend/'
@@ -30,5 +32,6 @@ final readonly class BackendRoute
         ?BackendMessages $messages = null,
     ) {
         $this->messages = $messages ?? BackendMessages::forLanguageCode(languageCode: $language->code);
+        $this->dateFormatter = new DateFormatter(locale: $language->locale);
     }
 }

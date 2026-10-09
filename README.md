@@ -66,6 +66,7 @@ use actra\backend\ActraBackend;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
 use actra\yuf\db\DbSettings;
+use actra\yuf\mailer\SmtpMailer;
 
 // ... initialize your $routeCollection, $language, $navigationItemCollection ...
 
@@ -92,20 +93,24 @@ $actraBackend = ActraBackend::init(
     mailerSettings: new MailerSettings(
         senderEmail: 'noreply@example.com',
         senderName: 'My Project',
-        hostname: 'smtp.example.com',
-        username: 'mailer@example.com',
-        password: 'smtp_password',
-        port: 587,
-        tls: true, // certificate and host name are verified; false only for a local mail catcher
         signature: 'Best regards, Your Team',
-        serverNameCache: $core->fileCache, // null: look up the server name for every mail
+        // Or GraphMailer for Microsoft 365 (yuf's docs/mail.md); the same mailer can serve the FileLogger
+        mailer: new SmtpMailer(
+            serverAddress: $core->httpRequest->getServerAddress(),
+            hostName: 'smtp.example.com',
+            smtpUserName: 'mailer@example.com',
+            smtpPassword: $core->environmentSettings->getString(key: 'mailer.password'),
+            serverNameCache: $core->fileCache,
+        ),
     ),
     navigationItemCollection: $navigationItemCollection
 );
 ```
 
 Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`)
-and adds navigation items to your `NavigationItemCollection`.
+and adds navigation items to your `NavigationItemCollection`. Dates are formatted for the locale of the route
+(`Language::$locale`). Login codes and password reset links are mailed after the response (shutdown function, after
+`fastcgi_finish_request()` with PHP-FPM), so the response time does not tell whether an email address exists.
 
 ## Documentation
 

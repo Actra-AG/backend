@@ -11,11 +11,11 @@ namespace actra\backend\libs\table;
 
 use actra\backend\BackendViewContext;
 use actra\backend\libs\form\TokenSearchForm;
+use actra\backend\libs\table\column\LocalizedDateColumn;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
-use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
 use UnexpectedValueException;
@@ -68,13 +68,14 @@ final class TokenTable extends AbstractTable
             itemsPerPage: 100,
         );
         $messages = $context->messages;
-        $registeredColumn = new DateColumn(
+        $registeredColumn = new LocalizedDateColumn(
             identifier: 'registered',
             label: $messages->log->tokenCreatedDateColumn,
+            dateFormatter: $context->route->dateFormatter,
+            withTime: true,
             isSortable: true,
             sortAscendingByDefault: false,
         );
-        $registeredColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(abstractTableColumn: $registeredColumn, isDefaultSortColumn: true);
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
@@ -99,12 +100,13 @@ final class TokenTable extends AbstractTable
                 isSortable: true,
             ),
         );
-        $claimedColumn = new DateColumn(
+        $claimedColumn = new LocalizedDateColumn(
             identifier: 'claimed',
             label: $messages->log->tokenClaimedDateColumn,
+            dateFormatter: $context->route->dateFormatter,
+            withTime: true,
             isSortable: true,
         );
-        $claimedColumn->format = $messages->common->dateTimeFormat;
         $this->addColumn(abstractTableColumn: $claimedColumn);
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(

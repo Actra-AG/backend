@@ -17,7 +17,7 @@ Status: done (2026-10-10, v2.4.0). One release for all items; no backwards compa
 | 3. `MyAuthenticator::$user` | done |
 | 3. Re-check A1–A15 | done |
 | 4. Docs: `vendor/autoload.php` in entry points, deployment; AGENTS.md | done |
-| 5. CLI test-session tool, ApiView base class | not started (asked the user) |
+| 5. CLI test-session tool, ApiView base class | dropped (user, 2026-10-10) |
 | 6. Check, plan to done, report | done |
 
 ## Handover notes

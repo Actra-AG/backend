@@ -12,10 +12,8 @@ namespace actra\backend\libs\db;
 use actra\yuf\auth\Password;
 use actra\yuf\auth\SecretTokenHash;
 use actra\yuf\common\StringUtils;
-use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
-use actra\yuf\exception\UnauthorizedException;
 
 final class DbAuthApiKeyRepository
 {
@@ -92,32 +90,28 @@ final class DbAuthApiKeyRepository
         return $dbAuthApiKeyCollection->isEmpty() ? null : $dbAuthApiKeyCollection->getFirst();
     }
 
-    public function getUserIdForBearerOrThrow(HttpRequest $httpRequest): int
+    /**
+     * The API key of a bearer token (`api_key_<public-id>_<secret>`) if it exists and the secret matches, `null`
+     * otherwise. Only the key: the user checks are in `ActraBackend::authenticateBearerOrThrow()`.
+     */
+    public function findByBearer(#[\SensitiveParameter] string $bearer): ?DbAuthApiKey
     {
-        $bearer = $httpRequest->getBearerToken();
-        if ($bearer === null) {
-            throw new UnauthorizedException();
-        }
         $apiKeyParts = $this->parseBearer(bearer: $bearer);
         if ($apiKeyParts === null) {
-            throw new UnauthorizedException();
+            return null;
         }
-        $dbAuthApiKey = $this->selectByPublicId(
-            publicId: $apiKeyParts['publicId'],
-        );
-        if ($dbAuthApiKey === null) {
-            throw new UnauthorizedException();
+        $dbAuthApiKey = $this->selectByPublicId(publicId: $apiKeyParts['publicId']);
+        if ($dbAuthApiKey === null || !$dbAuthApiKey->isValid(secret: $apiKeyParts['secret'])) {
+            return null;
         }
-        if (!$dbAuthApiKey->isValid(secret: $apiKeyParts['secret'])) {
-            throw new UnauthorizedException();
-        }
-        return $dbAuthApiKey->userId;
+
+        return $dbAuthApiKey;
     }
 
     /**
      * @return array{publicId: string, secret: string}|null
      */
-    private function parseBearer(string $bearer): ?array
+    private function parseBearer(#[\SensitiveParameter] string $bearer): ?array
     {
         $parts = explode(
             separator: '_',

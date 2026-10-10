@@ -16,21 +16,18 @@ use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\auth\GeneratedApiKeyFlash;
 use actra\backend\libs\common\UserLanguageOptions;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\core\InputSourceEnum;
 use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
-use LogicException;
 
 /**
  * @internal
  */
 final class user extends BackendView
 {
-    public const string PARAM_IMPERSONATE = 'impersonate';
     public const string PARAM_ADDED = 'add';
     public const string PARAM_CHANGED = 'mod';
     public const string PARAM_INVITED = 'invited';
@@ -40,13 +37,6 @@ final class user extends BackendView
     public function __construct(BackendViewContext $context)
     {
         $inputParameterCollection = new InputParameterCollection();
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                name: user::PARAM_IMPERSONATE,
-                source: InputSourceEnum::QUERY,
-                isRequired: false,
-            ),
-        );
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 name: user::PARAM_ADDED,
@@ -107,32 +97,6 @@ final class user extends BackendView
         );
         $authUser = $this->backendContext->getCurrentUser();
         $canImpersonate = $authUser->canImpersonateUser(dbAuthUser: $dbAuthUser);
-        if (
-            $canImpersonate
-            && $this->getInputString(keyName: user::PARAM_IMPERSONATE) !== null
-        ) {
-            $this->backendContext->authSession->logIn(
-                authSessionId: $this->backendContext->repositories->sessions()->insert(
-                    parentId: $this->backendContext->authSession->getAuthSessionId(),
-                    userId: $dbAuthUser->id,
-                    clientData: $this->backendContext->clientData,
-                ),
-            );
-            $firstNavigationItem = $this->backendContext->getNavigation()->getFirst(
-                accessRightCollection: $dbAuthUser->accessRightCollection,
-            );
-            if ($firstNavigationItem === null) {
-                throw new LogicException(
-                    message: 'The user has no accessible navigation item, so there is no page to redirect to after '
-                    . 'impersonation.',
-                );
-            }
-            HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $firstNavigationItem->href,
-                httpRequest: $this->context->httpRequest,
-                responseSender: $this->context->responseSender,
-            );
-        }
         $hasApi = $this->backendContext->actraBackend->actraBackendSettings->hasApi;
         $messages = $this->backendContext->messages->user;
         $common = $this->backendContext->messages->common;
@@ -188,7 +152,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'impersonateHref',
-            html: $canImpersonate ? '?' . user::PARAM_IMPERSONATE : '',
+            html: $canImpersonate ? $this->backendContext->paths->userImpersonate(id: $dbAuthUser->id) : '',
         );
         $replacements->addHtml(
             identifier: 'removeHref',

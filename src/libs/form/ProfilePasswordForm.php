@@ -12,6 +12,7 @@ namespace actra\backend\libs\form;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthUser;
 use actra\yuf\auth\Password;
+use actra\yuf\core\HttpResponse;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
@@ -88,34 +89,63 @@ final class ProfilePasswordForm extends Form
         );
     }
 
+    /**
+     * Checks the current password (counted like a login attempt: at the limit the user is locked and logged out),
+     * then sets or removes the password and ends the other sessions and the open tokens of the user.
+     */
     public function process(): bool
     {
         if (!parent::validate()) {
             return false;
         }
-        $messages = $this->backendContext->messages;
-        $currentPassword = $this->dbAuthUser->password;
-        if (
-            $currentPassword !== null
-            && $this->currentPasswordField !== null
-            && !$currentPassword->isValid(rawPassword: $this->currentPasswordField->getValueAsString())
-        ) {
-            $this->currentPasswordField->addError(
-                errorMessage: HtmlText::fromText(text: $messages->profile->currentPasswordIncorrect),
-            );
-            return false;
-        }
+        $context = $this->backendContext;
+        $messages = $context->messages;
+        $users = $context->repositories->users();
         $userId = $this->dbAuthUser->id;
+        $currentPassword = $this->dbAuthUser->password;
+        if ($currentPassword !== null && $this->currentPasswordField !== null) {
+            $rawPassword = $this->currentPasswordField->getValueAsString();
+            if (
+                !$users->registerWrongPasswordAttempt(
+                    id: $userId,
+                    maxAllowedWrongPasswordAttempts: $context->actraBackend->actraBackendSettings
+                        ->maxAllowedLoginAttempts,
+                )
+            ) {
+                $context->authSession->logOut();
+                HttpResponse::redirectAndExit(
+                    relativeOrAbsoluteUri: $context->paths->login(),
+                    httpRequest: $context->viewContext->httpRequest,
+                    responseSender: $context->viewContext->responseSender,
+                );
+            }
+            if (!$currentPassword->isValid(rawPassword: $rawPassword)) {
+                $this->currentPasswordField->addError(
+                    errorMessage: HtmlText::fromText(text: $messages->profile->currentPasswordIncorrect),
+                );
+                return false;
+            }
+            $users->releaseWrongPasswordAttempt(id: $userId);
+        }
         $newPasswordField = $this->newPasswordField;
         $newPasswordConfirmField = $this->newPasswordConfirmField;
         if ($newPasswordField === null || $newPasswordConfirmField === null) {
-            $this->backendContext->repositories->users()->removePassword(id: $userId);
-            return true;
+            $users->removePassword(id: $userId);
+        } else {
+            $users->setPassword(
+                id: $userId,
+                newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
+            );
         }
-        $this->backendContext->repositories->users()->setPassword(
-            id: $userId,
-            newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),
+        $authSession = $context->authSession;
+        $context->repositories->sessions()->deleteOthersByUserId(
+            userId: $userId,
+            keepSessionId: $authSession->getAuthSessionId(),
         );
+        $context->repositories->tokens()->deleteUnclaimedByUserId(userId: $userId);
+        // A new session ID (and CSRF token) for the session that stays logged in
+        $authSession->logIn(authSessionId: $authSession->getAuthSessionId());
+
         return true;
     }
 }

@@ -17,14 +17,14 @@ use actra\backend\libs\db\DbAuthUser;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlText;
+use LogicException;
 
 /**
- * Server-side confirmation page for the deletion of a user (without JavaScript the link opens it; with JavaScript
- * the dialog fetches it and submits its form).
+ * Confirmation page to work as another user (impersonation): only a POST with CSRF token switches the session.
  *
  * @internal
  */
-final class userDelete extends ConfirmationView
+final class userImpersonate extends ConfirmationView
 {
     private ?DbAuthUser $dbAuthUser = null;
 
@@ -52,7 +52,7 @@ final class userDelete extends ConfirmationView
     #[\Override]
     protected function getPageTitle(): HtmlText
     {
-        return HtmlText::fromText(text: $this->backendContext->messages->user->deleteButton);
+        return HtmlText::fromText(text: $this->backendContext->messages->user->impersonateButton);
     }
 
     #[\Override]
@@ -61,30 +61,17 @@ final class userDelete extends ConfirmationView
         $this->getDbAuthUser();
     }
 
-    /**
-     * The user to delete: one the current user may manage, not the current user, and not the last active user who
-     * manages users.
-     */
     private function getDbAuthUser(): DbAuthUser
     {
         if ($this->dbAuthUser !== null) {
             return $this->dbAuthUser;
         }
-        $context = $this->backendContext;
-        $currentUser = $context->getCurrentUser();
-        $dbAuthUser = $context->repositories->users()->selectById(id: $this->getRequiredPathVarAsInt(nr: 1));
+        $dbAuthUser = $this->backendContext->repositories->users()->selectById(
+            id: $this->getRequiredPathVarAsInt(nr: 1),
+        );
         if (
             $dbAuthUser === null
-            || $dbAuthUser->id === $currentUser->id
-            || !$currentUser->canManageUser(dbAuthUser: $dbAuthUser)
-            || (
-                $dbAuthUser->isActive
-                && $dbAuthUser->accessRightCollection->hasAccessRight(accessRight: ActraBackend::RIGHT_MANAGE_USERS)
-                && $context->repositories->users()->countActiveWithRight(
-                    accessRight: ActraBackend::RIGHT_MANAGE_USERS,
-                    exceptUserId: $dbAuthUser->id,
-                ) === 0
-            )
+            || !$this->backendContext->getCurrentUser()->canImpersonateUser(dbAuthUser: $dbAuthUser)
         ) {
             throw new NotFoundException();
         }
@@ -96,7 +83,7 @@ final class userDelete extends ConfirmationView
     protected function getQuestion(): string
     {
         return MessageTemplate::fill(
-            template: $this->backendContext->messages->user->deleteConfirm,
+            template: $this->backendContext->messages->user->impersonateConfirm,
             values: ['name' => $this->getDbAuthUser()->renderFullName(messages: $this->backendContext->messages->common)],
         );
     }
@@ -104,7 +91,7 @@ final class userDelete extends ConfirmationView
     #[\Override]
     protected function getConfirmLabel(): string
     {
-        return $this->backendContext->messages->user->deleteButton;
+        return $this->backendContext->messages->user->impersonateButton;
     }
 
     #[\Override]
@@ -116,8 +103,25 @@ final class userDelete extends ConfirmationView
     #[\Override]
     protected function confirm(): string
     {
-        $this->backendContext->userController->deleteUser(userId: $this->getDbAuthUser()->id);
+        $dbAuthUser = $this->getDbAuthUser();
+        $firstNavigationItem = $this->backendContext->getNavigation()->getFirst(
+            accessRightCollection: $dbAuthUser->accessRightCollection,
+        );
+        if ($firstNavigationItem === null) {
+            throw new LogicException(
+                message: 'The user has no accessible navigation item, so there is no page to redirect to after '
+                . 'impersonation.',
+            );
+        }
+        $authSession = $this->backendContext->authSession;
+        $authSession->logIn(
+            authSessionId: $this->backendContext->repositories->sessions()->insert(
+                parentId: $authSession->getAuthSessionId(),
+                userId: $dbAuthUser->id,
+                clientData: $this->backendContext->clientData,
+            ),
+        );
 
-        return $this->backendContext->paths->users() . '?' . users::PARAM_REMOVED;
+        return $firstNavigationItem->href;
     }
 }

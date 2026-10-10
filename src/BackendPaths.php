@@ -136,6 +136,16 @@ final readonly class BackendPaths
         return $this->path . 'userGenerateApiKey-' . $id . '.html';
     }
 
+    public function userImpersonate(int $id): string
+    {
+        return $this->path . 'userImpersonate-' . $id . '.html';
+    }
+
+    public function userImpersonateEnd(): string
+    {
+        return $this->path . 'userImpersonateEnd.html';
+    }
+
     public function userInvite(int $id): string
     {
         return $this->path . 'userInvite-' . $id . '.html';

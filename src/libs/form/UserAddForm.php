@@ -11,6 +11,7 @@ namespace actra\backend\libs\form;
 
 use actra\backend\BackendViewContext;
 use actra\backend\libs\common\UserLanguageOptions;
+use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\libs\form\component\LanguageField;
 use actra\yuf\form\component\collection\Form;
@@ -52,6 +53,7 @@ final class UserAddForm extends Form
             formField: $this->firstNameField = new TextField(
                 name: 'firstName',
                 label: HtmlText::fromText(text: $common->firstNameLabel),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->firstNameRequired),
             ),
         );
@@ -59,6 +61,7 @@ final class UserAddForm extends Form
             formField: $this->lastNameField = new TextField(
                 name: 'lastName',
                 label: HtmlText::fromText(text: $common->lastNameLabel),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->lastNameRequired),
             ),
         );
@@ -68,6 +71,7 @@ final class UserAddForm extends Form
                 label: HtmlText::fromText(text: $common->emailLabel),
                 value: null,
                 invalidError: HtmlText::fromText(text: $common->emailInvalid),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->emailRequired),
             ),
         );
@@ -101,7 +105,9 @@ final class UserAddForm extends Form
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
+                formOptions: $this->backendContext->repositories->groups()->listAll()->filterGrantableBy(
+                    myAuthUser: $this->backendContext->getCurrentUser(),
+                )->getFormOptions(),
                 initialValues: [],
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
             ),

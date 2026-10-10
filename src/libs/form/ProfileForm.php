@@ -51,6 +51,7 @@ final class ProfileForm extends Form
                 name: 'firstName',
                 label: HtmlText::fromText(text: $messages->common->firstNameLabel),
                 value: $dbAuthUser->firstName,
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $messages->common->firstNameRequired),
             ),
         );
@@ -59,6 +60,7 @@ final class ProfileForm extends Form
                 name: 'lastName',
                 label: HtmlText::fromText(text: $messages->common->lastNameLabel),
                 value: $dbAuthUser->lastName,
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $messages->common->lastNameRequired),
             ),
         );

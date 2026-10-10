@@ -59,7 +59,9 @@ The library requires several database tables to function. For new installations,
 database:
 
 1. Import `db/schema.sql` to create the required table structure.
-2. Import `db/data.sql` to populate the tables with initial data, including a test user account.
+2. Import `db/data.sql` to populate the tables with initial data: the group "Administrator" and its first user
+   `admin@example.invalid`. This address can never receive mail, so nobody can log in with it: change it to your own
+   address (`UPDATE auth_user SET email='you@example.com' WHERE id=1`) and log in with the code sent there.
 
 For existing installations, apply the incremental SQL update files from `db/updates/` as documented
 in [UPGRADE.md](UPGRADE.md).
@@ -140,8 +142,8 @@ email address exists.
 - [Project views](docs/views.md): views, tables and search forms of the project in the backend, project services
   in views (`createViewFactory(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
 - [Languages](docs/languages.md): language of the backend, additional language routes, own texts.
-- [Users and API keys](docs/users.md): user deletion handler, send limit of login codes and reset links, API key
-  authentication.
+- [Users and API keys](docs/users.md): user deletion handler, rights of user managers and impersonation, IP whitelists,
+  login codes, reset links and lock-out, send limit, API key authentication.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.
 - [UPGRADE.md](UPGRADE.md): changes and migration instructions.
 

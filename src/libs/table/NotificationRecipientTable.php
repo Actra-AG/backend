@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\table;
 
 use actra\backend\BackendViewContext;
+use actra\yuf\html\HtmlText;
 use actra\yuf\table\column\DefaultColumn;
 
 /**
@@ -33,7 +34,7 @@ final class NotificationRecipientTable extends AbstractTable
         $messages = $context->messages;
         $sentDateColumn = $this->createDateColumn(
             identifier: 'sent_date',
-            label: $messages->notification->dateLabel,
+            label: HtmlText::fromText(text: $messages->notification->dateLabel),
             withTime: true,
             isSortable: true,
             sortAscendingByDefault: false,
@@ -45,21 +46,21 @@ final class NotificationRecipientTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
-                label: $messages->common->emailLabel,
+                label: HtmlText::fromText(text: $messages->common->emailLabel),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'first_name',
-                label: $messages->common->firstNameLabel,
+                label: HtmlText::fromText(text: $messages->common->firstNameLabel),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'last_name',
-                label: $messages->common->lastNameLabel,
+                label: HtmlText::fromText(text: $messages->common->lastNameLabel),
                 isSortable: true,
             ),
         );

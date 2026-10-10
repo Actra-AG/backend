@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDataObject;
 
 final readonly class DbAuthGroup
@@ -16,6 +17,7 @@ final readonly class DbAuthGroup
     public function __construct(
         public int $id,
         public string $title,
+        public AccessRightCollection $accessRightCollection,
     ) {}
 
     public function render(): HtmlDataObject

@@ -12,6 +12,7 @@ namespace actra\backend\libs\table;
 use actra\backend\BackendViewContext;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\FrameworkDb;
+use actra\yuf\html\HtmlText;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DateStyleEnum;
 use actra\yuf\table\renderer\TablePaginationRenderer;
@@ -60,7 +61,7 @@ abstract class AbstractTable extends DbResultTable
      */
     protected function createDateColumn(
         string $identifier,
-        string $label,
+        HtmlText $label,
         bool $withTime,
         bool $isSortable = false,
         bool $sortAscendingByDefault = true,

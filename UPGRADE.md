@@ -2,6 +2,80 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.7.0 (2026-10-11)
+
+Security release. Read every ⚠️ entry; the fixes without action are listed at the end.
+
+### ⚠️ Requires `actra/yuf` `~6.0.0`
+
+Migrate your own code with yuf's `UPGRADE.md` (v6.0.0). For project code in the backend: column labels and navigation
+titles are `HtmlText` (also `AbstractTable::createDateColumn(label:)`), and POST forms are checked for the CSRF token
+first (tests that post a form send `csrftoken`).
+
+```php
+// Before
+$this->createDateColumn(identifier: 'created', label: $messages->createdLabel, withTime: true);
+// After
+$label = HtmlText::fromText(text: $messages->createdLabel);
+$this->createDateColumn(identifier: 'created', label: $label, withTime: true);
+```
+
+### ⚠️ Database: `db/updates/2.7.0.sql`
+
+One-time tokens are stored as hash only (`auth_token.token` is `token_hash`), API key public IDs are compared
+case-sensitively. Password reset links mailed before the update stop working (new links have 22 characters); login
+codes requested before the update must be requested again.
+
+### ⚠️ Seed user of `db/data.sql`
+
+Earlier versions of `data.sql` created the active administrator `admin@actra.ch`. Give that user your own address or
+delete it in every installation: `SELECT id, email, active FROM auth_user WHERE email='admin@actra.ch'`. New
+installations get `admin@example.invalid`, which cannot receive mail: change it to your own address (README).
+
+### ⚠️ API keys: `authenticateBearerOrThrow()`
+
+`DbAuthApiKeyRepository::getUserIdForBearerOrThrow()` is removed. `ActraBackend::authenticateBearerOrThrow()` returns
+the user and refuses keys of inactive users, users without rights, requests from outside the user's IP whitelist and
+all keys while `hasApi` is false. Check the rights of the endpoint with the user.
+
+```php
+// Before
+$userId = $actraBackend->getRepositories()->apiKeys()->getUserIdForBearerOrThrow(httpRequest: $httpRequest);
+// After
+$myAuthUser = $actraBackend->authenticateBearerOrThrow(httpRequest: $httpRequest);
+$userId = $myAuthUser->id;
+```
+
+### ⚠️ Users who manage users, impersonation, IP whitelists
+
+- A user with `manage_users` manages only users who have no right that this user lacks, and grants only such groups;
+  nobody can deactivate or delete their own account, and the last active user with `manage_users` keeps it
+  ([docs/users.md](docs/users.md)). Check that your administrators have all project rights they must grant.
+- Impersonation and "Cancel session change" are confirmation pages (POST with CSRF token): `userImpersonate-{ID}.html`
+  and `userImpersonateEnd.html`. `user::PARAM_IMPERSONATE` and `BackendView::PARAM_CANCEL_SESSION_CHANGE`
+  (`?impersonate`, `?cancelSessionChange`) are removed.
+- The IP whitelist of a user no longer extends the whitelist of the settings: after the login both apply.
+
+### ⚠️ Changed APIs of the token repository
+
+`DbAuthTokenRepository::claim()` returns `bool` (`false`: claimed before, do not use the token), `getClaimable()` has
+the new argument `userId:`, new are `createTokenWithinLimit()` and `deleteUnclaimedByUserId()`.
+`LogMessages::$tokenColumn` is removed (the token log has no token column). `DbAuthGroup` has the new property
+`accessRightCollection`.
+
+### Security fixes without action
+
+- A password reset link sets the password only once, ends all sessions and open tokens of the user; reset links have
+  about 131 random bits. Changing or removing the password in the profile ends the other sessions.
+- Login codes are kept as hash in the session and the database and compared in constant time; a code allows
+  `maxAllowedLoginAttempts` tries (one more before).
+- Wrong passwords are counted atomically (also the current password in the profile); the send limit of tokens is
+  counted under a lock, so parallel requests do not exceed it.
+- An impersonation ends when the impersonating user may no longer manage the impersonated user.
+- Deactivating a user ends the sessions and deletes the open tokens and the API key.
+- User, profile and notification forms check the length of names, email address and subject on the server.
+- The profile escapes the login link; a stored phone number that cannot be parsed no longer breaks the user page.
+
 ## v2.6.0 (2026-10-10)
 
 ### New

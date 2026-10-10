@@ -147,6 +147,25 @@ final class DbAuthUserRepository
         return $this->select(dbQuery: $dbQuery);
     }
 
+    /**
+     * The active users with a right, without one user (e.g. to keep at least one user who manages users).
+     */
+    public function countActiveWithRight(string $accessRight, int $exceptUserId): int
+    {
+        return $this->db->selectRow(
+            sql: '
+                SELECT COUNT(DISTINCT auth_user.id) AS amount
+                FROM auth_user
+                    INNER JOIN auth_user_group ON auth_user_group.user_id=auth_user.id
+                    INNER JOIN auth_group_right ON auth_group_right.group_id=auth_user_group.group_id
+                WHERE auth_user.active=1
+                  AND auth_group_right.right_name=?
+                  AND auth_user.id<>?
+            ',
+            parameters: [$accessRight, $exceptUserId],
+        )?->getInt(column: 'amount') ?? 0;
+    }
+
     public function sentInvitation(int $id, Clock $clock = new SystemClock()): void
     {
         $this->db->execute(
@@ -258,10 +277,25 @@ final class DbAuthUserRepository
         );
     }
 
-    public function increaseWrongPasswordAttempts(int $id): void
+    /**
+     * Counts a password attempt atomically, only below the limit: `false` if the limit is reached (locked out). The
+     * counter is reset only by a new password (`setPassword()`, `removePassword()`), not by a successful login.
+     */
+    public function registerWrongPasswordAttempt(int $id, int $maxAllowedWrongPasswordAttempts): bool
+    {
+        return $this->db->execute(
+            sql: 'UPDATE auth_user SET wrong_login_attempts=wrong_login_attempts+1 WHERE id=? AND wrong_login_attempts<?',
+            parameters: [$id, $maxAllowedWrongPasswordAttempts],
+        )->rowCount() === 1;
+    }
+
+    /**
+     * Gives back the attempt counted by `registerWrongPasswordAttempt()` after the right password.
+     */
+    public function releaseWrongPasswordAttempt(int $id): void
     {
         $this->db->execute(
-            sql: 'UPDATE auth_user SET wrong_login_attempts=wrong_login_attempts+1 WHERE id=?',
+            sql: 'UPDATE auth_user SET wrong_login_attempts=wrong_login_attempts-1 WHERE id=? AND wrong_login_attempts>0',
             parameters: [$id],
         );
     }

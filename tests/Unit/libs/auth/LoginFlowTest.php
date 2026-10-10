@@ -17,6 +17,7 @@ use actra\backend\libs\form\LoginTokenForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\settings\TokenSendLimit;
 use actra\backend\tests\Double\ActraBackendTestInstance;
+use actra\backend\tests\Double\RecordingMailer;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
@@ -26,6 +27,9 @@ use actra\yuf\clock\FixedClock;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\core\RequestMethodEnum;
 use actra\yuf\core\Route;
+use actra\yuf\security\CsrfTokenSource;
+use actra\yuf\session\ArraySessionStorage;
+use actra\yuf\session\Session;
 use DateTimeImmutable;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -39,12 +43,14 @@ final class LoginFlowTest extends TestCase
     private const string IP_ADDRESS = '192.0.2.10';
     private TestUsers $testUsers;
     private RecordingResponseSender $responseSender;
+    private RecordingMailer $mailer;
 
     #[\Override]
     protected function setUp(): void
     {
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
         $this->responseSender = new RecordingResponseSender();
+        $this->mailer = new RecordingMailer();
     }
 
     private static function email(string $name): string
@@ -61,9 +67,12 @@ final class LoginFlowTest extends TestCase
         array $postParameters,
         ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
     ): BackendViewContext {
+        $session = new Session(storage: new ArraySessionStorage());
+
         return ActraBackendTestInstance::create(
             dbSettings: TestDatabase::settings(),
             tokenSendLimit: $tokenSendLimit,
+            mailer: $this->mailer,
         )->createContext(
             viewContext: ViewContextFactory::create(
                 route: new Route(path: '/backend/', viewDirectory: __DIR__),
@@ -75,9 +84,11 @@ final class LoginFlowTest extends TestCase
                     queryString: $formName,
                     remoteAddress: LoginFlowTest::IP_ADDRESS,
                     queryParameters: [$formName => ''],
-                    postParameters: $postParameters,
+                    postParameters: [CsrfTokenSource::FIELD_NAME => ViewContextFactory::csrfToken(session: $session)]
+                        + $postParameters,
                 ),
                 responseSender: $this->responseSender,
+                session: $session,
             ),
         );
     }
@@ -330,7 +341,7 @@ final class LoginFlowTest extends TestCase
             postParameters: ['email' => $email],
         );
         new LoginForm(context: $requestContext)->process();
-        $token = $requestContext->session->getString(key: 'auth_token_login') ?? '';
+        $token = $this->mailer->sendAndGetLoginCode(responseSender: $this->responseSender);
         $tokenViewContext = ViewContextFactory::create(
             route: new Route(path: '/backend/', viewDirectory: __DIR__),
             fileTitle: 'loginToken',
@@ -341,7 +352,10 @@ final class LoginFlowTest extends TestCase
                 queryString: 'LoginTokenForm',
                 remoteAddress: LoginFlowTest::IP_ADDRESS,
                 queryParameters: ['LoginTokenForm' => ''],
-                postParameters: ['token' => $token],
+                postParameters: [
+                    CsrfTokenSource::FIELD_NAME => ViewContextFactory::csrfToken(session: $requestContext->session),
+                    'token' => $token,
+                ],
             ),
             session: $requestContext->session,
         );

@@ -15,6 +15,7 @@ use actra\backend\i18n\CommonMessages;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\ClientData;
 use actra\backend\libs\db\DbAuthUser;
+use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\AuthUser;
 use actra\yuf\auth\Password;
@@ -129,9 +130,37 @@ final class MyAuthUser extends AuthUser
         return $this->dbAuthUser->renderFullName(messages: $messages);
     }
 
+    /**
+     * Whether the user has every right of the collection (granting a group, managing a user with these rights).
+     */
+    public function hasAllRightsOf(AccessRightCollection $accessRightCollection): bool
+    {
+        if (!$this->isActive) {
+            return false;
+        }
+        $ownRights = $this->dbAuthUser->accessRightCollection;
+
+        return array_all(
+            array: $accessRightCollection->listAccessRights(),
+            callback: static fn(string $accessRight): bool => $ownRights->hasAccessRight(accessRight: $accessRight),
+        );
+    }
+
+    /**
+     * Whether the user may edit, impersonate or delete the given user: the user manages users and has every right of
+     * the other user (nobody manages a user who has a right the manager lacks).
+     */
+    public function canManageUser(DbAuthUser $dbAuthUser): bool
+    {
+        return $this->canManageUsers() && $this->hasAllRightsOf(accessRightCollection: $dbAuthUser->accessRightCollection);
+    }
+
     public function canImpersonateUser(DbAuthUser $dbAuthUser): bool
     {
         if ($this->isSessionChange()) {
+            return false;
+        }
+        if (!$this->canManageUser(dbAuthUser: $dbAuthUser)) {
             return false;
         }
         if ($dbAuthUser->id === $this->id) {
@@ -153,9 +182,18 @@ final class MyAuthUser extends AuthUser
     }
 
     #[\Override]
-    protected function dbIncreaseWrongPasswordAttempts(): void
+    protected function dbRegisterWrongPasswordAttempt(int $maxAllowedWrongPasswordAttempts): bool
     {
-        $this->repositories->users()->increaseWrongPasswordAttempts(id: $this->id);
+        return $this->repositories->users()->registerWrongPasswordAttempt(
+            id: $this->id,
+            maxAllowedWrongPasswordAttempts: $maxAllowedWrongPasswordAttempts,
+        );
+    }
+
+    #[\Override]
+    protected function dbReleaseWrongPasswordAttempt(): void
+    {
+        $this->repositories->users()->releaseWrongPasswordAttempt(id: $this->id);
     }
 
     #[\Override]

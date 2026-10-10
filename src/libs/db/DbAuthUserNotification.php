@@ -19,6 +19,11 @@ use DateTimeImmutable;
 
 final readonly class DbAuthUserNotification
 {
+    /**
+     * The length of the column `auth_user_notification.subject`.
+     */
+    public const int MAX_SUBJECT_LENGTH = 200;
+
     public function __construct(
         public int $id,
         public int $authGroupId,

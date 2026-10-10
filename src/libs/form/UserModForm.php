@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
+use actra\backend\ActraBackend;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\libs\db\DbAuthUser;
@@ -22,6 +23,7 @@ use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
+use Throwable;
 
 /**
  * @internal
@@ -57,6 +59,7 @@ final class UserModForm extends Form
                 name: 'firstName',
                 label: HtmlText::fromText(text: $common->firstNameLabel),
                 value: $dbAuthUser->firstName,
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->firstNameRequired),
             ),
         );
@@ -65,6 +68,7 @@ final class UserModForm extends Form
                 name: 'lastName',
                 label: HtmlText::fromText(text: $common->lastNameLabel),
                 value: $dbAuthUser->lastName,
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->lastNameRequired),
             ),
         );
@@ -74,6 +78,7 @@ final class UserModForm extends Form
                 label: HtmlText::fromText(text: $common->emailLabel),
                 value: $dbAuthUser->email,
                 invalidError: HtmlText::fromText(text: $common->emailInvalid),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->emailRequired),
             ),
         );
@@ -107,7 +112,9 @@ final class UserModForm extends Form
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
+                formOptions: $this->backendContext->repositories->groups()->listAll()->filterGrantableBy(
+                    myAuthUser: $this->backendContext->getCurrentUser(),
+                )->getFormOptions(),
                 initialValues: $this->backendContext->repositories->groups()->listByUserId(
                     userId: $dbAuthUser->id,
                 )->getFormOptions()->getKeys(),
@@ -157,6 +164,9 @@ final class UserModForm extends Form
 
             return false;
         }
+        if (!$this->isAllowedChangeOfAccess()) {
+            return false;
+        }
         if (
             $this->emailField->valueHasChanged()
             && $this->backendContext->repositories->users()->selectByEmail(
@@ -169,50 +179,130 @@ final class UserModForm extends Form
 
             return false;
         }
+        $repositories = $this->backendContext->repositories;
         $userId = $this->dbAuthUser->id;
-        $this->backendContext->repositories->users()->update(
-            id: $userId,
-            email: $this->emailField->getValueAsString(),
-            phone: $this->phoneNumberField->getValueAsString(),
-            active: $this->activeField->isChecked(),
-            firstName: $this->firstNameField->getValueAsString(),
-            lastName: $this->lastNameField->getValueAsString(),
-            languageCode: $this->languageField === null
-                ? $this->dbAuthUser->languageCode
-                : $this->languageField->getLanguageCode(),
-        );
-        foreach ($this->userGroupsField->getAddedIntValues() as $groupId) {
-            $this->backendContext->repositories->userGroups()->insert(userId: $userId, groupId: $groupId);
-        }
-        foreach ($this->userGroupsField->getRemovedIntValues() as $groupId) {
-            $this->backendContext->repositories->userGroups()->delete(userId: $userId, groupId: $groupId);
-        }
-        foreach ($newIpWhitelist as $ip) {
-            if (!in_array(
-                needle: $ip,
-                haystack: $this->dbAuthUser->ipWhitelist,
-                strict: true,
-            )) {
-                $this->backendContext->repositories->ipWhitelists()->insert(
-                    userId: $userId,
-                    ipAddress: $ip,
-                );
+        $db = $repositories->db();
+        $db->beginTransaction();
+        try {
+            $repositories->users()->update(
+                id: $userId,
+                email: $this->emailField->getValueAsString(),
+                phone: $this->phoneNumberField->getValueAsString(),
+                active: $this->activeField->isChecked(),
+                firstName: $this->firstNameField->getValueAsString(),
+                lastName: $this->lastNameField->getValueAsString(),
+                languageCode: $this->languageField === null
+                    ? $this->dbAuthUser->languageCode
+                    : $this->languageField->getLanguageCode(),
+            );
+            foreach ($this->userGroupsField->getAddedIntValues() as $groupId) {
+                $repositories->userGroups()->insert(userId: $userId, groupId: $groupId);
             }
-        }
-        foreach ($this->dbAuthUser->ipWhitelist as $ip) {
-            if (!in_array(
-                needle: $ip,
-                haystack: $newIpWhitelist,
-                strict: true,
-            )) {
-                $this->backendContext->repositories->ipWhitelists()->delete(
-                    userId: $userId,
-                    ipAddress: $ip,
-                );
+            foreach ($this->userGroupsField->getRemovedIntValues() as $groupId) {
+                $repositories->userGroups()->delete(userId: $userId, groupId: $groupId);
             }
+            foreach ($newIpWhitelist as $ip) {
+                if (!in_array(
+                    needle: $ip,
+                    haystack: $this->dbAuthUser->ipWhitelist,
+                    strict: true,
+                )) {
+                    $repositories->ipWhitelists()->insert(
+                        userId: $userId,
+                        ipAddress: $ip,
+                    );
+                }
+            }
+            foreach ($this->dbAuthUser->ipWhitelist as $ip) {
+                if (!in_array(
+                    needle: $ip,
+                    haystack: $newIpWhitelist,
+                    strict: true,
+                )) {
+                    $repositories->ipWhitelists()->delete(
+                        userId: $userId,
+                        ipAddress: $ip,
+                    );
+                }
+            }
+            $this->endAccessIfChanged();
+            $db->commit();
+        } catch (Throwable $throwable) {
+            $db->rollBack();
+            throw $throwable;
         }
 
         return true;
     }
 
+    /**
+     * Nobody deactivates himself, and at least one active user keeps the right to manage users.
+     */
+    private function isAllowedChangeOfAccess(): bool
+    {
+        $context = $this->backendContext;
+        $userMessages = $context->messages->user;
+        $dbAuthUser = $this->dbAuthUser;
+        $isActive = $this->activeField->isChecked();
+        if (!$isActive && $dbAuthUser->id === $context->getCurrentUser()->id) {
+            $this->addError(errorMessage: HtmlText::fromText(text: $userMessages->selfDeactivateError));
+
+            return false;
+        }
+        $wasUserManager = $dbAuthUser->isActive
+            && $dbAuthUser->accessRightCollection->hasAccessRight(accessRight: ActraBackend::RIGHT_MANAGE_USERS);
+        if (!$wasUserManager || ($isActive && $this->hasUserManagerGroup())) {
+            return true;
+        }
+        if (
+            $context->repositories->users()->countActiveWithRight(
+                accessRight: ActraBackend::RIGHT_MANAGE_USERS,
+                exceptUserId: $dbAuthUser->id,
+            ) > 0
+        ) {
+            return true;
+        }
+        $this->addError(errorMessage: HtmlText::fromText(text: $userMessages->lastUserManagerError));
+
+        return false;
+    }
+
+    private function hasUserManagerGroup(): bool
+    {
+        $groups = $this->backendContext->repositories->groups()->listAll();
+
+        return array_any(
+            array: $this->userGroupsField->getIntValues(),
+            callback: static fn(int $groupId): bool => $groups->get(id: $groupId)->accessRightCollection->hasAccessRight(
+                accessRight: ActraBackend::RIGHT_MANAGE_USERS,
+            ),
+        );
+    }
+
+    /**
+     * A deactivated user loses his sessions, open tokens and API key; a changed email address ends the sessions and
+     * open tokens (the current session of the editing user stays).
+     */
+    private function endAccessIfChanged(): void
+    {
+        $context = $this->backendContext;
+        $repositories = $context->repositories;
+        $userId = $this->dbAuthUser->id;
+        $isDeactivated = $this->dbAuthUser->isActive && !$this->activeField->isChecked();
+        if (!$isDeactivated && !$this->emailField->valueHasChanged()) {
+            return;
+        }
+        if ($userId === $context->getCurrentUser()->id) {
+            $repositories->sessions()->deleteOthersByUserId(
+                userId: $userId,
+                keepSessionId: $context->authSession->getAuthSessionId(),
+            );
+        } else {
+            $repositories->sessions()->deleteByUserId(userId: $userId);
+        }
+        $repositories->tokens()->deleteUnclaimedByUserId(userId: $userId);
+        if ($isDeactivated) {
+            $repositories->apiKeys()->deleteByUserId(userId: $userId);
+        }
+    }
 }

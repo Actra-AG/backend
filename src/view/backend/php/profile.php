@@ -96,9 +96,9 @@ final class profile extends BackendView
                 identifier: 'createPasswordHref',
                 html: '',
             );
-            $replacements->addHtml(
+            $replacements->addText(
                 identifier: 'loginPasswordHref',
-                html: $this->context->httpRequest->getProtocol()->value . '://'
+                text: $this->context->httpRequest->getProtocol()->value . '://'
                     . $this->context->httpRequest->getHost() . $this->backendContext->paths->loginPassword(),
             );
             $replacements->addHtml(

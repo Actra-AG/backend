@@ -9,16 +9,16 @@ declare(strict_types=1);
 
 namespace actra\backend;
 
+use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\common\BreadcrumbItemCollection;
 use actra\backend\libs\common\LanguageSwitcher;
 use actra\backend\libs\common\SessionBreadcrumbTrail;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\auth\UnauthorizedIpAddressException;
 use actra\yuf\core\BaseView;
-use actra\yuf\core\HttpResponse;
-use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
-use actra\yuf\core\InputSourceEnum;
 use actra\yuf\core\LoginRedirect;
+use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
@@ -30,8 +30,6 @@ use actra\yuf\html\HtmlText;
  */
 abstract class BackendView extends BaseView
 {
-    public const string PARAM_CANCEL_SESSION_CHANGE = 'cancelSessionChange';
-
     /**
      * The services of the backend; `$this->context` is the `ViewContext` of yuf.
      */
@@ -59,39 +57,13 @@ abstract class BackendView extends BaseView
             $authSession->logOut();
             $myAuthUser = null;
         }
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                source: InputSourceEnum::QUERY,
-                name: BackendView::PARAM_CANCEL_SESSION_CHANGE,
-                isRequired: false,
-            ),
-        );
-        $ipWhitelist = $actraBackend->actraBackendSettings->ipWhitelist;
         if ($myAuthUser !== null) {
-            $parentSessionId = $myAuthUser->parentSessionId;
-            if ($parentSessionId !== null) {
-                $parentSession = $this->backendContext->repositories->sessions()->selectById(id: $parentSessionId);
-                if ($parentSession === null) {
-                    throw new UnauthorizedException();
-                }
-                $userIpWhitelist = $parentSession->dbAuthUser->ipWhitelist;
-            } else {
-                $userIpWhitelist = $myAuthUser->dbAuthUser->ipWhitelist;
-            }
-            foreach ($userIpWhitelist as $ipAddress) {
-                if (!in_array(
-                    needle: $ipAddress,
-                    haystack: $ipWhitelist,
-                    strict: true,
-                )) {
-                    $ipWhitelist[] = $ipAddress;
-                }
-            }
+            $this->checkLoggedInUser(context: $context, myAuthUser: $myAuthUser);
         }
         parent::__construct(
             context: $context->viewContext,
             requiredViewGroupName: $requiredViewGroupName,
-            ipWhitelist: $ipWhitelist,
+            ipWhitelist: $actraBackend->actraBackendSettings->ipWhitelist,
             authUser: $myAuthUser,
             requiredAccessRights: static::getRequiredAccessRights(),
             inputParameterCollection: $inputParameterCollection,
@@ -102,27 +74,44 @@ abstract class BackendView extends BaseView
         }
     }
 
+    /**
+     * The checks of a logged-in user in addition to the global IP whitelist (checked by `BaseView`): the request must
+     * come from the user's own IP whitelist if the user has one (both lists must match). In an impersonation, the
+     * impersonating user must still be allowed to manage the impersonated user, and the whitelist of the impersonating
+     * user applies.
+     */
+    private function checkLoggedInUser(BackendViewContext $context, MyAuthUser $myAuthUser): void
+    {
+        $whitelistUser = $myAuthUser->dbAuthUser;
+        $parentSessionId = $myAuthUser->parentSessionId;
+        if ($parentSessionId !== null) {
+            $parentSession = $context->repositories->sessions()->selectById(id: $parentSessionId);
+            $impersonator = $parentSession === null ? null : new MyAuthUser(
+                dbAuthUser: $parentSession->dbAuthUser,
+                parentSessionId: null,
+                repositories: $context->repositories,
+                clientData: $context->clientData,
+            );
+            if ($impersonator === null || !$impersonator->canManageUser(dbAuthUser: $myAuthUser->dbAuthUser)) {
+                $context->authSession->logOut();
+                throw new UnauthorizedException();
+            }
+            $whitelistUser = $impersonator->dbAuthUser;
+        }
+        $ipAddress = $context->viewContext->httpRequest->getRemoteAddress();
+        if (
+            $whitelistUser->ipWhitelist !== []
+            && !IpValidator::isInWhitelist(whiteList: $whitelistUser->ipWhitelist, ipAddressToCheck: $ipAddress)
+        ) {
+            throw new UnauthorizedIpAddressException(message: 'Invalid IP address ' . $ipAddress);
+        }
+    }
+
     abstract protected static function getRequiredAccessRights(): AccessRightCollection;
 
     #[\Override]
     public function execute(): void
     {
-        if ($this->backendContext->authSession->isLoggedIn()) {
-            $myAuthUser = $this->backendContext->getCurrentUser();
-            $parentSessionId = $myAuthUser->parentSessionId;
-            if (
-                $parentSessionId !== null
-                && $this->getInputString(keyName: BackendView::PARAM_CANCEL_SESSION_CHANGE) !== null
-            ) {
-                $impersonatedUserId = $myAuthUser->id;
-                $this->backendContext->authSession->logIn(authSessionId: $parentSessionId);
-                HttpResponse::redirectAndExit(
-                    relativeOrAbsoluteUri: $this->backendContext->paths->user(id: $impersonatedUserId),
-                    httpRequest: $this->context->httpRequest,
-                    responseSender: $this->context->responseSender,
-                );
-            }
-        }
         $actraBackend = $this->backendContext->actraBackend;
         $actraBackendSettings = $actraBackend->actraBackendSettings;
         $htmlDocument = $this->context->getHtmlDocument();
@@ -211,7 +200,7 @@ abstract class BackendView extends BaseView
         if ($myAuthUser->isSessionChange()) {
             $replacements->addHtml(
                 identifier: 'cancelSessionChangeLink',
-                html: '?' . BackendView::PARAM_CANCEL_SESSION_CHANGE,
+                html: $this->backendContext->paths->userImpersonateEnd(),
             );
         } else {
             $replacements->addHtml(

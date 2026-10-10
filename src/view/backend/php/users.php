@@ -58,7 +58,7 @@ final class users extends BackendView
             navKey: 'userList',
             href: $paths->users() . '?reset',
             svgPath: '',
-            title: $messages->user->navigationUserList,
+            title: HtmlText::fromText(text: $messages->user->navigationUserList),
             requiredAccessRights: users::getRequiredAccessRights(),
         );
     }

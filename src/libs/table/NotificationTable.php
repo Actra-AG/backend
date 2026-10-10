@@ -12,6 +12,7 @@ namespace actra\backend\libs\table;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\yuf\html\HtmlEncoder;
+use actra\yuf\html\HtmlText;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
@@ -33,7 +34,7 @@ final class NotificationTable extends AbstractTable
         $messages = $context->messages;
         $sentDateColumn = $this->createDateColumn(
             identifier: 'sent_date',
-            label: $messages->notification->sentDateLabel,
+            label: HtmlText::fromText(text: $messages->notification->sentDateLabel),
             withTime: true,
             sortAscendingByDefault: false,
         );
@@ -44,7 +45,7 @@ final class NotificationTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'subject',
-                label: $messages->common->subjectLabel,
+                label: HtmlText::fromText(text: $messages->common->subjectLabel),
                 callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . HtmlEncoder::encode(
                     value: $context->paths->notification(id: $tableItem->getRow()->getInt(column: 'id')),
                 ) . '">' . $tableItem->renderValue(name: 'subject') . '</a>',
@@ -53,7 +54,7 @@ final class NotificationTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'first_name',
-                label: $messages->notification->senderLabel,
+                label: HtmlText::fromText(text: $messages->notification->senderLabel),
                 callbackFunction: static fn(TableItem $tableItem): string => MessageTemplate::fill(
                     template: HtmlEncoder::encode(value: $messages->common->fullName),
                     values: [
@@ -66,13 +67,13 @@ final class NotificationTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'group_name',
-                label: $messages->common->userGroupLabel,
+                label: HtmlText::fromText(text: $messages->common->userGroupLabel),
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'recipients',
-                label: $messages->notification->recipientsLabel,
+                label: HtmlText::fromText(text: $messages->notification->recipientsLabel),
             ),
         );
     }

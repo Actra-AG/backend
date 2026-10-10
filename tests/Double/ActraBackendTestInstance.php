@@ -18,6 +18,7 @@ use actra\backend\settings\TokenSendLimit;
 use actra\yuf\core\Language;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
+use actra\yuf\mailer\AbstractMailer;
 use actra\yuf\mailer\SmtpMailer;
 
 /**
@@ -28,6 +29,7 @@ final class ActraBackendTestInstance
 {
     /**
      * @param list<BackendRoute> $additionalRoutes
+     * @param list<string> $ipWhitelist The global IP whitelist of the backend
      */
     public static function create(
         ?DbSettings $dbSettings = null,
@@ -36,6 +38,14 @@ final class ActraBackendTestInstance
         bool $hasApi = false,
         array $additionalRoutes = [],
         ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
+        array $ipWhitelist = [],
+        AbstractMailer $mailer = new SmtpMailer(
+            serverAddress: '127.0.0.1',
+            hostName: 'smtp.example.com',
+            smtpUserName: 'example',
+            smtpPassword: 'example',
+            serverNameCache: null,
+        ),
     ): ActraBackend {
         return ActraBackend::init(
             routeCollection: $routeCollection,
@@ -43,7 +53,7 @@ final class ActraBackendTestInstance
             isDefaultForLanguage: false,
             actraBackendSettings: new ActraBackendSettings(
                 language: new Language(code: 'de', locale: 'de_CH.UTF-8'),
-                ipWhitelist: [],
+                ipWhitelist: $ipWhitelist,
                 backendName: 'Test backend',
                 javaScriptPaths: [],
                 stylesPaths: [],
@@ -62,13 +72,7 @@ final class ActraBackendTestInstance
                 senderEmail: 'backend@example.com',
                 senderName: 'Backend',
                 signature: '',
-                mailer: new SmtpMailer(
-                    serverAddress: '127.0.0.1',
-                    hostName: 'smtp.example.com',
-                    smtpUserName: 'example',
-                    smtpPassword: 'example',
-                    serverNameCache: null,
-                ),
+                mailer: $mailer,
             ),
         );
     }

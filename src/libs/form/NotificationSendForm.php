@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\BackendViewContext;
+use actra\backend\libs\db\DbAuthUserNotification;
 use actra\backend\libs\email\EmailAuthUser;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\SelectOptionsField;
@@ -53,6 +54,7 @@ final class NotificationSendForm extends Form
                 name: 'subjectField',
                 label: HtmlText::fromText(text: $messages->common->subjectLabel),
                 value: '',
+                maxLength: DbAuthUserNotification::MAX_SUBJECT_LENGTH,
                 requiredError: HtmlText::fromText(text: $messages->common->subjectRequired),
             ),
         );

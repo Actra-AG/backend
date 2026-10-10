@@ -18,11 +18,17 @@ use actra\yuf\auth\Password;
 use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\phone\PhoneNumber;
+use actra\yuf\phone\PhoneParseException;
 use actra\yuf\phone\PhoneRenderer;
 use DateTimeImmutable;
 
 final readonly class DbAuthUser
 {
+    /**
+     * The length of the text columns of `auth_user` (names, email address, phone).
+     */
+    public const int MAX_TEXT_LENGTH = 200;
+
     /**
      * @param list<string> $ipWhitelist
      */
@@ -72,17 +78,25 @@ final readonly class DbAuthUser
             : $messages->statusInactive;
     }
 
+    /**
+     * The phone number in international format (plain text); a stored number that cannot be parsed (older data) as
+     * stored.
+     */
     public function renderPhone(): string
     {
         if ($this->phone === '') {
             return '';
         }
-        return PhoneRenderer::renderInternationalFormat(
-            phoneNumber: PhoneNumber::createFromString(
-                input: $this->phone,
-                defaultCountryCode: 'CH',
-            ),
-        );
+        try {
+            return PhoneRenderer::renderInternationalFormat(
+                phoneNumber: PhoneNumber::createFromString(
+                    input: $this->phone,
+                    defaultCountryCode: 'CH',
+                ),
+            );
+        } catch (PhoneParseException) {
+            return $this->phone;
+        }
     }
 
     public function renderIpWhitelist(): HtmlDataObjectCollection

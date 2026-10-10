@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Unit\view;
 
+use actra\backend\libs\db\ClientData;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\tests\Double\BackendPageRenderer;
 use actra\backend\tests\Double\TestDatabase;
@@ -50,11 +51,13 @@ final class SearchFilterResetTest extends TestCase
     {
         $repositories = $this->renderer->actraBackend->getRepositories();
         $userId = $this->testUsers->create(email: SearchFilterResetTest::email());
-        $token = $repositories->tokens()->createToken(
+        // The token itself is not shown (only its hash is stored): the session ID of the client marks the row
+        $sessionId = 'session-' . bin2hex(string: random_bytes(length: 4));
+        $repositories->tokens()->createToken(
             dbAuthUser: $repositories->users()->selectById(id: $userId)
                 ?? throw new LogicException(message: 'The user was not created.'),
             authTokenTypeEnum: AuthTokenTypeEnum::PASSWORD,
-            clientData: BackendPageRenderer::createClientData(),
+            clientData: new ClientData(userAgent: '', ipAddress: BackendPageRenderer::IP_ADDRESS, sessionId: $sessionId),
         );
 
         $this->assertFilterIsReset(
@@ -63,7 +66,7 @@ final class SearchFilterResetTest extends TestCase
             fieldName: 'typeFilterField',
             filterValue: AuthTokenTypeEnum::LOGIN->value,
             searchParameters: [],
-            expectedText: $token,
+            expectedText: 'sessionId: ' . $sessionId,
         );
     }
 

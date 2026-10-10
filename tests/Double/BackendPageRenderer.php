@@ -44,7 +44,10 @@ final readonly class BackendPageRenderer
     private RouteCollection $routeCollection;
     private LanguageCollection $languageCollection;
 
-    public function __construct(DbSettings $dbSettings)
+    /**
+     * @param list<string> $ipWhitelist The global IP whitelist of the backend
+     */
+    public function __construct(DbSettings $dbSettings, array $ipWhitelist = [])
     {
         $english = new Language(code: 'en', locale: 'en_GB.UTF-8');
         $this->routeCollection = new RouteCollection();
@@ -53,6 +56,7 @@ final readonly class BackendPageRenderer
             routeCollection: $this->routeCollection,
             hasApi: true,
             additionalRoutes: [new BackendRoute(path: '/en/backend/', language: $english)],
+            ipWhitelist: $ipWhitelist,
         );
         $this->languageCollection = new LanguageCollection(
             languages: [$this->actraBackend->actraBackendSettings->language, $english],
@@ -62,6 +66,7 @@ final readonly class BackendPageRenderer
     /**
      * @param list<string> $pathVars The path variables after the file title (`user-5.html`: `['5']`)
      * @param array<string, string> $postParameters A POST request with these values, a GET request without
+     * @param ?string $formName The form that is sent (the query of its action, `?FormName`)
      */
     public function render(
         string $languageCode,
@@ -69,6 +74,7 @@ final readonly class BackendPageRenderer
         array $pathVars,
         Session $session,
         array $postParameters = [],
+        ?string $formName = null,
     ): string {
         $route = $this->routeCollection->getRouteForLanguage(languageCode: $languageCode)
             ?? throw new LogicException(message: 'No backend route for the language ' . $languageCode);
@@ -76,8 +82,10 @@ final readonly class BackendPageRenderer
         $httpRequest = new HttpRequest(
             host: 'example.com',
             method: $postParameters === [] ? RequestMethodEnum::GET : RequestMethodEnum::POST,
-            uri: $route->path . $fileName,
+            uri: $route->path . $fileName . ($formName === null ? '' : '?' . $formName),
+            queryString: $formName ?? '',
             remoteAddress: BackendPageRenderer::IP_ADDRESS,
+            queryParameters: $formName === null ? [] : [$formName => ''],
             postParameters: $postParameters,
         );
         $localeHandler = new LocaleHandler(language: $route->language, availableLanguages: $this->languageCollection);

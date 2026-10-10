@@ -29,12 +29,41 @@ is deleted. If the handler throws an exception, the transaction is rolled back a
 For simple database relations, projects can alternatively use foreign keys with `ON DELETE CASCADE` or
 `ON DELETE SET NULL`, depending on whether related rows should be removed or preserved without the user reference.
 
+## Rights of users who manage users
+
+A user with the right `manage_users` manages only users who have no right that this user lacks: groups with such a
+right are not offered, and users with such a right cannot be edited, invited, impersonated, deleted or given an API key
+(the pages answer 404). Nobody can deactivate or delete their own account, and the last active user with
+`manage_users` keeps it. Deactivating a user ends the user's sessions and deletes the open tokens and the API key;
+changing the email address ends the sessions and open tokens.
+
+Impersonation ("Impersonate user") and "Cancel session change" run only on POST, through the confirmation pages
+`userImpersonate-{ID}.html` and `userImpersonateEnd.html`. An impersonation ends as soon as the impersonating user may
+no longer manage the impersonated user (deactivated, rights removed).
+
+## IP whitelists
+
+The IP whitelist of the settings (`ActraBackendSettings::$ipWhitelist`) applies to every backend page; the whitelist of
+a user applies in addition after the login (both must match if both are set). In an impersonation the whitelist of the
+impersonating user applies. Behind a reverse proxy, let the web server set the client address (yuf's `docs/setup.md`).
+
+## Login codes, password reset links and lock-out
+
+Login codes have 6 characters and are valid only in the browser session that requested them, password reset links
+have 22 letters and digits; both expire after 15 minutes and can be used once. Only their SHA-256 hash is stored, in
+the database and in the session; the token log does not show them. A new password (reset or profile) ends the other
+sessions and the open tokens of the user.
+
+Wrong passwords are counted per user (`maxAllowedLoginAttempts`, also for the current password in the profile). At the
+limit the user is locked until a new password is set with a reset link; a successful login does not reset the counter.
+
 ## Send limit of login codes and reset links
 
 The backend sends at most 5 login codes and at most 5 password reset links per user within 15 minutes, so a known
-address cannot be flooded with mails. Above the limit, the forms answer as before (they do not reveal whether an
-address exists) but send nothing; a code sent before stays valid in the browser session it was requested in until it
-expires. Change the limit or turn it off in the settings:
+address cannot be flooded with mails (counted and created under a lock of the user row, so parallel requests do not
+exceed it). Above the limit, the forms answer as before (they do not reveal whether an address exists) but send
+nothing; a code sent before stays valid in the browser session it was requested in until it expires. Change the limit
+or turn it off in the settings:
 
 ```php
 new ActraBackendSettings(
@@ -57,10 +86,10 @@ new ActraBackendSettings(
 Users with management access can generate, replace, or remove a user's API key on the user detail page. Logged-in users
 can also manage their own API key on their profile page.
 
-API keys can only be generated if an IP whitelist is configured for the user. If an API key exists, the user's IP
-whitelist cannot be emptied until the API key has been removed. Generated keys are shown only once and stored as
-SHA-256 hash of the random secret (yuf's `SecretTokenHash`, fast enough for every API request); keys generated before
-v1.11.0 keep their former hash until they are generated again.
+API keys can only be generated if an IP whitelist is configured for the user, and they work only from an address of
+this whitelist. If an API key exists, the user's IP whitelist cannot be emptied until the API key has been removed.
+Generated keys are shown only once and stored as SHA-256 hash of the random secret (yuf's `SecretTokenHash`, fast
+enough for every API request); keys generated before v1.11.0 keep their former hash until they are generated again.
 
 Generating and removing a key run only on POST, through the confirmation pages `userGenerateApiKey-{ID}.html`,
 `userRemoveApiKey-{ID}.html`, `profileGenerateApiKey.html` and `profileRemoveApiKey.html` (see "Confirmation Dialog
@@ -73,13 +102,16 @@ API clients should send the generated key as a bearer token:
 Authorization: Bearer api_key_<public-id>_<secret>
 ```
 
-To validate the bearer token and retrieve the authenticated user ID, pass the request (in a view:
-`$this->context->httpRequest`):
+To authenticate the request, pass it to the backend (in a view: `$this->context->httpRequest`) and check the rights of
+the endpoint with the returned user:
 
 ```php
-$userId = $actraBackend->getRepositories()->apiKeys()->getUserIdForBearerOrThrow(
-    httpRequest: $this->context->httpRequest,
-);
+$myAuthUser = $actraBackend->authenticateBearerOrThrow(httpRequest: $this->context->httpRequest);
+$orderRights = AccessRightCollection::createFromStringArray(input: ['orders']);
+if (!$myAuthUser->hasOneOfRights(accessRightCollection: $orderRights)) {
+    throw new UnauthorizedException();
+}
 ```
 
-If the bearer token is missing, malformed, unknown, or invalid, an `UnauthorizedException` is thrown.
+An `UnauthorizedException` is thrown if the bearer token is missing, malformed, unknown or invalid, the API is off
+(`hasApi: false`), the user is inactive or has no right, or the request does not come from the user's IP whitelist.

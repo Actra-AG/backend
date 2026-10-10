@@ -38,4 +38,16 @@ final class RecordingResponseSender implements ResponseSender
     {
         $this->afterResponseCallbacks[] = $callback;
     }
+
+    /**
+     * Runs and forgets the callbacks kept for after the response (e.g. the mails).
+     */
+    public function runAfterResponseCallbacks(): void
+    {
+        $callbacks = $this->afterResponseCallbacks;
+        $this->afterResponseCallbacks = [];
+        foreach ($callbacks as $callback) {
+            $callback();
+        }
+    }
 }

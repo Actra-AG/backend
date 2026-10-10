@@ -14,6 +14,7 @@ use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\form\UserSearchForm;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
+use actra\yuf\html\HtmlText;
 use actra\yuf\table\column\BooleanColumn;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DefaultColumn;
@@ -58,7 +59,7 @@ final class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'full_name',
-                label: $messages->nameColumn,
+                label: HtmlText::fromText(text: $messages->nameColumn),
                 callbackFunction: static fn(TableItem $tableItem): string => '<a href="' . $context->paths->user(
                     id: $tableItem->getRow()->getInt(column: 'id'),
                 ) . '">' . MessageTemplate::fill(
@@ -75,14 +76,14 @@ final class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
-                label: $common->emailLabel,
+                label: HtmlText::fromText(text: $common->emailLabel),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new BooleanColumn(
                 identifier: 'active',
-                label: $messages->activeColumn,
+                label: HtmlText::fromText(text: $messages->activeColumn),
                 isSortable: true,
                 sortAscendingByDefault: false,
             ),
@@ -90,14 +91,14 @@ final class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'right_groups',
-                label: $messages->rightGroupsColumn,
+                label: HtmlText::fromText(text: $messages->rightGroupsColumn),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'ip_whitelist',
-                label: $common->ipWhitelistLabel,
+                label: HtmlText::fromText(text: $common->ipWhitelistLabel),
                 callbackFunction: static fn(TableItem $tableItem): string => str_replace(
                     search: ',',
                     replace: '<br>',
@@ -109,7 +110,7 @@ final class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: $this->createDateColumn(
                 identifier: 'registered',
-                label: $messages->registeredColumn,
+                label: HtmlText::fromText(text: $messages->registeredColumn),
                 withTime: false,
                 isSortable: true,
             ),
@@ -117,7 +118,7 @@ final class UserTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: $this->createDateColumn(
                 identifier: 'invited',
-                label: $messages->invitedColumn,
+                label: HtmlText::fromText(text: $messages->invitedColumn),
                 withTime: false,
                 isSortable: true,
             ),

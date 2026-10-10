@@ -43,7 +43,7 @@ final class notifications extends BackendView
             navKey: 'notifications',
             href: $paths->notifications() . '?reset',
             svgPath: '',
-            title: $messages->notification->title,
+            title: HtmlText::fromText(text: $messages->notification->title),
             requiredAccessRights: notifications::getRequiredAccessRights(),
         );
     }

@@ -14,11 +14,13 @@ use actra\backend\libs\auth\AuthTokens;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\ViewContextFactory;
+use actra\yuf\auth\SecretTokenHash;
 use actra\yuf\core\Route;
 use PHPUnit\Framework\TestCase;
 
 /**
  * The session part of claiming a token (the database part runs only for a matching token below the attempt limit).
+ * The session keeps only the hash of the token and the user it was sent to.
  */
 final class AuthTokensTest extends TestCase
 {
@@ -35,6 +37,15 @@ final class AuthTokensTest extends TestCase
         );
     }
 
+    private function keepToken(AuthTokenTypeEnum $type, string $token): void
+    {
+        $this->context->session->set(
+            key: 'auth_token_' . $type->value,
+            value: SecretTokenHash::fromSecret(secret: $token)->hash,
+        );
+        $this->context->session->set(key: 'auth_token_user_' . $type->value, value: 1);
+    }
+
     private function claim(AuthTokenTypeEnum $type, string $inputToken): void
     {
         $this->assertNull(new AuthTokens(context: $this->context)->claim(type: $type, inputToken: $inputToken));
@@ -43,18 +54,21 @@ final class AuthTokensTest extends TestCase
     public function testWrongTokenCountsAFailedAttempt(): void
     {
         $session = $this->context->session;
-        $session->set(key: 'auth_token_login', value: '123456');
+        $this->keepToken(type: AuthTokenTypeEnum::LOGIN, token: '123456');
 
         $this->claim(type: AuthTokenTypeEnum::LOGIN, inputToken: '654321');
         $this->claim(type: AuthTokenTypeEnum::LOGIN, inputToken: '654321');
 
         $this->assertSame(2, $session->getInt(key: 'failed_attempts_login'));
-        $this->assertSame('123456', $session->getString(key: 'auth_token_login'));
+        $this->assertSame(
+            SecretTokenHash::fromSecret(secret: '123456')->hash,
+            $session->getString(key: 'auth_token_login'),
+        );
     }
 
     public function testTokenOfAnotherTypeDoesNotMatch(): void
     {
-        $this->context->session->set(key: 'auth_token_password', value: '123456');
+        $this->keepToken(type: AuthTokenTypeEnum::PASSWORD, token: '123456');
 
         $this->claim(type: AuthTokenTypeEnum::LOGIN, inputToken: '123456');
 
@@ -64,11 +78,14 @@ final class AuthTokensTest extends TestCase
     public function testTooManyFailedAttemptsBlockTheCorrectToken(): void
     {
         $maxAttempts = $this->context->actraBackend->actraBackendSettings->maxAllowedLoginAttempts;
-        $this->context->session->set(key: 'auth_token_login', value: '123456');
-        $this->context->session->set(key: 'failed_attempts_login', value: $maxAttempts + 1);
+        $this->keepToken(type: AuthTokenTypeEnum::LOGIN, token: '123456');
+        $this->context->session->set(key: 'failed_attempts_login', value: $maxAttempts);
 
         $this->claim(type: AuthTokenTypeEnum::LOGIN, inputToken: '123456');
 
-        $this->assertSame('123456', $this->context->session->getString(key: 'auth_token_login'));
+        $this->assertSame(
+            SecretTokenHash::fromSecret(secret: '123456')->hash,
+            $this->context->session->getString(key: 'auth_token_login'),
+        );
     }
 }

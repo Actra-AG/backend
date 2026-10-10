@@ -46,7 +46,7 @@ final class tokens extends BackendView
             navKey: 'tokens',
             href: $paths->tokens(userId: null) . '?reset',
             svgPath: '',
-            title: $messages->log->tokensNavigationTitle,
+            title: HtmlText::fromText(text: $messages->log->tokensNavigationTitle),
             requiredAccessRights: tokens::getRequiredAccessRights(),
         );
     }

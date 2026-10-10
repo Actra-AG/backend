@@ -11,6 +11,7 @@ namespace actra\backend\tests\Unit\libs\table;
 
 use actra\backend\libs\common\DateFormatter;
 use actra\yuf\core\Language;
+use actra\yuf\html\HtmlText;
 use actra\yuf\table\column\DateColumn;
 use actra\yuf\table\column\DateStyleEnum;
 use actra\yuf\table\TableItem;
@@ -39,7 +40,7 @@ final class DateColumnTest extends TestCase
     public function testSameOutputAsTheDateFormatter(string $locale, bool $withTime): void
     {
         $value = '2026-10-09 14:05:33';
-        $dateColumn = new DateColumn(identifier: 'registered', label: 'Registered');
+        $dateColumn = new DateColumn(identifier: 'registered', label: HtmlText::fromText(text: 'Registered'));
         $dateColumn->useLocale(
             language: new Language(code: substr(string: $locale, offset: 0, length: 2), locale: $locale),
             timeStyle: $withTime ? DateStyleEnum::MEDIUM : DateStyleEnum::NONE,

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\db\DbRow;
 
 final class DbAuthGroupRepository
@@ -17,7 +18,10 @@ final class DbAuthGroupRepository
 
     public const string SELECT_QUERY = '
 		SELECT auth_group.id,
-		       auth_group.title
+		       auth_group.title,
+		       (SELECT GROUP_CONCAT(auth_group_right.right_name)
+		           FROM auth_group_right
+		           WHERE auth_group_right.group_id=auth_group.id) AS access_rights
 		FROM auth_group
 	';
     private ?DbAuthGroupCollection $cache = null;
@@ -65,6 +69,9 @@ final class DbAuthGroupRepository
         return new DbAuthGroup(
             id: $row->getInt(column: 'id'),
             title: $row->getString(column: 'title'),
+            accessRightCollection: AccessRightCollection::createFromStringArray(
+                input: $row->getStringList(column: 'access_rights'),
+            ),
         );
     }
 

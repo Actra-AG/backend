@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\backend\libs\auth\MyAuthUser;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlText;
@@ -24,6 +25,21 @@ final class DbAuthGroupCollection
     public function add(DbAuthGroup $dbAuthGroup): void
     {
         $this->items[$dbAuthGroup->id] = $dbAuthGroup;
+    }
+
+    /**
+     * The groups whose rights the user has all (only these may be granted by the user).
+     */
+    public function filterGrantableBy(MyAuthUser $myAuthUser): DbAuthGroupCollection
+    {
+        $dbAuthGroupCollection = new DbAuthGroupCollection();
+        foreach ($this->items as $dbAuthGroup) {
+            if ($myAuthUser->hasAllRightsOf(accessRightCollection: $dbAuthGroup->accessRightCollection)) {
+                $dbAuthGroupCollection->add(dbAuthGroup: $dbAuthGroup);
+            }
+        }
+
+        return $dbAuthGroupCollection;
     }
 
     public function getFormOptions(): FormOptions

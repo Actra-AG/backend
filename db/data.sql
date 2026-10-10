@@ -90,7 +90,7 @@ TRUNCATE TABLE `auth_user`;
 
 INSERT INTO `auth_user` (`id`, `registered_by_id`, `registered`, `invited`, `email`, `phone`, `first_name`, `last_name`,
                          `active`, `last_successful_login`)
-VALUES (1, NULL, NOW(), null, 'admin@actra.ch', '', 'Admin', 'User', 1, NULL);
+VALUES (1, NULL, NOW(), null, 'admin@example.invalid', '', 'Admin', 'User', 1, NULL);
 
 --
 -- TRUNCATE Tabelle vor dem Einfügen `auth_user_group`

@@ -150,4 +150,25 @@ final class DbAuthSessionRepository
             ],
         );
     }
+
+    /**
+     * Ends all sessions of a user except one (the current session after a password change), with the impersonation
+     * sessions started from them.
+     */
+    public function deleteOthersByUserId(int $userId, int $keepSessionId): void
+    {
+        $db = $this->db;
+        $db->execute(
+            sql: '
+                    DELETE FROM auth_session
+                           WHERE id<>?
+                             AND parent_id IN (SELECT id FROM auth_session WHERE user_id=? AND id<>?)
+                ',
+            parameters: [$keepSessionId, $userId, $keepSessionId],
+        );
+        $db->execute(
+            sql: 'DELETE FROM auth_session WHERE user_id=? AND id<>?',
+            parameters: [$userId, $keepSessionId],
+        );
+    }
 }

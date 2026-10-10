@@ -72,6 +72,7 @@ final class userGenerateApiKey extends ConfirmationView
         );
         if (
             $dbAuthUser === null
+            || !$this->backendContext->getCurrentUser()->canManageUser(dbAuthUser: $dbAuthUser)
             || !$this->backendContext->actraBackend->actraBackendSettings->hasApi
             || $dbAuthUser->ipWhitelist === []
         ) {

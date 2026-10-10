@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `auth_api_key`
 (
     `user_id`     mediumint(8) UNSIGNED NOT NULL,
-    `public_id`   char(6)               NOT NULL,
+    `public_id`   char(6) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     `api_key`     varchar(200)          NOT NULL,
     `salt`       char(16)              NOT NULL,
     `registered` timestamp             NOT NULL DEFAULT current_timestamp()
@@ -142,7 +142,7 @@ CREATE TABLE `auth_token`
     `type`             varchar(200)          NOT NULL,
     `claimed`          datetime                       DEFAULT NULL,
     `claimed_client`    text                           DEFAULT NULL,
-    `token`            varchar(200)          NOT NULL
+    `token_hash`       char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
@@ -283,7 +283,7 @@ ALTER TABLE `auth_session`
 --
 ALTER TABLE `auth_token`
     ADD PRIMARY KEY (`id`),
-    ADD KEY `token` (`token`),
+    ADD KEY `token_hash` (`token_hash`),
     ADD KEY `user_id` (`user_id`);
 
 --

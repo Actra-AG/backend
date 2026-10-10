@@ -33,6 +33,8 @@ final class SearchFormTest extends TestCase
 
         $this->assertSame(
             '<form method="post" action="?TokenSearch" class="form-filter form-autosubmit">'
+            . '<input type="hidden" name="csrftoken" value="' . ViewContextFactory::csrfToken(session: $context->session)
+            . '">'
             . '<div><label for="typeFilterField">Typ</label><select name="typeFilterField" id="typeFilterField">'
             . '<option value="" selected>alle</option><option value="password">Passwort-Reset</option>'
             . '<option value="activation">Aktivierung</option><option value="login">Anmeldung</option></select></div>'
@@ -63,7 +65,8 @@ final class SearchFormTest extends TestCase
         $html = $projectSearchForm->render();
 
         $this->assertSame(
-            '<form method="post" action="?ProductSearch"><dl><dt><label for="productQuery">Product</label></dt>'
+            '<form method="post" action="?ProductSearch"><input type="hidden" name="csrftoken" value="'
+            . ViewContextFactory::csrfToken(session: $context->session) . '"><dl><dt><label for="productQuery">Product</label></dt>'
             . '<dd><input type="text" name="productQuery" id="productQuery" value=""></dd></dl></form>',
             $html,
         );

@@ -46,7 +46,7 @@ final class visits extends BackendView
             navKey: 'visits',
             href: $paths->visits(userId: null) . '?reset',
             svgPath: '',
-            title: $messages->log->visitsNavigationTitle,
+            title: HtmlText::fromText(text: $messages->log->visitsNavigationTitle),
             requiredAccessRights: visits::getRequiredAccessRights(),
         );
     }

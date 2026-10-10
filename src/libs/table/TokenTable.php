@@ -14,8 +14,8 @@ use actra\backend\libs\form\TokenSearchForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
+use actra\yuf\html\HtmlText;
 use actra\yuf\table\column\CallbackColumn;
-use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
 use UnexpectedValueException;
 
@@ -51,8 +51,8 @@ final class TokenTable extends AbstractTable
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_token.token '
-                    . 'auth_token.registered_client auth_token.claimed_client',
+                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_token.registered_client '
+                    . 'auth_token.claimed_client',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
@@ -69,7 +69,7 @@ final class TokenTable extends AbstractTable
         $messages = $context->messages;
         $registeredColumn = $this->createDateColumn(
             identifier: 'registered',
-            label: $messages->log->tokenCreatedDateColumn,
+            label: HtmlText::fromText(text: $messages->log->tokenCreatedDateColumn),
             withTime: true,
             isSortable: true,
             sortAscendingByDefault: false,
@@ -78,7 +78,7 @@ final class TokenTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'registered_client',
-                label: $messages->log->tokenCreatedClientColumn,
+                label: HtmlText::fromText(text: $messages->log->tokenCreatedClientColumn),
                 callbackFunction: static fn(TableItem $tableItem): string => TokenTable::renderClient(
                     clientJson: $tableItem->getRow()->getNullableString(column: 'registered_client'),
                 ),
@@ -88,7 +88,7 @@ final class TokenTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'type',
-                label: $messages->log->typeLabel,
+                label: HtmlText::fromText(text: $messages->log->typeLabel),
                 callbackFunction: static fn(TableItem $tableItem): string => HtmlEncoder::encode(
                     value: $tableItem->getRow()->getEnum(
                         column: 'type',
@@ -100,7 +100,7 @@ final class TokenTable extends AbstractTable
         );
         $claimedColumn = $this->createDateColumn(
             identifier: 'claimed',
-            label: $messages->log->tokenClaimedDateColumn,
+            label: HtmlText::fromText(text: $messages->log->tokenClaimedDateColumn),
             withTime: true,
             isSortable: true,
         );
@@ -108,17 +108,10 @@ final class TokenTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'claimed_client',
-                label: $messages->log->tokenClaimedClientColumn,
+                label: HtmlText::fromText(text: $messages->log->tokenClaimedClientColumn),
                 callbackFunction: static fn(TableItem $tableItem): string => TokenTable::renderClient(
                     clientJson: $tableItem->getRow()->getNullableString(column: 'claimed_client'),
                 ),
-                isSortable: true,
-            ),
-        );
-        $this->addColumn(
-            abstractTableColumn: new DefaultColumn(
-                identifier: 'token',
-                label: $messages->log->tokenColumn,
                 isSortable: true,
             ),
         );

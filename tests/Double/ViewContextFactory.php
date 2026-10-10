@@ -22,6 +22,7 @@ use actra\yuf\core\ViewContext;
 use actra\yuf\form\FormContext;
 use actra\yuf\layout\NavigationItemCollection;
 use actra\yuf\security\CspNonce;
+use actra\yuf\security\SessionCsrfTokenSource;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
 use actra\yuf\template\cache\DirectoryTemplateCache;
@@ -30,8 +31,8 @@ use actra\yuf\template\TemplateEngine;
 use Closure;
 
 /**
- * A `ViewContext` for the tests: an HTML request of a file title on the given route, with a session in memory and a
- * `RecordingResponseSender`.
+ * A `ViewContext` for the tests: an HTML request of a file title on the given route, with a session in memory (and its
+ * CSRF token source) and a `RecordingResponseSender`.
  */
 final class ViewContextFactory
 {
@@ -52,7 +53,10 @@ final class ViewContextFactory
             session: $session,
             sessionHandler: null,
             authSession: new AuthSession(session: $session),
-            formContext: new FormContext(httpRequest: $httpRequest, csrfTokenSource: null),
+            formContext: new FormContext(
+                httpRequest: $httpRequest,
+                csrfTokenSource: new SessionCsrfTokenSource(session: $session),
+            ),
             route: $route,
             fileGroup: null,
             fileTitle: $fileTitle,
@@ -70,5 +74,13 @@ final class ViewContextFactory
             responseSender: $responseSender,
             navigationProvider: $navigationProvider,
         );
+    }
+
+    /**
+     * The CSRF token of the session, to post with a form (`CsrfTokenSource::FIELD_NAME`).
+     */
+    public static function csrfToken(Session $session): string
+    {
+        return new SessionCsrfTokenSource(session: $session)->getToken();
     }
 }

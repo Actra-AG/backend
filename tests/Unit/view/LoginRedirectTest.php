@@ -11,10 +11,12 @@ namespace actra\backend\tests\Unit\view;
 
 use actra\backend\ActraBackend;
 use actra\backend\tests\Double\ActraBackendTestInstance;
+use actra\backend\tests\Double\RecordingMailer;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\ResponseSentException;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
+use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\core\ContentHandler;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
@@ -26,6 +28,8 @@ use actra\yuf\core\ResolvedRoute;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\form\FormContext;
 use actra\yuf\security\CspNonce;
+use actra\yuf\security\CsrfTokenSource;
+use actra\yuf\security\SessionCsrfTokenSource;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
 use actra\yuf\template\cache\DirectoryTemplateCache;
@@ -45,15 +49,20 @@ final class LoginRedirectTest extends TestCase
     private RouteCollection $routeCollection;
     private TestUsers $testUsers;
     private Session $session;
+    private RecordingMailer $mailer;
+    private RecordingResponseSender $lastResponseSender;
 
     #[\Override]
     protected function setUp(): void
     {
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
         $this->routeCollection = new RouteCollection(loginPath: '/backend/login.html');
+        $this->mailer = new RecordingMailer();
+        $this->lastResponseSender = new RecordingResponseSender();
         $this->actraBackend = ActraBackendTestInstance::create(
             dbSettings: TestDatabase::settings(),
             routeCollection: $this->routeCollection,
+            mailer: $this->mailer,
         );
         $this->session = new Session(storage: new ArraySessionStorage());
     }
@@ -66,6 +75,7 @@ final class LoginRedirectTest extends TestCase
     private function post(string $fileTitle, string $formName, array $postParameters): string
     {
         $responseSender = new RecordingResponseSender();
+        $this->lastResponseSender = $responseSender;
         $httpRequest = new HttpRequest(
             host: 'example.com',
             method: RequestMethodEnum::POST,
@@ -73,7 +83,8 @@ final class LoginRedirectTest extends TestCase
             queryString: $formName,
             remoteAddress: '192.0.2.10',
             queryParameters: [$formName => ''],
-            postParameters: $postParameters,
+            postParameters: [CsrfTokenSource::FIELD_NAME => ViewContextFactory::csrfToken(session: $this->session)]
+                + $postParameters,
         );
         $route = $this->routeCollection->getFirstRoute();
         try {
@@ -100,7 +111,10 @@ final class LoginRedirectTest extends TestCase
                     httpRequest: $httpRequest,
                     session: $this->session,
                     sessionHandler: null,
-                    formContext: new FormContext(httpRequest: $httpRequest, csrfTokenSource: null),
+                    formContext: new FormContext(
+                        httpRequest: $httpRequest,
+                        csrfTokenSource: new SessionCsrfTokenSource(session: $this->session),
+                    ),
                     documentRoot: '/tmp/public/',
                     copyright: '',
                     robots: '',
@@ -122,7 +136,7 @@ final class LoginRedirectTest extends TestCase
 
     private function token(): string
     {
-        return $this->session->getString(key: 'auth_token_login') ?? '';
+        return $this->mailer->sendAndGetLoginCode(responseSender: $this->lastResponseSender);
     }
 
     /**

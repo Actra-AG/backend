@@ -13,6 +13,7 @@ use actra\backend\BackendViewContext;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\common\SearchQueryBuilder;
+use actra\yuf\html\HtmlText;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
@@ -67,7 +68,7 @@ final class VisitTable extends AbstractTable
         $messages = $context->messages;
         $dateColumn = $this->createDateColumn(
             identifier: 'registered',
-            label: $messages->log->visitDateColumn,
+            label: HtmlText::fromText(text: $messages->log->visitDateColumn),
             withTime: true,
             isSortable: true,
             sortAscendingByDefault: false,
@@ -76,42 +77,42 @@ final class VisitTable extends AbstractTable
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'first_name',
-                label: $messages->common->firstNameLabel,
+                label: HtmlText::fromText(text: $messages->common->firstNameLabel),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'last_name',
-                label: $messages->common->lastNameLabel,
+                label: HtmlText::fromText(text: $messages->common->lastNameLabel),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'session_id',
-                label: $messages->log->visitSessionIdColumn,
+                label: HtmlText::fromText(text: $messages->log->visitSessionIdColumn),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'ip_address',
-                label: $messages->log->visitIpAddressColumn,
+                label: HtmlText::fromText(text: $messages->log->visitIpAddressColumn),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
                 identifier: 'email',
-                label: $messages->log->visitEmailColumn,
+                label: HtmlText::fromText(text: $messages->log->visitEmailColumn),
                 isSortable: true,
             ),
         );
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'result',
-                label: $messages->log->statusLabel,
+                label: HtmlText::fromText(text: $messages->log->statusLabel),
                 callbackFunction: static fn(TableItem $tableItem): string => $tableItem->getRow()->getEnum(
                     column: 'result',
                     enumClass: AuthResultEnum::class,

@@ -15,6 +15,7 @@ use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\Route;
+use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,7 @@ final class NavigationTest extends TestCase
                     navKey: 'calendar',
                     href: $backendRoute->path . 'calendar.html',
                     svgPath: '',
-                    title: 'Calendar',
+                    title: HtmlText::fromText(text: 'Calendar'),
                     requiredAccessRights: AccessRightCollection::createEmpty(),
                 ));
             }

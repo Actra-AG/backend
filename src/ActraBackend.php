@@ -25,13 +25,17 @@ use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\ContentType;
+use actra\yuf\core\HttpRequest;
 use actra\yuf\core\ResponseSender;
 use actra\yuf\core\Route;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\core\ViewContext;
+use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\db\DbSettings;
+use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
+use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
 use Closure;
@@ -175,6 +179,51 @@ final class ActraBackend
     }
 
     /**
+     * The user of the API key sent as bearer token (`Authorization: Bearer api_key_<public-id>_<secret>`). The key must
+     * be valid, the API on (`ActraBackendSettings::$hasApi`), the user active with at least one right, and the request
+     * must come from an address of the user's IP whitelist (a user without whitelist is refused). Check the rights of
+     * the endpoint with the returned user (`hasOneOfRights()`).
+     *
+     * @throws UnauthorizedException if one of the checks fails
+     */
+    public function authenticateBearerOrThrow(HttpRequest $httpRequest): MyAuthUser
+    {
+        $bearer = $httpRequest->getBearerToken();
+        if (!$this->actraBackendSettings->hasApi || $bearer === null) {
+            throw new UnauthorizedException();
+        }
+        $repositories = $this->getRepositories();
+        $dbAuthApiKey = $repositories->apiKeys()->findByBearer(bearer: $bearer);
+        if ($dbAuthApiKey === null) {
+            throw new UnauthorizedException();
+        }
+        $dbAuthUser = $repositories->users()->selectById(id: $dbAuthApiKey->userId);
+        if ($dbAuthUser === null) {
+            throw new UnauthorizedException();
+        }
+        $remoteAddress = $httpRequest->getRemoteAddress();
+        $myAuthUser = new MyAuthUser(
+            dbAuthUser: $dbAuthUser,
+            parentSessionId: null,
+            repositories: $repositories,
+            clientData: new ClientData(
+                userAgent: $httpRequest->getUserAgent(),
+                ipAddress: $remoteAddress,
+                sessionId: '',
+            ),
+        );
+        if (
+            !$myAuthUser->isActive
+            || $dbAuthUser->ipWhitelist === []
+            || !IpValidator::isInWhitelist(whiteList: $dbAuthUser->ipWhitelist, ipAddressToCheck: $remoteAddress)
+        ) {
+            throw new UnauthorizedException();
+        }
+
+        return $myAuthUser;
+    }
+
+    /**
      * The backend route of a language (e.g. the language of a user), the main route for an unknown language.
      */
     public function getRouteForLanguage(?string $languageCode): BackendRoute
@@ -239,7 +288,7 @@ final class ActraBackend
             navKey: 'users',
             href: $paths->users() . '?reset',
             svgPath: ActraBackend::NAVIGATION_SVG_PATH_USERS,
-            title: $messages->layout->navigationTitleUsers,
+            title: HtmlText::fromText(text: $messages->layout->navigationTitleUsers),
             requiredAccessRights: AccessRightCollection::createEmpty(),
             childNavigation: $childNavigation,
         ));

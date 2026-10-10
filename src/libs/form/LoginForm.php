@@ -36,6 +36,10 @@ final class LoginForm extends Form
         parent::__construct(context: $context->viewContext->formContext, name: 'LoginForm', messages: $messages->form);
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
+        // Hidden fields first (after yuf's CSRF field): the button row follows the last visible field directly
+        $this->addField(
+            formField: $this->returnPathField = ReturnPathField::create(httpRequest: $context->viewContext->httpRequest),
+        );
         $this->addField(
             formField: $this->emailField = new EmailField(
                 name: 'email',
@@ -47,9 +51,6 @@ final class LoginForm extends Form
         );
         $this->emailField->autoFocus = true;
         $this->emailField->renderRequiredAbbr = false;
-        $this->addField(
-            formField: $this->returnPathField = ReturnPathField::create(httpRequest: $context->viewContext->httpRequest),
-        );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',

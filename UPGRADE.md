@@ -2,6 +2,19 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.4.3 (2026-10-10)
+
+### Fixes
+
+- Login pages look as in v2.3.1 again: the hidden `returnTo` field comes first in the forms of `login.html`,
+  `loginPassword.html`, `loginToken.html` and `loginPasswordToken.html`, so the button row gets its margin.
+- The user list and the notification list show the last name instead of `[lastName]`.
+- `passwordResetRes.html` no longer fails ("loginText does not exist").
+- Requires `actra/yuf` `~5.2.1`: the search filters of `users.html`, `tokens.html` and `visits.html` can be reset to
+  "all" again.
+- `user-<id>.html`: `<html lang>` is the language of the page again (was the language of the user); the user's
+  language is the replacement `userLanguage` in `user.html`.
+
 ## v2.4.2 (2026-10-10)
 
 ### Fixes

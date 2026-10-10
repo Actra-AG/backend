@@ -58,7 +58,7 @@ final class NotificationTable extends AbstractTable
                     template: HtmlEncoder::encode(value: $messages->common->fullName),
                     values: [
                         'firstName' => $tableItem->renderValue(name: 'first_name'),
-                        'last_name' => $tableItem->renderValue(name: 'last_name'),
+                        'lastName' => $tableItem->renderValue(name: 'last_name'),
                     ],
                 ),
             ),

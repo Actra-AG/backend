@@ -254,7 +254,7 @@ final class user extends BackendView
             booleanValue: $userLanguageOptions->isSelectable(),
         );
         $replacements->addText(
-            identifier: 'language',
+            identifier: 'userLanguage',
             text: $userLanguageOptions->render(languageCode: $dbAuthUser->languageCode),
         );
         $replacements->addText(

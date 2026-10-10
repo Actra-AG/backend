@@ -42,6 +42,10 @@ final class passwordResetRes extends BackendView
             htmlText: HtmlText::fromText(text: $messages->passwordResetDone),
         );
         $this->backendContext->authSession->logOut();
+        $replacements->addHtmlText(
+            identifier: 'loginText',
+            htmlText: HtmlText::fromText(text: $messages->loginLink),
+        );
         $replacements->addHtml(
             identifier: 'loginHref',
             html: $this->backendContext->paths->loginPassword(),

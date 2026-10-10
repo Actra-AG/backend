@@ -51,10 +51,12 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (`~5.2.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
+- Runtime dependencies: `actra/yuf` (`~5.2.1`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
   no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.
+- `tests/Unit/view/ViewRenderTest.php` renders every view in both languages with `tests/Double/BackendPageRenderer.php`
+  (like yuf's `Core`); add every new view there.
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).

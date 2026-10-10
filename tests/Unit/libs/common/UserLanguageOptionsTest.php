@@ -13,6 +13,7 @@ use actra\backend\libs\common\UserLanguageOptions;
 use actra\backend\settings\BackendRoute;
 use actra\backend\settings\BackendRouteCollection;
 use actra\yuf\core\Language;
+use actra\yuf\form\FormOption;
 use PHPUnit\Framework\TestCase;
 
 final class UserLanguageOptionsTest extends TestCase
@@ -74,9 +75,12 @@ final class UserLanguageOptionsTest extends TestCase
     {
         $formOptions = $this->createOptions(additionalLanguageCodes: ['en', 'fr'])->createFormOptions();
 
-        $this->assertSame(['de', 'en', 'fr'], array_map(strval(...), array_keys($formOptions->data)));
-        $french = $formOptions->data['fr'] ?? UserLanguageOptionsTest::fail('No option fr');
-        $this->assertSame('Französisch', $french->render());
+        $this->assertSame(['de', 'en', 'fr'], $formOptions->getKeys());
+        $french = array_find(
+            array: $formOptions->getItems(),
+            callback: static fn(FormOption $formOption): bool => $formOption->key === 'fr',
+        ) ?? UserLanguageOptionsTest::fail('No option fr');
+        $this->assertSame('Französisch', $french->htmlText->render());
     }
 
     public function testDefaultLabelNamesTheLanguageOfTheMainRoute(): void

@@ -118,7 +118,7 @@ final class user extends BackendView
                     clientData: $this->backendContext->clientData,
                 ),
             );
-            $firstNavigationItem = $this->backendContext->actraBackend->navigationItemCollection->getFirst(
+            $firstNavigationItem = $this->backendContext->getNavigation()->getFirst(
                 accessRightCollection: $dbAuthUser->accessRightCollection,
             );
             if ($firstNavigationItem === null) {

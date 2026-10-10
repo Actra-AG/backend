@@ -73,8 +73,8 @@ final class DbAuthUserNotificationRepository
     {
         $dbAuthUserNotificationCollection = new DbAuthUserNotificationCollection();
         foreach (
-            $this->db->selectRowsFromQuery(
-                dbQuery: $dbQuery,
+            $dbQuery->selectRowsFromDb(
+                db: $this->db,
                 offset: 0,
                 rowCount: 1000,
             ) as $row

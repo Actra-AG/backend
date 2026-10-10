@@ -17,6 +17,7 @@ use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
+use LogicException;
 
 /**
  * @internal
@@ -91,7 +92,8 @@ final class NotificationSendForm extends Form
         if (!parent::validate()) {
             return null;
         }
-        $authGroupId = (int) $this->authUserGroupField->getValueAsString();
+        $authGroupId = $this->authUserGroupField->getValueAsInt()
+            ?? throw new LogicException(message: 'The required user group field has no value.');
         $subject = $this->subjectField->getValueAsString();
         $message = $this->messageField->getValueAsString();
         $notificationId = $this->backendContext->repositories->notifications()->insert(

@@ -17,11 +17,9 @@ use actra\backend\libs\form\component\IpWhitelistField;
 use actra\backend\libs\form\component\LanguageField;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
-use actra\yuf\form\component\field\CsrfTokenField;
 use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
-use actra\yuf\form\component\FormField;
 use actra\yuf\html\HtmlText;
 
 /**
@@ -185,18 +183,6 @@ final class ProfileForm extends Form
         return true;
     }
 
-    private function hasChanges(): bool
-    {
-        return array_any(
-            array: $this->getAllFields(),
-            callback: function (FormField $field): bool {
-                if ($field instanceof CsrfTokenField) {
-                    return false;
-                }
-                return $field->valueHasChanged();
-            },
-        );
-    }
 
     /**
      * @param list<string> $ipWhitelist

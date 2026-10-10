@@ -30,8 +30,8 @@ final class DbAuthGroupCollection
     {
         $formOptions = new FormOptions();
         foreach ($this->items as $dbAuthGroup) {
-            $formOptions->addItem(
-                key: (string) $dbAuthGroup->id,
+            $formOptions->addIntItem(
+                key: $dbAuthGroup->id,
                 htmlText: HtmlText::fromText(text: $dbAuthGroup->title),
             );
         }
@@ -45,16 +45,6 @@ final class DbAuthGroupCollection
     public function listIds(): array
     {
         return array_keys(array: $this->items);
-    }
-
-    /**
-     * The keys of `getFormOptions()`, e.g. as initial values of an options field.
-     *
-     * @return list<string>
-     */
-    public function listFormOptionKeys(): array
-    {
-        return array_map(callback: static fn(int $id): string => (string) $id, array: $this->listIds());
     }
 
     /**

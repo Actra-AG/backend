@@ -100,10 +100,7 @@ final class DbAuthSessionRepository
                 phone: $row->getString(column: 'phone'),
                 isActive: $row->getBool(column: 'active'),
                 accessRightCollection: AccessRightCollection::createFromStringArray(
-                    input: explode(
-                        separator: ',',
-                        string: $row->getNullableString(column: 'access_rights') ?? '',
-                    ),
+                    input: $row->getStringList(column: 'access_rights'),
                 ),
                 firstName: $row->getString(column: 'first_name'),
                 lastName: $row->getString(column: 'last_name'),
@@ -113,7 +110,7 @@ final class DbAuthSessionRepository
                     hash: $row->getString(column: 'password_hash'),
                 ),
                 wrongLoginAttempts: $row->getInt(column: 'wrong_login_attempts'),
-                rawIpWhitelist: $row->getNullableString(column: 'ip_whitelist') ?? '',
+                ipWhitelist: $row->getStringList(column: 'ip_whitelist'),
             ),
         );
     }

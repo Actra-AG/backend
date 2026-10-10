@@ -1,7 +1,7 @@
 # Integration tests
 
-The general setup of PHPStan and the PHPUnit bootstrap for projects using yuf (and therefore the backend) is described
-in yuf's [testing docs](https://github.com/Actra-AG/yuf/blob/main/docs/testing.md).
+yuf and the backend load through Composer's autoloader: PHPStan and the PHPUnit bootstrap need no paths for them
+(yuf's [testing docs](https://github.com/Actra-AG/yuf/blob/main/docs/testing.md)).
 
 Integration tests connect to a test database with `DB::fromSettings()` and use the repositories on that connection
 (`BackendRepositories::fromDb()`), without `ActraBackend::init()`:

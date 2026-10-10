@@ -19,7 +19,9 @@ use actra\backend\settings\BackendRoute;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\core\ViewContext;
 use actra\yuf\exception\UnauthorizedException;
+use actra\yuf\layout\NavigationItemCollection;
 use actra\yuf\session\Session;
+use LogicException;
 
 /**
  * What every view based on `BackendView` receives: the `ViewContext` of yuf and the services of the backend for the
@@ -59,5 +61,18 @@ final readonly class BackendViewContext
     public function getCurrentUser(): MyAuthUser
     {
         return $this->currentUser ?? throw new UnauthorizedException();
+    }
+
+    /**
+     * The navigation of the request (`ActraBackend::createNavigation()` as yuf's navigation provider).
+     *
+     * @throws LogicException without navigation provider
+     */
+    public function getNavigation(): NavigationItemCollection
+    {
+        return $this->viewContext->getNavigation() ?? throw new LogicException(
+            message: 'The backend needs a navigation: pass $actraBackend->createNavigation(...) as navigationProvider '
+                . 'to Core::prepareHttpResponse().',
+        );
     }
 }

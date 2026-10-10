@@ -2,6 +2,63 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.3.0 (2026-10-10)
+
+### ⚠️ Requires `actra/yuf` `~5.0.0`
+
+Raise yuf to `^5.0.0` and follow its `UPGRADE.md` v5.0.0 (e.g. remove `scanDirectories` for yuf from `phpstan.neon` and
+the yuf path from the test bootstrap). The backend no longer registers itself with `actra/autoloader`: it is loaded
+through Composer's autoloader.
+
+### ⚠️ Navigation per request
+
+Before: `ActraBackend::init(…, navigationItemCollection: $navigationItemCollection)`. After: no such argument; pass the
+backend navigation to yuf:
+
+```php
+$core->prepareHttpResponse(routeCollection: $routeCollection, navigationProvider: $actraBackend->createNavigation(...));
+```
+
+`ActraBackend::$navigationItemCollection` is removed: `$this->backendContext->getNavigation()`. Project items still
+come from `ActraBackendSettings::$projectNavigation`.
+
+### ⚠️ Login redirect with `loginPath:`
+
+Before: the backend redirected to its login page itself. After: `new RouteCollection(loginPath: '/backend/login.html')`;
+after the login the user gets back to the requested page (`?returnTo=`). Without a login path, a page that needs a
+login answers with 401. `BackendView::PARAM_FROM_LOGIN` and `MyAuthUser::setRequestedPageAfterLogin()` are removed.
+
+### ⚠️ Tables and search forms
+
+- `AbstractTable::export(name:)` and its `clock:` argument are removed: `$table->exportCsv(fileName: 'users.csv',
+  responseSender: $this->context->responseSender)`.
+- `AbstractSearchForm::validateSearchField()` is split into `validateTextSearchField()`, `validateOptionsSearchField()`
+  (string keys) and `validateIntOptionsSearchField()` (integer keys, `null` for all). Option keys have no `option_`
+  prefix.
+- `DbAuthGroupCollection::getFormOptions()` has integer keys (`addIntItem()`); `listFormOptionKeys()` is removed
+  (`getFormOptions()->getKeys()`). `DB::selectRowsFromQuery()` is removed (`$dbQuery->selectRowsFromDb()`).
+- The visit status filter lists the login results only: the options "No access" (6) and "Unconfirmed access" (9) and
+  their texts `LogMessages::$filterNoAccess` / `$filterUnconfirmedAccess` are removed.
+
+### ⚠️ Texts of yuf
+
+`CommonMessages::$tableNoEntries`, `$tableOneResult` and `$tableResults` are removed: `BackendMessages::$table`
+(yuf's `TableMessages`, placeholder `[amount]`). `LogMessages::authResult()` and its `$authResult…` texts are removed:
+`BackendMessages::$authResult` (`AuthResultMessages`), e.g. `$authResult->label(messages:
+$messages->authResult)`. English wording: "Access inactive" instead of "Account inactive".
+
+### ⚠️ Mailer and records
+
+- `ActraBackend::createMailer()` requires `responseSender:` (`new NativeResponseSender()` in CLI scripts).
+- `DbAuthUser` takes `ipWhitelist:` (`list<string>`) instead of `rawIpWhitelist:` and no longer adds yuf's removed
+  `ACCESS_DO_PASSWORD_LOGIN` right. Users with a password but without any right are now rejected as inactive.
+
+### Other changes
+
+- Token requests of users with too many wrong passwords are rejected (`ERROR_OUT_TRIED`).
+- New passwords are checked by the form (`PasswordField::setMinLength()`, `EqualsFieldRule`): both errors may show at
+  once.
+
 ## v2.2.0 (2026-10-09)
 
 ### ⚠️ `MailerSettings` takes the mailer of the project

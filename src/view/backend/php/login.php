@@ -49,7 +49,7 @@ final class login extends BackendView
         $loginForm = new LoginForm(context: $this->backendContext);
         if ($loginForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->backendContext->paths->loginToken(),
+                relativeOrAbsoluteUri: $this->keepReturnPath(path: $this->backendContext->paths->loginToken()),
                 httpRequest: $this->context->httpRequest,
             );
         }

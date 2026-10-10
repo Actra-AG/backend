@@ -70,6 +70,11 @@ final class ProfilePasswordForm extends Form
                     purpose: PasswordPurposeEnum::NEW,
                 ),
             );
+            NewPasswordRules::apply(
+                newPasswordField: $this->newPasswordField,
+                newPasswordConfirmField: $this->newPasswordConfirmField,
+                messages: $messages->common,
+            );
         } else {
             $this->newPasswordField = null;
             $this->newPasswordConfirmField = null;
@@ -106,13 +111,6 @@ final class ProfilePasswordForm extends Form
         if ($newPasswordField === null || $newPasswordConfirmField === null) {
             $this->backendContext->repositories->users()->removePassword(id: $userId);
             return true;
-        }
-        $newPasswordCheck = new NewPasswordCheck(messages: $messages->common);
-        if (!$newPasswordCheck->isValid(
-            newPasswordField: $newPasswordField,
-            newPasswordConfirmField: $newPasswordConfirmField,
-        )) {
-            return false;
         }
         $this->backendContext->repositories->users()->setPassword(
             id: $userId,

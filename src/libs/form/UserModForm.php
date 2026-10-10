@@ -17,12 +17,10 @@ use actra\backend\libs\form\component\LanguageField;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\BooleanField;
 use actra\yuf\form\component\field\CheckboxOptionsField;
-use actra\yuf\form\component\field\CsrfTokenField;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
-use actra\yuf\form\component\FormField;
 use actra\yuf\html\HtmlText;
 
 /**
@@ -112,7 +110,7 @@ final class UserModForm extends Form
                 formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
                 initialValues: $this->backendContext->repositories->groups()->listByUserId(
                     userId: $dbAuthUser->id,
-                )->listFormOptionKeys(),
+                )->getFormOptions()->getKeys(),
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
             ),
         );
@@ -183,17 +181,11 @@ final class UserModForm extends Form
                 ? $this->dbAuthUser->languageCode
                 : $this->languageField->getLanguageCode(),
         );
-        foreach ($this->userGroupsField->getAddedValues() as $userGroupValue) {
-            $this->backendContext->repositories->userGroups()->insert(
-                userId: $userId,
-                groupId: (int) $userGroupValue,
-            );
+        foreach ($this->userGroupsField->getAddedIntValues() as $groupId) {
+            $this->backendContext->repositories->userGroups()->insert(userId: $userId, groupId: $groupId);
         }
-        foreach ($this->userGroupsField->getRemovedValues() as $userGroupValue) {
-            $this->backendContext->repositories->userGroups()->delete(
-                userId: $userId,
-                groupId: (int) $userGroupValue,
-            );
+        foreach ($this->userGroupsField->getRemovedIntValues() as $groupId) {
+            $this->backendContext->repositories->userGroups()->delete(userId: $userId, groupId: $groupId);
         }
         foreach ($newIpWhitelist as $ip) {
             if (!in_array(
@@ -223,16 +215,4 @@ final class UserModForm extends Form
         return true;
     }
 
-    private function hasChanges(): bool
-    {
-        return array_any(
-            array: $this->getAllFields(),
-            callback: function (FormField $field): bool {
-                if ($field instanceof CsrfTokenField) {
-                    return false;
-                }
-                return $field->valueHasChanged();
-            },
-        );
-    }
 }

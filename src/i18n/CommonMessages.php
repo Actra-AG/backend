@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\i18n;
 
 /**
- * Texts used by several areas of the backend (buttons, user data fields, passwords, IP whitelist, search, tables).
+ * Texts used by several areas of the backend (buttons, user data fields, passwords, IP whitelist, search).
  * Defaults are English, german() returns the German variant. Override single texts with `with()`.
  */
 final readonly class CommonMessages
@@ -66,9 +66,6 @@ final readonly class CommonMessages
         public string $filterAll = 'all',
         public string $fullName = '[firstName] [lastName]',
         public string $userOption = '[email] ([name])',
-        public string $tableNoEntries = 'No entries found.',
-        public string $tableOneResult = '[count] result found.',
-        public string $tableResults = '[count] results found.',
         public string $paginationPrevious = 'Previous',
         public string $paginationNext = 'Next',
         public string $removeApiKeyTitle = 'Remove API key',
@@ -130,9 +127,6 @@ final readonly class CommonMessages
             filterAll: 'alle',
             fullName: '[firstName] [lastName]',
             userOption: '[email] ([name])',
-            tableNoEntries: 'Es wurden keine Einträge gefunden.',
-            tableOneResult: 'Es wurde [count] Resultat gefunden.',
-            tableResults: 'Es wurden [count] Resultate gefunden.',
             paginationPrevious: 'Zurück',
             paginationNext: 'Vor',
             removeApiKeyTitle: 'API-Key entfernen',

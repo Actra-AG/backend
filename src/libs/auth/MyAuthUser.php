@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace actra\backend\libs\auth;
 
 use actra\backend\ActraBackend;
-use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\CommonMessages;
 use actra\backend\libs\db\BackendRepositories;
@@ -20,6 +19,7 @@ use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\AuthUser;
 use actra\yuf\auth\Password;
 use actra\yuf\core\HttpResponse;
+use actra\yuf\core\LoginRedirect;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\session\Session;
 
@@ -39,18 +39,9 @@ final class MyAuthUser extends AuthUser
             ),
             wrongPasswordAttempts: $dbAuthUser->wrongLoginAttempts,
             accessRightCollection: $dbAuthUser->accessRightCollection,
-            password: $dbAuthUser->password ?? MyAuthUser::createPasswordOfUserWithoutPassword(),
+            password: $dbAuthUser->password,
             ipWhitelist: $dbAuthUser->ipWhitelist,
         );
-    }
-
-    /**
-     * A user without password cannot log in with a password: no input matches this hash (not a valid hash format), and
-     * no Argon2id hash has to be computed for every loaded user.
-     */
-    private static function createPasswordOfUserWithoutPassword(): Password
-    {
-        return new Password(salt: '', hash: '!');
     }
 
     /**
@@ -80,11 +71,6 @@ final class MyAuthUser extends AuthUser
         );
     }
 
-    public static function setRequestedPageAfterLogin(Session $session, string $path): void
-    {
-        $session->set(key: 'requestedPageAfterLogin', value: $path);
-    }
-
     public function redirectToFirstAllowedPage(BackendViewContext $context): never
     {
         HttpResponse::redirectAndExit(
@@ -95,20 +81,15 @@ final class MyAuthUser extends AuthUser
 
     public function getFirstAllowedPage(BackendViewContext $context): string
     {
-        $session = $context->session;
-        $requestedPage = $session->getString(key: 'requestedPageAfterLogin');
-        $session->remove(key: 'requestedPageAfterLogin');
-        $target = is_string(value: $requestedPage) && $requestedPage !== ''
-            ? $requestedPage
-            : $this->getFirstNavigationHref(context: $context);
-        $target = $this->moveToLanguageRoute(context: $context, target: $target);
+        $target = LoginRedirect::findReturnPath(httpRequest: $context->viewContext->httpRequest)
+            ?? $this->getFirstNavigationHref(context: $context);
 
-        return $target . (str_contains(haystack: $target, needle: '?') ? '&' : '?') . BackendView::PARAM_FROM_LOGIN;
+        return $this->moveToLanguageRoute(context: $context, target: $target);
     }
 
     private function getFirstNavigationHref(BackendViewContext $context): string
     {
-        $navigationItem = $context->actraBackend->navigationItemCollection->getFirst(
+        $navigationItem = $context->getNavigation()->getFirst(
             accessRightCollection: $this->dbAuthUser->accessRightCollection,
         );
         if ($navigationItem === null) {

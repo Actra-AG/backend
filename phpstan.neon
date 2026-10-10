@@ -7,6 +7,3 @@ parameters:
     paths:
         - src
         - tests
-    scanDirectories:
-        # yuf has no Composer autoload configuration (its classes are loaded by actra/autoloader)
-        - vendor/actra/yuf/src

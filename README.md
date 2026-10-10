@@ -65,10 +65,13 @@ backend has no global state; everything a view needs comes through its `BackendV
 use actra\backend\ActraBackend;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
+use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\SmtpMailer;
 
-// ... initialize your $routeCollection, $language, $navigationItemCollection ...
+// Visitors without login are sent to the login page and back to the requested page afterwards
+$routeCollection = new RouteCollection(loginPath: '/backend/login.html');
+// ... initialize your $language ...
 
 $actraBackend = ActraBackend::init(
     routeCollection: $routeCollection,
@@ -103,14 +106,19 @@ $actraBackend = ActraBackend::init(
             serverNameCache: $core->fileCache,
         ),
     ),
-    navigationItemCollection: $navigationItemCollection
+);
+
+// The navigation is built per request (project items: ActraBackendSettings::$projectNavigation)
+$core->prepareHttpResponse(
+    routeCollection: $routeCollection,
+    navigationProvider: $actraBackend->createNavigation(...),
 );
 ```
 
-Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`)
-and adds navigation items to your `NavigationItemCollection`. Dates are formatted for the locale of the route
-(`Language::$locale`). Login codes and password reset links are mailed after the response (shutdown function, after
-`fastcgi_finish_request()` with PHP-FPM), so the response time does not tell whether an email address exists.
+Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`).
+Dates are formatted for the locale of the route (`Language::$locale`). Login codes and password reset links are
+mailed after the response (yuf's `ResponseSender::afterResponse()`), so the response time does not tell whether an
+email address exists.
 
 ## Documentation
 

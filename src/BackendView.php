@@ -9,17 +9,16 @@ declare(strict_types=1);
 
 namespace actra\backend;
 
-use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\common\BreadcrumbItemCollection;
 use actra\backend\libs\common\LanguageSwitcher;
 use actra\backend\libs\common\SessionBreadcrumbTrail;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\UnauthorizedAccessRightException;
 use actra\yuf\core\BaseView;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\core\InputSourceEnum;
+use actra\yuf\core\LoginRedirect;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
@@ -31,7 +30,6 @@ use actra\yuf\html\HtmlText;
  */
 abstract class BackendView extends BaseView
 {
-    public const string PARAM_FROM_LOGIN = 'fromLogin';
     public const string PARAM_CANCEL_SESSION_CHANGE = 'cancelSessionChange';
 
     /**
@@ -64,13 +62,6 @@ abstract class BackendView extends BaseView
         $inputParameterCollection->add(
             inputParameter: new InputParameter(
                 source: InputSourceEnum::QUERY,
-                name: BackendView::PARAM_FROM_LOGIN,
-                isRequired: false,
-            ),
-        );
-        $inputParameterCollection->add(
-            inputParameter: new InputParameter(
-                source: InputSourceEnum::QUERY,
                 name: BackendView::PARAM_CANCEL_SESSION_CHANGE,
                 isRequired: false,
             ),
@@ -97,33 +88,15 @@ abstract class BackendView extends BaseView
                 }
             }
         }
-        try {
-            parent::__construct(
-                context: $context->viewContext,
-                requiredViewGroupName: $requiredViewGroupName,
-                ipWhitelist: $ipWhitelist,
-                authUser: $myAuthUser,
-                requiredAccessRights: static::getRequiredAccessRights(),
-                inputParameterCollection: $inputParameterCollection,
-                maxAllowedPathVars: $maxAllowedPathVars,
-            );
-        } catch (UnauthorizedAccessRightException $unauthorizedAccessRightException) {
-            if (
-                $myAuthUser === null
-                && $this->getInputString(keyName: BackendView::PARAM_FROM_LOGIN) === null
-                && $context->viewContext->content->getContentType()->isHtml()
-            ) {
-                MyAuthUser::setRequestedPageAfterLogin(
-                    session: $context->session,
-                    path: $context->viewContext->httpRequest->getUri(),
-                );
-                HttpResponse::redirectAndExit(
-                    relativeOrAbsoluteUri: $this->backendContext->paths->login(),
-                    httpRequest: $context->viewContext->httpRequest,
-                );
-            }
-            throw $unauthorizedAccessRightException;
-        }
+        parent::__construct(
+            context: $context->viewContext,
+            requiredViewGroupName: $requiredViewGroupName,
+            ipWhitelist: $ipWhitelist,
+            authUser: $myAuthUser,
+            requiredAccessRights: static::getRequiredAccessRights(),
+            inputParameterCollection: $inputParameterCollection,
+            maxAllowedPathVars: $maxAllowedPathVars,
+        );
         if ($myAuthUser !== null) {
             $context->repositories->sessions()->updateLastAction(id: $authSession->getAuthSessionId());
         }
@@ -208,7 +181,7 @@ abstract class BackendView extends BaseView
         }
         $myAuthUser = $this->backendContext->getCurrentUser();
         $accessRightCollection = $myAuthUser->dbAuthUser->accessRightCollection;
-        $navigationItemCollection = $actraBackend->navigationItemCollection;
+        $navigationItemCollection = $this->backendContext->getNavigation();
         $firstNavigationItem = $navigationItemCollection->getFirst(accessRightCollection: $accessRightCollection);
         if ($firstNavigationItem === null) {
             throw new UnauthorizedException();
@@ -310,18 +283,14 @@ abstract class BackendView extends BaseView
     abstract protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void;
 
     /**
-     * The path variables of the request as list (`subscription-42.html` → `['subscription', '42']`).
-     *
-     * @return list<string>
+     * The path of the next login step with the page requested before the login (`?returnTo=`, see `RouteCollection`
+     * with `loginPath:`), so the user gets there after the login.
      */
-    private function listPathVars(): array
+    protected function keepReturnPath(string $path): string
     {
-        $pathVars = [];
-        for ($nr = 0; ($value = $this->context->pathVars->get(nr: $nr)) !== null; $nr++) {
-            $pathVars[] = $value;
-        }
+        $returnPath = LoginRedirect::findReturnPath(httpRequest: $this->context->httpRequest);
 
-        return $pathVars;
+        return $returnPath === null ? $path : LoginRedirect::createLoginUri(loginPath: $path, returnUri: $returnPath);
     }
 
     abstract protected function getPageTitle(): HtmlText;
@@ -345,7 +314,7 @@ abstract class BackendView extends BaseView
             $trail = new SessionBreadcrumbTrail(
                 session: $this->backendContext->session,
                 httpRequest: $this->context->httpRequest,
-                pathVars: $this->listPathVars(),
+                pathVars: $this->context->pathVars->list(),
                 navigationLevels: $htmlDocument->listActiveHtmlIds(),
                 separator: $this->legacyBreadcrumbSeparator,
             );

@@ -56,6 +56,11 @@ final class PasswordResetForm extends Form
                 purpose: PasswordPurposeEnum::NEW,
             ),
         );
+        NewPasswordRules::apply(
+            newPasswordField: $this->newPasswordField,
+            newPasswordConfirmField: $this->newPasswordConfirmField,
+            messages: $messages->common,
+        );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'save',
@@ -70,13 +75,6 @@ final class PasswordResetForm extends Form
             return false;
         }
         $newPasswordField = $this->newPasswordField;
-        $newPasswordCheck = new NewPasswordCheck(messages: $this->backendContext->messages->common);
-        if (!$newPasswordCheck->isValid(
-            newPasswordField: $newPasswordField,
-            newPasswordConfirmField: $this->newPasswordConfirmField,
-        )) {
-            return false;
-        }
         $this->backendContext->repositories->users()->setPassword(
             id: $this->dbAuthToken->userId,
             newPassword: Password::generateNew(rawPassword: $newPasswordField->getValueAsString()),

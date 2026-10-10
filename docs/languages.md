@@ -71,6 +71,7 @@ new ActraBackendSettings(
 );
 ```
 
-The hook is called once per request, for the backend route of the request; each navigation key may be added once.
+`ActraBackend::createNavigation()` calls the hook once per request, for the backend route of the request; each
+navigation key may be added once.
 
 With several languages, the page header shows a language switcher that links to the same page in each language.

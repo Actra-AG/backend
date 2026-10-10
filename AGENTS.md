@@ -24,6 +24,8 @@ This project follows the Actra coding standard, installed as development depende
 - The migration to the current yuf and the global standard is complete (v2.0.0); open points in
   [docs/plans/follow-up/plan.md](docs/plans/follow-up/plan.md).
 - No skeleton project. No example app; views are checked in the consuming project (see "Dependencies and tooling").
+- Changes of HTML templates and CSS need a frontend review (`AGENTS.md` of the coding standard, "Working on a
+  task").
 
 ## Directory layout
 
@@ -49,7 +51,9 @@ This project follows the Actra coding standard, installed as development depende
 ### Dependencies and tooling
 
 - Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`.
-- PHPStan and PHPUnit find the yuf classes as described in `vendor/actra/yuf/docs/testing.md`.
+- yuf and the backend load through Composer's autoloader (PHPStan and PHPUnit need no paths for them).
+- Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
+  `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).

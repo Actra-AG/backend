@@ -47,7 +47,7 @@ final class loginPassword extends BackendView
         $loginPasswordForm = new LoginPasswordForm(context: $this->backendContext);
         if ($loginPasswordForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->backendContext->paths->loginPasswordToken(),
+                relativeOrAbsoluteUri: $this->keepReturnPath(path: $this->backendContext->paths->loginPasswordToken()),
                 httpRequest: $this->context->httpRequest,
             );
         }

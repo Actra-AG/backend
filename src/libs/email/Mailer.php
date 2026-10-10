@@ -10,8 +10,8 @@ declare(strict_types=1);
 namespace actra\backend\libs\email;
 
 use actra\backend\settings\MailerSettings;
+use actra\yuf\core\ResponseSender;
 use actra\yuf\mailer\TextMail;
-use Closure;
 
 /**
  * Sends the emails of the backend with the mailer of the project (`BackendViewContext::$mailer`).
@@ -19,26 +19,13 @@ use Closure;
 final readonly class Mailer
 {
     /**
-     * @param Closure(Closure(): void): void $runAfterResponse Runs a closure after the response was sent
+     * @param ResponseSender $responseSender Sends the mails of `sendTextMailAfterResponse()` after the response
+     *                                       (`ViewContext::$responseSender`, `NativeResponseSender` in CLI scripts)
      */
     public function __construct(
         public MailerSettings $mailerSettings,
-        private Closure $runAfterResponse,
+        private ResponseSender $responseSender,
     ) {}
-
-    /**
-     * Sends the mails of `sendTextMailAfterResponse()` in a shutdown function: with PHP-FPM it runs after
-     * `fastcgi_finish_request()`, so the client does not wait for the mail server.
-     */
-    public static function create(MailerSettings $mailerSettings): Mailer
-    {
-        return new Mailer(
-            mailerSettings: $mailerSettings,
-            runAfterResponse: static function (Closure $closure): void {
-                register_shutdown_function(callback: $closure);
-            },
-        );
-    }
 
     /**
      * @param list<string> $cc
@@ -80,7 +67,7 @@ final readonly class Mailer
      */
     public function sendTextMailAfterResponse(string $recipient, string $subject, string $textBody): void
     {
-        ($this->runAfterResponse)(fn() => $this->sendTextMail(
+        $this->responseSender->afterResponse(callback: fn() => $this->sendTextMail(
             recipient: $recipient,
             subject: $subject,
             textBody: $textBody,

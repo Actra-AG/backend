@@ -11,6 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\auth\Password;
 use actra\yuf\auth\SecretTokenHash;
+use actra\yuf\common\StringUtils;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
@@ -21,7 +22,7 @@ final class DbAuthApiKeyRepository
     public function __construct(private readonly DB $db) {}
 
     private const string API_KEY_PREFIX = 'api_key';
-    private const int PUBLIC_ID_BYTES = 6;
+    private const int PUBLIC_ID_LENGTH = 6;
     private const int SECRET_BYTES = 32;
     private const string PUBLIC_ID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -56,19 +57,17 @@ final class DbAuthApiKeyRepository
      */
     public static function createKeyHash(string $salt, string $hash): Password|SecretTokenHash
     {
-        if ($salt === '' && preg_match(pattern: '/^[0-9a-f]{64}$/D', subject: $hash) === 1) {
-            return new SecretTokenHash(hash: $hash);
-        }
+        $secretTokenHash = $salt === '' ? SecretTokenHash::tryFrom(hash: $hash) : null;
 
-        return new Password(salt: $salt, hash: $hash);
+        return $secretTokenHash ?? new Password(salt: $salt, hash: $hash);
     }
 
     private function select(DbQuery $dbQuery): DbAuthApiKeyCollection
     {
         $dbAuthApiKeyCollection = new DbAuthApiKeyCollection();
         foreach (
-            $this->db->selectRowsFromQuery(
-                dbQuery: $dbQuery,
+            $dbQuery->selectRowsFromDb(
+                db: $this->db,
                 offset: 0,
                 rowCount: 1000,
             ) as $row
@@ -157,13 +156,10 @@ final class DbAuthApiKeyRepository
     private function createPublicId(): string
     {
         do {
-            $publicId = '';
-            for ($i = 0; $i < DbAuthApiKeyRepository::PUBLIC_ID_BYTES; $i++) {
-                $publicId .= DbAuthApiKeyRepository::PUBLIC_ID_CHARS[random_int(
-                    min: 0,
-                    max: strlen(string: DbAuthApiKeyRepository::PUBLIC_ID_CHARS) - 1,
-                )];
-            }
+            $publicId = StringUtils::randomFromAlphabet(
+                length: DbAuthApiKeyRepository::PUBLIC_ID_LENGTH,
+                alphabet: DbAuthApiKeyRepository::PUBLIC_ID_CHARS,
+            );
         } while ($this->selectByPublicId(publicId: $publicId) !== null);
 
         return $publicId;

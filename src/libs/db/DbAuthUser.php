@@ -23,9 +23,9 @@ use DateTimeImmutable;
 
 final readonly class DbAuthUser
 {
-    /** @var list<string> */
-    public array $ipWhitelist;
-
+    /**
+     * @param list<string> $ipWhitelist
+     */
     public function __construct(
         public int $id,
         public DateTimeImmutable $registered,
@@ -40,27 +40,8 @@ final readonly class DbAuthUser
         public ?string $languageCode,
         public ?Password $password,
         public int $wrongLoginAttempts,
-        string $rawIpWhitelist,
-    ) {
-        if ($this->password !== null) {
-            $this->accessRightCollection->add(accessRight: AccessRightCollection::ACCESS_DO_PASSWORD_LOGIN);
-        }
-        $ipWhitelist = [];
-        if ($rawIpWhitelist !== '') {
-            foreach (
-                explode(
-                    separator: ',',
-                    string: $rawIpWhitelist,
-                ) as $ipAddress
-            ) {
-                if ($ipAddress === '') {
-                    continue;
-                }
-                $ipWhitelist[] = $ipAddress;
-            }
-        }
-        $this->ipWhitelist = $ipWhitelist;
-    }
+        public array $ipWhitelist,
+    ) {}
 
     public function isInvited(): bool
     {

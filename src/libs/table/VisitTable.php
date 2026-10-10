@@ -14,7 +14,6 @@ use actra\backend\libs\form\VisitSearchForm;
 use actra\backend\libs\table\column\LocalizedDateColumn;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\common\SearchQueryBuilder;
-use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DefaultColumn;
 use actra\yuf\table\TableItem;
@@ -40,11 +39,11 @@ final class VisitTable extends AbstractTable
             );
         }
         $status = $tokenSearchForm->status;
-        if ($status > 0) {
+        if ($status !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_login.result=?',
                 parameters: [
-                    $status,
+                    $status->value,
                 ],
             );
         }
@@ -115,11 +114,10 @@ final class VisitTable extends AbstractTable
             abstractTableColumn: new CallbackColumn(
                 identifier: 'result',
                 label: $messages->log->statusLabel,
-                callbackFunction: static fn(TableItem $tableItem): string => HtmlEncoder::encode(
-                    value: $messages->log->authResult(
-                        authResult: $tableItem->getRow()->getEnum(column: 'result', enumClass: AuthResultEnum::class),
-                    ),
-                ),
+                callbackFunction: static fn(TableItem $tableItem): string => $tableItem->getRow()->getEnum(
+                    column: 'result',
+                    enumClass: AuthResultEnum::class,
+                )->label(messages: $messages->authResult)->render(),
             ),
         );
     }

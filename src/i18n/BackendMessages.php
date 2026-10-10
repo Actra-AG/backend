@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\i18n;
 
+use actra\yuf\auth\AuthResultMessages;
 use actra\yuf\form\FormMessages;
+use actra\yuf\table\TableMessages;
 
 /**
  * All texts of the backend in one language, per backend route (`ActraBackendSettings::$messages` for the main route,
@@ -18,6 +20,13 @@ use actra\yuf\form\FormMessages;
  */
 final readonly class BackendMessages
 {
+    public TableMessages $table;
+    public AuthResultMessages $authResult;
+
+    /**
+     * @param ?TableMessages $table Default: `TableMessages::english()` (yuf's default is German)
+     * @param ?AuthResultMessages $authResult Default: `AuthResultMessages::english()` (yuf's default is German)
+     */
     public function __construct(
         public FormMessages $form = new FormMessages(),
         public CommonMessages $common = new CommonMessages(),
@@ -28,7 +37,12 @@ final readonly class BackendMessages
         public NotificationMessages $notification = new NotificationMessages(),
         public LogMessages $log = new LogMessages(),
         public EmailMessages $email = new EmailMessages(),
-    ) {}
+        ?TableMessages $table = null,
+        ?AuthResultMessages $authResult = null,
+    ) {
+        $this->table = $table ?? TableMessages::english();
+        $this->authResult = $authResult ?? AuthResultMessages::english();
+    }
 
     public static function english(): BackendMessages
     {
@@ -59,6 +73,8 @@ final readonly class BackendMessages
         ?NotificationMessages $notification = null,
         ?LogMessages $log = null,
         ?EmailMessages $email = null,
+        ?TableMessages $table = null,
+        ?AuthResultMessages $authResult = null,
     ): BackendMessages {
         return new BackendMessages(
             form: $form ?? $this->form,
@@ -70,6 +86,8 @@ final readonly class BackendMessages
             notification: $notification ?? $this->notification,
             log: $log ?? $this->log,
             email: $email ?? $this->email,
+            table: $table ?? $this->table,
+            authResult: $authResult ?? $this->authResult,
         );
     }
 
@@ -85,6 +103,8 @@ final readonly class BackendMessages
             notification: NotificationMessages::german(),
             log: LogMessages::german(),
             email: EmailMessages::german(),
+            table: new TableMessages(),
+            authResult: new AuthResultMessages(),
         );
     }
 }

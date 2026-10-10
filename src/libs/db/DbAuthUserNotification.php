@@ -15,6 +15,7 @@ use actra\backend\libs\common\DateFormatter;
 use actra\yuf\html\DetailDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlEncoder;
+use actra\yuf\html\HtmlText;
 use DateTimeImmutable;
 
 final readonly class DbAuthUserNotification
@@ -53,31 +54,20 @@ final readonly class DbAuthUserNotification
         ];
         foreach ($details as [$label, $value]) {
             $htmlDataObjectCollection->add(
-                htmlDataObject: DbAuthUserNotification::createDetail(
-                    label: $label,
-                    valueHtml: HtmlEncoder::encode(value: $value),
+                htmlDataObject: new DetailDataObject(
+                    name: HtmlText::fromText(text: $label),
+                    value: HtmlText::fromText(text: $value),
                 ),
             );
         }
         $htmlDataObjectCollection->add(
-            htmlDataObject: DbAuthUserNotification::createDetail(
-                label: $messages->notification->messageLabel,
-                valueHtml: nl2br(string: HtmlEncoder::encode(value: $this->message)),
+            htmlDataObject: new DetailDataObject(
+                name: HtmlText::fromText(text: $messages->notification->messageLabel),
+                // Line breaks of the message as <br>, the text itself encoded
+                value: HtmlText::fromHtml(html: nl2br(string: HtmlEncoder::encode(value: $this->message))),
             ),
         );
 
         return $htmlDataObjectCollection;
-    }
-
-    /**
-     * yuf's DetailDataObject never encodes the label, so both parts are passed as HTML.
-     */
-    private static function createDetail(string $label, string $valueHtml): DetailDataObject
-    {
-        return new DetailDataObject(
-            name: HtmlEncoder::encode(value: $label),
-            value: $valueHtml,
-            isHtml: true,
-        );
     }
 }

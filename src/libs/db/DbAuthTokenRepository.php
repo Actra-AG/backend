@@ -17,6 +17,9 @@ use actra\yuf\db\DbQuery;
 
 final class DbAuthTokenRepository
 {
+    private const int TOKEN_LENGTH = 6;
+    private const string TOKEN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
     public function __construct(private readonly DB $db) {}
 
     public function getDbQuery(): DbQuery
@@ -42,11 +45,9 @@ final class DbAuthTokenRepository
         ClientData $clientData,
         Clock $clock = new SystemClock(),
     ): string {
-        $token = strtoupper(
-            string: StringUtils::randomString(
-                requiredStringLength: 6,
-                noSpecialChars: true,
-            ),
+        $token = StringUtils::randomFromAlphabet(
+            length: DbAuthTokenRepository::TOKEN_LENGTH,
+            alphabet: DbAuthTokenRepository::TOKEN_ALPHABET,
         );
         $this->db->execute(
             sql: '

@@ -110,11 +110,9 @@ final class SessionBreadcrumbTrail
             );
         }
         $navigationLevels = $this->navigationLevels;
-        $storedLevels = $this->session->getArray(key: SessionBreadcrumbTrail::NAVIGATION_LEVELS_KEY) ?? [];
+        $storedLevels = $this->session->getStringList(key: SessionBreadcrumbTrail::NAVIGATION_LEVELS_KEY) ?? [];
         foreach ($storedLevels as $level => $id) {
-            if (is_int(value: $level) && is_string(value: $id)) {
-                $navigationLevels[$level] = $id;
-            }
+            $navigationLevels[$level] = $id;
         }
 
         return $navigationLevels;
@@ -125,8 +123,23 @@ final class SessionBreadcrumbTrail
      */
     private function readTrail(): array
     {
+        return $this->session->getStruct(
+            key: SessionBreadcrumbTrail::TRAIL_KEY,
+            map: SessionBreadcrumbTrail::trailFromSessionArray(...),
+        ) ?? [];
+    }
+
+    /**
+     * The entries of the stored trail that have a title and a link.
+     *
+     * @param array<array-key, mixed> $stored
+     *
+     * @return array<string, array{title: string, link: string}>
+     */
+    private static function trailFromSessionArray(array $stored): array
+    {
         $trail = [];
-        foreach ($this->session->getArray(key: SessionBreadcrumbTrail::TRAIL_KEY) ?? [] as $page => $entry) {
+        foreach ($stored as $page => $entry) {
             if (
                 is_array(value: $entry)
                 && array_key_exists(key: 'title', array: $entry)

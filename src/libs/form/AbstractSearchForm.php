@@ -13,7 +13,6 @@ use actra\backend\BackendViewContext;
 use actra\yuf\common\SearchState;
 use actra\yuf\core\InputSourceEnum;
 use actra\yuf\form\component\collection\Form;
-use actra\yuf\form\component\field\NullField;
 use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\field\TextField;
 use LogicException;
@@ -44,28 +43,46 @@ abstract class AbstractSearchForm extends Form
     }
 
     /**
-     * Reads the search value from the request or the session (SearchState) and shows it in the field.
+     * Reads the search text from the request or the session (SearchState) and shows it in the field.
      */
-    protected function validateSearchField(NullField|SelectOptionsField|TextField $searchField): string
+    protected function validateTextSearchField(TextField $searchField): string
     {
-        if ($searchField instanceof NullField) {
-            return '';
-        }
-        $searchState = $this->searchState;
-        if ($searchField instanceof TextField) {
-            $value = $searchState->checkString(
-                fieldName: $searchField->name,
-                default: $searchField->getValueAsString(),
-            );
-        } else {
-            $value = $searchState->checkFilter(
-                array: ['' => 'all'] + $searchField->formOptions->data,
-                fieldName: $searchField->name,
-                default: $searchField->getValueAsString(),
-            );
-        }
+        $value = $this->searchState->checkString(
+            fieldName: $searchField->name,
+            default: $searchField->getValueAsString(),
+        );
         $searchField->setValue(value: $value);
 
-        return str_replace(search: 'option_', replace: '', subject: $value);
+        return $value;
+    }
+
+    /**
+     * Reads the selected option (a key of the field's options, `''` for all) from the request or the session.
+     */
+    protected function validateOptionsSearchField(SelectOptionsField $searchField): string
+    {
+        $value = $this->searchState->checkOptionsFilter(
+            formOptions: $searchField->formOptions,
+            fieldName: $searchField->name,
+            default: $searchField->getValueAsString(),
+        );
+        $searchField->setValue(value: $value);
+
+        return $value;
+    }
+
+    /**
+     * Like `validateOptionsSearchField()` for options with integer keys (`FormOptions::addIntItem()`), `null` for all.
+     */
+    protected function validateIntOptionsSearchField(SelectOptionsField $searchField): ?int
+    {
+        $value = $this->searchState->checkIntOptionsFilter(
+            formOptions: $searchField->formOptions,
+            fieldName: $searchField->name,
+            default: $searchField->getValueAsInt(),
+        );
+        $searchField->setValue(value: $value === null ? null : (string) $value);
+
+        return $value;
     }
 }

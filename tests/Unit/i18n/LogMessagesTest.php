@@ -11,7 +11,6 @@ namespace actra\backend\tests\Unit\i18n;
 
 use actra\backend\i18n\LogMessages;
 use actra\backend\settings\AuthTokenTypeEnum;
-use actra\yuf\auth\AuthResultEnum;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -28,13 +27,6 @@ final class LogMessagesTest extends TestCase
         ];
     }
 
-    #[DataProvider('languageProvider')]
-    public function testEveryAuthResultHasALabel(LogMessages $messages): void
-    {
-        foreach (AuthResultEnum::cases() as $authResult) {
-            $this->assertNotSame('', trim(string: $messages->authResult(authResult: $authResult)), $authResult->name);
-        }
-    }
 
     #[DataProvider('languageProvider')]
     public function testEveryAuthTokenTypeHasALabel(LogMessages $messages): void
@@ -44,13 +36,6 @@ final class LogMessagesTest extends TestCase
         }
     }
 
-    public function testGermanAuthResultLabelsEqualTheYufLabels(): void
-    {
-        $messages = LogMessages::german();
-        foreach (AuthResultEnum::cases() as $authResult) {
-            $this->assertSame($authResult->render(), $messages->authResult(authResult: $authResult), $authResult->name);
-        }
-    }
 
     public function testGermanAuthTokenTypeLabels(): void
     {

@@ -44,10 +44,12 @@ parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQue
 | `repositories` | The repositories (`->users()`, `->groups()`, …, `->db()` for the database of the backend) |
 | `currentUser`, `getCurrentUser()` | The logged-in `MyAuthUser` (`null` / `UnauthorizedException` without login) |
 | `mailer` | Sends emails with the mailer of the `MailerSettings` (`->sendTextMail()`) |
+| `getNavigation()` | The navigation of the request (`ActraBackend::createNavigation()`) |
 | `session`, `authSession`, `viewContext` | yuf's session objects and `ViewContext` |
 | `userController` | `->deleteUser(userId:)` |
 
-Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and `$actraBackend->createMailer()`.
+Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and
+`$actraBackend->createMailer(responseSender: new NativeResponseSender())`.
 
 The values of a search form come from the posted form (`reset` and `find` from the query string), and tables and
 search forms keep their state in the session. New services of the backend are added to `BackendViewContext`, so these

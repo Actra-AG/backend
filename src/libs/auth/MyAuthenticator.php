@@ -48,6 +48,31 @@ final class MyAuthenticator extends Authenticator
         );
     }
 
+    /**
+     * The user that may get a login token by email: yuf's `precheck()` (unknown user, IP whitelist, inactive, out tried)
+     * and no password (a user with password logs in with it, logged as `ERROR_NO_PASSWORD`). Rejections are logged.
+     */
+    public function findTokenLoginUser(string $email): ?MyAuthUser
+    {
+        $result = $this->precheck(userName: $email);
+        if (!$result instanceof MyAuthUser) {
+            return null;
+        }
+        if ($result->password !== null) {
+            $this->logAuthResult(
+                userId: $result->id,
+                sessionId: $this->context->authSession->getSessionId(),
+                ip: $this->context->viewContext->httpRequest->getRemoteAddress(),
+                userName: $email,
+                authResult: AuthResultEnum::ERROR_NO_PASSWORD,
+            );
+
+            return null;
+        }
+
+        return $result;
+    }
+
     #[\Override]
     protected function checkLoginCredentials(AuthUser $authUser): bool
     {
@@ -71,7 +96,7 @@ final class MyAuthenticator extends Authenticator
     }
 
     #[\Override]
-    public function logAuthResult(
+    protected function logAuthResult(
         ?int $userId,
         string $sessionId,
         string $ip,

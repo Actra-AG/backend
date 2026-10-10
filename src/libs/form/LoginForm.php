@@ -13,8 +13,6 @@ use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\AuthTokens;
 use actra\backend\libs\auth\MyAuthenticator;
 use actra\backend\settings\AuthTokenTypeEnum;
-use actra\yuf\auth\AuthResultEnum;
-use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\FormControl;
@@ -70,62 +68,15 @@ final class LoginForm extends Form
      */
     private function sendTokenIfAllowed(): void
     {
-        $myAuthenticator = new MyAuthenticator(context: $this->backendContext);
-        $sessionId = $this->backendContext->authSession->getSessionId();
-        $ipAddress = $this->context->httpRequest->getRemoteAddress();
-        $inputEmail = $this->emailField->getValueAsString();
-        $dbAuthUser = $this->backendContext->repositories->users()->selectByEmail(email: $inputEmail);
-        if ($dbAuthUser === null) {
-            $myAuthenticator->logAuthResult(
-                userId: null,
-                sessionId: $sessionId,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_UNKNOWN_USER_NAME,
-            );
-            return;
-        }
-        if (
-            $dbAuthUser->ipWhitelist !== []
-            && !IpValidator::isInWhitelist(
-                whiteList: $dbAuthUser->ipWhitelist,
-                ipAddressToCheck: $ipAddress,
-            )
-        ) {
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->id,
-                sessionId: $sessionId,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_IP_NOT_ALLOWED,
-            );
-            return;
-        }
-        if ($dbAuthUser->isActive === false
-            || $dbAuthUser->accessRightCollection->isEmpty()
-        ) {
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->id,
-                sessionId: $sessionId,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_INACTIVE,
-            );
-            return;
-        }
-        if ($dbAuthUser->password !== null) {
-            $myAuthenticator->logAuthResult(
-                userId: $dbAuthUser->id,
-                sessionId: $sessionId,
-                ip: $ipAddress,
-                userName: $inputEmail,
-                authResult: AuthResultEnum::ERROR_NO_PASSWORD,
-            );
+        $myAuthUser = new MyAuthenticator(context: $this->backendContext)->findTokenLoginUser(
+            email: $this->emailField->getValueAsString(),
+        );
+        if ($myAuthUser === null) {
             return;
         }
         new AuthTokens(context: $this->backendContext)->createAndSend(
             type: AuthTokenTypeEnum::LOGIN,
-            dbAuthUser: $dbAuthUser,
+            dbAuthUser: $myAuthUser->dbAuthUser,
             usedPasswordLogin: false,
         );
     }

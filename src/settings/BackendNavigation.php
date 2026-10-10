@@ -18,8 +18,8 @@ use actra\yuf\layout\NavigationItemCollection;
 interface BackendNavigation
 {
     /**
-     * Called once per request, when a view based on `BackendView` activates its backend route. Add the items with the
-     * texts and links of `$backendRoute`; every navigation key may be added only once (yuf throws otherwise).
+     * Called by `ActraBackend::createNavigation()` once per request. Add the items with the texts and links of
+     * `$backendRoute`; every navigation key may be added only once (yuf throws otherwise).
      */
     public function addNavigationItems(
         NavigationItemCollection $navigationItemCollection,

@@ -31,18 +31,20 @@ final class GeneratedApiKeyFlash
      */
     public static function pull(Session $session, int $userId): ?string
     {
-        $stored = $session->getArray(key: GeneratedApiKeyFlash::SESSION_KEY);
-        if (
-            $stored === null
-            || !array_key_exists(key: 'userId', array: $stored)
-            || !array_key_exists(key: 'apiKey', array: $stored)
-            || $stored['userId'] !== $userId
-            || !is_string(value: $stored['apiKey'])
-        ) {
+        $apiKey = $session->getStruct(
+            key: GeneratedApiKeyFlash::SESSION_KEY,
+            map: static fn(array $stored): ?string => array_key_exists(key: 'userId', array: $stored)
+                && $stored['userId'] === $userId
+                && array_key_exists(key: 'apiKey', array: $stored)
+                && is_string(value: $stored['apiKey'])
+                    ? $stored['apiKey']
+                    : null,
+        );
+        if ($apiKey === null) {
             return null;
         }
         $session->remove(key: GeneratedApiKeyFlash::SESSION_KEY);
 
-        return $stored['apiKey'];
+        return $apiKey;
     }
 }

@@ -22,7 +22,7 @@ use actra\yuf\html\HtmlText;
  */
 final class VisitSearchForm extends AbstractSearchForm
 {
-    public readonly int $status;
+    public readonly ?AuthResultEnum $status;
     public readonly string $searchQuery;
     private readonly SearchSelectOptionsField $statusFilterField;
     private readonly SearchQueryField $searchQueryField;
@@ -38,21 +38,11 @@ final class VisitSearchForm extends AbstractSearchForm
             if ($authResult === AuthResultEnum::UNDEFINED) {
                 continue;
             }
-            $statusFilterOptions->addItem(
-                key: 'option_' . $authResult->value,
-                htmlText: HtmlText::fromText(
-                    text: $messages->log->authResult(authResult: $authResult),
-                ),
+            $statusFilterOptions->addIntItem(
+                key: $authResult->value,
+                htmlText: $authResult->label(messages: $messages->authResult),
             );
         }
-        $statusFilterOptions->addItem(
-            key: 'option_6',
-            htmlText: HtmlText::fromText(text: $messages->log->filterNoAccess),
-        );
-        $statusFilterOptions->addItem(
-            key: 'option_9',
-            htmlText: HtmlText::fromText(text: $messages->log->filterUnconfirmedAccess),
-        );
         $this->addField(
             formField: $this->statusFilterField = new SearchSelectOptionsField(
                 name: 'statusFilterField',
@@ -62,14 +52,15 @@ final class VisitSearchForm extends AbstractSearchForm
                 individualEmptyValueLabel: HtmlText::fromText(text: $messages->common->filterAll),
             ),
         );
-        $this->status = (int) $this->validateSearchField(searchField: $this->statusFilterField);
+        $status = $this->validateIntOptionsSearchField(searchField: $this->statusFilterField);
+        $this->status = $status === null ? null : AuthResultEnum::from($status);
 
         $this->addField(
             formField: $this->searchQueryField = new SearchQueryField(
                 messages: $this->backendContext->messages->common,
             ),
         );
-        $this->searchQuery = $this->validateSearchField(searchField: $this->searchQueryField);
+        $this->searchQuery = $this->validateTextSearchField(searchField: $this->searchQueryField);
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'find',

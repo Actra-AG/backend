@@ -149,11 +149,8 @@ final class UserAddForm extends Form
             lastName: $this->lastNameField->getValueAsString(),
             languageCode: $this->languageField?->getLanguageCode(),
         );
-        foreach ($this->userGroupsField->getValues() as $userGroupValue) {
-            $this->backendContext->repositories->userGroups()->insert(
-                userId: $newUserId,
-                groupId: (int) $userGroupValue,
-            );
+        foreach ($this->userGroupsField->getIntValues() as $groupId) {
+            $this->backendContext->repositories->userGroups()->insert(userId: $newUserId, groupId: $groupId);
         }
         foreach ($this->ipWhitelistField->getValues() as $ip) {
             $this->backendContext->repositories->ipWhitelists()->insert(

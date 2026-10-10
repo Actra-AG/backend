@@ -9,8 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend;
 
-use actra\autoloader\Autoloader;
-use actra\autoloader\AutoloaderPath;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\UserController;
 use actra\backend\libs\db\BackendRepositories;
@@ -27,6 +25,7 @@ use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\ContentType;
+use actra\yuf\core\ResponseSender;
 use actra\yuf\core\Route;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\core\ViewContext;
@@ -36,13 +35,6 @@ use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
 use LogicException;
-
-Autoloader::get()->addPath(
-    autoloaderPath: new AutoloaderPath(
-        path: __DIR__ . DIRECTORY_SEPARATOR,
-        prefix: 'actra\\backend\\',
-    ),
-);
 
 final class ActraBackend
 {
@@ -58,7 +50,6 @@ final class ActraBackend
         . 'C19.5944 4.23703 21 6.20361 21 8.5C21 11.3702 18.8042 13.7252 16 13.9776V11.9646'
         . 'C17.6967 11.7222 19 10.264 19 8.5C19 7.11935 18.2016 5.92603 17.041 5.35635L17.5962 3.41321Z';
     private ?BackendRepositories $repositories = null;
-    private bool $hasNavigationItems = false;
 
     /**
      * @param string $path The path of the main route
@@ -68,7 +59,6 @@ final class ActraBackend
         public readonly ActraBackendSettings $actraBackendSettings,
         public readonly DbSettings $dbSettings,
         public readonly MailerSettings $mailerSettings,
-        public readonly NavigationItemCollection $navigationItemCollection,
         public readonly string $templateDirectory,
         public readonly BackendRouteCollection $backendRouteCollection,
     ) {}
@@ -85,7 +75,6 @@ final class ActraBackend
         ActraBackendSettings $actraBackendSettings,
         DbSettings $dbSettings,
         MailerSettings $mailerSettings,
-        NavigationItemCollection $navigationItemCollection,
         ?string $templateDirectory = null,
     ): ActraBackend {
         $backendRouteCollection = new BackendRouteCollection(
@@ -102,7 +91,6 @@ final class ActraBackend
             actraBackendSettings: $actraBackendSettings,
             dbSettings: $dbSettings,
             mailerSettings: $mailerSettings,
-            navigationItemCollection: $navigationItemCollection,
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',
             backendRouteCollection: $backendRouteCollection,
         );
@@ -124,11 +112,11 @@ final class ActraBackend
     }
 
     /**
-     * The mailer of the backend, also for CLI scripts.
+     * The mailer of the backend; CLI scripts pass a `NativeResponseSender`.
      */
-    public function createMailer(): Mailer
+    public function createMailer(ResponseSender $responseSender): Mailer
     {
-        return Mailer::create(mailerSettings: $this->mailerSettings);
+        return new Mailer(mailerSettings: $this->mailerSettings, responseSender: $responseSender);
     }
 
     /**
@@ -157,7 +145,6 @@ final class ActraBackend
         }
         $route = $this->getRouteOfRequest(route: $viewContext->route);
         $paths = new BackendPaths(path: $route->path);
-        $this->addNavigationItems(route: $route, paths: $paths);
         $repositories = $this->getRepositories();
         $clientData = ClientData::fromRequest(httpRequest: $viewContext->httpRequest, authSession: $authSession);
         $currentUser = MyAuthUser::findLoggedIn(
@@ -172,7 +159,7 @@ final class ActraBackend
             route: $route,
             paths: $paths,
             repositories: $repositories,
-            mailer: $this->createMailer(),
+            mailer: $this->createMailer(responseSender: $viewContext->responseSender),
             session: $session,
             authSession: $authSession,
             clientData: $clientData,
@@ -220,15 +207,14 @@ final class ActraBackend
     }
 
     /**
-     * Adds the navigation items of the backend and of the project for the route of the request, once per request:
-     * yuf's `NavigationItemCollection` rejects a key that is added twice.
+     * The navigation of the backend and of the project (`ActraBackendSettings::$projectNavigation`) in the language of
+     * the backend route of the request. Pass it to yuf as provider, so it is built per request:
+     * `$core->prepareHttpResponse(…, navigationProvider: $actraBackend->createNavigation(...))`.
      */
-    private function addNavigationItems(BackendRoute $route, BackendPaths $paths): void
+    public function createNavigation(ViewContext $viewContext): NavigationItemCollection
     {
-        if ($this->hasNavigationItems) {
-            return;
-        }
-        $this->hasNavigationItems = true;
+        $route = $this->getRouteOfRequest(route: $viewContext->route);
+        $paths = new BackendPaths(path: $route->path);
         $messages = $route->messages;
         $childNavigation = new NavigationItemCollection();
         $childNavigation->addItem(navigationItem: users::getNavigationItem(paths: $paths, messages: $messages));
@@ -237,7 +223,8 @@ final class ActraBackend
         $childNavigation->addItem(
             navigationItem: notifications::getNavigationItem(paths: $paths, messages: $messages),
         );
-        $this->navigationItemCollection->addItem(navigationItem: new NavigationItem(
+        $navigationItemCollection = new NavigationItemCollection();
+        $navigationItemCollection->addItem(navigationItem: new NavigationItem(
             navKey: 'users',
             href: $paths->users() . '?reset',
             svgPath: ActraBackend::NAVIGATION_SVG_PATH_USERS,
@@ -246,9 +233,11 @@ final class ActraBackend
             childNavigation: $childNavigation,
         ));
         $this->actraBackendSettings->projectNavigation?->addNavigationItems(
-            navigationItemCollection: $this->navigationItemCollection,
+            navigationItemCollection: $navigationItemCollection,
             backendRoute: $route,
         );
+
+        return $navigationItemCollection;
     }
 
     public function renderJavaScriptPaths(): HtmlDataObjectCollection

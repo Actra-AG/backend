@@ -47,8 +47,8 @@ final class DbAuthUserCollection
     {
         $formOptions = new FormOptions();
         foreach ($this->items as $dbAuthUser) {
-            $formOptions->addItem(
-                key: (string) $dbAuthUser->id,
+            $formOptions->addIntItem(
+                key: $dbAuthUser->id,
                 htmlText: HtmlText::fromText(
                     text: MessageTemplate::fill(
                         template: $messages->userOption,

@@ -2,6 +2,14 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.3.1 (2026-10-10)
+
+### Other changes
+
+- `DbAuthUserCollection::getFormOptions()` adds the user ids with `addIntItem()`: read them with `getValueAsInt()` /
+  `getIntValues()`.
+- Requires `actra/coding-standard` `^1.19.0` (development only).
+
 ## v2.3.0 (2026-10-10)
 
 ### ⚠️ Requires `actra/yuf` `~5.0.0`

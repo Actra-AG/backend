@@ -10,14 +10,12 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
-use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
+use actra\backend\ConfirmationView;
 use actra\backend\i18n\MessageTemplate;
-use actra\backend\libs\form\UserDeleteForm;
+use actra\backend\libs\db\DbAuthUser;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\NotFoundException;
-use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
 /**
@@ -26,8 +24,10 @@ use actra\yuf\html\HtmlText;
  *
  * @internal
  */
-final class userDelete extends BackendView
+final class userDelete extends ConfirmationView
 {
+    private ?DbAuthUser $dbAuthUser = null;
+
     public function __construct(BackendViewContext $context)
     {
         parent::__construct(
@@ -56,32 +56,44 @@ final class userDelete extends BackendView
     }
 
     #[\Override]
-    protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
+    protected function prepareConfirmation(): void
     {
-        $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
-        if ($dbAuthUser === null) {
-            throw new NotFoundException();
-        }
-        $userDeleteForm = new UserDeleteForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
-        if ($userDeleteForm->process()) {
-            HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->backendContext->paths->users() . '?' . users::PARAM_REMOVED,
-                httpRequest: $this->context->httpRequest,
-                responseSender: $this->context->responseSender,
-            );
-        }
-        $replacements = $htmlDocument->replacements;
-        $replacements->addHtmlText(
-            identifier: 'deleteConfirm',
-            htmlText: HtmlText::fromText(text: MessageTemplate::fill(
-                template: $this->backendContext->messages->user->deleteConfirm,
-                values: ['name' => $dbAuthUser->renderFullName(messages: $this->backendContext->messages->common)],
-            )),
+        $this->getDbAuthUser();
+    }
+
+    private function getDbAuthUser(): DbAuthUser
+    {
+        return $this->dbAuthUser ??= $this->backendContext->repositories->users()->selectById(
+            id: $this->getRequiredPathVarAsInt(nr: 1),
+        ) ?? throw new NotFoundException();
+    }
+
+    #[\Override]
+    protected function getQuestion(): string
+    {
+        return MessageTemplate::fill(
+            template: $this->backendContext->messages->user->deleteConfirm,
+            values: ['name' => $this->getDbAuthUser()->renderFullName(messages: $this->backendContext->messages->common)],
         );
-        $replacements->addHtml(
-            identifier: 'form',
-            html: $userDeleteForm->render(),
-        );
+    }
+
+    #[\Override]
+    protected function getConfirmLabel(): string
+    {
+        return $this->backendContext->messages->user->deleteButton;
+    }
+
+    #[\Override]
+    protected function getCancelLink(): string
+    {
+        return $this->backendContext->paths->user(id: $this->getDbAuthUser()->id);
+    }
+
+    #[\Override]
+    protected function confirm(): string
+    {
+        $this->backendContext->userController->deleteUser(userId: $this->getDbAuthUser()->id);
+
+        return $this->backendContext->paths->users() . '?' . users::PARAM_REMOVED;
     }
 }

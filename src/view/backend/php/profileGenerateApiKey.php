@@ -10,13 +10,12 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
-use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\form\ApiKeyGenerateForm;
+use actra\backend\ConfirmationView;
+use actra\backend\libs\auth\GeneratedApiKeyFlash;
+use actra\backend\libs\db\DbAuthUser;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\NotFoundException;
-use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
 /**
@@ -26,7 +25,7 @@ use actra\yuf\html\HtmlText;
  *
  * @internal
  */
-final class profileGenerateApiKey extends BackendView
+final class profileGenerateApiKey extends ConfirmationView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -54,35 +53,49 @@ final class profileGenerateApiKey extends BackendView
     }
 
     #[\Override]
-    protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
+    protected function prepareConfirmation(): void
     {
-        $dbAuthUser = $this->backendContext->getCurrentUser()->dbAuthUser;
         if (
             !$this->backendContext->actraBackend->actraBackendSettings->hasApi
-            || $dbAuthUser->ipWhitelist === []
+            || $this->getUser()->ipWhitelist === []
         ) {
             throw new NotFoundException();
         }
-        $apiKeyGenerateForm = new ApiKeyGenerateForm(
-            context: $this->backendContext,
-            userId: $dbAuthUser->id,
-            cancelLink: $this->backendContext->paths->profile(),
+    }
+
+    private function getUser(): DbAuthUser
+    {
+        return $this->backendContext->getCurrentUser()->dbAuthUser;
+    }
+
+    #[\Override]
+    protected function getQuestion(): string
+    {
+        return $this->backendContext->messages->common->generateApiKeyConfirm;
+    }
+
+    #[\Override]
+    protected function getConfirmLabel(): string
+    {
+        return $this->backendContext->messages->common->generateApiKeyTitle;
+    }
+
+    #[\Override]
+    protected function getCancelLink(): string
+    {
+        return $this->backendContext->paths->profile();
+    }
+
+    #[\Override]
+    protected function confirm(): string
+    {
+        $userId = $this->getUser()->id;
+        GeneratedApiKeyFlash::store(
+            session: $this->backendContext->session,
+            userId: $userId,
+            apiKey: $this->backendContext->repositories->apiKeys()->createForUserId(userId: $userId),
         );
-        if ($apiKeyGenerateForm->process()) {
-            HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->backendContext->paths->profile(),
-                httpRequest: $this->context->httpRequest,
-                responseSender: $this->context->responseSender,
-            );
-        }
-        $replacements = $htmlDocument->replacements;
-        $replacements->addHtmlText(
-            identifier: 'confirmMessage',
-            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->generateApiKeyConfirm),
-        );
-        $replacements->addHtml(
-            identifier: 'form',
-            html: $apiKeyGenerateForm->render(),
-        );
+
+        return $this->backendContext->paths->profile();
     }
 }

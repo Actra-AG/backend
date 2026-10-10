@@ -26,6 +26,7 @@ use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\form\FormContext;
 use actra\yuf\security\CspNonce;
+use actra\yuf\security\SessionCsrfTokenSource;
 use actra\yuf\session\Session;
 use actra\yuf\template\cache\DirectoryTemplateCache;
 use actra\yuf\template\tag\TemplateTagCollection;
@@ -110,7 +111,11 @@ final readonly class BackendPageRenderer
             httpRequest: $httpRequest,
             session: $session,
             sessionHandler: null,
-            formContext: new FormContext(httpRequest: $httpRequest, csrfTokenSource: null),
+            // With CSRF token like yuf's Core on a route with session
+            formContext: new FormContext(
+                httpRequest: $httpRequest,
+                csrfTokenSource: new SessionCsrfTokenSource(session: $session),
+            ),
             copyright: '2026',
             robots: 'noindex, nofollow',
             responseSender: new RecordingResponseSender(),

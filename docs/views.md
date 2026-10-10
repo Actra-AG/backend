@@ -25,6 +25,43 @@ final class orders extends BackendView
 }
 ```
 
+### Project services
+
+Views that need services of the project (repositories, mailers) get them as constructor arguments: pass a `create`
+closure to `createViewFactory()`. It receives the class name and the `BackendViewContext` of every project view based
+on `BackendView` on this route; the views of the backend itself and views of other classes are created as before.
+Without closure, the views are created with `new $className(context: $context)`.
+
+```php
+use actra\backend\BackendView;
+use actra\backend\BackendViewContext;
+
+// The project marks the views that need its services, e.g. with an interface
+interface UsesRepositories {}
+
+new Route(
+    path: '/de/orders/',
+    viewDirectory: $core->viewDirectory,
+    viewGroup: 'orders',
+    viewFactory: $actraBackend->createViewFactory(
+        create: static fn(string $className, BackendViewContext $context): BackendView => is_subclass_of(
+            object_or_class: $className,
+            class: UsesRepositories::class,
+        )
+            ? new $className(context: $context, repositories: $projectRepositories)
+            : new $className(context: $context),
+    ),
+);
+
+final class orders extends BackendView implements UsesRepositories
+{
+    public function __construct(BackendViewContext $context, private readonly ProjectRepositories $repositories)
+    {
+        parent::__construct(context: $context, requiredViewGroupName: 'orders');
+    }
+}
+```
+
 Tables based on `AbstractTable` and search forms based on `AbstractSearchForm` get the same context as first
 argument; the database of a table defaults to the database of the backend:
 
@@ -72,8 +109,8 @@ protected function getBreadcrumbParents(): ?BreadcrumbItemCollection
     return new BreadcrumbItemCollection(
         new BreadcrumbItem(title: $this->event->title, href: $this->eventPath($this->event->id)),
         new BreadcrumbItem(
-            title: '#' . $this->subscription->id,
-            href: $this->subscriptionPath($this->subscription->id),
+            title: '#' . $this->getSubscription()->id,
+            href: $this->subscriptionPath($this->getSubscription()->id),
         ),
     );
 }
@@ -115,3 +152,80 @@ submit button. Its processing redirects after success.
 
 The same pattern also protects state-changing actions that are not deletions, e.g. generating an API key
 (`userGenerateApiKey-5.html`, `profileGenerateApiKey.html`).
+
+### Confirmation page of a project
+
+A project view based on `ConfirmationView` is such a confirmation page, with the template and the look of the
+confirmation pages of the backend (no template in the project). A GET request shows the page and runs nothing; only a
+POST of its form with the CSRF token of the session runs `confirm()` once and redirects to the URI it returns. The
+route needs a session (CSRF token; otherwise a `LogicException`).
+
+```php
+use actra\backend\BackendViewContext;
+use actra\backend\ConfirmationView;
+use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\exception\NotFoundException;
+use actra\yuf\html\HtmlText;
+
+final class subscriptionCancel extends ConfirmationView
+{
+    private ?Subscription $subscription = null;
+
+    public function __construct(BackendViewContext $context, private readonly SubscriptionRepository $subscriptions)
+    {
+        parent::__construct(context: $context, requiredViewGroupName: 'events', maxAllowedPathVars: 1);
+    }
+
+    protected static function getRequiredAccessRights(): AccessRightCollection
+    {
+        return AccessRightCollection::createFromStringArray(input: ['manage_events']);
+    }
+
+    // Called first: NotFoundException before anything else if the record does not exist
+    protected function prepareConfirmation(): void
+    {
+        $this->getSubscription();
+    }
+
+    private function getSubscription(): Subscription
+    {
+        return $this->subscription ??= $this->subscriptions->selectById(id: $this->getRequiredPathVarAsInt(nr: 1))
+            ?? throw new NotFoundException();
+    }
+
+    protected function getPageTitle(): HtmlText
+    {
+        return HtmlText::fromText(text: 'Cancel subscription');
+    }
+
+    // Plain text, escaped when rendered
+    protected function getQuestion(): string
+    {
+        return 'Really cancel the subscription of ' . $this->getSubscription()->name . '?';
+    }
+
+    protected function getConfirmLabel(): string
+    {
+        return 'Cancel subscription';
+    }
+
+    protected function getCancelLink(): string
+    {
+        return '/de/events/subscription-' . $this->getSubscription()->id . '.html';
+    }
+
+    // Runs only on a valid POST; returns the redirect target
+    protected function confirm(): string
+    {
+        $this->subscriptions->cancel(id: $this->getSubscription()->id);
+
+        return '/de/events/subscriptions.html?cancelled';
+    }
+}
+```
+
+```html
+<a href="/de/events/subscriptionCancel-42.html" class="btn btn-danger" data-action="confirm-deletion"
+   data-form="main form" data-confirm="Really cancel the subscription?"
+   data-confirm-label="Yes, cancel">Cancel subscription</a>
+```

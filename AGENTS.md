@@ -32,14 +32,15 @@ This project follows the Actra coding standard, installed as development depende
 
 - `src/` – library code, namespace `actra\backend\` (PSR-4 in `composer.json`; the lowercase view classes match their
   file names, so `composer dump-autoload --optimize --strict-psr` runs without warnings).
-  - `ActraBackend.php`, `BackendView.php` – entry point and base view.
+  - `ActraBackend.php`, `BackendView.php`, `ConfirmationView.php` – entry point, base view and base of project
+    confirmation pages.
   - `settings/` – settings value objects and enums.
   - `i18n/` – the message classes with all user-visible texts (English defaults, `german()` variant).
   - `libs/auth/`, `libs/db/`, `libs/email/`, `libs/common/` – authentication, repositories and records, mails.
   - `libs/form/` – the forms (yuf form API), `component/` custom fields, `rule/` custom rules.
   - `libs/table/` – the tables (yuf `DbResultTable`).
   - `view/backend/php/` – the views (one class per route), `view/backend/html/` their HTML content templates,
-    `view/backend/templates/` the page templates.
+    `view/backend/templates/` the page templates, `view/backend/confirmation/` the template of `ConfirmationView`.
   - `assets/` – default CSS (`css/backend.css`) and JavaScript (`js/backend.js`, ES modules in `js/modules/`) that
     projects publish or bundle themselves.
 - `db/` – `schema.sql` and `data.sql` for new installations, `updates/<version>.sql` for upgrades.
@@ -51,7 +52,7 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (`~5.2.1`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
+- Runtime dependencies: `actra/yuf` (`^5.4.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
   no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.

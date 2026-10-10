@@ -2,7 +2,34 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
-## v2.4.3 (2026-10-10)
+## v2.5.0 (2026-10-10)
+
+### New
+
+- Project services in project views: `ActraBackend::createViewFactory(create:)` takes a closure
+  `fn(string $className, BackendViewContext $context): BackendView` that creates the project views based on
+  `BackendView` with further constructor arguments (repositories, mailers). Without closure nothing changes; the views
+  of the backend ignore it ([docs/views.md](docs/views.md), "Project services").
+- `ConfirmationView`: base class of a confirmation page for a destructive action of a project, with the template and
+  look of the confirmation pages of the backend. GET shows the page, only a valid POST with CSRF token runs `confirm()`
+  and redirects. Works with the dialog (`data-action="confirm-deletion" data-form="main form"`). Replace actions on a
+  plain GET link and own confirmation views with it ([docs/views.md](docs/views.md), "Confirmation page of a
+  project").
+
+### Changes
+
+- The confirmation pages `userDelete`, `userRemoveApiKey`, `userGenerateApiKey`, `profileRemoveApiKey` and
+  `profileGenerateApiKey` are based on `ConfirmationView`; the look stays the same. Only attributes change: the form
+  action is `?ConfirmationForm` (was `?UserDeleteForm`, `?ApiKeyRemoveForm`, `?ApiKeyGenerateForm`) and the button
+  name `confirm` (was `delete`, `remove`, `generate`). Projects that post these forms directly (tests, scripts) adapt
+  the names; links with `data-form="main form"` keep working.
+- Requires `actra/yuf` `^5.4.0` (`ConfirmationView` uses `HtmlDocument::useContentFile()`, so it also works on routes
+  with file groups; nothing to migrate in projects) and `actra/coding-standard` `^1.23.0` (development only).
+
+## v2.4.4 (2026-10-10)
+
+The tag `v2.4.3` points to an old commit of v1 (2026-10-04) by mistake; do not use it. These fixes were released as
+v2.4.4.
 
 ### Fixes
 

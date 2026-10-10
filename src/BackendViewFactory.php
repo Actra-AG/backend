@@ -13,6 +13,7 @@ use actra\yuf\core\BaseView;
 use actra\yuf\core\ClassNameViewFactory;
 use actra\yuf\core\ViewContext;
 use actra\yuf\core\ViewFactory;
+use Closure;
 
 /**
  * Creates the view of a request like yuf's `ClassNameViewFactory` (class name from the route and the file name), but
@@ -21,17 +22,32 @@ use actra\yuf\core\ViewFactory;
  */
 final readonly class BackendViewFactory implements ViewFactory
 {
+    /** The namespace of the views of the backend itself; they are never created by the `create` closure. */
+    private const string BACKEND_VIEW_NAMESPACE = 'actra\\backend\\view\\backend\\php\\';
     private ClassNameViewFactory $classNameViewFactory;
 
-    public function __construct(ActraBackend $actraBackend)
+    /**
+     * @param (Closure(class-string<BackendView> $className, BackendViewContext $context): BackendView)|null $create
+     *     Creates the project views based on `BackendView` with further dependencies (`null`: `new $className(context:
+     *     $context)`)
+     */
+    public function __construct(ActraBackend $actraBackend, ?Closure $create = null)
     {
         $this->classNameViewFactory = new ClassNameViewFactory(
-            create: static fn(string $className, ViewContext $context): BaseView => is_subclass_of(
-                object_or_class: $className,
-                class: BackendView::class,
-            )
-                ? new $className(context: $actraBackend->createContext(viewContext: $context))
-                : new $className(context: $context),
+            create: static function (string $className, ViewContext $context) use ($actraBackend, $create): BaseView {
+                if (!is_subclass_of(object_or_class: $className, class: BackendView::class)) {
+                    return new $className(context: $context);
+                }
+                $backendContext = $actraBackend->createContext(viewContext: $context);
+                if (
+                    $create === null
+                    || str_starts_with(haystack: $className, needle: BackendViewFactory::BACKEND_VIEW_NAMESPACE)
+                ) {
+                    return new $className(context: $backendContext);
+                }
+
+                return $create($className, $backendContext);
+            },
         );
     }
 

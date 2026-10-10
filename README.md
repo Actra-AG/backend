@@ -135,8 +135,8 @@ email address exists.
 ## Documentation
 
 - [Assets](docs/assets.md): CSS, JavaScript, fonts and message blocks.
-- [Project views](docs/views.md): views, tables and search forms of the project in the backend, breadcrumb,
-  confirmation dialogs.
+- [Project views](docs/views.md): views, tables and search forms of the project in the backend, project services
+  in views (`createViewFactory(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
 - [Languages](docs/languages.md): language of the backend, additional language routes, own texts.
 - [Users and API keys](docs/users.md): user deletion handler, API key authentication.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.

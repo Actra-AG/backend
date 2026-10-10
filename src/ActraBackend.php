@@ -34,6 +34,7 @@ use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
+use Closure;
 use LogicException;
 
 final class ActraBackend
@@ -184,10 +185,15 @@ final class ActraBackend
     /**
      * The view factory for routes with views based on `BackendView`: `new Route(…, viewFactory:
      * $actraBackend->createViewFactory())`. Views of other classes on the same route keep working.
+     *
+     * @param (Closure(class-string<BackendView> $className, BackendViewContext $context): BackendView)|null $create
+     *     Creates the project views based on `BackendView` with further dependencies (repositories, mailers of the
+     *     project); `null` creates them with `new $className(context: $context)`. The views of the backend itself are
+     *     always created without it.
      */
-    public function createViewFactory(): BackendViewFactory
+    public function createViewFactory(?Closure $create = null): BackendViewFactory
     {
-        return new BackendViewFactory(actraBackend: $this);
+        return new BackendViewFactory(actraBackend: $this, create: $create);
     }
 
     private function createRoute(BackendRoute $backendRoute): Route

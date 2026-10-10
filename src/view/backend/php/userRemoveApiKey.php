@@ -10,13 +10,11 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
-use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\form\ApiKeyRemoveForm;
+use actra\backend\ConfirmationView;
+use actra\backend\libs\db\DbAuthUser;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\NotFoundException;
-use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
 /**
@@ -25,8 +23,10 @@ use actra\yuf\html\HtmlText;
  *
  * @internal
  */
-final class userRemoveApiKey extends BackendView
+final class userRemoveApiKey extends ConfirmationView
 {
+    private ?DbAuthUser $dbAuthUser = null;
+
     public function __construct(BackendViewContext $context)
     {
         parent::__construct(
@@ -55,10 +55,19 @@ final class userRemoveApiKey extends BackendView
     }
 
     #[\Override]
-    protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
+    protected function prepareConfirmation(): void
     {
-        $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
+        $this->getDbAuthUser();
+    }
+
+    private function getDbAuthUser(): DbAuthUser
+    {
+        if ($this->dbAuthUser !== null) {
+            return $this->dbAuthUser;
+        }
+        $dbAuthUser = $this->backendContext->repositories->users()->selectById(
+            id: $this->getRequiredPathVarAsInt(nr: 1),
+        );
         if (
             $dbAuthUser === null
             || !$this->backendContext->actraBackend->actraBackendSettings->hasApi
@@ -66,27 +75,33 @@ final class userRemoveApiKey extends BackendView
         ) {
             throw new NotFoundException();
         }
-        $userPath = $this->backendContext->paths->user(id: $dbAuthUser->id);
-        $apiKeyRemoveForm = new ApiKeyRemoveForm(
-            context: $this->backendContext,
-            userId: $dbAuthUser->id,
-            cancelLink: $userPath,
-        );
-        if ($apiKeyRemoveForm->process()) {
-            HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $userPath . '?' . user::PARAM_CHANGED,
-                httpRequest: $this->context->httpRequest,
-                responseSender: $this->context->responseSender,
-            );
-        }
-        $replacements = $htmlDocument->replacements;
-        $replacements->addHtmlText(
-            identifier: 'confirmMessage',
-            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->removeApiKeyConfirm),
-        );
-        $replacements->addHtml(
-            identifier: 'form',
-            html: $apiKeyRemoveForm->render(),
-        );
+
+        return $this->dbAuthUser = $dbAuthUser;
+    }
+
+    #[\Override]
+    protected function getQuestion(): string
+    {
+        return $this->backendContext->messages->common->removeApiKeyConfirm;
+    }
+
+    #[\Override]
+    protected function getConfirmLabel(): string
+    {
+        return $this->backendContext->messages->common->removeApiKeyTitle;
+    }
+
+    #[\Override]
+    protected function getCancelLink(): string
+    {
+        return $this->backendContext->paths->user(id: $this->getDbAuthUser()->id);
+    }
+
+    #[\Override]
+    protected function confirm(): string
+    {
+        $this->backendContext->repositories->apiKeys()->deleteByUserId(userId: $this->getDbAuthUser()->id);
+
+        return $this->backendContext->paths->user(id: $this->getDbAuthUser()->id) . '?' . user::PARAM_CHANGED;
     }
 }

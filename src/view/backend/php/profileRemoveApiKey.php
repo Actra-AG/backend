@@ -10,13 +10,10 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
-use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\libs\form\ApiKeyRemoveForm;
+use actra\backend\ConfirmationView;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\NotFoundException;
-use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
 /**
@@ -25,7 +22,7 @@ use actra\yuf\html\HtmlText;
  *
  * @internal
  */
-final class profileRemoveApiKey extends BackendView
+final class profileRemoveApiKey extends ConfirmationView
 {
     public function __construct(BackendViewContext $context)
     {
@@ -53,35 +50,44 @@ final class profileRemoveApiKey extends BackendView
     }
 
     #[\Override]
-    protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
+    protected function prepareConfirmation(): void
     {
-        $userId = $this->backendContext->getCurrentUser()->dbAuthUser->id;
         if (
             !$this->backendContext->actraBackend->actraBackendSettings->hasApi
-            || !$this->backendContext->repositories->apiKeys()->hasByUserId(userId: $userId)
+            || !$this->backendContext->repositories->apiKeys()->hasByUserId(userId: $this->getUserId())
         ) {
             throw new NotFoundException();
         }
-        $apiKeyRemoveForm = new ApiKeyRemoveForm(
-            context: $this->backendContext,
-            userId: $userId,
-            cancelLink: $this->backendContext->paths->profile(),
-        );
-        if ($apiKeyRemoveForm->process()) {
-            HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->backendContext->paths->profile() . '?' . profile::PARAM_CHANGED,
-                httpRequest: $this->context->httpRequest,
-                responseSender: $this->context->responseSender,
-            );
-        }
-        $replacements = $htmlDocument->replacements;
-        $replacements->addHtmlText(
-            identifier: 'confirmMessage',
-            htmlText: HtmlText::fromText(text: $this->backendContext->messages->common->removeApiKeyConfirm),
-        );
-        $replacements->addHtml(
-            identifier: 'form',
-            html: $apiKeyRemoveForm->render(),
-        );
+    }
+
+    private function getUserId(): int
+    {
+        return $this->backendContext->getCurrentUser()->dbAuthUser->id;
+    }
+
+    #[\Override]
+    protected function getQuestion(): string
+    {
+        return $this->backendContext->messages->common->removeApiKeyConfirm;
+    }
+
+    #[\Override]
+    protected function getConfirmLabel(): string
+    {
+        return $this->backendContext->messages->common->removeApiKeyTitle;
+    }
+
+    #[\Override]
+    protected function getCancelLink(): string
+    {
+        return $this->backendContext->paths->profile();
+    }
+
+    #[\Override]
+    protected function confirm(): string
+    {
+        $this->backendContext->repositories->apiKeys()->deleteByUserId(userId: $this->getUserId());
+
+        return $this->backendContext->paths->profile() . '?' . profile::PARAM_CHANGED;
     }
 }

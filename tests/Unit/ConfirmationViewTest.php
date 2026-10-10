@@ -137,6 +137,7 @@ final class ConfirmationViewTest extends TestCase
                 session: $this->session,
                 sessionHandler: null,
                 formContext: new FormContext(httpRequest: $httpRequest, csrfTokenSource: $csrfTokenSource),
+                documentRoot: '/tmp/public/',
                 copyright: '2026',
                 robots: 'noindex, nofollow',
                 responseSender: $this->responseSender,

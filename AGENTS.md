@@ -52,7 +52,7 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (`^5.4.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
+- Runtime dependencies: `actra/yuf` (`^5.5.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
   no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.

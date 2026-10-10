@@ -83,6 +83,7 @@ parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQue
 | `mailer` | Sends emails with the mailer of the `MailerSettings` (`->sendTextMail()`) |
 | `getNavigation()` | The navigation of the request (`ActraBackend::createNavigation()`) |
 | `session`, `authSession`, `viewContext` | yuf's session objects and `ViewContext` |
+| `viewContext->documentRoot` | The document root of the web server with a trailing slash, e.g. for files written below it (in views also `$this->context->documentRoot`) |
 | `userController` | `->deleteUser(userId:)` |
 
 Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and

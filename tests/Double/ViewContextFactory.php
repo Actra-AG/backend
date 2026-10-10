@@ -45,6 +45,7 @@ final class ViewContextFactory
         ResponseSender $responseSender = new RecordingResponseSender(),
         Session $session = new Session(storage: new ArraySessionStorage()),
         ?Closure $navigationProvider = null,
+        string $documentRoot = '/tmp/public/',
     ): ViewContext {
         return new ViewContext(
             httpRequest: $httpRequest,
@@ -65,6 +66,7 @@ final class ViewContextFactory
                 ),
                 tags: new TemplateTagCollection(),
             ),
+            documentRoot: $documentRoot,
             responseSender: $responseSender,
             navigationProvider: $navigationProvider,
         );

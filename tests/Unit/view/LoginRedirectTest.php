@@ -101,6 +101,7 @@ final class LoginRedirectTest extends TestCase
                     session: $this->session,
                     sessionHandler: null,
                     formContext: new FormContext(httpRequest: $httpRequest, csrfTokenSource: null),
+                    documentRoot: '/tmp/public/',
                     copyright: '',
                     robots: '',
                     responseSender: $responseSender,

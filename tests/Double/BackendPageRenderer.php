@@ -116,6 +116,7 @@ final readonly class BackendPageRenderer
                 httpRequest: $httpRequest,
                 csrfTokenSource: new SessionCsrfTokenSource(session: $session),
             ),
+            documentRoot: '/tmp/public/',
             copyright: '2026',
             robots: 'noindex, nofollow',
             responseSender: new RecordingResponseSender(),

@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.5.1 (2026-10-10)
+
+### Changes
+
+- Requires `actra/yuf` `^5.5.0`. Projects that create a `ViewContext` themselves (test doubles) pass `documentRoot:`
+  (see yuf's `UPGRADE.md`, v5.5.0); nothing else to migrate.
+
 ## v2.5.0 (2026-10-10)
 
 ### New

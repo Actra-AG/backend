@@ -27,6 +27,8 @@ final readonly class ActraBackendSettings
      * @param list<BackendRoute> $additionalRoutes The backend in further languages, one route per language
      * @param ?BackendNavigation $projectNavigation Adds the project's navigation items per route language
      * @param ?UserDeleteHandler $userDeleteHandler Deletes the project's data of a user before the user is deleted
+     * @param ?TokenSendLimit $tokenSendLimit Limits the login codes and password reset links per user; `null` turns
+     *     the limit off
      */
     public function __construct(
         public Language $language,
@@ -42,6 +44,7 @@ final readonly class ActraBackendSettings
         public array $additionalRoutes = [],
         public ?BackendNavigation $projectNavigation = null,
         public ?UserDeleteHandler $userDeleteHandler = null,
+        public ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
     ) {
         $this->messages = $messages ?? BackendMessages::forLanguageCode(languageCode: $language->code);
     }

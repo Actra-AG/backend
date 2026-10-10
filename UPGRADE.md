@@ -2,6 +2,15 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.6.0 (2026-10-10)
+
+### New
+
+- Send limit for login codes and password reset links: at most 5 per user and type within 15 minutes, on by default.
+  Above the limit, the forms answer as before but send nothing. Change it with
+  `ActraBackendSettings(tokenSendLimit: new TokenSendLimit(maxTokens:, withinMinutes:))`, turn it off with
+  `tokenSendLimit: null` ([docs/users.md](docs/users.md)).
+
 ## v2.5.1 (2026-10-10)
 
 ### Changes

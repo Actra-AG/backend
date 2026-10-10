@@ -76,6 +76,7 @@ backend has no global state; everything a view needs comes through its `BackendV
 use actra\backend\ActraBackend;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
+use actra\backend\settings\TokenSendLimit;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\SmtpMailer;
@@ -102,7 +103,8 @@ $actraBackend = ActraBackend::init(
         maxAllowedLoginAttempts: 5, // Optional, defaults to 5
         frontendHref: 'https://example.com', // Optional
         frontendName: 'Go to Website', // Optional
-        hasApi: false // Optional, defaults to false
+        hasApi: false, // Optional, defaults to false
+        tokenSendLimit: new TokenSendLimit(maxTokens: 5, withinMinutes: 15), // Optional, this default; null: off
     ),
     dbSettings: new DbSettings,
     mailerSettings: new MailerSettings(
@@ -138,7 +140,8 @@ email address exists.
 - [Project views](docs/views.md): views, tables and search forms of the project in the backend, project services
   in views (`createViewFactory(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
 - [Languages](docs/languages.md): language of the backend, additional language routes, own texts.
-- [Users and API keys](docs/users.md): user deletion handler, API key authentication.
+- [Users and API keys](docs/users.md): user deletion handler, send limit of login codes and reset links, API key
+  authentication.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.
 - [UPGRADE.md](UPGRADE.md): changes and migration instructions.
 

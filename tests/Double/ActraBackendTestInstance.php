@@ -14,6 +14,7 @@ use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\BackendNavigation;
 use actra\backend\settings\BackendRoute;
 use actra\backend\settings\MailerSettings;
+use actra\backend\settings\TokenSendLimit;
 use actra\yuf\core\Language;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
@@ -34,6 +35,7 @@ final class ActraBackendTestInstance
         ?BackendNavigation $projectNavigation = null,
         bool $hasApi = false,
         array $additionalRoutes = [],
+        ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
     ): ActraBackend {
         return ActraBackend::init(
             routeCollection: $routeCollection,
@@ -48,6 +50,7 @@ final class ActraBackendTestInstance
                 hasApi: $hasApi,
                 additionalRoutes: $additionalRoutes,
                 projectNavigation: $projectNavigation,
+                tokenSendLimit: $tokenSendLimit,
             ),
             dbSettings: $dbSettings ?? new DbSettings(
                 hostName: 'db.example.com',

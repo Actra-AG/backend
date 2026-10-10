@@ -29,6 +29,20 @@ is deleted. If the handler throws an exception, the transaction is rolled back a
 For simple database relations, projects can alternatively use foreign keys with `ON DELETE CASCADE` or
 `ON DELETE SET NULL`, depending on whether related rows should be removed or preserved without the user reference.
 
+## Send limit of login codes and reset links
+
+The backend sends at most 5 login codes and at most 5 password reset links per user within 15 minutes, so a known
+address cannot be flooded with mails. Above the limit, the forms answer as before (they do not reveal whether an
+address exists) but send nothing; a code sent before stays valid in the browser session it was requested in until it
+expires. Change the limit or turn it off in the settings:
+
+```php
+new ActraBackendSettings(
+    // …
+    tokenSendLimit: new TokenSendLimit(maxTokens: 3, withinMinutes: 30), // null: no limit
+);
+```
+
 ## API Key Authentication
 
 API-key functionality is optional and must be enabled through `ActraBackendSettings`:

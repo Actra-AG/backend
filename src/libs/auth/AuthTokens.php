@@ -27,9 +27,16 @@ final readonly class AuthTokens
 {
     public function __construct(private BackendViewContext $context) {}
 
+    /**
+     * Creates the token, keeps it in the session and mails it. Above the `TokenSendLimit` of the settings it does
+     * nothing: the session keeps the token sent before, which stays valid until it expires.
+     */
     public function createAndSend(AuthTokenTypeEnum $type, DbAuthUser $dbAuthUser, bool $usedPasswordLogin): void
     {
         $context = $this->context;
+        if ($this->isSendLimitReached(type: $type, dbAuthUser: $dbAuthUser)) {
+            return;
+        }
         $token = $context->repositories->tokens()->createToken(
             dbAuthUser: $dbAuthUser,
             authTokenTypeEnum: $type,
@@ -56,6 +63,20 @@ final readonly class AuthTokens
                     . 'send them.',
             ),
         };
+    }
+
+    private function isSendLimitReached(AuthTokenTypeEnum $type, DbAuthUser $dbAuthUser): bool
+    {
+        $tokenSendLimit = $this->context->actraBackend->actraBackendSettings->tokenSendLimit;
+        if ($tokenSendLimit === null) {
+            return false;
+        }
+
+        return $this->context->repositories->tokens()->countRegisteredWithin(
+            userId: $dbAuthUser->id,
+            authTokenType: $type,
+            minutes: $tokenSendLimit->withinMinutes,
+        ) >= $tokenSendLimit->maxTokens;
     }
 
     /**

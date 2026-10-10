@@ -70,6 +70,32 @@ final class DbAuthTokenRepository
         return $token;
     }
 
+    /**
+     * The tokens of a type registered for a user within the last minutes (claimed or not).
+     */
+    public function countRegisteredWithin(
+        int $userId,
+        AuthTokenTypeEnum $authTokenType,
+        int $minutes,
+        Clock $clock = new SystemClock(),
+    ): int {
+        return $this->db->selectRow(
+            sql: '
+				SELECT COUNT(*) AS amount
+				FROM auth_token
+				WHERE auth_token.user_id=?
+				  AND auth_token.type=?
+				  AND auth_token.registered>=DATE_SUB(?, INTERVAL ? MINUTE)
+			',
+            parameters: [
+                $userId,
+                $authTokenType->value,
+                $clock->now()->format(format: 'Y-m-d H:i:s'),
+                $minutes,
+            ],
+        )?->getInt(column: 'amount') ?? 0;
+    }
+
     public function getClaimable(
         AuthTokenTypeEnum $authTokenType,
         string $token,

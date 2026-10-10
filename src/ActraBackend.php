@@ -223,7 +223,12 @@ final class ActraBackend
         $childNavigation->addItem(
             navigationItem: notifications::getNavigationItem(paths: $paths, messages: $messages),
         );
+        // Project items first, the users item of the backend last (order since v2.2)
         $navigationItemCollection = new NavigationItemCollection();
+        $this->actraBackendSettings->projectNavigation?->addNavigationItems(
+            navigationItemCollection: $navigationItemCollection,
+            backendRoute: $route,
+        );
         $navigationItemCollection->addItem(navigationItem: new NavigationItem(
             navKey: 'users',
             href: $paths->users() . '?reset',
@@ -232,10 +237,6 @@ final class ActraBackend
             requiredAccessRights: AccessRightCollection::createEmpty(),
             childNavigation: $childNavigation,
         ));
-        $this->actraBackendSettings->projectNavigation?->addNavigationItems(
-            navigationItemCollection: $navigationItemCollection,
-            backendRoute: $route,
-        );
 
         return $navigationItemCollection;
     }

@@ -67,6 +67,7 @@ final class userMod extends BackendView
                     id: $dbAuthUser->id,
                 ) . '?' . user::PARAM_CHANGED,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements->addHtml(

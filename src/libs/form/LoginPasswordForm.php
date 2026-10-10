@@ -13,9 +13,11 @@ use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\AuthTokens;
 use actra\backend\libs\auth\MyAuthenticator;
 use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\form\component\ReturnPathField;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
+use actra\yuf\form\component\field\HiddenField;
 use actra\yuf\form\component\field\PasswordField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\settings\PasswordPurposeEnum;
@@ -27,6 +29,7 @@ use actra\yuf\html\HtmlText;
 final class LoginPasswordForm extends Form
 {
     private readonly BackendViewContext $backendContext;
+    private readonly HiddenField $returnPathField;
     private readonly EmailField $emailField;
     private readonly PasswordField $passwordField;
 
@@ -61,6 +64,9 @@ final class LoginPasswordForm extends Form
             ),
         );
         $this->passwordField->renderRequiredAbbr = false;
+        $this->addField(
+            formField: $this->returnPathField = ReturnPathField::create(httpRequest: $context->viewContext->httpRequest),
+        );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
@@ -102,5 +108,13 @@ final class LoginPasswordForm extends Form
         );
 
         return true;
+    }
+
+    /**
+     * The page requested before the login (validated local path), `null` without one.
+     */
+    public function getReturnPath(): ?string
+    {
+        return ReturnPathField::getReturnPath(hiddenField: $this->returnPathField);
     }
 }

@@ -61,6 +61,7 @@ final class userAdd extends BackendView
                     id: $newUserId,
                 ) . '?' . user::PARAM_ADDED,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements->addHtml(

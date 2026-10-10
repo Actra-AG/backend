@@ -11,8 +11,8 @@ namespace actra\backend\libs\form;
 
 use actra\backend\BackendViewContext;
 use actra\backend\libs\form\component\SearchQueryField;
-use actra\backend\libs\form\component\SearchSelectOptionsField;
 use actra\backend\settings\AuthTokenTypeEnum;
+use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlText;
@@ -24,7 +24,7 @@ final class TokenSearchForm extends AbstractSearchForm
 {
     public readonly ?AuthTokenTypeEnum $authTokenTypeEnum;
     public readonly string $searchQuery;
-    private readonly SearchSelectOptionsField $typeFilterField;
+    private readonly SelectOptionsField $typeFilterField;
     private readonly SearchQueryField $searchQueryField;
 
     public function __construct(BackendViewContext $context, string $name)
@@ -43,7 +43,7 @@ final class TokenSearchForm extends AbstractSearchForm
             );
         }
         $this->addField(
-            formField: $this->typeFilterField = new SearchSelectOptionsField(
+            formField: $this->typeFilterField = new SelectOptionsField(
                 name: 'typeFilterField',
                 label: HtmlText::fromText(text: $messages->log->typeLabel),
                 formOptions: $typeFilterOptions,

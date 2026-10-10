@@ -41,7 +41,7 @@ final readonly class EmailMessages
     {
         return new EmailMessages(
             greeting: 'Grüezi',
-            loginTokenSubject: '[token] ist ihr Bestätigungscode',
+            loginTokenSubject: '[token] ist Ihr Bestätigungscode',
             loginTokenIntroPasswordLogin: 'Mit dem nachfolgenden Bestätigungscode können Sie sich sicher im Backend '
                 . 'anmelden:',
             loginTokenIntroPasswordless: 'Mit dem nachfolgenden Bestätigungscode können Sie sich ohne Passwort sicher '

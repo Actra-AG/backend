@@ -11,7 +11,10 @@ namespace actra\backend\libs\form;
 
 use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\MyAuthenticator;
+use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\form\component\ReturnPathField;
 use actra\yuf\form\component\collection\Form;
+use actra\yuf\form\component\field\HiddenField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
@@ -22,6 +25,7 @@ use actra\yuf\html\HtmlText;
 final class LoginTokenForm extends Form
 {
     private readonly BackendViewContext $backendContext;
+    private readonly HiddenField $returnPathField;
     private readonly TextField $tokenField;
 
     public function __construct(BackendViewContext $context)
@@ -45,6 +49,9 @@ final class LoginTokenForm extends Form
         );
         $this->tokenField->autoFocus = true;
         $this->tokenField->renderRequiredAbbr = false;
+        $this->addField(
+            formField: $this->returnPathField = ReturnPathField::create(httpRequest: $context->viewContext->httpRequest),
+        );
         $this->addComponent(
             formComponent: new FormControl(
                 name: 'submit',
@@ -53,19 +60,31 @@ final class LoginTokenForm extends Form
         );
     }
 
-    public function process(): bool
+    /**
+     * The logged-in user, `null` if the form was not sent or the token is wrong.
+     */
+    public function process(): ?MyAuthUser
     {
         if (!$this->validate()) {
-            return false;
+            return null;
         }
-        $myAuthenticator = new MyAuthenticator(context: $this->backendContext);
-        if (!$myAuthenticator->tokenLogin(inputToken: $this->tokenField->getValueAsString())) {
+        $myAuthUser = new MyAuthenticator(context: $this->backendContext)->tokenLogin(
+            inputToken: $this->tokenField->getValueAsString(),
+        );
+        if ($myAuthUser === null) {
             $this->tokenField->addError(
                 errorMessage: HtmlText::fromText(text: $this->backendContext->messages->auth->tokenInvalid),
             );
-            return false;
         }
 
-        return true;
+        return $myAuthUser;
+    }
+
+    /**
+     * The page requested before the login (validated local path), `null` without one.
+     */
+    public function getReturnPath(): ?string
+    {
+        return ReturnPathField::getReturnPath(hiddenField: $this->returnPathField);
     }
 }

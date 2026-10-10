@@ -74,7 +74,11 @@ final class userGenerateApiKey extends BackendView
             cancelLink: $userPath,
         );
         if ($apiKeyGenerateForm->process()) {
-            HttpResponse::redirectAndExit(relativeOrAbsoluteUri: $userPath, httpRequest: $this->context->httpRequest);
+            HttpResponse::redirectAndExit(
+                relativeOrAbsoluteUri: $userPath,
+                httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
+            );
         }
         $replacements = $htmlDocument->replacements;
         $replacements->addHtmlText(

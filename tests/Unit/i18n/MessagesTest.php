@@ -96,6 +96,22 @@ final class MessagesTest extends TestCase
         $this->assertSame([], $textsWithHtml);
     }
 
+    /**
+     * The German texts address the user formally ("Ihr", "Ihre"), never with a lowercase "ihr".
+     */
+    #[DataProvider('messagesProvider')]
+    public function testGermanTextsUseTheFormalAddress(object $english, object $german): void
+    {
+        $informalTexts = [];
+        foreach ($this->readTexts(messages: $german) as $name => $text) {
+            if (preg_match(pattern: '/\bihr(e|en|em|er|es)?\b/u', subject: $text) === 1) {
+                $informalTexts[] = $name;
+            }
+        }
+
+        $this->assertSame([], $informalTexts);
+    }
+
     public function testGermanVariantUsesGermanFormMessages(): void
     {
         $this->assertEquals(FormMessages::german(), BackendMessages::german()->form);

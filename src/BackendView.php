@@ -119,6 +119,7 @@ abstract class BackendView extends BaseView
                 HttpResponse::redirectAndExit(
                     relativeOrAbsoluteUri: $this->backendContext->paths->user(id: $impersonatedUserId),
                     httpRequest: $this->context->httpRequest,
+                    responseSender: $this->context->responseSender,
                 );
             }
         }
@@ -286,10 +287,8 @@ abstract class BackendView extends BaseView
      * The path of the next login step with the page requested before the login (`?returnTo=`, see `RouteCollection`
      * with `loginPath:`), so the user gets there after the login.
      */
-    protected function keepReturnPath(string $path): string
+    protected function keepReturnPath(string $path, ?string $returnPath): string
     {
-        $returnPath = LoginRedirect::findReturnPath(httpRequest: $this->context->httpRequest);
-
         return $returnPath === null ? $path : LoginRedirect::createLoginUri(loginPath: $path, returnUri: $returnPath);
     }
 

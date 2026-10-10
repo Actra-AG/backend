@@ -11,8 +11,8 @@ namespace actra\backend\libs\form;
 
 use actra\backend\BackendViewContext;
 use actra\backend\libs\form\component\SearchQueryField;
-use actra\backend\libs\form\component\SearchSelectOptionsField;
 use actra\yuf\auth\AuthResultEnum;
+use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlText;
@@ -24,7 +24,7 @@ final class VisitSearchForm extends AbstractSearchForm
 {
     public readonly ?AuthResultEnum $status;
     public readonly string $searchQuery;
-    private readonly SearchSelectOptionsField $statusFilterField;
+    private readonly SelectOptionsField $statusFilterField;
     private readonly SearchQueryField $searchQueryField;
 
     public function __construct(BackendViewContext $context, string $name)
@@ -44,7 +44,7 @@ final class VisitSearchForm extends AbstractSearchForm
             );
         }
         $this->addField(
-            formField: $this->statusFilterField = new SearchSelectOptionsField(
+            formField: $this->statusFilterField = new SelectOptionsField(
                 name: 'statusFilterField',
                 label: HtmlText::fromText(text: $messages->log->statusLabel),
                 formOptions: $statusFilterOptions,

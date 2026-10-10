@@ -73,6 +73,7 @@ final class profile extends BackendView
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $this->backendContext->paths->profile() . '?' . profile::PARAM_CHANGED,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements = $htmlDocument->replacements;

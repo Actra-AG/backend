@@ -76,7 +76,7 @@ final readonly class AuthMessages
             passwordForgottenResult: 'Falls die E-Mail-Adresse bei uns registriert ist, erhalten Sie in den nächsten '
                 . 'Minuten eine automatische E-Mail. In dieser E-Mail befindet sich ein Link, um das Passwort '
                 . 'zurückzusetzen.',
-            passwordResetIntro: 'Geben Sie nachfolgend ihr gewünschtes neues Passwort ein.',
+            passwordResetIntro: 'Geben Sie nachfolgend Ihr gewünschtes neues Passwort ein.',
             passwordResetDone: 'Das neue Passwort wurde gespeichert.',
             emailInvalid: 'Sie haben eine ungültige E-Mail-Adresse eingegeben.',
             emailRequired: 'Geben Sie Ihre E-Mail-Adresse ein.',

@@ -36,6 +36,17 @@ Add the library to your project via Composer:
 composer require actra/backend
 ```
 
+Composer loads all classes (yuf, the backend, the project): the entry point (`public/index.php`) and CLI scripts
+include `vendor/autoload.php` before `Core::fromEnvironment()`; without it PHP reports
+`Class "actra\backend\settings\ActraBackendSettings" not found`. Composer is needed to build, not on the server: deploy
+with `composer install --no-dev --optimize-autoloader`.
+
+```php
+require __DIR__ . '/../vendor/autoload.php';
+
+$core = Core::fromEnvironment(envFilePath: __DIR__ . '/../.env.php', copyrightYear: 2026);
+```
+
 ### 2. Assets
 
 Include `src/assets/css/backend.css` and `src/assets/js/backend.js` in the asset build or publishing of the project and
@@ -69,7 +80,8 @@ use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\SmtpMailer;
 
-// Visitors without login are sent to the login page and back to the requested page afterwards
+// Visitors without login are sent to the login page and back to the requested page afterwards (one login page for
+// all language routes: yuf's RouteCollection has one login path)
 $routeCollection = new RouteCollection(loginPath: '/backend/login.html');
 // ... initialize your $language ...
 

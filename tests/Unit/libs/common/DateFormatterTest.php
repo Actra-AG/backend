@@ -31,7 +31,7 @@ final class DateFormatterTest extends TestCase
         $dateFormatter = new DateFormatter(locale: $locale);
         $dateTime = new DateTimeImmutable(datetime: '2026-10-09 14:05:33');
 
-        self::assertSame($expectedDate, $dateFormatter->formatDate(dateTime: $dateTime));
-        self::assertSame($expectedDateTime, $dateFormatter->formatDateTime(dateTime: $dateTime));
+        $this->assertSame($expectedDate, $dateFormatter->formatDate(dateTime: $dateTime));
+        $this->assertSame($expectedDateTime, $dateFormatter->formatDateTime(dateTime: $dateTime));
     }
 }

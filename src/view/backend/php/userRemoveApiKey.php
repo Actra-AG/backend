@@ -76,6 +76,7 @@ final class userRemoveApiKey extends BackendView
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $userPath . '?' . user::PARAM_CHANGED,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements = $htmlDocument->replacements;

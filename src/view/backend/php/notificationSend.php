@@ -62,6 +62,7 @@ final class notificationSend extends BackendView
                     id: $notificationId,
                 ) . '?' . notification::PARAM_SENT,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements->addHtmlText(

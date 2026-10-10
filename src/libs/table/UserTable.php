@@ -12,7 +12,6 @@ namespace actra\backend\libs\table;
 use actra\backend\BackendViewContext;
 use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\form\UserSearchForm;
-use actra\backend\libs\table\column\LocalizedDateColumn;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\table\column\BooleanColumn;
@@ -108,19 +107,17 @@ final class UserTable extends AbstractTable
             ),
         );
         $this->addColumn(
-            abstractTableColumn: new LocalizedDateColumn(
+            abstractTableColumn: $this->createDateColumn(
                 identifier: 'registered',
                 label: $messages->registeredColumn,
-                dateFormatter: $context->route->dateFormatter,
                 withTime: false,
                 isSortable: true,
             ),
         );
         $this->addColumn(
-            abstractTableColumn: new LocalizedDateColumn(
+            abstractTableColumn: $this->createDateColumn(
                 identifier: 'invited',
                 label: $messages->invitedColumn,
-                dateFormatter: $context->route->dateFormatter,
                 withTime: false,
                 isSortable: true,
             ),

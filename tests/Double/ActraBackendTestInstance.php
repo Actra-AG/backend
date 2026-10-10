@@ -11,6 +11,7 @@ namespace actra\backend\tests\Double;
 
 use actra\backend\ActraBackend;
 use actra\backend\settings\ActraBackendSettings;
+use actra\backend\settings\BackendNavigation;
 use actra\backend\settings\MailerSettings;
 use actra\yuf\core\Language;
 use actra\yuf\core\RouteCollection;
@@ -23,10 +24,13 @@ use actra\yuf\mailer\SmtpMailer;
  */
 final class ActraBackendTestInstance
 {
-    public static function create(?DbSettings $dbSettings = null): ActraBackend
-    {
+    public static function create(
+        ?DbSettings $dbSettings = null,
+        RouteCollection $routeCollection = new RouteCollection(),
+        ?BackendNavigation $projectNavigation = null,
+    ): ActraBackend {
         return ActraBackend::init(
-            routeCollection: new RouteCollection(),
+            routeCollection: $routeCollection,
             path: '/backend/',
             isDefaultForLanguage: false,
             actraBackendSettings: new ActraBackendSettings(
@@ -35,6 +39,7 @@ final class ActraBackendTestInstance
                 backendName: 'Test backend',
                 javaScriptPaths: [],
                 stylesPaths: [],
+                projectNavigation: $projectNavigation,
             ),
             dbSettings: $dbSettings ?? new DbSettings(
                 hostName: 'db.example.com',

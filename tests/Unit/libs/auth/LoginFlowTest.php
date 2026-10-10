@@ -232,7 +232,7 @@ final class LoginFlowTest extends TestCase
             viewContext: $tokenViewContext,
         );
 
-        $this->assertTrue(new LoginTokenForm(context: $tokenContext)->process());
+        $this->assertNotNull(new LoginTokenForm(context: $tokenContext)->process());
         $this->assertTrue($tokenContext->authSession->isLoggedIn());
         $this->assertSame(
             [AuthResultEnum::SUCCESSFUL_OTP_LOGIN->value],

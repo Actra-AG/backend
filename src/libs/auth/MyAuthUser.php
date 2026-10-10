@@ -19,7 +19,6 @@ use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\AuthUser;
 use actra\yuf\auth\Password;
 use actra\yuf\core\HttpResponse;
-use actra\yuf\core\LoginRedirect;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\session\Session;
 
@@ -71,18 +70,25 @@ final class MyAuthUser extends AuthUser
         );
     }
 
-    public function redirectToFirstAllowedPage(BackendViewContext $context): never
+    /**
+     * @param ?string $returnPath The page requested before the login (validated local path)
+     */
+    public function redirectToFirstAllowedPage(BackendViewContext $context, ?string $returnPath): never
     {
         HttpResponse::redirectAndExit(
-            relativeOrAbsoluteUri: $this->getFirstAllowedPage(context: $context),
+            relativeOrAbsoluteUri: $this->getFirstAllowedPage(context: $context, returnPath: $returnPath),
             httpRequest: $context->viewContext->httpRequest,
+            responseSender: $context->viewContext->responseSender,
         );
     }
 
-    public function getFirstAllowedPage(BackendViewContext $context): string
+    /**
+     * The page requested before the login (validated local path), otherwise the first page of the navigation, on the
+     * route of the user's language.
+     */
+    public function getFirstAllowedPage(BackendViewContext $context, ?string $returnPath): string
     {
-        $target = LoginRedirect::findReturnPath(httpRequest: $context->viewContext->httpRequest)
-            ?? $this->getFirstNavigationHref(context: $context);
+        $target = $returnPath ?? $this->getFirstNavigationHref(context: $context);
 
         return $this->moveToLanguageRoute(context: $context, target: $target);
     }

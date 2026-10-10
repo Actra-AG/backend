@@ -72,6 +72,7 @@ final class profileGenerateApiKey extends BackendView
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $this->backendContext->paths->profile(),
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements = $htmlDocument->replacements;

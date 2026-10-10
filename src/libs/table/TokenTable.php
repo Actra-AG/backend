@@ -11,7 +11,6 @@ namespace actra\backend\libs\table;
 
 use actra\backend\BackendViewContext;
 use actra\backend\libs\form\TokenSearchForm;
-use actra\backend\libs\table\column\LocalizedDateColumn;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
@@ -68,10 +67,9 @@ final class TokenTable extends AbstractTable
             itemsPerPage: 100,
         );
         $messages = $context->messages;
-        $registeredColumn = new LocalizedDateColumn(
+        $registeredColumn = $this->createDateColumn(
             identifier: 'registered',
             label: $messages->log->tokenCreatedDateColumn,
-            dateFormatter: $context->route->dateFormatter,
             withTime: true,
             isSortable: true,
             sortAscendingByDefault: false,
@@ -100,10 +98,9 @@ final class TokenTable extends AbstractTable
                 isSortable: true,
             ),
         );
-        $claimedColumn = new LocalizedDateColumn(
+        $claimedColumn = $this->createDateColumn(
             identifier: 'claimed',
             label: $messages->log->tokenClaimedDateColumn,
-            dateFormatter: $context->route->dateFormatter,
             withTime: true,
             isSortable: true,
         );

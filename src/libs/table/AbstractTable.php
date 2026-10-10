@@ -12,6 +12,8 @@ namespace actra\backend\libs\table;
 use actra\backend\BackendViewContext;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\FrameworkDb;
+use actra\yuf\table\column\DateColumn;
+use actra\yuf\table\column\DateStyleEnum;
 use actra\yuf\table\renderer\TablePaginationRenderer;
 use actra\yuf\table\table\DbResultTable;
 use actra\yuf\table\table\SmartTable;
@@ -51,6 +53,30 @@ abstract class AbstractTable extends DbResultTable
             itemsPerPage: $itemsPerPage,
             messages: $context->messages->table,
         );
+    }
+
+    /**
+     * A date column in the format of the locale of the backend route (yuf's `DateColumn::useLocale()`).
+     */
+    protected function createDateColumn(
+        string $identifier,
+        string $label,
+        bool $withTime,
+        bool $isSortable = false,
+        bool $sortAscendingByDefault = true,
+    ): DateColumn {
+        $dateColumn = new DateColumn(
+            identifier: $identifier,
+            label: $label,
+            isSortable: $isSortable,
+            sortAscendingByDefault: $sortAscendingByDefault,
+        );
+        $dateColumn->useLocale(
+            language: $this->backendContext->route->language,
+            timeStyle: $withTime ? DateStyleEnum::MEDIUM : DateStyleEnum::NONE,
+        );
+
+        return $dateColumn;
     }
 
     #[\Override]

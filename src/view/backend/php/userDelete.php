@@ -68,6 +68,7 @@ final class userDelete extends BackendView
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $this->backendContext->paths->users() . '?' . users::PARAM_REMOVED,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements = $htmlDocument->replacements;

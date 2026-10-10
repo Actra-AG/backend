@@ -15,6 +15,7 @@ use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpRequest;
+use actra\yuf\core\LoginRedirect;
 use actra\yuf\core\Route;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -75,6 +76,9 @@ final class LoginReturnPathTest extends TestCase
             clientData: $context->clientData,
         );
 
-        $this->assertSame($expected, $myAuthUser->getFirstAllowedPage(context: $context));
+        $this->assertSame($expected, $myAuthUser->getFirstAllowedPage(
+            context: $context,
+            returnPath: LoginRedirect::findReturnPath(httpRequest: $context->viewContext->httpRequest),
+        ));
     }
 }

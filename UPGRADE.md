@@ -2,6 +2,44 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.4.0 (2026-10-10)
+
+### ⚠️ Requires `actra/yuf` `~5.1.0`: Composer loads all classes
+
+Follow yuf's `UPGRADE.md` v5.1.0. Before: `require …/vendor/actra/yuf/src/Core.php;` and
+`Core::fromEnvironment(…, autoloaderPath: …)`. After: `require __DIR__ . '/../vendor/autoload.php';` first in
+`public/index.php` and every CLI script, `Core::fromEnvironment()` without `autoloaderPath:`, the project namespace
+in `composer.json` (`"autoload": {"psr-4": {"app\\": "app/"}}`), deployment with
+`composer install --no-dev --optimize-autoloader`. Without it: `Class "actra\backend\settings\ActraBackendSettings" not
+found`.
+
+### ⚠️ Search forms with yuf's compact renderer
+
+The label of a search field points to the id of its control. Before: `<div><label for="searchQuery">…</label><input …>
+</div>`. After: `<div class="form-compact-field"><label for="searchQuery">…</label><input …></div>`.
+`SearchSelectOptionsField` is removed (`SelectOptionsField`), `SearchQueryField` has no own HTML. No CSS is needed:
+`.form-filter > div label` still matches; projects may style `.form-compact-field`.
+
+### ⚠️ Login forms carry the requested page
+
+The forms of `login.html`, `loginPassword.html`, `loginToken.html` and `loginPasswordToken.html` have a hidden field
+`<input type="hidden" name="returnTo" …>`. `MyAuthUser::getFirstAllowedPage()` and `redirectToFirstAllowedPage()`
+take `returnPath:` (before: read from the request).
+
+### ⚠️ Date columns from yuf
+
+`LocalizedDateColumn` is removed. Before: `new LocalizedDateColumn(identifier: …, label: …, dateFormatter: …,
+withTime: true)`. After: `$this->createDateColumn(identifier: …, label: …, withTime: true)` in a table based on
+`AbstractTable`, or yuf's `DateColumn` with `useLocale()`. The output is the same.
+
+### Fixes
+
+- No 401 after a successful login with a code (password + code, or code only).
+- The requested page (`returnTo`) is kept through all login steps.
+- Navigation order as in v2.2: the project items before the users item.
+- German: "Ihr" in the subject of the login code mail and in the password reset text.
+- Redirects use the `ResponseSender` of the request.
+
 ## v2.3.1 (2026-10-10)
 
 ### Other changes

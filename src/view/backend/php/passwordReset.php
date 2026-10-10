@@ -67,6 +67,7 @@ final class passwordReset extends BackendView
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $this->backendContext->paths->passwordResetRes(),
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements->addHtml(

@@ -18,7 +18,8 @@ use actra\yuf\form\component\field\TextField;
 use LogicException;
 
 /**
- * Extension point: the base of the search forms of the backend tables and of the project tables.
+ * Extension point: the base of the search forms of the backend tables and of the project tables, rendered with
+ * yuf's `CompactFieldRenderer`.
  */
 abstract class AbstractSearchForm extends Form
 {
@@ -40,6 +41,8 @@ abstract class AbstractSearchForm extends Form
             name: $name,
             messages: $this->backendContext->messages->form,
         );
+        // Label and control in <div class="form-compact-field">, the label points to the id of the control
+        $this->useCompactFieldRenderer();
     }
 
     /**

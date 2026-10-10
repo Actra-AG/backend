@@ -13,6 +13,7 @@ use actra\backend\BackendView;
 use actra\backend\libs\form\LoginForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
+use actra\yuf\core\LoginRedirect;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -37,7 +38,10 @@ final class login extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->backendContext->authSession->isLoggedIn()) {
-            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(context: $this->backendContext);
+            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(
+                context: $this->backendContext,
+                returnPath: LoginRedirect::findReturnPath(httpRequest: $this->context->httpRequest),
+            );
         }
         $htmlDocument->templateName = 'authentication';
         $messages = $this->backendContext->messages->auth;
@@ -49,8 +53,12 @@ final class login extends BackendView
         $loginForm = new LoginForm(context: $this->backendContext);
         if ($loginForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->keepReturnPath(path: $this->backendContext->paths->loginToken()),
+                relativeOrAbsoluteUri: $this->keepReturnPath(
+                    path: $this->backendContext->paths->loginToken(),
+                    returnPath: $loginForm->getReturnPath(),
+                ),
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $replacements->addHtml(

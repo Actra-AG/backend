@@ -11,7 +11,6 @@ namespace actra\backend\libs\table;
 
 use actra\backend\BackendViewContext;
 use actra\backend\libs\form\VisitSearchForm;
-use actra\backend\libs\table\column\LocalizedDateColumn;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\table\column\CallbackColumn;
@@ -66,10 +65,9 @@ final class VisitTable extends AbstractTable
             itemsPerPage: 100,
         );
         $messages = $context->messages;
-        $dateColumn = new LocalizedDateColumn(
+        $dateColumn = $this->createDateColumn(
             identifier: 'registered',
             label: $messages->log->visitDateColumn,
-            dateFormatter: $context->route->dateFormatter,
             withTime: true,
             isSortable: true,
             sortAscendingByDefault: false,

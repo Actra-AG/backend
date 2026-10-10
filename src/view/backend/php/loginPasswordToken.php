@@ -56,8 +56,13 @@ final class loginPasswordToken extends BackendView
             htmlText: HtmlText::fromText(text: $messages->backToLogin),
         );
         $loginTokenForm = new LoginTokenForm(context: $this->backendContext);
-        if ($loginTokenForm->process()) {
-            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(context: $this->backendContext);
+        // The user logged in by the form: the context still holds the state before the login
+        $myAuthUser = $loginTokenForm->process();
+        if ($myAuthUser !== null) {
+            $myAuthUser->redirectToFirstAllowedPage(
+                context: $this->backendContext,
+                returnPath: $loginTokenForm->getReturnPath(),
+            );
         }
         $replacements->addHtml(
             identifier: 'form',

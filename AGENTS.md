@@ -29,8 +29,8 @@ This project follows the Actra coding standard, installed as development depende
 
 ## Directory layout
 
-- `src/` – library code, namespace `actra\backend\` (PSR-4 in `composer.json`; `ActraBackend.php` also registers the
-  path with `actra/autoloader`).
+- `src/` – library code, namespace `actra\backend\` (PSR-4 in `composer.json`; the lowercase view classes match their
+  file names, so `composer dump-autoload --optimize --strict-psr` runs without warnings).
   - `ActraBackend.php`, `BackendView.php` – entry point and base view.
   - `settings/` – settings value objects and enums.
   - `i18n/` – the message classes with all user-visible texts (English defaults, `german()` variant).
@@ -50,8 +50,8 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (which brings `actra/autoloader`), `ext-intl` and `ext-mbstring`.
-- yuf and the backend load through Composer's autoloader (PHPStan and PHPUnit need no paths for them).
+- Runtime dependencies: `actra/yuf` (`~5.1.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
+  no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.
 - `.ddev/config.yaml` provides PHP 8.5 and MariaDB.

@@ -66,6 +66,7 @@ final class userInvite extends BackendView
                     id: $dbAuthUser->id,
                 ) . '?' . user::PARAM_INVITED,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $messages = $this->backendContext->messages->user;

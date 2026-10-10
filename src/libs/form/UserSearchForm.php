@@ -12,7 +12,7 @@ namespace actra\backend\libs\form;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\db\DbAuthGroup;
 use actra\backend\libs\form\component\SearchQueryField;
-use actra\backend\libs\form\component\SearchSelectOptionsField;
+use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
@@ -23,7 +23,7 @@ final class UserSearchForm extends AbstractSearchForm
 {
     public readonly ?DbAuthGroup $dbAuthGroup;
     public readonly string $searchQuery;
-    private readonly SearchSelectOptionsField $userGroupField;
+    private readonly SelectOptionsField $userGroupField;
     private readonly SearchQueryField $searchQueryField;
 
     public function __construct(BackendViewContext $context)
@@ -33,7 +33,7 @@ final class UserSearchForm extends AbstractSearchForm
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
         $this->addField(
-            formField: $this->userGroupField = new SearchSelectOptionsField(
+            formField: $this->userGroupField = new SelectOptionsField(
                 name: 'userGroup',
                 label: HtmlText::fromText(text: $common->userGroupLabel),
                 formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),

@@ -130,6 +130,7 @@ final class user extends BackendView
             HttpResponse::redirectAndExit(
                 relativeOrAbsoluteUri: $firstNavigationItem->href,
                 httpRequest: $this->context->httpRequest,
+                responseSender: $this->context->responseSender,
             );
         }
         $hasApi = $this->backendContext->actraBackend->actraBackendSettings->hasApi;

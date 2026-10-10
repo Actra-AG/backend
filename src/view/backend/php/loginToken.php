@@ -12,6 +12,7 @@ namespace actra\backend\view\backend\php;
 use actra\backend\BackendView;
 use actra\backend\libs\form\LoginTokenForm;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\core\LoginRedirect;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -36,7 +37,10 @@ final class loginToken extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         if ($this->backendContext->authSession->isLoggedIn()) {
-            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(context: $this->backendContext);
+            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(
+                context: $this->backendContext,
+                returnPath: LoginRedirect::findReturnPath(httpRequest: $this->context->httpRequest),
+            );
         }
         $htmlDocument->templateName = 'authentication';
         $messages = $this->backendContext->messages->auth;
@@ -58,8 +62,13 @@ final class loginToken extends BackendView
             htmlText: HtmlText::fromText(text: $messages->backToLogin),
         );
         $loginTokenForm = new LoginTokenForm(context: $this->backendContext);
-        if ($loginTokenForm->process()) {
-            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(context: $this->backendContext);
+        // The user logged in by the form: the context still holds the state before the login
+        $myAuthUser = $loginTokenForm->process();
+        if ($myAuthUser !== null) {
+            $myAuthUser->redirectToFirstAllowedPage(
+                context: $this->backendContext,
+                returnPath: $loginTokenForm->getReturnPath(),
+            );
         }
         $replacements->addHtml(
             identifier: 'form',

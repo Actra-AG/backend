@@ -6,8 +6,9 @@ Status: open. Points left after [../done/standard-migration/plan.md](../done/sta
 
 - Browser check of all views, forms, tables, templates and emails in `../drogeriehaas.ch` (path repository),
   including the database updates `1.11.0.sql` and `2.0.0.sql` on a copy of real data and the mailer (`SmtpMailer` or
-  `GraphMailer`). From v2.3.0 (yuf 5): login with password and with code, redirect to the requested page
-  (`?returnTo=`), navigation, search forms with the compact renderer, CSV export of project tables.
+  `GraphMailer`). From v2.4.0 (yuf 5.1): password login, password + code, code login, a page without login → login →
+  back to that page (both flows), user list and CSV export, visit filter, search forms, profile, API keys, navigation
+  order.
 - Frontend: [../frontend-coding-standard/plan.md](../frontend-coding-standard/plan.md), for the frontend developer.
 
 ## Handover

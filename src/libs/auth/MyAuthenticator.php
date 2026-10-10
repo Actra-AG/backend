@@ -21,8 +21,6 @@ use actra\yuf\auth\AuthUser;
  */
 final class MyAuthenticator extends Authenticator
 {
-    public private(set) ?MyAuthUser $user = null;
-
     public function __construct(private readonly BackendViewContext $context)
     {
         parent::__construct(
@@ -32,20 +30,29 @@ final class MyAuthenticator extends Authenticator
         );
     }
 
-    public function tokenLogin(string $inputToken): bool
+    /**
+     * Logs in with a claimed login token; the logged-in user, `null` for a wrong token or a rejected user.
+     */
+    public function tokenLogin(string $inputToken): ?MyAuthUser
     {
         $dbAuthToken = new AuthTokens(context: $this->context)->claim(
             type: AuthTokenTypeEnum::LOGIN,
             inputToken: $inputToken,
         );
         if ($dbAuthToken === null) {
-            return false;
+            return null;
         }
-        return $this->doLogin(
+        $isLoggedIn = $this->doLogin(
             authMethod: AuthMethodEnum::OTP,
             userName: $dbAuthToken->email,
             passwordToCheck: null,
         );
+
+        return $isLoggedIn ? MyAuthUser::findLoggedIn(
+            authSession: $this->context->authSession,
+            repositories: $this->context->repositories,
+            clientData: $this->context->clientData,
+        ) : null;
     }
 
     /**
@@ -86,13 +93,12 @@ final class MyAuthenticator extends Authenticator
         if ($dbAuthUser === null) {
             return null;
         }
-        $this->user = new MyAuthUser(
+        return new MyAuthUser(
             dbAuthUser: $dbAuthUser,
             parentSessionId: null,
             repositories: $this->context->repositories,
             clientData: $this->context->clientData,
         );
-        return $this->user;
     }
 
     #[\Override]

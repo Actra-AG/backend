@@ -2,6 +2,16 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.4.1 (2026-10-10)
+
+### Fixes
+
+- Requires `actra/yuf` `~5.1.1`: the search fields are rendered as in v2.3.1, `<div><label for="…">…</label>…</div>`
+  without `class="form-compact-field"`; only the corrected `for` differs.
+- Project search forms based on `AbstractSearchForm` keep their renderer as in v2.3.1 (v2.4.0 turned on the compact
+  renderer for them, `<div>` instead of `<dl>`). A form that wants it calls `$this->useCompactFieldRenderer()`.
+- Requires `actra/coding-standard` `^1.22.0` (development only).
+
 ## v2.4.0 (2026-10-10)
 
 ### ⚠️ Requires `actra/yuf` `~5.1.0`: Composer loads all classes
@@ -15,10 +25,10 @@ found`.
 
 ### ⚠️ Search forms with yuf's compact renderer
 
-The label of a search field points to the id of its control. Before: `<div><label for="searchQuery">…</label><input …>
-</div>`. After: `<div class="form-compact-field"><label for="searchQuery">…</label><input …></div>`.
-`SearchSelectOptionsField` is removed (`SelectOptionsField`), `SearchQueryField` has no own HTML. No CSS is needed:
-`.form-filter > div label` still matches; projects may style `.form-compact-field`.
+`SearchSelectOptionsField` is removed (`SelectOptionsField`), `SearchQueryField` has no own HTML: the backend's search
+forms use yuf's `CompactFieldRenderer`. The markup stays the same apart from the corrected `for` of the labels (the id
+of the control instead of the field name). v2.4.0 added `class="form-compact-field"` to the `<div>`; v2.4.1 removes it
+again.
 
 ### ⚠️ Login forms carry the requested page
 

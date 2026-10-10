@@ -30,6 +30,8 @@ final class VisitSearchForm extends AbstractSearchForm
     public function __construct(BackendViewContext $context, string $name)
     {
         parent::__construct(context: $context, name: $name);
+        // Label and control in a <div>, the label points to the id of the control
+        $this->useCompactFieldRenderer();
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
         $messages = $this->backendContext->messages;

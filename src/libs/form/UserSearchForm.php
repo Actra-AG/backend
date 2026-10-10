@@ -30,6 +30,8 @@ final class UserSearchForm extends AbstractSearchForm
     {
         parent::__construct(context: $context, name: 'UserSearchForm');
         $common = $this->backendContext->messages->common;
+        // Label and control in a <div>, the label points to the id of the control
+        $this->useCompactFieldRenderer();
         $this->addCssClass(className: 'form-filter');
         $this->addCssClass(className: 'form-autosubmit');
         $this->addField(

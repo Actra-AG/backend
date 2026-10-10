@@ -150,9 +150,11 @@ final class user extends BackendView
             identifier: 'userModHref',
             html: $this->backendContext->paths->userMod(id: $dbAuthUser->id),
         );
-        $replacements->addHtml(
+        $replacements->addText(
             identifier: 'impersonateHref',
-            html: $canImpersonate ? $this->backendContext->paths->userImpersonate(id: $dbAuthUser->id) : '',
+            text: $canImpersonate
+                ? $this->createCsrfLink(path: $this->backendContext->paths->userImpersonate(id: $dbAuthUser->id))
+                : '',
         );
         $replacements->addHtml(
             identifier: 'removeHref',

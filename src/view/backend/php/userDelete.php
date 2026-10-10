@@ -62,8 +62,7 @@ final class userDelete extends ConfirmationView
     }
 
     /**
-     * The user to delete: one the current user may manage, not the current user, and not the last active user who
-     * manages users.
+     * The user to delete: not the current user, and not the last active user who manages users.
      */
     private function getDbAuthUser(): DbAuthUser
     {
@@ -76,7 +75,6 @@ final class userDelete extends ConfirmationView
         if (
             $dbAuthUser === null
             || $dbAuthUser->id === $currentUser->id
-            || !$currentUser->canManageUser(dbAuthUser: $dbAuthUser)
             || (
                 $dbAuthUser->isActive
                 && $dbAuthUser->accessRightCollection->hasAccessRight(accessRight: ActraBackend::RIGHT_MANAGE_USERS)

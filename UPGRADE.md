@@ -2,6 +2,17 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.7.1 (2026-10-11)
+
+### Changes
+
+- `manage_users` gives full control again, as before v2.7.0: a user with it manages all users and grants every group.
+  The rules of v2.7.0 that stay: nobody deactivates or deletes their own account, the last active user with
+  `manage_users` keeps it ([docs/users.md](docs/users.md)).
+- "Impersonate user" and "Cancel session change" act with one click again, without confirmation page; the links carry
+  the CSRF token of the session. `UserMessages::$impersonateConfirm` and `LayoutMessages::$cancelSessionChangeConfirm`
+  (new in v2.7.0) are removed.
+
 ## v2.7.0 (2026-10-11)
 
 Security release. Read every ⚠️ entry; the fixes without action are listed at the end.

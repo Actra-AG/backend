@@ -31,15 +31,14 @@ For simple database relations, projects can alternatively use foreign keys with 
 
 ## Rights of users who manage users
 
-A user with the right `manage_users` manages only users who have no right that this user lacks: groups with such a
-right are not offered, and users with such a right cannot be edited, invited, impersonated, deleted or given an API key
-(the pages answer 404). Nobody can deactivate or delete their own account, and the last active user with
-`manage_users` keeps it. Deactivating a user ends the user's sessions and deletes the open tokens and the API key;
-changing the email address ends the sessions and open tokens.
+The right `manage_users` gives full control: a user with it manages all users and grants every group, also to their
+own account. Give it only to administrators. Nobody can deactivate or delete their own account, and the last active
+user with `manage_users` keeps it. Deactivating a user ends the user's sessions and deletes the open tokens and the API
+key; changing the email address ends the sessions and open tokens.
 
-Impersonation ("Impersonate user") and "Cancel session change" run only on POST, through the confirmation pages
-`userImpersonate-{ID}.html` and `userImpersonateEnd.html`. An impersonation ends as soon as the impersonating user may
-no longer manage the impersonated user (deactivated, rights removed).
+"Impersonate user" and "Cancel session change" act with one click (`userImpersonate-{ID}.html`,
+`userImpersonateEnd.html`); their links carry the CSRF token of the session, without it the pages answer 404. An
+impersonation ends as soon as the impersonating user no longer manages users (deactivated, right removed).
 
 ## IP whitelists
 

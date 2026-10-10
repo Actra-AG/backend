@@ -59,7 +59,6 @@ final class ViewRenderTest extends TestCase
         'userAdd',
         'userDelete',
         'userGenerateApiKey',
-        'userImpersonate',
         'userInvite',
         'userMod',
         'userRemoveApiKey',
@@ -202,8 +201,7 @@ final class ViewRenderTest extends TestCase
                     clientData: BackendPageRenderer::createClientData(),
                 ),
             ],
-            'user', 'userDelete', 'userGenerateApiKey', 'userImpersonate', 'userInvite', 'userMod',
-            'userRemoveApiKey' => [
+            'user', 'userDelete', 'userGenerateApiKey', 'userInvite', 'userMod', 'userRemoveApiKey' => [
                 (string) $this->createOtherUser(),
             ],
             default => [],

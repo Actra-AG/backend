@@ -105,9 +105,7 @@ final class UserAddForm extends Form
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->filterGrantableBy(
-                    myAuthUser: $this->backendContext->getCurrentUser(),
-                )->getFormOptions(),
+                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
                 initialValues: [],
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
             ),

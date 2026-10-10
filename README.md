@@ -142,7 +142,7 @@ email address exists.
 - [Project views](docs/views.md): views, tables and search forms of the project in the backend, project services
   in views (`createViewFactory(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
 - [Languages](docs/languages.md): language of the backend, additional language routes, own texts.
-- [Users and API keys](docs/users.md): user deletion handler, rights of user managers and impersonation, IP whitelists,
+- [Users and API keys](docs/users.md): user deletion handler, user managers and impersonation, IP whitelists,
   login codes, reset links and lock-out, send limit, API key authentication.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.
 - [UPGRADE.md](UPGRADE.md): changes and migration instructions.

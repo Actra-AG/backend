@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Unit\view;
 
-use actra\backend\libs\form\ConfirmationForm;
 use actra\backend\tests\Double\BackendPageRenderer;
 use actra\backend\tests\Double\ResponseSentException;
 use actra\backend\tests\Double\TestDatabase;
@@ -26,8 +25,8 @@ use actra\yuf\session\Session;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The IP whitelists of the user and of the backend both apply, users who manage users only manage users with no more
- * rights than themselves, and impersonation is a confirmed POST.
+ * The IP whitelists of the user and of the backend both apply, users who manage users manage all users (but not their
+ * own deletion), and impersonation needs the CSRF token of its link.
  */
 final class AccessControlTest extends TestCase
 {
@@ -67,14 +66,20 @@ final class AccessControlTest extends TestCase
             sql: 'INSERT IGNORE INTO auth_right SET name=?, title=?',
             parameters: [AccessControlTest::PROJECT_RIGHT, 'Project'],
         );
-        $this->db->execute(sql: 'INSERT INTO auth_group SET title=?', parameters: ['Project ' . bin2hex(random_bytes(3))]);
+        $this->db->execute(
+            sql: 'INSERT INTO auth_group SET title=?',
+            parameters: ['Project ' . bin2hex(string: random_bytes(length: 3))],
+        );
         $groupId = $this->db->getLastInsertId();
         $this->db->execute(
             sql: 'INSERT INTO auth_group_right SET group_id=?, right_name=?',
             parameters: [$groupId, AccessControlTest::PROJECT_RIGHT],
         );
         $userId = $this->testUsers->create(email: AccessControlTest::email());
-        $this->db->execute(sql: 'INSERT INTO auth_user_group SET user_id=?, group_id=?', parameters: [$userId, $groupId]);
+        $this->db->execute(
+            sql: 'INSERT INTO auth_user_group SET user_id=?, group_id=?',
+            parameters: [$userId, $groupId],
+        );
 
         return $userId;
     }
@@ -111,39 +116,7 @@ final class AccessControlTest extends TestCase
         );
     }
 
-    public function testUserWithMoreRightsCannotBeEdited(): void
-    {
-        $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
-        $session = new Session(storage: new ArraySessionStorage());
-        $this->logIn(renderer: $renderer, session: $session);
-        $userId = $this->createUserWithProjectRight();
-
-        $refused = [];
-        foreach (['userMod', 'userDelete', 'userImpersonate', 'userInvite'] as $fileTitle) {
-            try {
-                $renderer->render(languageCode: 'de', fileTitle: $fileTitle, pathVars: [(string) $userId], session: $session);
-            } catch (NotFoundException) {
-                $refused[] = $fileTitle;
-            }
-        }
-
-        $this->assertSame(['userMod', 'userDelete', 'userImpersonate', 'userInvite'], $refused);
-    }
-
-    public function testGroupsWithMoreRightsAreNotOffered(): void
-    {
-        $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
-        $session = new Session(storage: new ArraySessionStorage());
-        $this->createUserWithProjectRight();
-        $this->logIn(renderer: $renderer, session: $session);
-
-        $html = $renderer->render(languageCode: 'de', fileTitle: 'userAdd', pathVars: [], session: $session);
-
-        $this->assertStringContainsString('Administrator', $html);
-        $this->assertStringNotContainsString('Project ', $html);
-    }
-
-    public function testNobodyDeletesHimself(): void
+    public function testNobodyDeletesTheirOwnAccount(): void
     {
         $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
         $session = new Session(storage: new ArraySessionStorage());
@@ -153,7 +126,45 @@ final class AccessControlTest extends TestCase
         $renderer->render(languageCode: 'de', fileTitle: 'userDelete', pathVars: [(string) $userId], session: $session);
     }
 
-    public function testImpersonationNeedsAConfirmedPost(): void
+    public function testUserManagerEditsUsersWithMoreRights(): void
+    {
+        $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
+        $session = new Session(storage: new ArraySessionStorage());
+        $this->logIn(renderer: $renderer, session: $session);
+        $userId = $this->createUserWithProjectRight();
+
+        $html = $renderer->render(
+            languageCode: 'de',
+            fileTitle: 'userMod',
+            pathVars: [(string) $userId],
+            session: $session,
+        );
+
+        // The group with the right the editor lacks is offered and checked, so saving keeps it
+        $this->assertMatchesRegularExpression(
+            '/<input type="checkbox"[^>]* value="\d+" checked[^>]*>\s*<label[^>]*>Project /',
+            $html,
+        );
+    }
+
+    /**
+     * The CSRF token in the query of the impersonation link of the user page.
+     */
+    private static function findImpersonateToken(string $userPage, int $userId): string
+    {
+        $pattern = '/href="\/backend\/userImpersonate-' . $userId . '\.html\?'
+            . CsrfTokenSource::FIELD_NAME . '=([^"&]+)"/';
+        if (
+            preg_match(pattern: $pattern, subject: $userPage, matches: $matches) !== 1
+            || !array_key_exists(key: 1, array: $matches)
+        ) {
+            AccessControlTest::fail('The user page has no impersonation link with token.');
+        }
+
+        return rawurldecode(string: html_entity_decode(string: $matches[1]));
+    }
+
+    public function testImpersonationNeedsTheTokenOfTheLink(): void
     {
         $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
         $session = new Session(storage: new ArraySessionStorage());
@@ -161,11 +172,15 @@ final class AccessControlTest extends TestCase
         $authSession = new AuthSession(session: $session);
         $ownSessionId = $authSession->getAuthSessionId();
         $otherUserId = $this->testUsers->create(email: AccessControlTest::email());
-
-        $userPage = $renderer->render(languageCode: 'de', fileTitle: 'user', pathVars: [(string) $otherUserId], session: $session);
-        $this->assertStringContainsString('href="/backend/userImpersonate-' . $otherUserId . '.html"', $userPage);
-        $renderer->render(languageCode: 'de', fileTitle: 'userImpersonate', pathVars: [(string) $otherUserId], session: $session);
-        $this->assertSame($ownSessionId, $authSession->getAuthSessionId(), 'GET does not switch the session.');
+        $token = AccessControlTest::findImpersonateToken(
+            userPage: $renderer->render(
+                languageCode: 'de',
+                fileTitle: 'user',
+                pathVars: [(string) $otherUserId],
+                session: $session,
+            ),
+            userId: $otherUserId,
+        );
 
         try {
             $renderer->render(
@@ -173,10 +188,21 @@ final class AccessControlTest extends TestCase
                 fileTitle: 'userImpersonate',
                 pathVars: [(string) $otherUserId],
                 session: $session,
-                postParameters: [CsrfTokenSource::FIELD_NAME => ViewContextFactory::csrfToken(session: $session)],
-                formName: ConfirmationForm::NAME,
             );
-            AccessControlTest::fail('The confirmed impersonation redirects.');
+            AccessControlTest::fail('Impersonation without token.');
+        } catch (NotFoundException) {
+        }
+        $this->assertSame($ownSessionId, $authSession->getAuthSessionId());
+
+        try {
+            $renderer->render(
+                languageCode: 'de',
+                fileTitle: 'userImpersonate',
+                pathVars: [(string) $otherUserId],
+                session: $session,
+                queryParameters: [CsrfTokenSource::FIELD_NAME => $token],
+            );
+            AccessControlTest::fail('The impersonation redirects.');
         } catch (ResponseSentException) {
         }
         $impersonationSessionId = $authSession->getAuthSessionId();
@@ -187,7 +213,7 @@ final class AccessControlTest extends TestCase
         );
     }
 
-    public function testCancelSessionChangeNeedsAConfirmedPost(): void
+    public function testCancelSessionChangeNeedsTheTokenOfTheLink(): void
     {
         $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
         $session = new Session(storage: new ArraySessionStorage());
@@ -202,34 +228,23 @@ final class AccessControlTest extends TestCase
             ),
         );
 
-        foreach (['de', 'en'] as $languageCode) {
-            $html = $renderer->render(languageCode: $languageCode, fileTitle: 'userImpersonateEnd', pathVars: [], session: $session);
-            $this->assertStringContainsString('name="confirm"', $html);
+        try {
+            $renderer->render(languageCode: 'de', fileTitle: 'userImpersonateEnd', pathVars: [], session: $session);
+            AccessControlTest::fail('End of the impersonation without token.');
+        } catch (NotFoundException) {
         }
-        $this->assertNotSame($ownSessionId, $authSession->getAuthSessionId(), 'GET does not end the impersonation.');
         try {
             $renderer->render(
                 languageCode: 'de',
                 fileTitle: 'userImpersonateEnd',
                 pathVars: [],
                 session: $session,
-                postParameters: [CsrfTokenSource::FIELD_NAME => ViewContextFactory::csrfToken(session: $session)],
-                formName: ConfirmationForm::NAME,
+                queryParameters: [CsrfTokenSource::FIELD_NAME => ViewContextFactory::csrfToken(session: $session)],
             );
-            AccessControlTest::fail('The confirmed end of the impersonation redirects.');
+            AccessControlTest::fail('The end of the impersonation redirects.');
         } catch (ResponseSentException) {
         }
         $this->assertSame($ownSessionId, $authSession->getAuthSessionId());
-    }
-
-    public function testCancelSessionChangeWithoutImpersonationIsNotFound(): void
-    {
-        $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
-        $session = new Session(storage: new ArraySessionStorage());
-        $this->logIn(renderer: $renderer, session: $session);
-
-        $this->expectException(NotFoundException::class);
-        $renderer->render(languageCode: 'de', fileTitle: 'userImpersonateEnd', pathVars: [], session: $session);
     }
 
     public function testImpersonationEndsWhenTheImpersonatorLosesTheRight(): void

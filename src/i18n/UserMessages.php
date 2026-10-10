@@ -24,8 +24,6 @@ final readonly class UserMessages
         public string $editUserTitle = 'Edit user',
         public string $inviteTitle = 'Send welcome email',
         public string $impersonateButton = 'Impersonate user',
-        public string $impersonateConfirm = 'Work in the backend as [name]? You return to your own account with '
-            . '"Cancel session change".',
         public string $deleteButton = 'Delete user',
         public string $deleteConfirm = 'Really delete [name]?',
         public string $selfDeactivateError = 'You cannot deactivate your own account.',
@@ -73,8 +71,6 @@ final readonly class UserMessages
             editUserTitle: 'Benutzer bearbeiten',
             inviteTitle: 'Willkommens-E-Mail senden',
             impersonateButton: 'Benutzer verkörpern',
-            impersonateConfirm: 'Im Backend als [name] arbeiten? Mit «Sitzungswechsel abbrechen» kehren Sie zu Ihrem '
-                . 'eigenen Konto zurück.',
             deleteButton: 'Benutzer löschen',
             deleteConfirm: '[name] wirklich löschen?',
             selfDeactivateError: 'Sie können Ihr eigenes Konto nicht deaktivieren.',

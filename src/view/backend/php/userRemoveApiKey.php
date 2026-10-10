@@ -70,7 +70,6 @@ final class userRemoveApiKey extends ConfirmationView
         );
         if (
             $dbAuthUser === null
-            || !$this->backendContext->getCurrentUser()->canManageUser(dbAuthUser: $dbAuthUser)
             || !$this->backendContext->actraBackend->actraBackendSettings->hasApi
             || !$this->backendContext->repositories->apiKeys()->hasByUserId(userId: $dbAuthUser->id)
         ) {

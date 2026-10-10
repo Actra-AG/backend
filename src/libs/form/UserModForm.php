@@ -112,9 +112,7 @@ final class UserModForm extends Form
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->filterGrantableBy(
-                    myAuthUser: $this->backendContext->getCurrentUser(),
-                )->getFormOptions(),
+                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
                 initialValues: $this->backendContext->repositories->groups()->listByUserId(
                     userId: $dbAuthUser->id,
                 )->getFormOptions()->getKeys(),
@@ -273,9 +271,9 @@ final class UserModForm extends Form
 
         return array_any(
             array: $this->userGroupsField->getIntValues(),
-            callback: static fn(int $groupId): bool => $groups->get(id: $groupId)->accessRightCollection->hasAccessRight(
-                accessRight: ActraBackend::RIGHT_MANAGE_USERS,
-            ),
+            callback: static fn(int $groupId): bool => $groups->get(id: $groupId)
+                ->accessRightCollection
+                ->hasAccessRight(accessRight: ActraBackend::RIGHT_MANAGE_USERS),
         );
     }
 

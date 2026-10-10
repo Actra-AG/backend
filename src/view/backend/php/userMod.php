@@ -56,10 +56,7 @@ final class userMod extends BackendView
     {
         $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
         $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
-        if (
-            $dbAuthUser === null
-            || !$this->backendContext->getCurrentUser()->canManageUser(dbAuthUser: $dbAuthUser)
-        ) {
+        if ($dbAuthUser === null) {
             throw new NotFoundException();
         }
         $replacements = $htmlDocument->replacements;

@@ -23,6 +23,8 @@ use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
 use actra\yuf\html\HtmlText;
+use actra\yuf\security\CsrfTokenSource;
+use LogicException;
 
 /**
  * Extension point: the base of the views of the backend and of the project views in the backend layout. Projects
@@ -77,8 +79,7 @@ abstract class BackendView extends BaseView
     /**
      * The checks of a logged-in user in addition to the global IP whitelist (checked by `BaseView`): the request must
      * come from the user's own IP whitelist if the user has one (both lists must match). In an impersonation, the
-     * impersonating user must still be allowed to manage the impersonated user, and the whitelist of the impersonating
-     * user applies.
+     * impersonating user must still be active and manage users, and the whitelist of the impersonating user applies.
      */
     private function checkLoggedInUser(BackendViewContext $context, MyAuthUser $myAuthUser): void
     {
@@ -92,7 +93,7 @@ abstract class BackendView extends BaseView
                 repositories: $context->repositories,
                 clientData: $context->clientData,
             );
-            if ($impersonator === null || !$impersonator->canManageUser(dbAuthUser: $myAuthUser->dbAuthUser)) {
+            if ($impersonator === null || !$impersonator->canManageUsers()) {
                 $context->authSession->logOut();
                 throw new UnauthorizedException();
             }
@@ -108,6 +109,32 @@ abstract class BackendView extends BaseView
     }
 
     abstract protected static function getRequiredAccessRights(): AccessRightCollection;
+
+    /**
+     * The link of an action that runs on GET with one click (no confirmation page), e.g. impersonation: it carries the
+     * CSRF token of the session, which the target view checks with `hasValidCsrfLinkToken()`.
+     */
+    protected function createCsrfLink(string $path): string
+    {
+        return $path . '?' . CsrfTokenSource::FIELD_NAME . '='
+            . rawurlencode(string: $this->getCsrfTokenSource()->getToken());
+    }
+
+    /**
+     * Whether the request carries the CSRF token of the session in the query (a link of `createCsrfLink()`).
+     */
+    protected function hasValidCsrfLinkToken(): bool
+    {
+        $token = $this->context->httpRequest->getQueryString(name: CsrfTokenSource::FIELD_NAME);
+
+        return $token !== null && $this->getCsrfTokenSource()->isValid(token: $token);
+    }
+
+    private function getCsrfTokenSource(): CsrfTokenSource
+    {
+        return $this->context->formContext->csrfTokenSource
+            ?? throw new LogicException(message: 'A link with CSRF token needs the CSRF token of the session.');
+    }
 
     #[\Override]
     public function execute(): void
@@ -198,9 +225,9 @@ abstract class BackendView extends BaseView
             text: $myAuthUser->getUserName(messages: $this->backendContext->messages->common),
         );
         if ($myAuthUser->isSessionChange()) {
-            $replacements->addHtml(
+            $replacements->addText(
                 identifier: 'cancelSessionChangeLink',
-                html: $this->backendContext->paths->userImpersonateEnd(),
+                text: $this->createCsrfLink(path: $this->backendContext->paths->userImpersonateEnd()),
             );
         } else {
             $replacements->addHtml(

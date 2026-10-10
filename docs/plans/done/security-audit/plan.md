@@ -324,3 +324,10 @@ migrate (changed APIs it uses), so the backend session can raise yuf to ~6.0.0.
   - The PoC folder `audit-tmp/` (git-ignored, also reachable through the DDEV web server of this checkout) can be
     deleted.
   - Advisories (owner publishes after the releases): drafts in the final report of the session.
+- 2026-10-11 (v2.7.1): the owner decided that `manage_users` is the right of full control (no delegated user managers
+  in any project), so the subset rule of B-8 is removed; the self and last-manager rules stay. Impersonation and its
+  end act with one click again: instead of a confirmation page, the links carry the CSRF token of the session
+  (`BackendView::createCsrfLink()` / `hasValidCsrfLinkToken()`). No GitHub advisories (the packages are used almost
+  only by Actra projects); the installations are upgraded directly. Frontend review: the impersonation links no longer
+  need a confirmation dialog (task of v2.7.0 obsolete), and the remark about hidden buttons for users with more rights
+  is obsolete.

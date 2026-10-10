@@ -67,6 +67,7 @@ final readonly class BackendPageRenderer
      * @param list<string> $pathVars The path variables after the file title (`user-5.html`: `['5']`)
      * @param array<string, string> $postParameters A POST request with these values, a GET request without
      * @param ?string $formName The form that is sent (the query of its action, `?FormName`)
+     * @param array<string, string> $queryParameters The query of the request
      */
     public function render(
         string $languageCode,
@@ -75,17 +76,20 @@ final readonly class BackendPageRenderer
         Session $session,
         array $postParameters = [],
         ?string $formName = null,
+        array $queryParameters = [],
     ): string {
         $route = $this->routeCollection->getRouteForLanguage(languageCode: $languageCode)
             ?? throw new LogicException(message: 'No backend route for the language ' . $languageCode);
         $fileName = implode(separator: '-', array: [$fileTitle, ...$pathVars]) . '.html';
+        $queryParameters = $formName === null ? $queryParameters : [$formName => '', ...$queryParameters];
+        $queryString = http_build_query(data: $queryParameters, encoding_type: PHP_QUERY_RFC3986);
         $httpRequest = new HttpRequest(
             host: 'example.com',
             method: $postParameters === [] ? RequestMethodEnum::GET : RequestMethodEnum::POST,
-            uri: $route->path . $fileName . ($formName === null ? '' : '?' . $formName),
-            queryString: $formName ?? '',
+            uri: $route->path . $fileName . ($queryString === '' ? '' : '?' . $queryString),
+            queryString: $queryString,
             remoteAddress: BackendPageRenderer::IP_ADDRESS,
-            queryParameters: $formName === null ? [] : [$formName => ''],
+            queryParameters: $queryParameters,
             postParameters: $postParameters,
         );
         $localeHandler = new LocaleHandler(language: $route->language, availableLanguages: $this->languageCollection);

@@ -10,34 +10,28 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
-use actra\backend\ConfirmationView;
-use actra\backend\i18n\MessageTemplate;
-use actra\backend\libs\db\DbAuthUser;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\core\HttpResponse;
 use actra\yuf\exception\NotFoundException;
+use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use LogicException;
 
 /**
- * Confirmation page to work as another user (impersonation): only a POST with CSRF token switches the session.
+ * Starts the impersonation of a user with one click on the link of the user page; the link carries the CSRF token of
+ * the session (`BackendView::createCsrfLink()`), without it the page answers 404.
  *
  * @internal
  */
-final class userImpersonate extends ConfirmationView
+final class userImpersonate extends BackendView
 {
-    private ?DbAuthUser $dbAuthUser = null;
-
     public function __construct(BackendViewContext $context)
     {
         parent::__construct(
             context: $context,
             maxAllowedPathVars: 1,
-            activeHtmlIdList: [
-                'users',
-                'userList',
-            ],
-            useNavigator: true,
         );
     }
 
@@ -56,55 +50,18 @@ final class userImpersonate extends ConfirmationView
     }
 
     #[\Override]
-    protected function prepareConfirmation(): void
+    protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
-        $this->getDbAuthUser();
-    }
-
-    private function getDbAuthUser(): DbAuthUser
-    {
-        if ($this->dbAuthUser !== null) {
-            return $this->dbAuthUser;
-        }
-        $dbAuthUser = $this->backendContext->repositories->users()->selectById(
-            id: $this->getRequiredPathVarAsInt(nr: 1),
-        );
+        $context = $this->backendContext;
+        $dbAuthUser = $context->repositories->users()->selectById(id: $this->getRequiredPathVarAsInt(nr: 1));
         if (
             $dbAuthUser === null
-            || !$this->backendContext->getCurrentUser()->canImpersonateUser(dbAuthUser: $dbAuthUser)
+            || !$this->hasValidCsrfLinkToken()
+            || !$context->getCurrentUser()->canImpersonateUser(dbAuthUser: $dbAuthUser)
         ) {
             throw new NotFoundException();
         }
-
-        return $this->dbAuthUser = $dbAuthUser;
-    }
-
-    #[\Override]
-    protected function getQuestion(): string
-    {
-        return MessageTemplate::fill(
-            template: $this->backendContext->messages->user->impersonateConfirm,
-            values: ['name' => $this->getDbAuthUser()->renderFullName(messages: $this->backendContext->messages->common)],
-        );
-    }
-
-    #[\Override]
-    protected function getConfirmLabel(): string
-    {
-        return $this->backendContext->messages->user->impersonateButton;
-    }
-
-    #[\Override]
-    protected function getCancelLink(): string
-    {
-        return $this->backendContext->paths->user(id: $this->getDbAuthUser()->id);
-    }
-
-    #[\Override]
-    protected function confirm(): string
-    {
-        $dbAuthUser = $this->getDbAuthUser();
-        $firstNavigationItem = $this->backendContext->getNavigation()->getFirst(
+        $firstNavigationItem = $context->getNavigation()->getFirst(
             accessRightCollection: $dbAuthUser->accessRightCollection,
         );
         if ($firstNavigationItem === null) {
@@ -113,15 +70,18 @@ final class userImpersonate extends ConfirmationView
                 . 'impersonation.',
             );
         }
-        $authSession = $this->backendContext->authSession;
+        $authSession = $context->authSession;
         $authSession->logIn(
-            authSessionId: $this->backendContext->repositories->sessions()->insert(
+            authSessionId: $context->repositories->sessions()->insert(
                 parentId: $authSession->getAuthSessionId(),
                 userId: $dbAuthUser->id,
-                clientData: $this->backendContext->clientData,
+                clientData: $context->clientData,
             ),
         );
-
-        return $firstNavigationItem->href;
+        HttpResponse::redirectAndExit(
+            relativeOrAbsoluteUri: $firstNavigationItem->href,
+            httpRequest: $this->context->httpRequest,
+            responseSender: $this->context->responseSender,
+        );
     }
 }

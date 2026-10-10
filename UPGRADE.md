@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.4.2 (2026-10-10)
+
+### Fixes
+
+- Requires `actra/yuf` `~5.2.0`: the message of a notification is rendered with `HtmlText::fromTextWithLineBreaks()`;
+  its line breaks are `<br>` instead of `<br />`, the look stays the same.
+
 ## v2.4.1 (2026-10-10)
 
 ### Fixes

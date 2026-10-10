@@ -14,7 +14,6 @@ use actra\backend\i18n\MessageTemplate;
 use actra\backend\libs\common\DateFormatter;
 use actra\yuf\html\DetailDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
-use actra\yuf\html\HtmlEncoder;
 use actra\yuf\html\HtmlText;
 use DateTimeImmutable;
 
@@ -63,8 +62,7 @@ final readonly class DbAuthUserNotification
         $htmlDataObjectCollection->add(
             htmlDataObject: new DetailDataObject(
                 name: HtmlText::fromText(text: $messages->notification->messageLabel),
-                // Line breaks of the message as <br>, the text itself encoded
-                value: HtmlText::fromHtml(html: nl2br(string: HtmlEncoder::encode(value: $this->message))),
+                value: HtmlText::fromTextWithLineBreaks(text: $this->message),
             ),
         );
 

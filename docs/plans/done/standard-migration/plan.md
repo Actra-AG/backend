@@ -1,6 +1,6 @@
 # Plan: bring `actra/backend` to yuf ^4.57 and the global coding standard
 
-Status: done with v2.0.0 (2026-10-09). Final state at the end, open points in `docs/plans/follow-up/plan.md`.
+Status: done with v2.0.0 (2026-10-09). Final state at the end, open points in `docs/plans/done/follow-up/plan.md`.
 
 Goal: the same standard in all Actra projects, without project deviations. This plan replaces the task list of
 2026-10-07 (state v1.6.0, yuf ^4.10). It includes the remaining tasks of `docs/coding-standard/plan.md` (tooling).
@@ -467,4 +467,4 @@ depend on these versions and follows as its own step.
 ## Handover (2026-10-09, v2.1.0)
 
 - Plan moved to `docs/plans/done/` (coding standard v1.16.0). Its open points moved to
-  [../../follow-up/plan.md](../../follow-up/plan.md).
+  [../follow-up/plan.md](../follow-up/plan.md).

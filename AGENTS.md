@@ -21,8 +21,9 @@ This project follows the Actra coding standard, installed as development depende
 - Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`.
 - yuf is developed in parallel (local checkout usually at `../yuf`); raise it as described in
   `standards/versioning.md`, section 8.
-- The migration to the current yuf and the global standard is complete (v2.0.0); open points in
-  [docs/plans/follow-up/plan.md](docs/plans/follow-up/plan.md).
+- The migration to the current yuf and the global standard is complete (v2.0.0, follow-up done with
+  v2.4.2); open for the frontend developer:
+  [docs/plans/frontend-coding-standard/plan.md](docs/plans/frontend-coding-standard/plan.md).
 - No skeleton project. No example app; views are checked in the consuming project (see "Dependencies and tooling").
 - Changes of HTML templates and CSS need a frontend review (`AGENTS.md` of the coding standard, "Working on a
   task").

@@ -81,6 +81,7 @@ use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
+use actra\yuf\mailer\SmtpEncryptionEnum;
 use actra\yuf\mailer\SmtpMailer;
 
 // Visitors without login are sent to the login page and back to the requested page afterwards (one login page for
@@ -116,10 +117,15 @@ $actraBackend = ActraBackend::init(
         // Or GraphMailer for Microsoft 365 (yuf's docs/mail.md); the same mailer can serve the FileLogger
         mailer: new SmtpMailer(
             serverAddress: $core->httpRequest->getServerAddress(),
-            hostName: 'smtp.example.com',
-            smtpUserName: 'mailer@example.com',
+            hostName: $core->environmentSettings->getString(key: 'mailer.hostname'),
+            smtpUserName: $core->environmentSettings->getString(key: 'mailer.username'),
             smtpPassword: $core->environmentSettings->getString(key: 'mailer.password'),
             serverNameCache: $core->fileCache,
+            encryption: $core->environmentSettings->getEnum(
+                key: 'mailer.encryption',
+                enumClass: SmtpEncryptionEnum::class,
+            ),
+            port: $core->environmentSettings->getInt(key: 'mailer.port'),
         ),
     ),
 );
@@ -129,6 +135,16 @@ $core->prepareHttpResponse(
     routeCollection: $routeCollection,
     navigationProvider: $actraBackend->createNavigation(...),
 );
+```
+
+The SMTP settings in `.env.php` (yuf's [mail docs](https://github.com/Actra-AG/yuf/blob/main/docs/mail.md)):
+
+```php
+'mailer.hostname' => 'smtp.example.com',
+'mailer.port' => 587,
+'mailer.username' => 'mailer@example.com',
+'mailer.password' => '…',
+'mailer.encryption' => 'starttls', // 'implicit_tls' for port 465, 'none' only for a server on the same host
 ```
 
 Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`).

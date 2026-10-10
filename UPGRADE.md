@@ -2,6 +2,11 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.7.2 (2026-10-11)
+
+- Requires `actra/yuf` `~6.1.0` (no breaking change; projects can read the SMTP encryption with
+  `EnvironmentSettings::getEnum()`, see yuf's `UPGRADE.md` v6.1.0). No change for projects.
+
 ## v2.7.1 (2026-10-11)
 
 ### Changes

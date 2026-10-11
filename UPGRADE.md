@@ -2,6 +2,22 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.10.0 (2026-10-11)
+
+### ⚠️ Requires `actra/yuf` `~6.4.0`: email fields
+
+Migrate your own email fields with yuf's `UPGRADE.md` (v6.4.0): `EmailField` needs
+`mailDomainResolver: $formContext->mailDomainResolver` (in backend forms:
+`$this->backendContext->viewContext->formContext->mailDomainResolver`), tests that create a `FormContext` pass
+`mailDomainResolver: new AcceptingMailDomainResolver()`. The email fields of the backend check the mail domain only
+without debug mode; addresses of domains that accept no mail (null MX) are rejected.
+
+### Changes
+
+- The seed user of `db/data.sql` is `admin@example.com` (was `admin@example.invalid`, which the login form rejects):
+  locally (`'debug' => true` in `.env.php`), log in with it and read the code in Mailpit. In production, `example.com`
+  is rejected (null MX). Existing installations are not changed.
+
 ## v2.9.0 (2026-10-11)
 
 ### ⚠️ Database: `db/updates/2.9.0.sql`, plural table names and standard column names
@@ -32,8 +48,9 @@ SELECT o.id, u.email FROM orders o INNER JOIN auth_user u ON u.id = o.user_id WH
 SELECT o.id, u.email FROM orders o INNER JOIN auth_users u ON u.id = o.user_id WHERE u.is_active = 1
 ```
 
-Search your project for: `auth_` in SQL, `.active`, `registered`, `sent_date`. The sort links of the tables use the new column names (`?sort=UserTable|created_at|…`); a sort stored in
-the session or bookmarked with an old name falls back to the default sort.
+Search your project for: `auth_` in SQL, `.active`, `registered`, `sent_date`. The sort links of the tables use the
+new column names (`?sort=UserTable|created_at|…`); a sort stored in the session or bookmarked with an old name falls
+back to the default sort.
 
 ### ⚠️ `DbAuthUser::$createdAt` and `$invitedAt`, `$isActive` in `DbAuthUserRepository`
 

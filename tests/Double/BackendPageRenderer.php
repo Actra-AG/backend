@@ -14,6 +14,7 @@ use actra\backend\libs\db\ClientData;
 use actra\backend\settings\BackendRoute;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\clock\SystemClock;
+use actra\yuf\common\AcceptingMailDomainResolver;
 use actra\yuf\core\ContentHandler;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
@@ -127,6 +128,7 @@ final readonly class BackendPageRenderer
             formContext: new FormContext(
                 httpRequest: $httpRequest,
                 csrfTokenSource: new SessionCsrfTokenSource(session: $session),
+                mailDomainResolver: new AcceptingMailDomainResolver(),
             ),
             documentRoot: '/tmp/public/',
             copyright: '2026',

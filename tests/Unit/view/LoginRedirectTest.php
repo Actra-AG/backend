@@ -17,6 +17,7 @@ use actra\backend\tests\Double\ResponseSentException;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
 use actra\backend\tests\Double\ViewContextFactory;
+use actra\yuf\common\AcceptingMailDomainResolver;
 use actra\yuf\core\ContentHandler;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
@@ -114,6 +115,7 @@ final class LoginRedirectTest extends TestCase
                     formContext: new FormContext(
                         httpRequest: $httpRequest,
                         csrfTokenSource: new SessionCsrfTokenSource(session: $this->session),
+                        mailDomainResolver: new AcceptingMailDomainResolver(),
                     ),
                     documentRoot: '/tmp/public/',
                     copyright: '',

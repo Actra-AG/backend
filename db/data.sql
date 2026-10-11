@@ -90,7 +90,7 @@ TRUNCATE TABLE `auth_users`;
 
 INSERT INTO `auth_users` (`id`, `created_by_user_id`, `created_at`, `invited_at`, `email`, `phone`, `first_name`,
                           `last_name`, `is_active`, `last_successful_login_at`)
-VALUES (1, NULL, NOW(), null, 'admin@example.invalid', '', 'Admin', 'User', 1, NULL);
+VALUES (1, NULL, NOW(), null, 'admin@example.com', '', 'Admin', 'User', 1, NULL);
 
 --
 -- TRUNCATE Tabelle vor dem Einfügen `auth_group_user`

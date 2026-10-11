@@ -19,11 +19,14 @@ use actra\backend\settings\TokenSendLimit;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\RecordingMailer;
 use actra\backend\tests\Double\RecordingResponseSender;
+use actra\backend\tests\Double\RejectingMailDomainResolver;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\clock\FixedClock;
+use actra\yuf\common\AcceptingMailDomainResolver;
+use actra\yuf\common\MailDomainResolver;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\core\RequestMethodEnum;
 use actra\yuf\core\Route;
@@ -66,6 +69,7 @@ final class LoginFlowTest extends TestCase
         string $formName,
         array $postParameters,
         ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
+        MailDomainResolver $mailDomainResolver = new AcceptingMailDomainResolver(),
     ): BackendViewContext {
         $session = new Session(storage: new ArraySessionStorage());
 
@@ -89,6 +93,7 @@ final class LoginFlowTest extends TestCase
                 ),
                 responseSender: $this->responseSender,
                 session: $session,
+                mailDomainResolver: $mailDomainResolver,
             ),
         );
     }
@@ -176,6 +181,22 @@ final class LoginFlowTest extends TestCase
 
         $this->assertFalse($this->passwordLogin(email: $email));
         $this->assertSame([$expected->value], $this->testUsers->listLoggedResults(email: $email));
+        $this->assertSame(0, $this->testUsers->countTokens(email: $email));
+        $this->assertSame([], $this->responseSender->afterResponseCallbacks);
+    }
+
+    public function testEmailOfARejectedMailDomainIsInvalid(): void
+    {
+        $email = LoginFlowTest::email(name: 'null-mx');
+        $this->testUsers->create(email: $email);
+        $context = $this->createContext(
+            fileTitle: 'login',
+            formName: 'LoginForm',
+            postParameters: ['email' => $email],
+            mailDomainResolver: new RejectingMailDomainResolver(),
+        );
+
+        $this->assertFalse(new LoginForm(context: $context)->process());
         $this->assertSame(0, $this->testUsers->countTokens(email: $email));
         $this->assertSame([], $this->responseSender->afterResponseCallbacks);
     }

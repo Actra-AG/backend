@@ -19,6 +19,7 @@ use actra\backend\tests\Double\ConfirmationCalls;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\ResponseSentException;
 use actra\yuf\clock\SystemClock;
+use actra\yuf\common\AcceptingMailDomainResolver;
 use actra\yuf\core\ContentHandler;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
@@ -136,7 +137,11 @@ final class ConfirmationViewTest extends TestCase
                 httpRequest: $httpRequest,
                 session: $this->session,
                 sessionHandler: null,
-                formContext: new FormContext(httpRequest: $httpRequest, csrfTokenSource: $csrfTokenSource),
+                formContext: new FormContext(
+                    httpRequest: $httpRequest,
+                    csrfTokenSource: $csrfTokenSource,
+                    mailDomainResolver: new AcceptingMailDomainResolver(),
+                ),
                 documentRoot: '/tmp/public/',
                 copyright: '2026',
                 robots: 'noindex, nofollow',

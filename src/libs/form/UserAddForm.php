@@ -73,6 +73,7 @@ final class UserAddForm extends Form
                 invalidError: HtmlText::fromText(text: $common->emailInvalid),
                 maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->emailRequired),
+                mailDomainResolver: $context->viewContext->formContext->mailDomainResolver,
             ),
         );
         $this->addField(

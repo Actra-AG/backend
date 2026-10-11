@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace actra\backend\tests\Double;
 
 use actra\yuf\auth\AuthSession;
+use actra\yuf\common\AcceptingMailDomainResolver;
+use actra\yuf\common\MailDomainResolver;
 use actra\yuf\core\ContentHandler;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
@@ -32,7 +34,8 @@ use Closure;
 
 /**
  * A `ViewContext` for the tests: an HTML request of a file title on the given route, with a session in memory (and its
- * CSRF token source) and a `RecordingResponseSender`.
+ * CSRF token source) and a `RecordingResponseSender`; email fields accept every mail domain unless a resolver is
+ * given.
  */
 final class ViewContextFactory
 {
@@ -47,6 +50,7 @@ final class ViewContextFactory
         Session $session = new Session(storage: new ArraySessionStorage()),
         ?Closure $navigationProvider = null,
         string $documentRoot = '/tmp/public/',
+        MailDomainResolver $mailDomainResolver = new AcceptingMailDomainResolver(),
     ): ViewContext {
         return new ViewContext(
             httpRequest: $httpRequest,
@@ -56,6 +60,7 @@ final class ViewContextFactory
             formContext: new FormContext(
                 httpRequest: $httpRequest,
                 csrfTokenSource: new SessionCsrfTokenSource(session: $session),
+                mailDomainResolver: $mailDomainResolver,
             ),
             route: $route,
             fileGroup: null,

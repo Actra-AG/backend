@@ -10,11 +10,13 @@ In the consuming project, pass the handler in the settings of `ActraBackend::ini
 
 ```php
 use actra\backend\libs\auth\UserDeleteHandler;
+use actra\backend\libs\db\BackendRepositories;
 
 final class ProjectUserDeleteHandler implements UserDeleteHandler {
-    public function beforeDeleteUser(int $userId): void {
-        $this->projectUserProfiles->deleteByUserId(userId: $userId);
-        $this->projectUserSettings->deleteByUserId(userId: $userId);
+    public function beforeDeleteUser(int $userId, BackendRepositories $repositories): void {
+        $projectRepositories = new ProjectRepositories(backend: $repositories);
+        $projectRepositories->userProfiles()->deleteByUserId(userId: $userId);
+        $projectRepositories->userSettings()->deleteByUserId(userId: $userId);
     }
 }
 new ActraBackendSettings(
@@ -24,7 +26,9 @@ new ActraBackendSettings(
 ```
 
 The delete handler is executed inside the same database transaction as the built-in user cleanup and before `auth_user`
-is deleted. If the handler throws an exception, the transaction is rolled back and the user is not deleted.
+is deleted. `$repositories` are the repositories of that transaction: run every query of the handler on
+`$repositories->db()` or on project repositories built from it, never on another connection. If the handler throws an
+exception, the transaction is rolled back and the user is not deleted.
 
 For simple database relations, projects can alternatively use foreign keys with `ON DELETE CASCADE` or
 `ON DELETE SET NULL`, depending on whether related rows should be removed or preserved without the user reference.

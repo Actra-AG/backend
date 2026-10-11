@@ -38,7 +38,7 @@ final readonly class UserController
             $repositories->userGroups()->deleteByUserId(userId: $userId);
             $repositories->ipWhitelists()->deleteByUserId(userId: $userId);
             $repositories->apiKeys()->deleteByUserId(userId: $userId);
-            $this->userDeleteHandler?->beforeDeleteUser(userId: $userId);
+            $this->userDeleteHandler?->beforeDeleteUser(userId: $userId, repositories: $repositories);
             $repositories->users()->delete(id: $userId);
             $db->commit();
         } catch (Throwable $throwable) {

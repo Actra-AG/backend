@@ -2,6 +2,25 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.8.0 (2026-10-11)
+
+### ⚠️ `UserDeleteHandler::beforeDeleteUser()` gets the repositories of the delete transaction
+
+The handler gets the new parameter `BackendRepositories $repositories`: the repositories whose `db()` runs the delete
+transaction. Use `$repositories->db()` or build the project repositories from it, instead of passing them into the
+handler's constructor ([docs/users.md](docs/users.md)).
+
+```php
+// Before
+public function beforeDeleteUser(int $userId): void
+// After
+public function beforeDeleteUser(int $userId, BackendRepositories $repositories): void
+```
+
+### Changes
+
+- Requires `actra/yuf` `~6.2.0` (no breaking change, see yuf's `UPGRADE.md` v6.2.0). No change for projects.
+
 ## v2.7.2 (2026-10-11)
 
 - Requires `actra/yuf` `~6.1.0` (no breaking change; projects can read the SMTP encryption with

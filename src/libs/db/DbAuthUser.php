@@ -25,7 +25,7 @@ use DateTimeImmutable;
 final readonly class DbAuthUser
 {
     /**
-     * The length of the text columns of `auth_user` (names, email address, phone).
+     * The length of the text columns of `auth_users` (names, email address, phone).
      */
     public const int MAX_TEXT_LENGTH = 200;
 
@@ -34,8 +34,8 @@ final readonly class DbAuthUser
      */
     public function __construct(
         public int $id,
-        public DateTimeImmutable $registered,
-        public ?DateTimeImmutable $invitedDate,
+        public DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $invitedAt,
         private ?DateTimeImmutable $lastLogin,
         public string $email,
         public string $phone,
@@ -51,7 +51,7 @@ final readonly class DbAuthUser
 
     public function isInvited(): bool
     {
-        return $this->invitedDate !== null;
+        return $this->invitedAt !== null;
     }
 
     public function renderFullName(CommonMessages $messages): string

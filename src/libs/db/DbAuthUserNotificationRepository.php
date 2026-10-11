@@ -20,22 +20,22 @@ final class DbAuthUserNotificationRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-                SELECT auth_user_notification.id,
-                       auth_user_notification.auth_group_id,
-                       auth_user_notification.sent_by_id,
-                       auth_user_notification.sent_date,
-                       auth_user_notification.subject,
-                       auth_user_notification.message,
-                       auth_group.title AS group_name,
-                       auth_user.first_name,
-                       auth_user.last_name,
+                SELECT auth_user_notifications.id,
+                       auth_user_notifications.group_id,
+                       auth_user_notifications.sent_by_user_id,
+                       auth_user_notifications.sent_at,
+                       auth_user_notifications.subject,
+                       auth_user_notifications.message,
+                       auth_groups.title AS group_name,
+                       auth_users.first_name,
+                       auth_users.last_name,
                        (SELECT COUNT(id)
-                           FROM auth_user_notification_recipient
-                           WHERE auth_user_notification_recipient.notification_id=auth_user_notification.id
+                           FROM auth_user_notification_recipients
+                           WHERE auth_user_notification_recipients.user_notification_id=auth_user_notifications.id
                        ) AS recipients
-                FROM auth_user_notification
-                    INNER JOIN auth_group ON auth_user_notification.auth_group_id = auth_group.id
-                    INNER JOIN auth_user ON auth_user.id = auth_user_notification.sent_by_id
+                FROM auth_user_notifications
+                    INNER JOIN auth_groups ON auth_user_notifications.group_id = auth_groups.id
+                    INNER JOIN auth_users ON auth_users.id = auth_user_notifications.sent_by_user_id
             ',
         );
     }
@@ -44,9 +44,9 @@ final class DbAuthUserNotificationRepository
     {
         return new DbAuthUserNotification(
             id: $row->getInt(column: 'id'),
-            authGroupId: $row->getInt(column: 'auth_group_id'),
-            sentById: $row->getInt(column: 'sent_by_id'),
-            sentDate: $row->getDateTimeImmutable(column: 'sent_date'),
+            authGroupId: $row->getInt(column: 'group_id'),
+            sentById: $row->getInt(column: 'sent_by_user_id'),
+            sentDate: $row->getDateTimeImmutable(column: 'sent_at'),
             subject: $row->getString(column: 'subject'),
             message: $row->getString(column: 'message'),
             groupName: $row->getString(column: 'group_name'),
@@ -60,7 +60,7 @@ final class DbAuthUserNotificationRepository
     {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_user_notification.id=?',
+            wherePart: 'auth_user_notifications.id=?',
             parameters: [
                 $id,
             ],
@@ -96,9 +96,9 @@ final class DbAuthUserNotificationRepository
         $db = $this->db;
         $db->execute(
             sql: '
-                INSERT INTO auth_user_notification
-                SET auth_group_id=?,
-                    sent_by_id=?,
+                INSERT INTO auth_user_notifications
+                SET group_id=?,
+                    sent_by_user_id=?,
                     subject=?,
                     message=?
             ',

@@ -22,7 +22,7 @@ final class DbAuthIpWhitelistRepository
                    SELECT id,
                           user_id,
                           ip_address
-                   FROM auth_ip_whitelist
+                   FROM auth_ip_whitelists
                    WHERE user_id=?
                ',
                 parameters: [
@@ -47,7 +47,7 @@ final class DbAuthIpWhitelistRepository
         string $ipAddress,
     ): void {
         $this->db->execute(
-            sql: 'INSERT INTO auth_ip_whitelist (user_id, ip_address) VALUES (?, ?)',
+            sql: 'INSERT INTO auth_ip_whitelists (user_id, ip_address) VALUES (?, ?)',
             parameters: [
                 $userId,
                 $ipAddress,
@@ -60,7 +60,7 @@ final class DbAuthIpWhitelistRepository
         string $ipAddress,
     ): void {
         $this->db->execute(
-            sql: 'DELETE FROM auth_ip_whitelist WHERE user_id=? AND ip_address=?',
+            sql: 'DELETE FROM auth_ip_whitelists WHERE user_id=? AND ip_address=?',
             parameters: [
                 $userId,
                 $ipAddress,
@@ -71,7 +71,7 @@ final class DbAuthIpWhitelistRepository
     public function deleteByUserId(int $userId): void
     {
         $this->db->execute(
-            sql: 'DELETE FROM auth_ip_whitelist WHERE user_id=?',
+            sql: 'DELETE FROM auth_ip_whitelists WHERE user_id=?',
             parameters: [
                 $userId,
             ],

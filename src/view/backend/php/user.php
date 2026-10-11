@@ -198,13 +198,13 @@ final class user extends BackendView
         );
         $replacements->addText(
             identifier: 'registered',
-            text: $dateFormatter->formatDateTime(dateTime: $dbAuthUser->registered),
+            text: $dateFormatter->formatDateTime(dateTime: $dbAuthUser->createdAt),
         );
         $replacements->addText(
             identifier: 'invitedDate',
-            text: $dbAuthUser->invitedDate === null
+            text: $dbAuthUser->invitedAt === null
                 ? ''
-                : $dateFormatter->formatDateTime(dateTime: $dbAuthUser->invitedDate),
+                : $dateFormatter->formatDateTime(dateTime: $dbAuthUser->invitedAt),
         );
         $replacements->addText(
             identifier: 'lastLogin',

@@ -52,7 +52,7 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (`~6.2.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
+- Runtime dependencies: `actra/yuf` (`~6.3.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
   no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.
@@ -84,8 +84,4 @@ This project follows the Actra coding standard, installed as development depende
 
 ## Deviations from the global standard
 
-- View classes found by `BackendViewFactory` (the views of the backend in `src/view/backend/php/` and the project views
-  based on `BackendView`) have a lowercase class name equal to the file title (`login`, `userMod`), not PascalCase
-  (`standards/naming.md`). Reason: the factory builds the class name from the requested file name, like yuf's
-  `ClassNameViewFactory` (allowed by `vendor/actra/yuf/docs/views.md`, section "Views"). Applies only to these view
-  classes.
+None. The lowercase view class names (`login`, `userMod`) follow `standards/naming.md`, section 2.

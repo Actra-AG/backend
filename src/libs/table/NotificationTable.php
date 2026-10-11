@@ -31,9 +31,10 @@ final class NotificationTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
+        $this->addSortTieBreaker(column: 'auth_user_notifications.id', ascending: false);
         $messages = $context->messages;
         $sentDateColumn = $this->createDateColumn(
-            identifier: 'sent_date',
+            identifier: 'sent_at',
             label: HtmlText::fromText(text: $messages->notification->sentDateLabel),
             withTime: true,
             sortAscendingByDefault: false,

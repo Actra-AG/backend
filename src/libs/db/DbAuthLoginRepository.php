@@ -24,9 +24,9 @@ final class DbAuthLoginRepository
     ): void {
         $this->db->execute(
             sql: '
-                INSERT INTO auth_login
+                INSERT INTO auth_logins
                 SET user_id=?,
-                    session_id=?,
+                    php_session_id=?,
                     ip_address=?,
                     email=?,
                     result=?
@@ -45,7 +45,7 @@ final class DbAuthLoginRepository
     {
         $this->db->execute(
             sql: '
-                UPDATE auth_login SET user_id=NULL WHERE user_id=?
+                UPDATE auth_logins SET user_id=NULL WHERE user_id=?
             ',
             parameters: [
                 $userId,

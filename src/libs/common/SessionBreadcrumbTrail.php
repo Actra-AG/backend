@@ -15,8 +15,9 @@ use actra\yuf\session\Session;
 
 /**
  * The breadcrumb of views with `useNavigator: true` that declare no parents: the pages visited in this order, kept in
- * the session (one entry per page name, a page visited again removes the pages after it). `?reset` restarts the
- * trail, `?n=a|b` sets the active navigation levels for the following pages.
+ * the session (one entry per page name, a page visited again removes the pages after it). The links are the absolute
+ * paths of the visited pages, so pages of the project and of the backend routes link each other correctly. `?reset`
+ * restarts the trail, `?n=a|b` sets the active navigation levels for the following pages.
  *
  * @internal
  */
@@ -26,7 +27,7 @@ final class SessionBreadcrumbTrail
     private const string NAVIGATION_LEVELS_KEY = 'sess_navistufe';
 
     private readonly string $currentPage;
-    private readonly string $currentLink;
+    private readonly string $currentPath;
 
     /**
      * @param list<string> $pathVars The path variables of the request (`user-5.html` → `['user', '5']`)
@@ -40,7 +41,7 @@ final class SessionBreadcrumbTrail
         private readonly string $separator = ' ',
     ) {
         $this->currentPage = array_key_exists(key: 0, array: $pathVars) ? $pathVars[0] : '';
-        $this->currentLink = implode(separator: '-', array: $pathVars);
+        $this->currentPath = $httpRequest->getPath();
         if ($httpRequest->hasQueryValue(name: 'reset')) {
             $this->reset();
         }
@@ -57,7 +58,7 @@ final class SessionBreadcrumbTrail
     public function add(string $titleHtml): void
     {
         $trail = $this->readTrail();
-        $trail[$this->currentPage] = ['title' => $titleHtml, 'link' => $this->currentLink];
+        $trail[$this->currentPage] = ['title' => $titleHtml, 'path' => $this->currentPath];
         $this->session->set(key: SessionBreadcrumbTrail::TRAIL_KEY, value: $trail);
     }
 
@@ -82,7 +83,7 @@ final class SessionBreadcrumbTrail
                 $hasRemovedPages = true;
                 continue;
             }
-            $parts[] = '<a href="' . HtmlEncoder::encode(value: $entry['link'] . '.html') . '">'
+            $parts[] = '<a href="' . HtmlEncoder::encode(value: $entry['path']) . '">'
                 . $entry['title'] . '</a>';
         }
         if ($hasRemovedPages) {
@@ -119,7 +120,7 @@ final class SessionBreadcrumbTrail
     }
 
     /**
-     * @return array<string, array{title: string, link: string}>
+     * @return array<string, array{title: string, path: string}>
      */
     private function readTrail(): array
     {
@@ -130,11 +131,12 @@ final class SessionBreadcrumbTrail
     }
 
     /**
-     * The entries of the stored trail that have a title and a link.
+     * The entries of the stored trail that have a title and a path (entries of former versions with a relative link
+     * are left out).
      *
      * @param array<array-key, mixed> $stored
      *
-     * @return array<string, array{title: string, link: string}>
+     * @return array<string, array{title: string, path: string}>
      */
     private static function trailFromSessionArray(array $stored): array
     {
@@ -143,11 +145,11 @@ final class SessionBreadcrumbTrail
             if (
                 is_array(value: $entry)
                 && array_key_exists(key: 'title', array: $entry)
-                && array_key_exists(key: 'link', array: $entry)
+                && array_key_exists(key: 'path', array: $entry)
                 && is_string(value: $entry['title'])
-                && is_string(value: $entry['link'])
+                && is_string(value: $entry['path'])
             ) {
-                $trail[(string) $page] = ['title' => $entry['title'], 'link' => $entry['link']];
+                $trail[(string) $page] = ['title' => $entry['title'], 'path' => $entry['path']];
             }
         }
 

@@ -20,7 +20,7 @@ use DateTimeImmutable;
 final readonly class DbAuthUserNotification
 {
     /**
-     * The length of the column `auth_user_notification.subject`.
+     * The length of the column `auth_user_notifications.subject`.
      */
     public const int MAX_SUBJECT_LENGTH = 200;
 

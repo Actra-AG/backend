@@ -145,10 +145,10 @@ final class UserAddForm extends Form
             return null;
         }
         $newUserId = $this->backendContext->repositories->users()->insert(
-            registeredById: $this->backendContext->getCurrentUser()->id,
+            createdByUserId: $this->backendContext->getCurrentUser()->id,
             email: $this->emailField->getValueAsString(),
             phone: $this->phoneNumberField->getValueAsString(),
-            active: $this->activeField->isChecked(),
+            isActive: $this->activeField->isChecked(),
             firstName: $this->firstNameField->getValueAsString(),
             lastName: $this->lastNameField->getValueAsString(),
             languageCode: $this->languageField?->getLanguageCode(),

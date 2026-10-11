@@ -16,7 +16,8 @@ use actra\yuf\session\Session;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Same cases as the characterization of the former OldNavigator (plan step 6), plus the escaped link.
+ * Same cases as the characterization of the former OldNavigator (plan step 6), plus the escaped link and the absolute
+ * links between project pages and backend pages.
  */
 final class SessionBreadcrumbTrailTest extends TestCase
 {
@@ -37,10 +38,15 @@ final class SessionBreadcrumbTrailTest extends TestCase
         array $pathVars,
         array $query = [],
         array $navigationLevels = [],
+        string $routePath = '/auth/',
     ): SessionBreadcrumbTrail {
         return new SessionBreadcrumbTrail(
             session: $this->session,
-            httpRequest: new HttpRequest(host: 'example.com', queryParameters: $query),
+            httpRequest: new HttpRequest(
+                host: 'example.com',
+                uri: $routePath . implode(separator: '-', array: $pathVars) . '.html',
+                queryParameters: $query,
+            ),
             pathVars: $pathVars,
             navigationLevels: $navigationLevels,
             separator: ' › ',
@@ -51,9 +57,9 @@ final class SessionBreadcrumbTrailTest extends TestCase
      * @param list<string> $pathVars
      * @param array<string, string> $query
      */
-    private function visit(array $pathVars, string $title, array $query = []): string
+    private function visit(array $pathVars, string $title, array $query = [], string $routePath = '/auth/'): string
     {
-        $trail = $this->createTrail(pathVars: $pathVars, query: $query);
+        $trail = $this->createTrail(pathVars: $pathVars, query: $query, routePath: $routePath);
         $trail->add(titleHtml: $title);
 
         return $trail->render();
@@ -77,7 +83,7 @@ final class SessionBreadcrumbTrailTest extends TestCase
         $this->visit(pathVars: ['users'], title: 'Users');
 
         $this->assertSame(
-            '<p class="breadcrumb"><a href="users.html">Users</a> › <strong>User 5</strong></p>',
+            '<p class="breadcrumb"><a href="/auth/users.html">Users</a> › <strong>User 5</strong></p>',
             $this->visit(pathVars: ['user', '5'], title: 'User 5'),
         );
     }
@@ -89,7 +95,7 @@ final class SessionBreadcrumbTrailTest extends TestCase
         $this->visit(pathVars: ['userMod', '5'], title: 'Edit');
 
         $this->assertSame(
-            '<p class="breadcrumb"><a href="users.html">Users</a> › <strong>User 5</strong></p>',
+            '<p class="breadcrumb"><a href="/auth/users.html">Users</a> › <strong>User 5</strong></p>',
             $this->visit(pathVars: ['user', '5'], title: 'User 5'),
         );
         $this->assertSame(['users', 'user'], $this->listTrailPages());
@@ -100,7 +106,7 @@ final class SessionBreadcrumbTrailTest extends TestCase
         $this->visit(pathVars: ['subscription', '42'], title: 'Subscription #42');
 
         $this->assertSame(
-            '<p class="breadcrumb"><a href="subscription-42.html">Subscription #42</a> › '
+            '<p class="breadcrumb"><a href="/auth/subscription-42.html">Subscription #42</a> › '
             . '<strong>Confirmation #44</strong></p>',
             $this->visit(pathVars: ['subscriptionConfirm', '44'], title: 'Confirmation #44'),
         );
@@ -139,8 +145,25 @@ final class SessionBreadcrumbTrailTest extends TestCase
         $this->visit(pathVars: ['page', '"x'], title: 'Page');
 
         $this->assertStringContainsString(
-            '<a href="page-&quot;x.html">Page</a>',
+            '<a href="/auth/page-&quot;x.html">Page</a>',
             $this->visit(pathVars: ['other'], title: 'Other'),
         );
+    }
+
+    public function testProjectPageIsLinkedAbsoluteFromABackendPage(): void
+    {
+        $this->visit(pathVars: ['overview'], title: 'Overview', routePath: '/');
+
+        $this->assertSame(
+            '<p class="breadcrumb"><a href="/overview.html">Overview</a> › <strong>API key</strong></p>',
+            $this->visit(pathVars: ['profileGenerateApiKey'], title: 'API key'),
+        );
+    }
+
+    public function testEntriesWithRelativeLinksOfFormerVersionsAreLeftOut(): void
+    {
+        $this->session->set(key: 'sess_breadcrumb', value: ['overview' => ['title' => 'Overview', 'link' => 'overview']]);
+
+        $this->assertSame('', $this->visit(pathVars: ['profileGenerateApiKey'], title: 'API key'));
     }
 }

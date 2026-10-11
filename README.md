@@ -61,7 +61,7 @@ database:
 1. Import `db/schema.sql` to create the required table structure.
 2. Import `db/data.sql` to populate the tables with initial data: the group "Administrator" and its first user
    `admin@example.invalid`. This address can never receive mail, so nobody can log in with it: change it to your own
-   address (`UPDATE auth_user SET email='you@example.com' WHERE id=1`) and log in with the code sent there.
+   address (`UPDATE auth_users SET email='you@example.com' WHERE id=1`) and log in with the code sent there.
 
 For existing installations, apply the incremental SQL update files from `db/updates/` as documented
 in [UPGRADE.md](UPGRADE.md).

@@ -35,19 +35,19 @@ final readonly class TestUsers
         $hash = $password === null ? null : Password::generateNew(rawPassword: $password);
         $this->db->execute(
             sql: '
-                INSERT INTO auth_user
-                SET email=?, phone=\'\', first_name=\'Test\', last_name=\'User\', active=?, password_salt=?,
+                INSERT INTO auth_users
+                SET email=?, phone=\'\', first_name=\'Test\', last_name=\'User\', is_active=?, password_salt=?,
                     password_hash=?, wrong_login_attempts=?
             ',
             parameters: [$email, $isActive ? 1 : 0, $hash?->salt, $hash?->hash, $wrongLoginAttempts],
         );
         $userId = $this->db->getLastInsertId();
         if ($withRights) {
-            $this->db->execute(sql: 'INSERT INTO auth_user_group SET user_id=?, group_id=1', parameters: [$userId]);
+            $this->db->execute(sql: 'INSERT INTO auth_group_user SET user_id=?, group_id=1', parameters: [$userId]);
         }
         foreach ($ipWhitelist as $ipAddress) {
             $this->db->execute(
-                sql: 'INSERT INTO auth_ip_whitelist SET user_id=?, ip_address=?',
+                sql: 'INSERT INTO auth_ip_whitelists SET user_id=?, ip_address=?',
                 parameters: [$userId, $ipAddress],
             );
         }
@@ -58,7 +58,7 @@ final readonly class TestUsers
     public function getWrongLoginAttempts(string $email): int
     {
         return $this->db->selectRow(
-            sql: 'SELECT wrong_login_attempts FROM auth_user WHERE email=?',
+            sql: 'SELECT wrong_login_attempts FROM auth_users WHERE email=?',
             parameters: [$email],
         )?->getInt(column: 'wrong_login_attempts') ?? -1;
     }
@@ -72,14 +72,14 @@ final readonly class TestUsers
     {
         return array_map(
             callback: static fn($row): int => $row->getInt(column: 'result'),
-            array: $this->db->selectRows(sql: 'SELECT result FROM auth_login WHERE email=? ORDER BY id', parameters: [$email]),
+            array: $this->db->selectRows(sql: 'SELECT result FROM auth_logins WHERE email=? ORDER BY id', parameters: [$email]),
         );
     }
 
     public function countTokens(string $email): int
     {
         return $this->db->selectRow(
-            sql: 'SELECT COUNT(*) AS amount FROM auth_token WHERE user_id=(SELECT id FROM auth_user WHERE email=?)',
+            sql: 'SELECT COUNT(*) AS amount FROM auth_tokens WHERE user_id=(SELECT id FROM auth_users WHERE email=?)',
             parameters: [$email],
         )?->getInt(column: 'amount') ?? 0;
     }

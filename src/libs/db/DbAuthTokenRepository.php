@@ -38,14 +38,14 @@ final class DbAuthTokenRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-				        SELECT auth_token.user_id,
-				               auth_token.registered,
-				               auth_token.registered_client,
-				               auth_token.type,
-				               auth_token.claimed,
-				               auth_token.claimed_client
-				        FROM auth_token
-				            INNER JOIN auth_user ON auth_user.id=auth_token.user_id
+				        SELECT auth_tokens.user_id,
+				               auth_tokens.created_at,
+				               auth_tokens.created_client,
+				               auth_tokens.type,
+				               auth_tokens.claimed_at,
+				               auth_tokens.claimed_client
+				        FROM auth_tokens
+				            INNER JOIN auth_users ON auth_users.id=auth_tokens.user_id
 				    ',
         );
     }
@@ -64,12 +64,12 @@ final class DbAuthTokenRepository
         $token = DbAuthTokenRepository::createSecret(authTokenType: $authTokenTypeEnum);
         $this->db->execute(
             sql: '
-                INSERT into auth_token
-                SET auth_token.user_id=?,
-                    auth_token.type=?,
-                    auth_token.token_hash=?,
-                    auth_token.registered=?,
-                    auth_token.registered_client=?
+                INSERT into auth_tokens
+                SET auth_tokens.user_id=?,
+                    auth_tokens.type=?,
+                    auth_tokens.token_hash=?,
+                    auth_tokens.created_at=?,
+                    auth_tokens.created_client=?
             ',
             parameters: [
                 $dbAuthUser->id,
@@ -97,7 +97,7 @@ final class DbAuthTokenRepository
         $db = $this->db;
         $db->beginTransaction();
         try {
-            $db->selectRow(sql: 'SELECT id FROM auth_user WHERE id=? FOR UPDATE', parameters: [$dbAuthUser->id]);
+            $db->selectRow(sql: 'SELECT id FROM auth_users WHERE id=? FOR UPDATE', parameters: [$dbAuthUser->id]);
             $token = null;
             if (
                 $this->countRegisteredWithin(
@@ -149,10 +149,10 @@ final class DbAuthTokenRepository
         return $this->db->selectRow(
             sql: '
 				SELECT COUNT(*) AS amount
-				FROM auth_token
-				WHERE auth_token.user_id=?
-				  AND auth_token.type=?
-				  AND auth_token.registered>=DATE_SUB(?, INTERVAL ? MINUTE)
+				FROM auth_tokens
+				WHERE auth_tokens.user_id=?
+				  AND auth_tokens.type=?
+				  AND auth_tokens.created_at>=DATE_SUB(?, INTERVAL ? MINUTE)
 			',
             parameters: [
                 $userId,
@@ -186,23 +186,23 @@ final class DbAuthTokenRepository
         }
         $dbQuery = DbQuery::createFromSqlQuery(
             query: '
-				SELECT auth_token.id,
-				       auth_token.user_id,
-				       auth_user.email
-				FROM auth_token
-				    INNER JOIN auth_user ON auth_token.user_id = auth_user.id
+				SELECT auth_tokens.id,
+				       auth_tokens.user_id,
+				       auth_users.email
+				FROM auth_tokens
+				    INNER JOIN auth_users ON auth_tokens.user_id = auth_users.id
 			',
         );
         $dbQuery->addWherePart(
-            wherePart: 'auth_token.type=?
-				  AND auth_token.token_hash=?
-				  AND auth_token.registered>=DATE_SUB(?, INTERVAL ? MINUTE)
-				  AND auth_token.claimed IS NULL
-				  AND auth_token.id=(SELECT last.id
-				                     FROM auth_token last
-				                     WHERE last.user_id=auth_token.user_id
-				                       AND last.claimed IS NULL
-				                     ORDER BY last.registered DESC, last.id DESC
+            wherePart: 'auth_tokens.type=?
+				  AND auth_tokens.token_hash=?
+				  AND auth_tokens.created_at>=DATE_SUB(?, INTERVAL ? MINUTE)
+				  AND auth_tokens.claimed_at IS NULL
+				  AND auth_tokens.id=(SELECT last.id
+				                     FROM auth_tokens last
+				                     WHERE last.user_id=auth_tokens.user_id
+				                       AND last.claimed_at IS NULL
+				                     ORDER BY last.created_at DESC, last.id DESC
 				                     LIMIT 1)',
             parameters: [
                 $authTokenType->value,
@@ -212,7 +212,7 @@ final class DbAuthTokenRepository
             ],
         );
         if ($userId !== null) {
-            $dbQuery->addWherePart(wherePart: 'auth_token.user_id=?', parameters: [$userId]);
+            $dbQuery->addWherePart(wherePart: 'auth_tokens.user_id=?', parameters: [$userId]);
         }
         $rows = $dbQuery->selectRowsFromDb(db: $this->db, offset: 0, rowCount: 2);
         if (count(value: $rows) !== 1) {
@@ -235,11 +235,11 @@ final class DbAuthTokenRepository
     {
         return $this->db->execute(
             sql: '
-                UPDATE auth_token
-                SET auth_token.claimed=?,
-                    auth_token.claimed_client=?
-                WHERE auth_token.id=?
-                  AND auth_token.claimed IS NULL
+                UPDATE auth_tokens
+                SET auth_tokens.claimed_at=?,
+                    auth_tokens.claimed_client=?
+                WHERE auth_tokens.id=?
+                  AND auth_tokens.claimed_at IS NULL
             ',
             parameters: [
                 $clock->now()->format(format: 'Y-m-d H:i:s'),
@@ -255,7 +255,7 @@ final class DbAuthTokenRepository
     public function deleteUnclaimedByUserId(int $userId): void
     {
         $this->db->execute(
-            sql: 'DELETE FROM auth_token WHERE user_id=? AND claimed IS NULL',
+            sql: 'DELETE FROM auth_tokens WHERE user_id=? AND claimed_at IS NULL',
             parameters: [$userId],
         );
     }
@@ -264,7 +264,7 @@ final class DbAuthTokenRepository
     {
         $this->db->execute(
             sql: '
-                DELETE FROM auth_token
+                DELETE FROM auth_tokens
                        WHERE user_id=?
             ',
             parameters: [

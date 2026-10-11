@@ -186,7 +186,7 @@ final class UserModForm extends Form
                 id: $userId,
                 email: $this->emailField->getValueAsString(),
                 phone: $this->phoneNumberField->getValueAsString(),
-                active: $this->activeField->isChecked(),
+                isActive: $this->activeField->isChecked(),
                 firstName: $this->firstNameField->getValueAsString(),
                 lastName: $this->lastNameField->getValueAsString(),
                 languageCode: $this->languageField === null

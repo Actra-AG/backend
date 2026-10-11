@@ -17,12 +17,12 @@ final class DbAuthGroupRepository
     public function __construct(private readonly DB $db) {}
 
     public const string SELECT_QUERY = '
-		SELECT auth_group.id,
-		       auth_group.title,
+		SELECT auth_groups.id,
+		       auth_groups.title,
 		       (SELECT GROUP_CONCAT(auth_group_right.right_name)
 		           FROM auth_group_right
-		           WHERE auth_group_right.group_id=auth_group.id) AS access_rights
-		FROM auth_group
+		           WHERE auth_group_right.group_id=auth_groups.id) AS access_rights
+		FROM auth_groups
 	';
     private ?DbAuthGroupCollection $cache = null;
 
@@ -54,7 +54,7 @@ final class DbAuthGroupRepository
         $dbAuthGroupCollection = new DbAuthGroupCollection();
         foreach (
             $this->db->selectRows(
-                sql: DbAuthGroupRepository::SELECT_QUERY . $whereCond . ' ORDER BY auth_group.title',
+                sql: DbAuthGroupRepository::SELECT_QUERY . $whereCond . ' ORDER BY auth_groups.title, auth_groups.id',
                 parameters: $parameters,
             ) as $row
         ) {
@@ -78,7 +78,7 @@ final class DbAuthGroupRepository
     public function listByUserId(int $userId): DbAuthGroupCollection
     {
         return $this->listByCond(
-            whereCond: 'WHERE auth_group.id IN (SELECT group_id FROM auth_user_group WHERE user_id=?)',
+            whereCond: 'WHERE auth_groups.id IN (SELECT group_id FROM auth_group_user WHERE user_id=?)',
             parameters: [
                 $userId,
             ],

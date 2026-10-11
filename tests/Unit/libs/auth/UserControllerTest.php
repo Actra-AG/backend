@@ -48,7 +48,7 @@ final class UserControllerTest extends TestCase
     private function userExists(int $userId): bool
     {
         return $this->repositories->db()->selectRow(
-            sql: 'SELECT id FROM auth_user WHERE id=?',
+            sql: 'SELECT id FROM auth_users WHERE id=?',
             parameters: [$userId],
         ) !== null;
     }
@@ -83,7 +83,7 @@ final class UserControllerTest extends TestCase
         $this->assertSame(
             1,
             $this->repositories->db()->selectRow(
-                sql: 'SELECT COUNT(*) AS amount FROM auth_user_group WHERE user_id=?',
+                sql: 'SELECT COUNT(*) AS amount FROM auth_group_user WHERE user_id=?',
                 parameters: [$userId],
             )?->getInt(column: 'amount'),
         );

@@ -19,7 +19,7 @@ final class DbAuthUserGroupRepository
     ): void {
         $this->db->execute(
             sql: '
-				INSERT INTO auth_user_group
+				INSERT INTO auth_group_user
 				SET user_id=?,
 				    group_id=?
 			',
@@ -36,7 +36,7 @@ final class DbAuthUserGroupRepository
     ): void {
         $this->db->execute(
             sql: '
-				DELETE FROM auth_user_group
+				DELETE FROM auth_group_user
 				WHERE user_id=?
 				  AND group_id=?
 			',
@@ -51,7 +51,7 @@ final class DbAuthUserGroupRepository
     {
         $this->db->execute(
             sql: '
-                DELETE FROM auth_user_group
+                DELETE FROM auth_group_user
                 WHERE id>0
                   AND user_id=?
             ',

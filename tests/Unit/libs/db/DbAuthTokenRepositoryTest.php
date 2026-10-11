@@ -62,7 +62,7 @@ final class DbAuthTokenRepositoryTest extends TestCase
             array_map(
                 callback: static fn($row): string => $row->getString(column: 'token_hash'),
                 array: $this->repositories->db()->selectRows(
-                    sql: 'SELECT token_hash FROM auth_token WHERE user_id=?',
+                    sql: 'SELECT token_hash FROM auth_tokens WHERE user_id=?',
                     parameters: [$dbAuthUser->id],
                 ),
             ),

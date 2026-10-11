@@ -22,7 +22,7 @@ final class NotificationRecipientTable extends AbstractTable
     {
         $dbQuery = $context->repositories->notificationRecipients()->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_user_notification_recipient.notification_id=?',
+            wherePart: 'auth_user_notification_recipients.user_notification_id=?',
             parameters: [$notificationId],
         );
         parent::__construct(
@@ -31,9 +31,10 @@ final class NotificationRecipientTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
+        $this->addSortTieBreaker(column: 'auth_user_notification_recipients.id', ascending: false);
         $messages = $context->messages;
         $sentDateColumn = $this->createDateColumn(
-            identifier: 'sent_date',
+            identifier: 'sent_at',
             label: HtmlText::fromText(text: $messages->notification->dateLabel),
             withTime: true,
             isSortable: true,

@@ -17,15 +17,15 @@ SET time_zone = "+00:00";
 --
 
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_group`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_groups`
 --
 
-TRUNCATE TABLE `auth_group`;
+TRUNCATE TABLE `auth_groups`;
 --
--- Daten für Tabelle `auth_group`
+-- Daten für Tabelle `auth_groups`
 --
 
-INSERT INTO `auth_group` (`id`, `title`)
+INSERT INTO `auth_groups` (`id`, `title`)
 VALUES (1, 'Administrator');
 
 --
@@ -42,66 +42,66 @@ VALUES (1, 1, 'backend_access'),
        (2, 1, 'manage_users');
 
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_ip_whitelist`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_ip_whitelists`
 --
 
-TRUNCATE TABLE `auth_ip_whitelist`;
+TRUNCATE TABLE `auth_ip_whitelists`;
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_api_key`
---
-
-TRUNCATE TABLE `auth_api_key`;
---
--- TRUNCATE Tabelle vor dem Einfügen `auth_login`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_api_keys`
 --
 
-TRUNCATE TABLE `auth_login`;
+TRUNCATE TABLE `auth_api_keys`;
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_right`
---
-
-TRUNCATE TABLE `auth_right`;
---
--- Daten für Tabelle `auth_right`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_logins`
 --
 
-INSERT INTO `auth_right` (`name`, `title`)
+TRUNCATE TABLE `auth_logins`;
+--
+-- TRUNCATE Tabelle vor dem Einfügen `auth_rights`
+--
+
+TRUNCATE TABLE `auth_rights`;
+--
+-- Daten für Tabelle `auth_rights`
+--
+
+INSERT INTO `auth_rights` (`name`, `title`)
 VALUES ('backend_access', 'Zugriff ins Backend'),
        ('manage_users', 'Benutzer verwalten');
 
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_session`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_sessions`
 --
 
-TRUNCATE TABLE `auth_session`;
+TRUNCATE TABLE `auth_sessions`;
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_token`
---
-
-TRUNCATE TABLE `auth_token`;
---
--- TRUNCATE Tabelle vor dem Einfügen `auth_user`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_tokens`
 --
 
-TRUNCATE TABLE `auth_user`;
+TRUNCATE TABLE `auth_tokens`;
 --
--- Daten für Tabelle `auth_user`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_users`
 --
 
-INSERT INTO `auth_user` (`id`, `registered_by_id`, `registered`, `invited`, `email`, `phone`, `first_name`, `last_name`,
-                         `active`, `last_successful_login`)
+TRUNCATE TABLE `auth_users`;
+--
+-- Daten für Tabelle `auth_users`
+--
+
+INSERT INTO `auth_users` (`id`, `created_by_user_id`, `created_at`, `invited_at`, `email`, `phone`, `first_name`,
+                          `last_name`, `is_active`, `last_successful_login_at`)
 VALUES (1, NULL, NOW(), null, 'admin@example.invalid', '', 'Admin', 'User', 1, NULL);
 
 --
--- TRUNCATE Tabelle vor dem Einfügen `auth_user_group`
+-- TRUNCATE Tabelle vor dem Einfügen `auth_group_user`
 --
 
-TRUNCATE TABLE `auth_user_group`;
+TRUNCATE TABLE `auth_group_user`;
 --
--- Daten für Tabelle `auth_user_group`
+-- Daten für Tabelle `auth_group_user`
 --
 
-INSERT INTO `auth_user_group` (`id`, `user_id`, `group_id`)
+INSERT INTO `auth_group_user` (`id`, `user_id`, `group_id`)
 VALUES (1, 1, 1);
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;

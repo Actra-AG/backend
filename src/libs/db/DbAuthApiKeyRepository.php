@@ -28,11 +28,11 @@ final class DbAuthApiKeyRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-                SELECT auth_api_key.user_id,
-                       auth_api_key.public_id,
-                       auth_api_key.api_key,
-                       auth_api_key.salt
-                FROM auth_api_key
+                SELECT auth_api_keys.user_id,
+                       auth_api_keys.public_id,
+                       auth_api_keys.api_key,
+                       auth_api_keys.salt
+                FROM auth_api_keys
             ',
         );
     }
@@ -81,7 +81,7 @@ final class DbAuthApiKeyRepository
     {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_api_key.public_id=?',
+            wherePart: 'auth_api_keys.public_id=?',
             parameters: [
                 $publicId,
             ],
@@ -140,7 +140,7 @@ final class DbAuthApiKeyRepository
     {
         $dbQuery = $this->getDbQuery();
         $dbQuery->addWherePart(
-            wherePart: 'auth_api_key.user_id=?',
+            wherePart: 'auth_api_keys.user_id=?',
             parameters: [$userId],
         );
         $dbAuthApiKeyCollection = $this->select(dbQuery: $dbQuery);
@@ -168,7 +168,7 @@ final class DbAuthApiKeyRepository
         $db = $this->db;
         $db->execute(
             sql: '
-                REPLACE INTO auth_api_key
+                REPLACE INTO auth_api_keys
                 SET user_id=?,
                     public_id=?,
                     api_key=?,
@@ -189,7 +189,7 @@ final class DbAuthApiKeyRepository
     {
         $this->db->execute(
             sql: '
-                DELETE FROM auth_api_key
+                DELETE FROM auth_api_keys
                 WHERE user_id=?
             ',
             parameters: [

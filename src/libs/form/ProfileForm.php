@@ -150,7 +150,7 @@ final class ProfileForm extends Form
             id: $userId,
             email: $this->dbAuthUser->email,
             phone: $this->phoneNumberField->getValueAsString(),
-            active: $this->dbAuthUser->isActive,
+            isActive: $this->dbAuthUser->isActive,
             firstName: $this->firstNameField->getValueAsString(),
             lastName: $this->lastNameField->getValueAsString(),
             languageCode: $this->languageField === null

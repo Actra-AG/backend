@@ -95,8 +95,9 @@ constructors do not change again.
 
 ## Breadcrumb
 
-With `useNavigator: true`, a view shows the pages visited before it as breadcrumb (kept in the session; `?reset` in a
-link or `resetNavigator: true` restarts it). A page reached directly (bookmark, link in an email) then shows the trail
+With `useNavigator: true`, a view shows the pages visited before it as breadcrumb (kept in the session with their
+absolute paths, so project pages and backend pages link each other on every route; `?reset` in a link or
+`resetNavigator: true` restarts it). A page reached directly (bookmark, link in an email) then shows the trail
 of whatever was visited before. A view that knows its parents declares them instead; they replace the trail, and the
 trail restarts at this page for the views that follow:
 

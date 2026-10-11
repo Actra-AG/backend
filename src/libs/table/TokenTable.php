@@ -33,7 +33,7 @@ final class TokenTable extends AbstractTable
         $dbQuery = $context->repositories->tokens()->getDbQuery();
         if ($filterUserId !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_token.user_id=?',
+                wherePart: 'auth_tokens.user_id=?',
                 parameters: [
                     $filterUserId,
                 ],
@@ -42,7 +42,7 @@ final class TokenTable extends AbstractTable
         $authTokenTypeEnum = $tokenSearchForm->authTokenTypeEnum;
         if ($authTokenTypeEnum !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_token.type=?',
+                wherePart: 'auth_tokens.type=?',
                 parameters: [
                     $authTokenTypeEnum->value,
                 ],
@@ -51,8 +51,8 @@ final class TokenTable extends AbstractTable
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_token.registered_client '
-                    . 'auth_token.claimed_client',
+                spaceSeparatedFieldNames: 'auth_users.first_name auth_users.last_name auth_tokens.created_client '
+                    . 'auth_tokens.claimed_client',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
@@ -66,9 +66,10 @@ final class TokenTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
+        $this->addSortTieBreaker(column: 'auth_tokens.id', ascending: false);
         $messages = $context->messages;
         $registeredColumn = $this->createDateColumn(
-            identifier: 'registered',
+            identifier: 'created_at',
             label: HtmlText::fromText(text: $messages->log->tokenCreatedDateColumn),
             withTime: true,
             isSortable: true,
@@ -77,10 +78,10 @@ final class TokenTable extends AbstractTable
         $this->addColumn(abstractTableColumn: $registeredColumn, isDefaultSortColumn: true);
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
-                identifier: 'registered_client',
+                identifier: 'created_client',
                 label: HtmlText::fromText(text: $messages->log->tokenCreatedClientColumn),
                 callbackFunction: static fn(TableItem $tableItem): string => TokenTable::renderClient(
-                    clientJson: $tableItem->getRow()->getNullableString(column: 'registered_client'),
+                    clientJson: $tableItem->getRow()->getNullableString(column: 'created_client'),
                 ),
                 isSortable: true,
             ),
@@ -99,7 +100,7 @@ final class TokenTable extends AbstractTable
             ),
         );
         $claimedColumn = $this->createDateColumn(
-            identifier: 'claimed',
+            identifier: 'claimed_at',
             label: HtmlText::fromText(text: $messages->log->tokenClaimedDateColumn),
             withTime: true,
             isSortable: true,

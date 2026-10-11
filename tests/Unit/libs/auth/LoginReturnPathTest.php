@@ -57,8 +57,8 @@ final class LoginReturnPathTest extends TestCase
         $myAuthUser = new MyAuthUser(
             dbAuthUser: new DbAuthUser(
                 id: 1,
-                registered: new DateTimeImmutable(),
-                invitedDate: null,
+                createdAt: new DateTimeImmutable(),
+                invitedAt: null,
                 lastLogin: null,
                 email: 'user@example.com',
                 phone: '',

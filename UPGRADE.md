@@ -2,6 +2,65 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.9.0 (2026-10-11)
+
+### ⚠️ Database: `db/updates/2.9.0.sql`, plural table names and standard column names
+
+The tables and columns follow the database names of the coding standard (`naming.md`, section 4). Apply
+`db/updates/2.9.0.sql`: it renames tables, columns and indexes and keeps the data and the foreign keys (also those of
+project tables to `auth_users.id`). Then rename the backend tables and columns in your own SQL (joins, subqueries,
+reports).
+
+- Tables: `auth_api_key` → `auth_api_keys`, `auth_group` → `auth_groups`, `auth_ip_whitelist` →
+  `auth_ip_whitelists`, `auth_login` → `auth_logins`, `auth_right` → `auth_rights`, `auth_session` → `auth_sessions`,
+  `auth_token` → `auth_tokens`, `auth_user` → `auth_users`, `auth_user_notification` → `auth_user_notifications`,
+  `auth_user_notification_recipient` → `auth_user_notification_recipients`; link table `auth_user_group` →
+  `auth_group_user` (`auth_group_right` stays).
+- `registered` → `created_at` (`auth_api_keys`, `auth_logins`, `auth_tokens`, `auth_users`).
+- `auth_users`: `registered_by_id` → `created_by_user_id`, `invited` → `invited_at`, `active` → `is_active`,
+  `last_successful_login` → `last_successful_login_at`.
+- `auth_tokens`: `registered_client` → `created_client`, `claimed` → `claimed_at`.
+- `auth_logins` and `auth_sessions`: `session_id` → `php_session_id`; `auth_sessions.last_action` → `last_action_at`.
+- `auth_user_notifications`: `auth_group_id` → `group_id`, `sent_by_id` → `sent_by_user_id`, `sent_date` → `sent_at`.
+- `auth_user_notification_recipients`: `notification_id` → `user_notification_id`, `auth_user_id` → `user_id`,
+  `sent_date` → `sent_at`.
+
+```sql
+-- Before
+SELECT o.id, u.email FROM orders o INNER JOIN auth_user u ON u.id = o.user_id WHERE u.active = 1
+-- After
+SELECT o.id, u.email FROM orders o INNER JOIN auth_users u ON u.id = o.user_id WHERE u.is_active = 1
+```
+
+Search your project for: `auth_` in SQL, `.active`, `registered`, `sent_date`. The sort links of the tables use the new column names (`?sort=UserTable|created_at|…`); a sort stored in
+the session or bookmarked with an old name falls back to the default sort.
+
+### ⚠️ `DbAuthUser::$createdAt` and `$invitedAt`, `$isActive` in `DbAuthUserRepository`
+
+Named like the columns: `DbAuthUser::$registered` is `$createdAt`, `$invitedDate` is `$invitedAt`;
+`DbAuthUserRepository::insert()` and `update()` take `isActive:` instead of `active:`, `insert()` takes
+`createdByUserId:` instead of `registeredById:`.
+
+```php
+// Before
+$dbAuthUser->registered;
+$dbAuthUser->invitedDate;
+$repositories->users()->insert(registeredById: $adminId, email: $email, phone: '', active: true, …);
+// After
+$dbAuthUser->createdAt;
+$dbAuthUser->invitedAt;
+$repositories->users()->insert(createdByUserId: $adminId, email: $email, phone: '', isActive: true, …);
+```
+
+### Changes
+
+- Fix: the breadcrumb of the visited pages (`useNavigator: true`) links with absolute paths. Before, a backend page
+  (e.g. `/auth/profileGenerateApiKey.html`) linked a visited project page as `overview.html`, which resolved to
+  `/auth/overview.html` (404). Trails kept in the session before the update restart once.
+- The tables of the backend end their sort with the primary key (yuf's `addSortTieBreaker()`), so rows with the
+  same date keep their order across pages.
+- Requires `actra/yuf` `~6.3.0` and `actra/coding-standard` `^1.26.0` (no breaking change). No change for projects.
+
 ## v2.8.0 (2026-10-11)
 
 ### ⚠️ `UserDeleteHandler::beforeDeleteUser()` gets the repositories of the delete transaction

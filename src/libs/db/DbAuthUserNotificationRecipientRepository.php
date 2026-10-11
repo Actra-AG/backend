@@ -19,13 +19,13 @@ final class DbAuthUserNotificationRecipientRepository
     {
         return DbQuery::createFromSqlQuery(
             query: '
-                SELECT auth_user_notification_recipient.id,
-                       auth_user_notification_recipient.sent_date,
-                       auth_user_notification_recipient.email,
-                       auth_user.first_name,
-                       auth_user.last_name
-                FROM auth_user_notification_recipient
-                    INNER JOIN auth_user ON auth_user.id = auth_user_notification_recipient.auth_user_id
+                SELECT auth_user_notification_recipients.id,
+                       auth_user_notification_recipients.sent_at,
+                       auth_user_notification_recipients.email,
+                       auth_users.first_name,
+                       auth_users.last_name
+                FROM auth_user_notification_recipients
+                    INNER JOIN auth_users ON auth_users.id = auth_user_notification_recipients.user_id
             ',
         );
     }
@@ -38,9 +38,9 @@ final class DbAuthUserNotificationRecipientRepository
         $db = $this->db;
         $db->execute(
             sql: '
-                INSERT INTO auth_user_notification_recipient
-                SET notification_id=?,
-                    auth_user_id=?,
+                INSERT INTO auth_user_notification_recipients
+                SET user_notification_id=?,
+                    user_id=?,
                     email=?
             ',
             parameters: [

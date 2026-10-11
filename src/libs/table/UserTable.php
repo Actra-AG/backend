@@ -31,7 +31,7 @@ final class UserTable extends AbstractTable
         $dbAuthGroup = $userSearchForm->dbAuthGroup;
         if ($dbAuthGroup !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_user.id IN (SELECT user_id FROM auth_user_group WHERE group_id=?)',
+                wherePart: 'auth_users.id IN (SELECT user_id FROM auth_group_user WHERE group_id=?)',
                 parameters: [
                     $dbAuthGroup->id,
                 ],
@@ -40,7 +40,7 @@ final class UserTable extends AbstractTable
         $searchQuery = $userSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_user.email',
+                spaceSeparatedFieldNames: 'auth_users.first_name auth_users.last_name auth_users.email',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
@@ -54,6 +54,7 @@ final class UserTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
+        $this->addSortTieBreaker(column: 'auth_users.id');
         $common = $context->messages->common;
         $messages = $context->messages->user;
         $this->addColumn(
@@ -82,7 +83,7 @@ final class UserTable extends AbstractTable
         );
         $this->addColumn(
             abstractTableColumn: new BooleanColumn(
-                identifier: 'active',
+                identifier: 'is_active',
                 label: HtmlText::fromText(text: $messages->activeColumn),
                 isSortable: true,
                 sortAscendingByDefault: false,
@@ -109,7 +110,7 @@ final class UserTable extends AbstractTable
         );
         $this->addColumn(
             abstractTableColumn: $this->createDateColumn(
-                identifier: 'registered',
+                identifier: 'created_at',
                 label: HtmlText::fromText(text: $messages->registeredColumn),
                 withTime: false,
                 isSortable: true,
@@ -117,7 +118,7 @@ final class UserTable extends AbstractTable
         );
         $this->addColumn(
             abstractTableColumn: $this->createDateColumn(
-                identifier: 'invited',
+                identifier: 'invited_at',
                 label: HtmlText::fromText(text: $messages->invitedColumn),
                 withTime: false,
                 isSortable: true,

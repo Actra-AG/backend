@@ -63,11 +63,11 @@ final class AccessControlTest extends TestCase
     private function createUserWithProjectRight(): int
     {
         $this->db->execute(
-            sql: 'INSERT IGNORE INTO auth_right SET name=?, title=?',
+            sql: 'INSERT IGNORE INTO auth_rights SET name=?, title=?',
             parameters: [AccessControlTest::PROJECT_RIGHT, 'Project'],
         );
         $this->db->execute(
-            sql: 'INSERT INTO auth_group SET title=?',
+            sql: 'INSERT INTO auth_groups SET title=?',
             parameters: ['Project ' . bin2hex(string: random_bytes(length: 3))],
         );
         $groupId = $this->db->getLastInsertId();
@@ -77,7 +77,7 @@ final class AccessControlTest extends TestCase
         );
         $userId = $this->testUsers->create(email: AccessControlTest::email());
         $this->db->execute(
-            sql: 'INSERT INTO auth_user_group SET user_id=?, group_id=?',
+            sql: 'INSERT INTO auth_group_user SET user_id=?, group_id=?',
             parameters: [$userId, $groupId],
         );
 
@@ -261,7 +261,7 @@ final class AccessControlTest extends TestCase
                 clientData: BackendPageRenderer::createClientData(),
             ),
         );
-        $this->db->execute(sql: 'UPDATE auth_user SET active=0 WHERE id=?', parameters: [$adminId]);
+        $this->db->execute(sql: 'UPDATE auth_users SET is_active=0 WHERE id=?', parameters: [$adminId]);
 
         try {
             $renderer->render(languageCode: 'de', fileTitle: 'profile', pathVars: [], session: $session);

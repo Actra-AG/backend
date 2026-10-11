@@ -32,7 +32,7 @@ final class VisitTable extends AbstractTable
         $dbQuery = $context->repositories->userLogins()->getDbQuery();
         if ($filterUserId !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_login.user_id=?',
+                wherePart: 'auth_logins.user_id=?',
                 parameters: [
                     $filterUserId,
                 ],
@@ -41,7 +41,7 @@ final class VisitTable extends AbstractTable
         $status = $tokenSearchForm->status;
         if ($status !== null) {
             $dbQuery->addWherePart(
-                wherePart: 'auth_login.result=?',
+                wherePart: 'auth_logins.result=?',
                 parameters: [
                     $status->value,
                 ],
@@ -50,8 +50,8 @@ final class VisitTable extends AbstractTable
         $searchQuery = $tokenSearchForm->searchQuery;
         if ($searchQuery !== '') {
             $booleanQuery = SearchQueryBuilder::createBooleanQuery(
-                spaceSeparatedFieldNames: 'auth_user.first_name auth_user.last_name auth_login.session_id '
-                    . 'auth_login.ip_address auth_login.email',
+                spaceSeparatedFieldNames: 'auth_users.first_name auth_users.last_name auth_logins.php_session_id '
+                    . 'auth_logins.ip_address auth_logins.email',
                 queryText: $searchQuery,
             );
             $dbQuery->addWherePart(
@@ -65,9 +65,10 @@ final class VisitTable extends AbstractTable
             dbQuery: $dbQuery,
             itemsPerPage: 100,
         );
+        $this->addSortTieBreaker(column: 'auth_logins.id', ascending: false);
         $messages = $context->messages;
         $dateColumn = $this->createDateColumn(
-            identifier: 'registered',
+            identifier: 'created_at',
             label: HtmlText::fromText(text: $messages->log->visitDateColumn),
             withTime: true,
             isSortable: true,
@@ -90,7 +91,7 @@ final class VisitTable extends AbstractTable
         );
         $this->addColumn(
             abstractTableColumn: new DefaultColumn(
-                identifier: 'session_id',
+                identifier: 'php_session_id',
                 label: HtmlText::fromText(text: $messages->log->visitSessionIdColumn),
                 isSortable: true,
             ),

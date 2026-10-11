@@ -3,7 +3,7 @@
 ## User Deletion Handler
 
 When a backend user is deleted, the library removes its own user-related records first and then deletes the row from
-`auth_user`. Projects that store additional foreign-key references to `auth_user.id` can register a delete handler to
+`auth_users`. Projects that store additional foreign-key references to `auth_users.id` can register a delete handler to
 remove or update their project-specific records before the user itself is deleted.
 
 In the consuming project, pass the handler in the settings of `ActraBackend::init()`:
@@ -25,7 +25,7 @@ new ActraBackendSettings(
 );
 ```
 
-The delete handler is executed inside the same database transaction as the built-in user cleanup and before `auth_user`
+The delete handler is executed inside the same database transaction as the built-in user cleanup and before `auth_users`
 is deleted. `$repositories` are the repositories of that transaction: run every query of the handler on
 `$repositories->db()` or on project repositories built from it, never on another connection. If the handler throws an
 exception, the transaction is rolled back and the user is not deleted.

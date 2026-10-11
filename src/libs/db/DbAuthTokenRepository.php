@@ -15,6 +15,7 @@ use actra\yuf\auth\SecretTokenHash;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\common\StringUtils;
+use actra\yuf\db\DbDateTime;
 use actra\yuf\db\DbQuery;
 use Throwable;
 
@@ -75,7 +76,7 @@ final class DbAuthTokenRepository
                 $dbAuthUser->id,
                 $authTokenTypeEnum->value,
                 SecretTokenHash::fromSecret(secret: $token)->hash,
-                $clock->now()->format(format: 'Y-m-d H:i:s'),
+                DbDateTime::toDateTimeString(dateTime: $clock->now()),
                 $clientData->toJson(),
             ],
         );
@@ -157,7 +158,7 @@ final class DbAuthTokenRepository
             parameters: [
                 $userId,
                 $authTokenType->value,
-                $clock->now()->format(format: 'Y-m-d H:i:s'),
+                DbDateTime::toDateTimeString(dateTime: $clock->now()),
                 $minutes,
             ],
         )?->getInt(column: 'amount') ?? 0;
@@ -207,7 +208,7 @@ final class DbAuthTokenRepository
             parameters: [
                 $authTokenType->value,
                 SecretTokenHash::fromSecret(secret: $token)->hash,
-                $clock->now()->format(format: 'Y-m-d H:i:s'),
+                DbDateTime::toDateTimeString(dateTime: $clock->now()),
                 $authTokenType->getExpirationInMinutes(),
             ],
         );
@@ -242,7 +243,7 @@ final class DbAuthTokenRepository
                   AND auth_tokens.claimed_at IS NULL
             ',
             parameters: [
-                $clock->now()->format(format: 'Y-m-d H:i:s'),
+                DbDateTime::toDateTimeString(dateTime: $clock->now()),
                 $clientData->toJson(),
                 $dbAuthToken->id,
             ],

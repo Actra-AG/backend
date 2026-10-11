@@ -13,6 +13,7 @@ use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
+use actra\yuf\db\DbDateTime;
 use actra\yuf\db\DbRow;
 
 final class DbAuthSessionRepository
@@ -123,7 +124,7 @@ final class DbAuthSessionRepository
                     SET last_action_at=?
                     WHERE id=?
                 ',
-            parameters: [$clock->now()->format(format: 'Y-m-d H:i:s'), $id],
+            parameters: [DbDateTime::toDateTimeString(dateTime: $clock->now()), $id],
         );
     }
 

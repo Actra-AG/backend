@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.10.1 (2026-10-11)
+
+### Changes
+
+- Requires `actra/yuf` `~6.5.0`. The repositories write the times of the `Clock` with `DbDateTime`, so a clock in
+  another time zone than the PHP default stores the same point in time.
+
 ## v2.10.0 (2026-10-11)
 
 ### ⚠️ Requires `actra/yuf` `~6.4.0`: email fields

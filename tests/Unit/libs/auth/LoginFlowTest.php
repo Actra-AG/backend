@@ -17,7 +17,6 @@ use actra\backend\libs\form\LoginTokenForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\settings\TokenSendLimit;
 use actra\backend\tests\Double\ActraBackendTestInstance;
-use actra\backend\tests\Double\RecordingMailer;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\RejectingMailDomainResolver;
 use actra\backend\tests\Double\TestDatabase;
@@ -30,6 +29,7 @@ use actra\yuf\common\MailDomainResolver;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\core\RequestMethodEnum;
 use actra\yuf\core\Route;
+use actra\yuf\mailer\RecordingMailer;
 use actra\yuf\security\CsrfTokenSource;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
@@ -362,7 +362,7 @@ final class LoginFlowTest extends TestCase
             postParameters: ['email' => $email],
         );
         new LoginForm(context: $requestContext)->process();
-        $token = $this->mailer->sendAndGetLoginCode(responseSender: $this->responseSender);
+        $token = $this->responseSender->sendMailsAndGetLoginCode(mailer: $this->mailer);
         $tokenViewContext = ViewContextFactory::create(
             route: new Route(path: '/backend/', viewDirectory: __DIR__),
             fileTitle: 'loginToken',

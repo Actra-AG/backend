@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v2.10.2 (2026-10-19)
+
+### Changes
+
+- Requires `actra/yuf` `~6.6.0`.
+- Releases are published on GitHub, with the section of this file as release notes.
+
 ## v2.10.1 (2026-10-11)
 
 ### Changes

@@ -18,7 +18,8 @@ This project follows the Actra coding standard, installed as development depende
   login via email, profile, API keys, IP whitelists, notifications, visit and token logs) for projects built on the
   [yuf framework](https://github.com/Actra-AG/yuf) (`actra/yuf`). Its public API includes the database tables and the
   generated HTML, CSS and JavaScript (`standards/versioning.md`).
-- Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`.
+- Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`; pushing the tag publishes the
+  GitHub release with that section (`.github/workflows/release.yml`, `standards/versioning.md`, section 1).
 - yuf is developed in parallel (local checkout usually at `../yuf`); raise it as described in
   `standards/versioning.md`, section 8.
 - The migration to the current yuf and the global standard is complete (v2.0.0, follow-up done with
@@ -52,7 +53,7 @@ This project follows the Actra coding standard, installed as development depende
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (`~6.5.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
+- Runtime dependencies: `actra/yuf` (`~6.6.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
   no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.

@@ -11,7 +11,6 @@ namespace actra\backend\tests\Unit\view;
 
 use actra\backend\ActraBackend;
 use actra\backend\tests\Double\ActraBackendTestInstance;
-use actra\backend\tests\Double\RecordingMailer;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\ResponseSentException;
 use actra\backend\tests\Double\TestDatabase;
@@ -28,6 +27,7 @@ use actra\yuf\core\RequestMethodEnum;
 use actra\yuf\core\ResolvedRoute;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\form\FormContext;
+use actra\yuf\mailer\RecordingMailer;
 use actra\yuf\security\CspNonce;
 use actra\yuf\security\CsrfTokenSource;
 use actra\yuf\security\SessionCsrfTokenSource;
@@ -138,7 +138,7 @@ final class LoginRedirectTest extends TestCase
 
     private function token(): string
     {
-        return $this->mailer->sendAndGetLoginCode(responseSender: $this->lastResponseSender);
+        return $this->lastResponseSender->sendMailsAndGetLoginCode(mailer: $this->mailer);
     }
 
     /**

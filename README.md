@@ -83,15 +83,26 @@ use actra\backend\ActraBackend;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
+use actra\yuf\auth\LoginRateLimit;
+use actra\yuf\core\FileLogger;
 use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\SmtpEncryptionEnum;
 use actra\yuf\mailer\SmtpMailer;
+use actra\yuf\security\RateLimiter;
+use actra\yuf\security\RateLimitFailModeEnum;
 
 // Visitors without login are sent to the login page and back to the requested page afterwards (one login page for
 // all language routes: yuf's RouteCollection has one login path)
 $routeCollection = new RouteCollection(loginPath: '/backend/login.html');
 // ... initialize your $language ...
+// The logger of the project, also passed to $core->prepareHttpResponse(logger: $logger)
+$logger = new FileLogger(
+    logEmailRecipient: $core->environmentSettings->logEmailRecipient,
+    logDirectory: $core->logDirectory,
+    httpRequest: $core->httpRequest,
+    mailer: null,
+);
 
 $actraBackend = ActraBackend::init(
     routeCollection: $routeCollection,
@@ -107,6 +118,15 @@ $actraBackend = ActraBackend::init(
         stylesPaths: [
             '/assets/css/backend.css',
         ],
+        // Required, null as explicit opt-out: limits logins and code/reset requests per IP and email address
+        loginRateLimit: new LoginRateLimit(
+            rateLimiter: new RateLimiter(
+                directory: $core->cacheDirectory . 'rateLimit', // Not served by the web server
+                secret: $core->environmentSettings->getString(key: 'rateLimit.secret'),
+            ),
+            failMode: RateLimitFailModeEnum::CLOSED,
+            logger: $logger,
+        ),
         maxAllowedLoginAttempts: 5, // Optional, defaults to 5
         frontendHref: 'https://example.com', // Optional
         frontendName: 'Go to Website', // Optional
@@ -136,6 +156,7 @@ $actraBackend = ActraBackend::init(
 
 // The navigation is built per request (project items: ActraBackendSettings::$projectNavigation)
 $core->prepareHttpResponse(
+    logger: $logger,
     routeCollection: $routeCollection,
     navigationProvider: $actraBackend->createNavigation(...),
 );
@@ -151,6 +172,13 @@ The SMTP settings in `.env.php` (yuf's [mail docs](https://github.com/Actra-AG/y
 'mailer.encryption' => 'starttls', // 'implicit_tls' for port 465, 'none' only for a server on the same host
 ```
 
+The secret of the login rate limit in `.env.php` (at least 32 bytes, e.g. `bin2hex(random_bytes(32))`; see
+[docs/users.md](docs/users.md#login-rate-limit)):
+
+```php
+'rateLimit.secret' => '…',
+```
+
 Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`).
 Dates are formatted for the locale of the route (`Language::$locale`). Login codes and password reset links are
 mailed after the response (yuf's `ResponseSender::afterResponse()`), so the response time does not tell whether an
@@ -163,7 +191,7 @@ email address exists.
   in views (`createViewFactory(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
 - [Languages](docs/languages.md): language of the backend, additional language routes, own texts.
 - [Users and API keys](docs/users.md): user deletion handler, user managers and impersonation, IP whitelists,
-  login codes, reset links and lock-out, send limit, API key authentication.
+  login codes, reset links and lock-out, send limit, login rate limit, API key authentication.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.
 - [UPGRADE.md](UPGRADE.md): changes and migration instructions.
 

@@ -11,6 +11,7 @@ namespace actra\backend\settings;
 
 use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\auth\UserDeleteHandler;
+use actra\yuf\auth\LoginRateLimit;
 use actra\yuf\core\Language;
 
 final readonly class ActraBackendSettings
@@ -23,6 +24,8 @@ final readonly class ActraBackendSettings
      * @param list<string> $ipWhitelist
      * @param list<string> $javaScriptPaths
      * @param list<string> $stylesPaths
+     * @param ?LoginRateLimit $loginRateLimit Limits the logins, password verifications and login code requests per
+     *     client IP address and email address (yuf's `Authenticator`); `null` as explicit opt-out
      * @param ?BackendMessages $messages Texts of the main route; default: `BackendMessages::forLanguageCode()`
      * @param list<BackendRoute> $additionalRoutes The backend in further languages, one route per language
      * @param ?BackendNavigation $projectNavigation Adds the project's navigation items per route language
@@ -36,6 +39,7 @@ final readonly class ActraBackendSettings
         public string $backendName,
         public array $javaScriptPaths,
         public array $stylesPaths,
+        public ?LoginRateLimit $loginRateLimit,
         public int $maxAllowedLoginAttempts = 5,
         public string $frontendHref = '',
         public string $frontendName = '',

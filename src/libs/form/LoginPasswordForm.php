@@ -15,6 +15,7 @@ use actra\backend\libs\auth\MyAuthenticator;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\form\component\ReturnPathField;
 use actra\backend\settings\AuthTokenTypeEnum;
+use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\HiddenField;
@@ -84,23 +85,19 @@ final class LoginPasswordForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        if (!$this->checkCredentials()) {
-            $this->addError(
-                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->auth->credentialsInvalid),
-            );
-            return false;
-        }
-
-        return true;
-    }
-
-    private function checkCredentials(): bool
-    {
         $result = new MyAuthenticator(context: $this->backendContext)->verifyPassword(
             userName: $this->emailField->getValueAsString(),
             inputPassword: $this->passwordField->getValueAsString(),
         );
         if (!$result instanceof MyAuthUser) {
+            $messages = $this->backendContext->messages->auth;
+            // The rate limit counts unknown addresses the same, so its message does not tell whether one exists
+            $this->addError(errorMessage: HtmlText::fromText(
+                text: $result === AuthResultEnum::ERROR_RATE_LIMITED
+                    ? $messages->tooManyAttempts
+                    : $messages->credentialsInvalid,
+            ));
+
             return false;
         }
         new AuthTokens(context: $this->backendContext)->createAndSend(

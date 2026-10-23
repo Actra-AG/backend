@@ -2,6 +2,44 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v3.0.0 (2026-10-23)
+
+### ⚠️ Requires `actra/yuf` `~7.0.0`
+
+Migrate your own code with yuf's `UPGRADE.md` (v7.0.0): `rateLimit:` for every `SpamProtection`, `loginRateLimit:`
+for own `Authenticator` subclasses, `ERROR_RATE_LIMITED` in own `match` expressions over `AuthResultEnum`,
+`documentRoot:` for `SessionFileUploadStorage` and `acceptUpload: true` for forms with a `FileField`. Update PHP to
+8.5.12 and set the php.ini limits of yuf's `docs/setup.md` ("Request and upload limits"). The backend has no uploads.
+
+### ⚠️ `ActraBackendSettings`: required `loginRateLimit:`
+
+Password logins, login code requests and password reset requests are limited per IP and email address
+([docs/users.md](docs/users.md#login-rate-limit)). Add a secret of at least 32 bytes to `.env.php`
+(`'rateLimit.secret' => '…'`, e.g. `bin2hex(random_bytes(32))`) and pass:
+
+```php
+new ActraBackendSettings(
+    // …
+    loginRateLimit: new LoginRateLimit( // or null as explicit opt-out
+        rateLimiter: new RateLimiter(
+            directory: $core->cacheDirectory . 'rateLimit', // not served by the web server
+            secret: $core->environmentSettings->getString(key: 'rateLimit.secret'),
+        ),
+        failMode: RateLimitFailModeEnum::CLOSED,
+        logger: $logger, // the logger of $core->prepareHttpResponse(logger: …)
+    ),
+);
+```
+
+Use the same `RateLimiter` for the `FormRateLimit` of your own public forms.
+
+### Changes
+
+- A blocked request shows the new text `AuthMessages::$tooManyAttempts` (en/de); the visit log and its filter show
+  the result "rate limited".
+- The login with a code calls yuf's `logInVerifiedUser()` with the user of the code (the code was sent after a
+  counted request): it is not counted again, the checks (inactive, IP whitelist, lock-out) stay the same.
+
 ## v2.10.2 (2026-10-19)
 
 ### Changes

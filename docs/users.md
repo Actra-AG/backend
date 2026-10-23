@@ -75,6 +75,25 @@ new ActraBackendSettings(
 );
 ```
 
+## Login rate limit
+
+The setting `loginRateLimit:` (required, `null` as explicit opt-out; see
+[README.md](../README.md#basic-initialization)) limits with yuf's `LoginRateLimit`
+([rate-limiting.md](https://github.com/Actra-AG/yuf/blob/main/docs/rate-limiting.md)):
+
+- Counted per client IP address (default 20 per 15 minutes and 100 per day), then per email address (default 10 per
+  15 minutes; `clientLimits:` and `accountLimits:` of `LoginRateLimit` change them): every password login, login
+  code request and password reset request. The login with a code that was sent is not counted again.
+- Unknown addresses are counted like registered ones. A blocked request shows `AuthMessages::$tooManyAttempts`,
+  whether the address exists or not; nothing is checked, counted or sent. Blocked logins and code requests are
+  logged with the result "rate limited" (`AuthResultEnum::ERROR_RATE_LIMITED`, page "Visits").
+- `failMode: RateLimitFailModeEnum::CLOSED` is recommended: if the directory is not writable, the requests are
+  blocked and the error is logged with the `Logger`. Use a directory on a local file system that the web server does
+  not serve (e.g. `$core->cacheDirectory . 'rateLimit'`) and a secret of at least 32 bytes (`rateLimit.secret` in
+  `.env.php`); changing it resets the counters.
+- The lock-out (wrong passwords per user) and the send limit stay the protection against slow guessing and floods of
+  one address.
+
 ## API Key Authentication
 
 API-key functionality is optional and must be enabled through `ActraBackendSettings`:

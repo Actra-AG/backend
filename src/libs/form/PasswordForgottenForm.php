@@ -64,6 +64,22 @@ final class PasswordForgottenForm extends Form
             return false;
         }
         $inputEmail = $this->emailField->getValueAsString();
+        // A reset link is a token request: counted with the login rate limit, not with precheck(), which would refuse
+        // a locked-out user (the reset is the way out of the lock-out)
+        $loginRateLimit = $this->backendContext->actraBackend->actraBackendSettings->loginRateLimit;
+        if (
+            $loginRateLimit !== null
+            && !$loginRateLimit->consume(
+                userName: $inputEmail,
+                ipAddress: $this->context->httpRequest->getRemoteAddress(),
+            )->isAllowed
+        ) {
+            $this->addError(
+                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->auth->tooManyAttempts),
+            );
+
+            return false;
+        }
         $dbAuthUser = $this->backendContext->repositories->users()->selectByEmail(email: $inputEmail);
         if (
             $dbAuthUser === null

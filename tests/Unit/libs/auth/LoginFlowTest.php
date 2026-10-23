@@ -10,19 +10,23 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\auth;
 
 use actra\backend\BackendViewContext;
+use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\ClientData;
 use actra\backend\libs\form\LoginForm;
 use actra\backend\libs\form\LoginPasswordForm;
 use actra\backend\libs\form\LoginTokenForm;
+use actra\backend\libs\form\PasswordForgottenForm;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\settings\TokenSendLimit;
 use actra\backend\tests\Double\ActraBackendTestInstance;
+use actra\backend\tests\Double\RecordingLogger;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\RejectingMailDomainResolver;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\auth\AuthResultEnum;
+use actra\yuf\auth\LoginRateLimit;
 use actra\yuf\clock\FixedClock;
 use actra\yuf\common\AcceptingMailDomainResolver;
 use actra\yuf\common\MailDomainResolver;
@@ -31,6 +35,9 @@ use actra\yuf\core\RequestMethodEnum;
 use actra\yuf\core\Route;
 use actra\yuf\mailer\RecordingMailer;
 use actra\yuf\security\CsrfTokenSource;
+use actra\yuf\security\RateLimit;
+use actra\yuf\security\RateLimiter;
+use actra\yuf\security\RateLimitFailModeEnum;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
 use DateTimeImmutable;
@@ -47,6 +54,7 @@ final class LoginFlowTest extends TestCase
     private TestUsers $testUsers;
     private RecordingResponseSender $responseSender;
     private RecordingMailer $mailer;
+    private string $rateLimitDirectory;
 
     #[\Override]
     protected function setUp(): void
@@ -54,6 +62,39 @@ final class LoginFlowTest extends TestCase
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
         $this->responseSender = new RecordingResponseSender();
         $this->mailer = new RecordingMailer();
+        $this->rateLimitDirectory = sys_get_temp_dir() . '/backend-rate-limit-' . bin2hex(string: random_bytes(length: 8));
+    }
+
+    #[\Override]
+    protected function tearDown(): void
+    {
+        if (is_dir(filename: $this->rateLimitDirectory)) {
+            $files = glob(pattern: $this->rateLimitDirectory . '/*');
+            foreach ($files === false ? [] : $files as $file) {
+                unlink(filename: $file);
+            }
+            rmdir(directory: $this->rateLimitDirectory);
+        } elseif (is_file(filename: $this->rateLimitDirectory)) {
+            unlink(filename: $this->rateLimitDirectory);
+        }
+    }
+
+    /**
+     * A login rate limit of one attempt per email address (and many per IP address) in a fresh directory.
+     */
+    private function createLoginRateLimit(): LoginRateLimit
+    {
+        return new LoginRateLimit(
+            rateLimiter: new RateLimiter(
+                directory: $this->rateLimitDirectory,
+                secret: str_repeat(string: 's', times: 32),
+                purgeProbabilityPercent: 0,
+            ),
+            failMode: RateLimitFailModeEnum::CLOSED,
+            logger: new RecordingLogger(),
+            clientLimits: [new RateLimit(maxHits: 100, windowSeconds: 900)],
+            accountLimits: [new RateLimit(maxHits: 1, windowSeconds: 900)],
+        );
     }
 
     private static function email(string $name): string
@@ -70,12 +111,14 @@ final class LoginFlowTest extends TestCase
         array $postParameters,
         ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
         MailDomainResolver $mailDomainResolver = new AcceptingMailDomainResolver(),
+        ?LoginRateLimit $loginRateLimit = null,
     ): BackendViewContext {
         $session = new Session(storage: new ArraySessionStorage());
 
         return ActraBackendTestInstance::create(
             dbSettings: TestDatabase::settings(),
             tokenSendLimit: $tokenSendLimit,
+            loginRateLimit: $loginRateLimit,
             mailer: $this->mailer,
         )->createContext(
             viewContext: ViewContextFactory::create(
@@ -98,27 +141,65 @@ final class LoginFlowTest extends TestCase
         );
     }
 
-    private function passwordLogin(string $email, string $password = LoginFlowTest::PASSWORD): bool
-    {
+    private function createLoginPasswordForm(
+        string $email,
+        string $password = LoginFlowTest::PASSWORD,
+        ?LoginRateLimit $loginRateLimit = null,
+    ): LoginPasswordForm {
         $context = $this->createContext(
             fileTitle: 'loginPassword',
             formName: 'LoginPasswordForm',
             postParameters: ['email' => $email, 'password' => $password],
+            loginRateLimit: $loginRateLimit,
         );
 
-        return new LoginPasswordForm(context: $context)->process();
+        return new LoginPasswordForm(context: $context);
     }
 
-    private function requestToken(string $email, ?TokenSendLimit $tokenSendLimit = new TokenSendLimit()): bool
+    private function passwordLogin(string $email, string $password = LoginFlowTest::PASSWORD): bool
     {
+        return $this->createLoginPasswordForm(email: $email, password: $password)->process();
+    }
+
+    private function createLoginForm(
+        string $email,
+        ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
+        ?LoginRateLimit $loginRateLimit = null,
+    ): LoginForm {
         $context = $this->createContext(
             fileTitle: 'login',
             formName: 'LoginForm',
             postParameters: ['email' => $email],
             tokenSendLimit: $tokenSendLimit,
+            loginRateLimit: $loginRateLimit,
         );
 
-        return new LoginForm(context: $context)->process();
+        return new LoginForm(context: $context);
+    }
+
+    private function requestToken(string $email, ?TokenSendLimit $tokenSendLimit = new TokenSendLimit()): bool
+    {
+        return $this->createLoginForm(email: $email, tokenSendLimit: $tokenSendLimit)->process();
+    }
+
+    private function createPasswordForgottenForm(string $email, LoginRateLimit $loginRateLimit): PasswordForgottenForm
+    {
+        $context = $this->createContext(
+            fileTitle: 'passwordForgotten',
+            formName: 'PasswordForgottenForm',
+            postParameters: ['email' => $email],
+            loginRateLimit: $loginRateLimit,
+        );
+
+        return new PasswordForgottenForm(context: $context);
+    }
+
+    /**
+     * The first error of the form (rendered), `null` without error.
+     */
+    private static function formError(LoginForm|LoginPasswordForm|PasswordForgottenForm $form): ?string
+    {
+        return $form->errorCollection->hasErrors() ? $form->errorCollection->getFirstError()->render() : null;
     }
 
     public function testPasswordLoginSendsAToken(): void
@@ -352,14 +433,18 @@ final class LoginFlowTest extends TestCase
         $this->assertSame([], $this->responseSender->afterResponseCallbacks);
     }
 
-    public function testTokenLogsTheUserIn(): void
+    /**
+     * Requests a login code and logs in with it in the same session.
+     *
+     * @return array{?MyAuthUser, BackendViewContext} The result of the token form and the context of its request
+     */
+    private function loginWithRequestedToken(string $email, ?LoginRateLimit $loginRateLimit = null): array
     {
-        $email = LoginFlowTest::email(name: 'login');
-        $this->testUsers->create(email: $email);
         $requestContext = $this->createContext(
             fileTitle: 'login',
             formName: 'LoginForm',
             postParameters: ['email' => $email],
+            loginRateLimit: $loginRateLimit,
         );
         new LoginForm(context: $requestContext)->process();
         $token = $this->responseSender->sendMailsAndGetLoginCode(mailer: $this->mailer);
@@ -380,15 +465,170 @@ final class LoginFlowTest extends TestCase
             ),
             session: $requestContext->session,
         );
-        $tokenContext = ActraBackendTestInstance::create(dbSettings: TestDatabase::settings())->createContext(
-            viewContext: $tokenViewContext,
-        );
+        $tokenContext = ActraBackendTestInstance::create(
+            dbSettings: TestDatabase::settings(),
+            loginRateLimit: $loginRateLimit,
+        )->createContext(viewContext: $tokenViewContext);
 
-        $this->assertNotNull(new LoginTokenForm(context: $tokenContext)->process());
+        return [new LoginTokenForm(context: $tokenContext)->process(), $tokenContext];
+    }
+
+    public function testTokenLogsTheUserIn(): void
+    {
+        $email = LoginFlowTest::email(name: 'login');
+        $this->testUsers->create(email: $email);
+
+        [$myAuthUser, $tokenContext] = $this->loginWithRequestedToken(email: $email);
+
+        $this->assertNotNull($myAuthUser);
         $this->assertTrue($tokenContext->authSession->isLoggedIn());
         $this->assertSame(
             [AuthResultEnum::SUCCESSFUL_OTP_LOGIN->value],
             $this->testUsers->listLoggedResults(email: $email),
         );
+    }
+
+    /**
+     * The code was sent after a counted request, so the login with it is not counted again and the claimed code is not
+     * lost to the rate limit.
+     */
+    public function testTokenLoginIsNotCountedByTheRateLimit(): void
+    {
+        $email = LoginFlowTest::email(name: 'login-rate-limit');
+        $this->testUsers->create(email: $email);
+
+        [$myAuthUser] = $this->loginWithRequestedToken(email: $email, loginRateLimit: $this->createLoginRateLimit());
+
+        $this->assertNotNull($myAuthUser);
+        $this->assertSame(
+            [AuthResultEnum::SUCCESSFUL_OTP_LOGIN->value],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+    }
+
+    /**
+     * Blocked before the user is loaded: the right password is not checked, no wrong attempt counted, nothing sent.
+     */
+    public function testPasswordLoginAboveTheRateLimitIsRejectedAndLogged(): void
+    {
+        $email = LoginFlowTest::email(name: 'rate-limit');
+        $this->testUsers->create(email: $email, password: LoginFlowTest::PASSWORD);
+        $loginRateLimit = $this->createLoginRateLimit();
+
+        $this->createLoginPasswordForm(email: $email, password: 'wrong', loginRateLimit: $loginRateLimit)->process();
+        $form = $this->createLoginPasswordForm(email: $email, loginRateLimit: $loginRateLimit);
+
+        $this->assertFalse($form->process());
+        $this->assertSame(
+            'Zu viele Versuche. Bitte versuchen Sie es in einigen Minuten erneut.',
+            LoginFlowTest::formError(form: $form),
+        );
+        $this->assertSame(
+            [AuthResultEnum::ERROR_WRONG_PASSWORD->value, AuthResultEnum::ERROR_RATE_LIMITED->value],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+        $this->assertSame(1, $this->testUsers->getWrongLoginAttempts(email: $email));
+        $this->assertSame(0, $this->testUsers->countTokens(email: $email));
+    }
+
+    /**
+     * Unknown addresses are counted like known ones and get the same message, so the limit does not tell which exist.
+     */
+    public function testRateLimitAnswersUnknownAddressesTheSame(): void
+    {
+        $email = LoginFlowTest::email(name: 'rate-limit-unknown');
+        $loginRateLimit = $this->createLoginRateLimit();
+
+        $this->assertSame(
+            'Die eingegebenen Zugangsdaten sind ungültig.',
+            LoginFlowTest::formError(
+                form: $this->processed(
+                    form: $this->createLoginPasswordForm(email: $email, loginRateLimit: $loginRateLimit),
+                ),
+            ),
+        );
+        $this->assertSame(
+            'Zu viele Versuche. Bitte versuchen Sie es in einigen Minuten erneut.',
+            LoginFlowTest::formError(
+                form: $this->processed(
+                    form: $this->createLoginPasswordForm(email: $email, loginRateLimit: $loginRateLimit),
+                ),
+            ),
+        );
+        $this->assertSame(
+            [AuthResultEnum::ERROR_UNKNOWN_USER_NAME->value, AuthResultEnum::ERROR_RATE_LIMITED->value],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+    }
+
+    private function processed(LoginPasswordForm $form): LoginPasswordForm
+    {
+        $form->process();
+
+        return $form;
+    }
+
+    public function testTokenRequestAboveTheRateLimitSendsNothing(): void
+    {
+        $email = LoginFlowTest::email(name: 'token-rate-limit');
+        $this->testUsers->create(email: $email);
+        $loginRateLimit = $this->createLoginRateLimit();
+
+        $this->assertTrue($this->createLoginForm(email: $email, loginRateLimit: $loginRateLimit)->process());
+        $form = $this->createLoginForm(email: $email, loginRateLimit: $loginRateLimit);
+
+        $this->assertFalse($form->process());
+        $this->assertSame(
+            'Zu viele Versuche. Bitte versuchen Sie es in einigen Minuten erneut.',
+            LoginFlowTest::formError(form: $form),
+        );
+        $this->assertSame([AuthResultEnum::ERROR_RATE_LIMITED->value], $this->testUsers->listLoggedResults(email: $email));
+        $this->assertSame(1, $this->testUsers->countTokens(email: $email));
+        $this->assertCount(1, $this->responseSender->afterResponseCallbacks);
+    }
+
+    public function testPasswordResetRequestAboveTheRateLimitSendsNothing(): void
+    {
+        $email = LoginFlowTest::email(name: 'reset-rate-limit');
+        $this->testUsers->create(email: $email, password: LoginFlowTest::PASSWORD);
+        $loginRateLimit = $this->createLoginRateLimit();
+
+        $this->assertTrue(
+            $this->createPasswordForgottenForm(email: $email, loginRateLimit: $loginRateLimit)
+                ->validateAndSendTokenEmail(),
+        );
+        $form = $this->createPasswordForgottenForm(email: $email, loginRateLimit: $loginRateLimit);
+
+        $this->assertFalse($form->validateAndSendTokenEmail());
+        $this->assertSame(
+            'Zu viele Versuche. Bitte versuchen Sie es in einigen Minuten erneut.',
+            LoginFlowTest::formError(form: $form),
+        );
+        $this->assertSame(1, $this->testUsers->countTokens(email: $email));
+        $this->assertCount(1, $this->responseSender->afterResponseCallbacks);
+    }
+
+    /**
+     * `failMode: CLOSED`: an attempt that cannot be counted (directory not writable) is rejected and the error logged.
+     */
+    public function testRateLimitFailsClosed(): void
+    {
+        $email = LoginFlowTest::email(name: 'rate-limit-closed');
+        $this->testUsers->create(email: $email, password: LoginFlowTest::PASSWORD);
+        touch(filename: $this->rateLimitDirectory); // A file where the directory should be
+        $logger = new RecordingLogger();
+        $loginRateLimit = new LoginRateLimit(
+            rateLimiter: new RateLimiter(
+                directory: $this->rateLimitDirectory,
+                secret: str_repeat(string: 's', times: 32),
+                purgeProbabilityPercent: 0,
+            ),
+            failMode: RateLimitFailModeEnum::CLOSED,
+            logger: $logger,
+        );
+
+        $this->assertFalse($this->createLoginPasswordForm(email: $email, loginRateLimit: $loginRateLimit)->process());
+        $this->assertSame([AuthResultEnum::ERROR_RATE_LIMITED->value], $this->testUsers->listLoggedResults(email: $email));
+        $this->assertNotSame([], [...$logger->messages, ...$logger->exceptions]);
     }
 }

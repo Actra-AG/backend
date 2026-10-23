@@ -27,11 +27,14 @@ final class MyAuthenticator extends Authenticator
             httpRequest: $context->viewContext->httpRequest,
             authSession: $context->authSession,
             maxAllowedWrongPasswordAttempts: $context->actraBackend->actraBackendSettings->maxAllowedLoginAttempts,
+            loginRateLimit: $context->actraBackend->actraBackendSettings->loginRateLimit,
         );
     }
 
     /**
-     * Logs in with a claimed login token; the logged-in user, `null` for a wrong token or a rejected user.
+     * Logs in with a claimed login token; the logged-in user, `null` for a wrong token or a rejected user. The token
+     * was sent after a counted step (`verifyPassword()` or `findTokenLoginUser()`), so the login is not counted by the
+     * rate limit again (yuf's `logInVerifiedUser()`), and a claimed token is not lost to it.
      */
     public function tokenLogin(string $inputToken): ?MyAuthUser
     {
@@ -42,10 +45,19 @@ final class MyAuthenticator extends Authenticator
         if ($dbAuthToken === null) {
             return null;
         }
-        $isLoggedIn = $this->doLogin(
+        $dbAuthUser = $this->context->repositories->users()->selectById(id: $dbAuthToken->userId);
+        if ($dbAuthUser === null) {
+            return null;
+        }
+        $isLoggedIn = $this->logInVerifiedUser(
             authMethod: AuthMethodEnum::OTP,
+            authUser: new MyAuthUser(
+                dbAuthUser: $dbAuthUser,
+                parentSessionId: null,
+                repositories: $this->context->repositories,
+                clientData: $this->context->clientData,
+            ),
             userName: $dbAuthToken->email,
-            passwordToCheck: null,
         );
 
         return $isLoggedIn ? MyAuthUser::findLoggedIn(
@@ -57,7 +69,8 @@ final class MyAuthenticator extends Authenticator
 
     /**
      * The user that may get a login token by email: yuf's `precheck()` (unknown user, IP whitelist, inactive, out tried)
-     * and no password (a user with password logs in with it, logged as `ERROR_NO_PASSWORD`). Rejections are logged.
+     * and no password (a user with password logs in with it, logged as `ERROR_NO_PASSWORD`). Rejections are logged;
+     * `$authResult` is `ERROR_RATE_LIMITED` if the rate limit blocked the request.
      */
     public function findTokenLoginUser(string $email): ?MyAuthUser
     {

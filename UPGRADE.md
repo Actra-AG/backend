@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v3.0.1 (2026-10-23)
+
+### Changes
+
+- Requires `actra/yuf` `~7.1.0` (adds `AmountFormatter` for Swiss, German and English amounts). The backend formats no
+  amounts itself, so its output does not change.
+
 ## v3.0.0 (2026-10-23)
 
 ### ⚠️ Requires `actra/yuf` `~7.0.0`

@@ -2,6 +2,15 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v3.1.0 (2026-10-25)
+
+### ⚠️ Requires `actra/yuf` `~8.1.0`
+
+Migrate your own code with yuf's `UPGRADE.md` (v8.0.0, v8.1.0): `captcha:` for every `SpamProtection` (`null` keeps
+the output), and the `CspPolicySettings` default `defaultSrc: "'self'"` (no `data:` and host): set directives that
+need `data:` explicitly (e.g. `mediaSrc: "'self' data:"`). The backend has no `SpamProtection` and needs no `data:`
+beyond `img-src`, so its output does not change.
+
 ## v3.0.1 (2026-10-23)
 
 ### Changes

@@ -64,7 +64,7 @@ database:
    - Local development (DDEV, `'debug' => true` in `.env.php`, so email fields skip the mail domain check): log in
      with `admin@example.com`; Mailpit (`ddev mailpit`) shows the login code.
    - Production: `example.com` accepts no mail, so nobody can log in with the seed user. Create the real users
-     instead, or give the seed user your own address (`UPDATE auth_users SET email='you@your-domain.ch' WHERE id=1`)
+     instead, or give the seed user your own address (`UPDATE auth_users SET email='…' WHERE id=1`)
      and log in with the code sent there.
 
 For existing installations, apply the incremental SQL update files from `db/updates/` as documented

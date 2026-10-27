@@ -2,6 +2,15 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v3.1.1 (2026-10-27)
+
+### Changes
+
+- Confirmation dialog (`data-action="confirm-deletion"` with `data-form`): the confirm button submits the form of the
+  confirmation page again instead of opening that page. The script sent the form as `multipart/form-data`, which yuf
+  rejects since v7.0.0 for forms without `acceptUpload`; it now sends it URL-encoded. Projects with their own copy of
+  the dialog script send `new URLSearchParams(formData)` instead of the `FormData` as `body`.
+
 ## v3.1.0 (2026-10-25)
 
 ### ⚠️ Requires `actra/yuf` `~8.1.0`

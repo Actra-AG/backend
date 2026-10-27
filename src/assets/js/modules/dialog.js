@@ -57,9 +57,14 @@ export function initDialog() {
       if (submitButton) {
         body.append(submitButton.name, submitButton.value);
       }
+      // URL-encoded: yuf rejects a multipart body (FormData) for a form without uploads
       const response = await fetch(
         new URL(form.getAttribute('action') ?? '', page.url).href,
-        { method: 'POST', body, credentials: 'same-origin' },
+        {
+          method: 'POST',
+          body: new URLSearchParams(body),
+          credentials: 'same-origin',
+        },
       );
       // Success is a redirect; a re-rendered page means an error (e.g. an invalid CSRF token)
       if (!response.ok || !response.redirected) {

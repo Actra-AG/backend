@@ -136,9 +136,10 @@ by POST and follows the redirect of the server. No form is needed on the page wi
 The confirmation page (`userDelete-5.html`) shows the message and a normal (yuf) POST form with CSRF token and a
 submit button. Its processing redirects after success.
 
-- The script submits the fields of the form, including the CSRF token and the name of the first named submit button.
-- Success is a redirect of the server. Any other result (no form found, network error, a re-rendered page with an
-  error) navigates to the confirmation page, where the user sees the result.
+- The script submits the fields of the form natively (a hidden form, URL-encoded), including the CSRF token and the
+  name of the first named submit button. The browser loads the page the server redirects to exactly once, so a page
+  can show a value only once (e.g. a new API key from the session); a re-rendered page with an error is shown as is.
+- If the confirmation page cannot be fetched or has no such form, the browser navigates to the confirmation page.
 - Without `data-form`, the previous behaviour stays: a confirmation navigates to the `href` (GET, legacy).
 - The `#dialog` element (`.dialog-message`, `[data-action="modal-submit"]`, `[data-action="modal-cancel"]`) is part of
   the default page template. `data-confirm` sets the message.

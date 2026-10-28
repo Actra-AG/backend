@@ -2,6 +2,17 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v3.1.2 (2026-10-28)
+
+### Changes
+
+- Confirmation dialog (`data-action="confirm-deletion"` with `data-form`): a new API key (`profileGenerateApiKey.html`,
+  `userGenerateApiKey-<id>.html`) is shown again after the confirmation. Since v3.1.1 the script posted the form with
+  `fetch`, which followed the redirect and loaded the target page once in the background, so the key stored in the
+  session for one display was used up before the browser showed the page. The script now submits the form natively
+  (a hidden form). Rebuild the assets; projects with their own copy of the dialog script replace the second `fetch`
+  (POST) and `navigate(response.url)` the same way (see `src/assets/js/modules/dialog.js`).
+
 ## v3.1.1 (2026-10-27)
 
 ### Changes

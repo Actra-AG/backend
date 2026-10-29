@@ -2,6 +2,12 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v4.1.0 (2026-10-29)
+
+### ⚠️ Requires `actra/yuf` `~8.4.0`
+
+No migration needed for yuf v8.4.0 (yuf's `UPGRADE.md`): it adds `actra\yuf\mailbox`, a reader for IMAP mailboxes.
+
 ## v4.0.0 (2026-10-29)
 
 ### ⚠️ Requires `actra/yuf` `~8.3.0`

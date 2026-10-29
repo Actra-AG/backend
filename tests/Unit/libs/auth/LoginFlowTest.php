@@ -54,7 +54,8 @@ final class LoginFlowTest extends TestCase
     private TestUsers $testUsers;
     private RecordingResponseSender $responseSender;
     private RecordingMailer $mailer;
-    private string $rateLimitDirectory;
+    /** `''` while `setUp()` did not get that far (no test database: the test is skipped) */
+    private string $rateLimitDirectory = '';
 
     #[\Override]
     protected function setUp(): void
@@ -68,6 +69,9 @@ final class LoginFlowTest extends TestCase
     #[\Override]
     protected function tearDown(): void
     {
+        if ($this->rateLimitDirectory === '') {
+            return;
+        }
         if (is_dir(filename: $this->rateLimitDirectory)) {
             $files = glob(pattern: $this->rateLimitDirectory . '/*');
             foreach ($files === false ? [] : $files as $file) {

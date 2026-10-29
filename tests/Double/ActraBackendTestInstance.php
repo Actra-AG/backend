@@ -17,7 +17,6 @@ use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\auth\LoginRateLimit;
 use actra\yuf\core\Language;
-use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\AbstractMailer;
 use actra\yuf\mailer\SmtpMailer;
@@ -31,10 +30,11 @@ final class ActraBackendTestInstance
     /**
      * @param list<BackendRoute> $additionalRoutes
      * @param list<string> $ipWhitelist The global IP whitelist of the backend
+     * @param Language $language The language of the main route `/backend/`
      */
     public static function create(
         ?DbSettings $dbSettings = null,
-        RouteCollection $routeCollection = new RouteCollection(),
+        Language $language = new Language(code: 'de', locale: 'de_CH.UTF-8'),
         ?BackendNavigation $projectNavigation = null,
         bool $hasApi = false,
         array $additionalRoutes = [],
@@ -49,12 +49,11 @@ final class ActraBackendTestInstance
             serverNameCache: null,
         ),
     ): ActraBackend {
-        return ActraBackend::init(
-            routeCollection: $routeCollection,
+        return ActraBackend::create(
             path: '/backend/',
             isDefaultForLanguage: false,
             actraBackendSettings: new ActraBackendSettings(
-                language: new Language(code: 'de', locale: 'de_CH.UTF-8'),
+                language: $language,
                 ipWhitelist: $ipWhitelist,
                 backendName: 'Test backend',
                 javaScriptPaths: [],

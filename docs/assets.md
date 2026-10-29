@@ -34,5 +34,5 @@ After the assets are available through the application's public asset URLs, refe
 backend:
 
 ```php
-$actraBackend = ActraBackend::init(/* see "Basic Initialization" */);
+$actraBackend = ActraBackend::create(/* see "Usage" in README.md */);
 ```

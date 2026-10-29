@@ -37,15 +37,9 @@ composer require actra/backend
 ```
 
 Composer loads all classes (yuf, the backend, the project): the entry point (`public/index.php`) and CLI scripts
-include `vendor/autoload.php` before `Core::fromEnvironment()`; without it PHP reports
+include `vendor/autoload.php` before `App::fromEnvironment()` (or `Core::fromEnvironment()`); without it PHP reports
 `Class "actra\backend\settings\ActraBackendSettings" not found`. Composer is needed to build, not on the server: deploy
 with `composer install --no-dev --optimize-autoloader`.
-
-```php
-require __DIR__ . '/../vendor/autoload.php';
-
-$core = Core::fromEnvironment(envFilePath: __DIR__ . '/../.env.php', copyrightYear: 2026);
-```
 
 ### 2. Assets
 
@@ -72,31 +66,36 @@ in [UPGRADE.md](UPGRADE.md).
 
 ## Usage
 
-To integrate the backend into your YUF-based application, call `ActraBackend::init()` during your application's
-bootstrap process and keep the returned instance: the routes of project views based on `BackendView` need it. The
-backend has no global state; everything a view needs comes through its `BackendViewContext`.
+Create the backend with `ActraBackend::create()` in the front controller and add it to yuf's
+[`App`](https://github.com/Actra-AG/yuf/blob/main/docs/setup.md#application-entry-point) with `configure()`: it
+adds the backend routes, the login page as login path (visitors without login are sent there and back to the requested
+page afterwards; one login page for all language routes) and the navigation. Keep the instance: the routes of project
+views based on `BackendView` need it ([docs/views.md](docs/views.md)). The backend has no global state; everything a
+view needs comes through its `BackendViewContext`.
 
-### Basic Initialization
+### With `App`
 
 ```php
 use actra\backend\ActraBackend;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
+use actra\yuf\App;
 use actra\yuf\auth\LoginRateLimit;
 use actra\yuf\core\FileLogger;
-use actra\yuf\core\RouteCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\SmtpEncryptionEnum;
 use actra\yuf\mailer\SmtpMailer;
 use actra\yuf\security\RateLimiter;
 use actra\yuf\security\RateLimitFailModeEnum;
 
-// Visitors without login are sent to the login page and back to the requested page afterwards (one login page for
-// all language routes: yuf's RouteCollection has one login path)
-$routeCollection = new RouteCollection(loginPath: '/backend/login.html');
-// ... initialize your $language ...
-// The logger of the project, also passed to $core->prepareHttpResponse(logger: $logger)
+require __DIR__ . '/../vendor/autoload.php';
+
+$app = App::fromEnvironment(envFilePath: __DIR__ . '/../.env.php', copyrightYear: 2026)
+    ->withLanguage(code: 'en', locale: 'en_GB')
+    ->withHtmlRoute(path: '/', viewGroup: 'frontend');
+$core = $app->core;
+// The logger of the project, also for the App (yuf's default is the same FileLogger without mailer)
 $logger = new FileLogger(
     logEmailRecipient: $core->environmentSettings->logEmailRecipient,
     logDirectory: $core->logDirectory,
@@ -104,12 +103,12 @@ $logger = new FileLogger(
     mailer: null,
 );
 
-$actraBackend = ActraBackend::init(
-    routeCollection: $routeCollection,
+$actraBackend = ActraBackend::create(
     path: '/backend/', // The URL path where the backend will be accessible
-    isDefaultForLanguage: false,
+    isDefaultForLanguage: false, // true: "/" redirects to the backend (the language must have no other default route)
     actraBackendSettings: new ActraBackendSettings(
-        language: $language,
+        // The Language object of the App (not a new Language): App::withRoute() throws otherwise
+        language: $app->getLanguage(code: 'en'),
         ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
         backendName: 'My Project Backend',
         javaScriptPaths: [
@@ -154,11 +153,37 @@ $actraBackend = ActraBackend::init(
     ),
 );
 
-// The navigation is built per request (project items: ActraBackendSettings::$projectNavigation)
+$actraBackend->configure(app: $app->withLogger(logger: $logger))->run();
+```
+
+`App` has one navigation: the routes with the view factory of the backend (its own routes and the project routes with
+`createViewFactory()`) get the backend navigation (project items: `ActraBackendSettings::$projectNavigation`), all
+other routes get an empty one. A project with its own frontend navigation passes it to `configure()`:
+
+```php
+$actraBackend->configure(
+    app: $app,
+    frontendNavigation: static fn(ViewContext $viewContext): NavigationItemCollection => /* … */,
+)->run();
+```
+
+The backend routes accept `.html` only and show the login page for the path itself (`/backend/` and
+`/backend/login.html`, no redirect between them), as before `App`.
+
+### With `Core`
+
+Projects that call `Core::prepareHttpResponse()` themselves create the backend the same way and add its routes, the
+login path and the navigation provider:
+
+```php
 $core->prepareHttpResponse(
     logger: $logger,
-    routeCollection: $routeCollection,
-    navigationProvider: $actraBackend->createNavigation(...),
+    routeCollection: new RouteCollection(
+        routes: [...$projectRoutes, ...$actraBackend->createRoutes()],
+        loginPath: $actraBackend->getLoginPath(),
+    ),
+    // $frontendNavigation: the navigation of the other routes (see "With App"), null: none
+    navigationProvider: $actraBackend->createNavigationProvider(frontendNavigation: null),
 );
 ```
 
@@ -179,10 +204,10 @@ The secret of the login rate limit in `.env.php` (at least 32 bytes, e.g. `bin2h
 'rateLimit.secret' => '…',
 ```
 
-Once initialized, the library automatically registers the necessary routes under the specified path (e.g., `/backend/`).
-Dates are formatted for the locale of the route (`Language::$locale`). Login codes and password reset links are
-mailed after the response (yuf's `ResponseSender::afterResponse()`), so the response time does not tell whether an
-email address exists.
+The backend is served under the specified path (e.g., `/backend/`), further languages under their own routes
+([docs/languages.md](docs/languages.md)). Dates are formatted for the locale of the route (`Language::$locale`). Login
+codes and password reset links are mailed after the response (yuf's `ResponseSender::afterResponse()`), so the
+response time does not tell whether an email address exists.
 
 ## Documentation
 

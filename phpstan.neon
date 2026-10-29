@@ -3,6 +3,9 @@ includes:
     - vendor/actra/coding-standard/config/phpstan-no-superglobals.neon
 
 parameters:
+    actraSuperglobalsAllowIn:
+        # Core reads the session data from $_SESSION (sessions are disabled in the CLI)
+        - tests/Unit/AppConfigurationTest.php
     phpVersion: 80500
     paths:
         - src

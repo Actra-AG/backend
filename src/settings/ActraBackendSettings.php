@@ -16,7 +16,7 @@ use actra\yuf\core\Language;
 
 final readonly class ActraBackendSettings
 {
-    /** The texts of the main route (path of `ActraBackend::init()` in `$language`) */
+    /** The texts of the main route (path of `ActraBackend::create()` in `$language`) */
     public BackendMessages $messages;
 
     /**

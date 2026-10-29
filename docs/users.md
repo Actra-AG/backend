@@ -6,7 +6,7 @@ When a backend user is deleted, the library removes its own user-related records
 `auth_users`. Projects that store additional foreign-key references to `auth_users.id` can register a delete handler to
 remove or update their project-specific records before the user itself is deleted.
 
-In the consuming project, pass the handler in the settings of `ActraBackend::init()`:
+In the consuming project, pass the handler in the settings of `ActraBackend::create()`:
 
 ```php
 use actra\backend\libs\auth\UserDeleteHandler;

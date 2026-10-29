@@ -2,6 +2,61 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v4.0.0 (2026-10-29)
+
+### ⚠️ Requires `actra/yuf` `~8.3.0`
+
+No migration needed for yuf v8.2.0 and v8.3.0 (yuf's `UPGRADE.md`); they add `App`, the short front controller.
+Development only: `phpunit/phpunit` ^13.4.4 (security fix), `actra/coding-standard` ^1.34.0.
+
+### ⚠️ `ActraBackend::create()` replaces `ActraBackend::init()`
+
+The backend no longer adds its routes to a `RouteCollection`: `create()` takes the same arguments without
+`routeCollection:`, then add the routes, the login path and the navigation to yuf's `App` with `configure()`, or to
+`Core` with `createRoutes()`, `getLoginPath()` and `createNavigationProvider()` (README, "Usage").
+
+Before:
+
+```php
+$routeCollection = new RouteCollection(loginPath: '/backend/login.html');
+$actraBackend = ActraBackend::init(routeCollection: $routeCollection, path: '/backend/', …);
+$core->prepareHttpResponse(
+    …,
+    routeCollection: $routeCollection,
+    navigationProvider: $actraBackend->createNavigation(...),
+);
+```
+
+After, with `App` (the languages of the backend are the `Language` objects of the `App`):
+
+```php
+$actraBackend = ActraBackend::create(
+    path: '/backend/',
+    isDefaultForLanguage: false,
+    actraBackendSettings: new ActraBackendSettings(language: $app->getLanguage(code: 'en'), …),
+    …
+);
+$actraBackend->configure(app: $app)->run();
+```
+
+After, with `Core`:
+
+```php
+$actraBackend = ActraBackend::create(path: '/backend/', …);
+$core->prepareHttpResponse(
+    …,
+    routeCollection: new RouteCollection(
+        routes: [...$projectRoutes, ...$actraBackend->createRoutes()],
+        loginPath: $actraBackend->getLoginPath(),
+    ),
+    navigationProvider: $actraBackend->createNavigationProvider(frontendNavigation: null),
+);
+```
+
+The navigation provider gives the backend navigation to routes with the view factory of the backend only (the backend
+routes and project routes with `createViewFactory()`); other routes get the navigation of `frontendNavigation:` or an
+empty one (before: the backend navigation on every route).
+
 ## v3.1.2 (2026-10-28)
 
 ### Changes

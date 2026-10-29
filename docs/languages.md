@@ -1,28 +1,33 @@
 # Languages
 
 All texts of the backend come from message classes; English and German are included. The texts of a request follow
-the language of its route: the main route (`path` of `ActraBackend::init()`) uses `ActraBackendSettings::$language`,
-further languages get their own route:
+the language of its route: the main route (`path` of `ActraBackend::create()`) uses `ActraBackendSettings::$language`,
+further languages get their own route. Every language is a language of the `App` (`withLanguage()`), and the backend
+gets its `Language` object (`App::withRoute()` throws for another object with the same code):
 
 ```php
 use actra\backend\settings\BackendRoute;
-use actra\yuf\core\Language;
 
-ActraBackend::init(
-    routeCollection: $routeCollection,
+$app = App::fromEnvironment(/* … */)
+    ->withLanguage(code: 'en', locale: 'en_GB')
+    ->withLanguage(code: 'de', locale: 'de_CH');
+$actraBackend = ActraBackend::create(
     path: '/backend/',
     isDefaultForLanguage: false,
     actraBackendSettings: new ActraBackendSettings(
-        language: new Language(code: 'de', locale: 'de_CH'), // German texts under /backend/
+        language: $app->getLanguage(code: 'en'), // English texts under /backend/
         ...
         additionalRoutes: [
-            // English texts under /en/backend/
-            new BackendRoute(path: '/en/backend/', language: new Language(code: 'en', locale: 'en_GB')),
+            // German texts under /de/backend/
+            new BackendRoute(path: '/de/backend/', language: $app->getLanguage(code: 'de')),
         ]
     ),
     ...
 );
+$actraBackend->configure(app: $app)->run();
 ```
+
+With `Core`, the `Language` objects are those of `Core::$availableLanguages`.
 
 A route gets German texts for `de` and English texts for every other language. To change single texts, pass own
 messages (`ActraBackendSettings::$messages` for the main route, `messages` of a `BackendRoute`):
@@ -71,7 +76,8 @@ new ActraBackendSettings(
 );
 ```
 
-`ActraBackend::createNavigation()` calls the hook once per request, for the backend route of the request; each
+`ActraBackend::createNavigation()` (the backend navigation of `configure()` and `createNavigationProvider()`) calls
+the hook once per request, for the backend route of the request; each
 navigation key may be added once.
 
 With several languages, the page header shows a language switcher that links to the same page in each language.

@@ -23,12 +23,12 @@ use actra\backend\view\backend\php\notifications;
 use actra\backend\view\backend\php\tokens;
 use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
+use actra\yuf\App;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\core\ResponseSender;
 use actra\yuf\core\Route;
-use actra\yuf\core\RouteCollection;
 use actra\yuf\core\ViewContext;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\db\DbSettings;
@@ -69,12 +69,12 @@ final class ActraBackend
     ) {}
 
     /**
-     * Registers the backend under `$path` in the language of the settings (main route) and under the additional routes
-     * of the settings (`ActraBackendSettings::$additionalRoutes`). Keep the instance for the routes of the project
-     * views based on `BackendView` (`createViewFactory()`).
+     * Creates the backend under `$path` in the language of the settings (main route) and under the additional routes
+     * of the settings (`ActraBackendSettings::$additionalRoutes`). Add its routes with `configure()` (yuf's `App`) or
+     * `createRoutes()` (`Core`), and keep the instance for the routes of the project views based on `BackendView`
+     * (`createViewFactory()`).
      */
-    public static function init(
-        RouteCollection $routeCollection,
+    public static function create(
         string $path,
         bool $isDefaultForLanguage,
         ActraBackendSettings $actraBackendSettings,
@@ -82,28 +82,70 @@ final class ActraBackend
         MailerSettings $mailerSettings,
         ?string $templateDirectory = null,
     ): ActraBackend {
-        $backendRouteCollection = new BackendRouteCollection(
-            mainRoute: new BackendRoute(
-                path: $path,
-                language: $actraBackendSettings->language,
-                isDefaultForLanguage: $isDefaultForLanguage,
-                messages: $actraBackendSettings->messages,
-            ),
-            additionalRoutes: $actraBackendSettings->additionalRoutes,
-        );
-        $actraBackend = new ActraBackend(
+        return new ActraBackend(
             path: $path,
             actraBackendSettings: $actraBackendSettings,
             dbSettings: $dbSettings,
             mailerSettings: $mailerSettings,
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',
-            backendRouteCollection: $backendRouteCollection,
+            backendRouteCollection: new BackendRouteCollection(
+                mainRoute: new BackendRoute(
+                    path: $path,
+                    language: $actraBackendSettings->language,
+                    isDefaultForLanguage: $isDefaultForLanguage,
+                    messages: $actraBackendSettings->messages,
+                ),
+                additionalRoutes: $actraBackendSettings->additionalRoutes,
+            ),
         );
-        foreach ($backendRouteCollection->routes as $backendRoute) {
-            $routeCollection->addRoute(route: $actraBackend->createRoute(backendRoute: $backendRoute));
+    }
+
+    /**
+     * A copy of the `App` with the routes of the backend, its login page as login path (visitors without login are
+     * sent there and back to the requested page afterwards) and the navigation (`createNavigationProvider()`). The
+     * languages of the backend routes must be the objects of the `App`:
+     * `new ActraBackendSettings(language: $app->getLanguage(code: 'de'), …)`.
+     *
+     * @param ?Closure(ViewContext): NavigationItemCollection $frontendNavigation See `createNavigationProvider()`
+     *
+     * @throws LogicException if a language of the backend routes is not the object of the `App` (see
+     *     `App::withRoute()`) or a path is already used
+     */
+    public function configure(App $app, ?Closure $frontendNavigation = null): App
+    {
+        foreach ($this->createRoutes() as $route) {
+            $app = $app->withRoute(route: $route);
         }
 
-        return $actraBackend;
+        return $app
+            ->withLoginPath(loginPath: $this->getLoginPath())
+            ->withNavigation(
+                navigationProvider: $this->createNavigationProvider(frontendNavigation: $frontendNavigation),
+            );
+    }
+
+    /**
+     * The routes of the backend, for projects that call `Core::prepareHttpResponse()` themselves:
+     * `new RouteCollection(routes: [...$projectRoutes, ...$actraBackend->createRoutes()], loginPath:
+     * $actraBackend->getLoginPath())`.
+     *
+     * @return list<Route>
+     */
+    public function createRoutes(): array
+    {
+        return array_map(
+            callback: $this->createRoute(...),
+            array: $this->backendRouteCollection->routes,
+        );
+    }
+
+    /**
+     * The login page of the main route (`/backend/login.html`), the login path of yuf's `App` and `RouteCollection`:
+     * one login page for all language routes.
+     */
+    public function getLoginPath(): string
+    {
+        return new BackendPaths(path: $this->backendRouteCollection->getMainRoute()->path)->login();
     }
 
     /**
@@ -262,9 +304,29 @@ final class ActraBackend
     }
 
     /**
+     * The navigation provider of yuf (one per application): routes with the view factory of the backend
+     * (`createViewFactory()`, also the backend routes themselves) get the navigation of the backend
+     * (`createNavigation()`), the other routes that of the project.
+     *
+     * @param ?Closure(ViewContext): NavigationItemCollection $frontendNavigation The navigation of the other routes of
+     *     the project; `null`: they get an empty navigation
+     *
+     * @return Closure(ViewContext): NavigationItemCollection
+     */
+    public function createNavigationProvider(?Closure $frontendNavigation = null): Closure
+    {
+        return function (ViewContext $viewContext) use ($frontendNavigation): NavigationItemCollection {
+            if ($viewContext->route->viewFactory instanceof BackendViewFactory) {
+                return $this->createNavigation(viewContext: $viewContext);
+            }
+
+            return $frontendNavigation === null ? new NavigationItemCollection() : $frontendNavigation($viewContext);
+        };
+    }
+
+    /**
      * The navigation of the backend and of the project (`ActraBackendSettings::$projectNavigation`) in the language of
-     * the backend route of the request. Pass it to yuf as provider, so it is built per request:
-     * `$core->prepareHttpResponse(…, navigationProvider: $actraBackend->createNavigation(...))`.
+     * the backend route of the request, for the routes of the backend (see `createNavigationProvider()`).
      */
     public function createNavigation(ViewContext $viewContext): NavigationItemCollection
     {

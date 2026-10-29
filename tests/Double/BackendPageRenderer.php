@@ -51,14 +51,13 @@ final readonly class BackendPageRenderer
     public function __construct(DbSettings $dbSettings, array $ipWhitelist = [])
     {
         $english = new Language(code: 'en', locale: 'en_GB.UTF-8');
-        $this->routeCollection = new RouteCollection();
         $this->actraBackend = ActraBackendTestInstance::create(
             dbSettings: $dbSettings,
-            routeCollection: $this->routeCollection,
             hasApi: true,
             additionalRoutes: [new BackendRoute(path: '/en/backend/', language: $english)],
             ipWhitelist: $ipWhitelist,
         );
+        $this->routeCollection = new RouteCollection(routes: $this->actraBackend->createRoutes());
         $this->languageCollection = new LanguageCollection(
             languages: [$this->actraBackend->actraBackendSettings->language, $english],
         );

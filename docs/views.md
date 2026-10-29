@@ -9,11 +9,11 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 
-new Route(
-    path: '/de/orders/',
-    viewDirectory: $core->viewDirectory,
+// $actraBackend from ActraBackend::create(); with Core: new Route(…, viewFactory: $actraBackend->createViewFactory())
+$app = $actraBackend->configure(app: $app)->withHtmlRoute(
+    path: '/orders/',
     viewGroup: 'orders',
-    viewFactory: $actraBackend->createViewFactory(), // $actraBackend from ActraBackend::init()
+    viewFactory: $actraBackend->createViewFactory(), // Also gives the route the backend navigation
 );
 
 final class orders extends BackendView

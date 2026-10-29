@@ -57,13 +57,15 @@ final class LoginRedirectTest extends TestCase
     protected function setUp(): void
     {
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
-        $this->routeCollection = new RouteCollection(loginPath: '/backend/login.html');
         $this->mailer = new RecordingMailer();
         $this->lastResponseSender = new RecordingResponseSender();
         $this->actraBackend = ActraBackendTestInstance::create(
             dbSettings: TestDatabase::settings(),
-            routeCollection: $this->routeCollection,
             mailer: $this->mailer,
+        );
+        $this->routeCollection = new RouteCollection(
+            routes: $this->actraBackend->createRoutes(),
+            loginPath: $this->actraBackend->getLoginPath(),
         );
         $this->session = new Session(storage: new ArraySessionStorage());
     }

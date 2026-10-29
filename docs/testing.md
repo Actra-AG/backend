@@ -4,7 +4,7 @@ yuf and the backend load through Composer's autoloader: PHPStan and the PHPUnit 
 (yuf's [testing docs](https://github.com/Actra-AG/yuf/blob/main/docs/testing.md)).
 
 Integration tests connect to a test database with `DB::fromSettings()` and use the repositories on that connection
-(`BackendRepositories::fromDb()`), without `ActraBackend::init()`:
+(`BackendRepositories::fromDb()`), without `ActraBackend::create()`:
 
 ```php
 abstract class DatabaseTestCase extends TestCase

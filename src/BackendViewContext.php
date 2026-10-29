@@ -64,15 +64,15 @@ final readonly class BackendViewContext
     }
 
     /**
-     * The navigation of the request (`ActraBackend::createNavigation()` as yuf's navigation provider).
+     * The navigation of the request (`ActraBackend::createNavigationProvider()` as yuf's navigation provider).
      *
      * @throws LogicException without navigation provider
      */
     public function getNavigation(): NavigationItemCollection
     {
         return $this->viewContext->getNavigation() ?? throw new LogicException(
-            message: 'The backend needs a navigation: pass $actraBackend->createNavigation(...) as navigationProvider '
-                . 'to Core::prepareHttpResponse().',
+            message: 'The backend needs a navigation: configure the App with $actraBackend->configure(), or pass '
+                . '$actraBackend->createNavigationProvider() as navigationProvider to Core::prepareHttpResponse().',
         );
     }
 }

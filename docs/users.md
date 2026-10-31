@@ -137,3 +137,21 @@ if (!$myAuthUser->hasOneOfRights(accessRightCollection: $orderRights)) {
 
 An `UnauthorizedException` is thrown if the bearer token is missing, malformed, unknown or invalid, the API is off
 (`hasApi: false`), the user is inactive or has no right, or the request does not come from the user's IP whitelist.
+
+## Log of sent emails
+
+Every mail of the mailer of the `MailerSettings` is written to the table `sent_emails`: time, sender, recipients (to,
+cc, bcc) and subject, no content. `ActraBackend::create()` attaches the log to that mailer (yuf's
+`SentMailListener`), so it covers the mails of the backend (login codes, invitations, password reset links,
+notifications) and every mail the project sends with that mailer, also in CLI scripts. Create the backend once per
+mailer; a mailer of its own (not the one of the `MailerSettings`) is not logged.
+
+The page "Sent emails" (`sentEmails.html`, below "Users") lists them newest first and searches recipients, sender and
+subject. It needs the right `view_sent_emails`, which the group "Administrator" of `db/data.sql` has.
+
+An entry is written after the mail was handed over; a failed delivery is not logged. If the entry cannot be written
+(database error), the error is logged with the logger of `ActraBackend::create(logger:)` (required:
+`$app->getLogger()`, with `Core` `$core->createFileLogger()`; `null` as explicit opt-out writes it to PHP's
+`error_log()`) and the mail counts as sent, so nobody sends it again. A mail sent inside an open transaction
+of the backend's database connection is logged in that transaction. The table grows with every mail: delete old
+entries in the project if needed (`DELETE FROM sent_emails WHERE sent_at < …`).

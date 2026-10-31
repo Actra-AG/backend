@@ -12,7 +12,7 @@ namespace actra\backend\i18n;
 use actra\backend\settings\AuthTokenTypeEnum;
 
 /**
- * Texts of the visit and token logs.
+ * Texts of the visit, token and sent email logs.
  * Defaults are English, german() returns the German variant. Override single texts with `with()`.
  */
 final readonly class LogMessages
@@ -37,6 +37,14 @@ final readonly class LogMessages
         public string $authTokenTypePassword = 'Password reset',
         public string $authTokenTypeActivation = 'Activation',
         public string $authTokenTypeLogin = 'Login',
+        public string $sentEmailsNavigationTitle = 'Sent emails',
+        public string $sentEmailsPageTitle = 'Sent emails',
+        public string $sentEmailDateColumn = 'Sent',
+        public string $sentEmailFromColumn = 'From',
+        public string $sentEmailToColumn = 'To',
+        public string $sentEmailCcColumn = 'Cc',
+        public string $sentEmailBccColumn = 'Bcc',
+        public string $sentEmailSubjectColumn = 'Subject',
     ) {}
 
     public static function german(): LogMessages
@@ -59,6 +67,14 @@ final readonly class LogMessages
             authTokenTypePassword: 'Passwort-Reset',
             authTokenTypeActivation: 'Aktivierung',
             authTokenTypeLogin: 'Anmeldung',
+            sentEmailsNavigationTitle: 'E-Mails',
+            sentEmailsPageTitle: 'Gesendete E-Mails',
+            sentEmailDateColumn: 'Gesendet',
+            sentEmailFromColumn: 'Von',
+            sentEmailToColumn: 'An',
+            sentEmailCcColumn: 'Cc',
+            sentEmailBccColumn: 'Bcc',
+            sentEmailSubjectColumn: 'Betreff',
         );
     }
 

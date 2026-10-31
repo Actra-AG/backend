@@ -28,6 +28,7 @@ final class BackendRepositories
     private ?DbAuthUserNotificationRecipientRepository $notificationRecipients = null;
     private ?DbAuthUserNotificationRepository $notifications = null;
     private ?DbAuthUserRepository $users = null;
+    private ?DbSentEmailRepository $sentEmails = null;
 
     /**
      * @param Closure(): DB $connect
@@ -97,5 +98,10 @@ final class BackendRepositories
     public function users(): DbAuthUserRepository
     {
         return $this->users ??= new DbAuthUserRepository(db: $this->db());
+    }
+
+    public function sentEmails(): DbSentEmailRepository
+    {
+        return $this->sentEmails ??= new DbSentEmailRepository(db: $this->db());
     }
 }

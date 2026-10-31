@@ -18,6 +18,7 @@ use actra\backend\settings\TokenSendLimit;
 use actra\yuf\auth\LoginRateLimit;
 use actra\yuf\core\Language;
 use actra\yuf\core\LanguageCollection;
+use actra\yuf\core\Logger;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\AbstractMailer;
 use actra\yuf\mailer\SmtpMailer;
@@ -53,6 +54,7 @@ final class ActraBackendTestInstance
         ),
         string $path = '/backend/',
         string $viewGroup = 'backend',
+        ?Logger $logger = new RecordingLogger(),
     ): ActraBackend {
         return ActraBackend::create(
             path: $path,
@@ -82,6 +84,7 @@ final class ActraBackendTestInstance
                 signature: '',
                 mailer: $mailer,
             ),
+            logger: $logger,
             viewGroup: $viewGroup,
         );
     }

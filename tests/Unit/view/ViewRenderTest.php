@@ -13,8 +13,10 @@ use actra\backend\settings\AuthTokenTypeEnum;
 use actra\backend\tests\Double\BackendPageRenderer;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
+use actra\yuf\mailer\SentMail;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
+use DateTimeImmutable;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -54,6 +56,7 @@ final class ViewRenderTest extends TestCase
         'profileGenerateApiKey',
         'profileRemoveApiKey',
         'profileRemovePassword',
+        'sentEmails',
         'tokens',
         'user',
         'userAdd',
@@ -158,6 +161,53 @@ final class ViewRenderTest extends TestCase
 
         $this->assertStringContainsString('>Test User<', $html);
         $this->assertStringNotContainsString('[lastName]', $html);
+    }
+
+    /**
+     * The log of sent emails is searched in the recipients and the subject, newest first.
+     */
+    public function testSentEmailsAreSearchedByRecipient(): void
+    {
+        $session = new Session(storage: new ArraySessionStorage());
+        $this->logIn(session: $session, withPassword: true);
+        $sentEmails = $this->renderer->actraBackend->getRepositories()->sentEmails();
+        $recipient = ViewRenderTest::email(name: 'recipient');
+        $sentEmail = static fn(string $to, string $subject, string $sentAt): SentMail => new SentMail(
+            sentAt: new DateTimeImmutable(datetime: $sentAt),
+            fromEmail: 'backend@example.com',
+            toEmails: [$to],
+            ccEmails: [],
+            bccEmails: [],
+            subject: $subject,
+        );
+        $sentEmails->insert(sentMail: $sentEmail($recipient, 'Older mail', '2026-01-01 10:00:00'));
+        $sentEmails->insert(sentMail: $sentEmail($recipient, 'Newer mail', '2026-01-02 10:00:00'));
+        $sentEmails->insert(sentMail: $sentEmail(ViewRenderTest::email(name: 'other'), 'Other mail', 'now'));
+
+        $byRecipient = $this->renderer->render(
+            languageCode: 'en',
+            fileTitle: 'sentEmails',
+            pathVars: [],
+            session: $session,
+            postParameters: ['searchQuery' => $recipient],
+        );
+        $bySubject = $this->renderer->render(
+            languageCode: 'en',
+            fileTitle: 'sentEmails',
+            pathVars: [],
+            session: $session,
+            postParameters: ['searchQuery' => 'Older'],
+        );
+
+        $this->assertStringContainsString('>' . $recipient . '<', $byRecipient);
+        $this->assertStringNotContainsString('>Other mail<', $byRecipient);
+        $newer = strpos(haystack: $byRecipient, needle: '>Newer mail<');
+        $older = strpos(haystack: $byRecipient, needle: '>Older mail<');
+        $this->assertIsInt($newer);
+        $this->assertIsInt($older);
+        $this->assertLessThan($older, $newer);
+        $this->assertStringContainsString('>Older mail<', $bySubject);
+        $this->assertStringNotContainsString('>Newer mail<', $bySubject);
     }
 
     /**

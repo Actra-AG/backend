@@ -223,6 +223,25 @@ CREATE TABLE `auth_user_notification_recipients`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `sent_emails`
+--
+
+CREATE TABLE `sent_emails`
+(
+    `id`         int(10) UNSIGNED NOT NULL,
+    `sent_at`    datetime         NOT NULL,
+    `from_email` varchar(254)     NOT NULL,
+    `to_emails`  text             NOT NULL,
+    `cc_emails`  text             NOT NULL,
+    `bcc_emails` text             NOT NULL,
+    `subject`    text             NOT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
 --
 -- Indizes der exportierten Tabellen
 --
@@ -319,6 +338,13 @@ ALTER TABLE `auth_user_notification_recipients`
     ADD KEY `user_id` (`user_id`);
 
 --
+-- Indizes für die Tabelle `sent_emails`
+--
+ALTER TABLE `sent_emails`
+    ADD PRIMARY KEY (`id`),
+    ADD KEY `sent_at` (`sent_at`);
+
+--
 -- AUTO_INCREMENT für exportierte Tabellen
 --
 
@@ -381,6 +407,12 @@ ALTER TABLE `auth_user_notifications`
 --
 ALTER TABLE `auth_user_notification_recipients`
     MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `sent_emails`
+--
+ALTER TABLE `sent_emails`
+    MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints der exportierten Tabellen

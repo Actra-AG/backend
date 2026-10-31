@@ -2,6 +2,27 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.1.0 (2026-10-31)
+
+### ⚠️ Requires `actra/yuf` `~8.7.0`
+
+No migration needed for yuf v8.7.0 (yuf's `UPGRADE.md`): it adds `SentMailListener`, used for the log of sent emails.
+
+### ⚠️ Database: `db/updates/5.1.0.sql`, log of sent emails
+
+Apply `db/updates/5.1.0.sql` before deploying: every mail of the mailer of the `MailerSettings` is written to the new
+table `sent_emails` (time, sender, recipients, subject; [docs/users.md](docs/users.md#log-of-sent-emails)). Without
+the table, sending works, but every mail logs a database error.
+
+The new page "Sent emails" (`sentEmails.html`, navigation below "Users") needs the new right `view_sent_emails`; the
+update gives it to every group with `manage_users`. `sentEmails` is a reserved page name on the backend path.
+
+### ⚠️ `ActraBackend::create()`: required `logger:`
+
+Pass the logger of the application, so a failed entry of the log of sent emails lands in its tickets:
+`logger: $app->getLogger()` (with `Core`: the logger of `prepareHttpResponse()`, e.g. `$core->createFileLogger()`).
+`null` is the explicit opt-out (PHP's `error_log()`).
+
 ## v5.0.0 (2026-10-31)
 
 ### ⚠️ Requires `actra/yuf` `~8.6.0`

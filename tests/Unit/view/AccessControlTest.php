@@ -126,6 +126,32 @@ final class AccessControlTest extends TestCase
         $renderer->render(languageCode: 'de', fileTitle: 'userDelete', pathVars: [(string) $userId], session: $session);
     }
 
+    /**
+     * The log of sent emails needs its own right, not only `manage_users`.
+     */
+    public function testSentEmailsNeedTheirRight(): void
+    {
+        $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
+        $session = new Session(storage: new ArraySessionStorage());
+        $this->db->execute(sql: 'INSERT INTO auth_groups SET title=?', parameters: ['User managers']);
+        $groupId = $this->db->getLastInsertId();
+        foreach (['backend_access', 'manage_users'] as $rightName) {
+            $this->db->execute(
+                sql: 'INSERT INTO auth_group_right SET group_id=?, right_name=?',
+                parameters: [$groupId, $rightName],
+            );
+        }
+        $userId = $this->testUsers->create(email: AccessControlTest::email(), withRights: false);
+        $this->db->execute(
+            sql: 'INSERT INTO auth_group_user SET user_id=?, group_id=?',
+            parameters: [$userId, $groupId],
+        );
+        $renderer->logIn(session: $session, userId: $userId);
+
+        $this->expectException(UnauthorizedException::class);
+        $renderer->render(languageCode: 'de', fileTitle: 'sentEmails', pathVars: [], session: $session);
+    }
+
     public function testUserManagerEditsUsersWithMoreRights(): void
     {
         $renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());

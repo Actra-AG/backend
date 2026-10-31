@@ -16,7 +16,7 @@ password login, and one-time tokens sent via email.
 - **User Notifications**: Send email notifications to specific user groups directly from the backend.
 - **Role-Based Access Control**: Basic functionality to manage user permissions.
 - **IP Whitelisting**: Additional security layer to restrict backend access.
-- **Activity Monitoring**: Track visits and token usage.
+- **Activity Monitoring**: Track visits, token usage and sent emails.
 - **Responsive UI**: Built-in HTML templates and frontend assets for common backend tasks.
 
 ## Requirements
@@ -145,6 +145,8 @@ $actraBackend = ActraBackend::create(
             port: $core->environmentSettings->getInt(key: 'mailer.port'),
         ),
     ),
+    // Required, null as explicit opt-out (error_log()): logs a failed entry of the log of sent emails
+    logger: $app->getLogger(),
     viewGroup: 'backend', // Optional, this default: the project views in app/view/backend/
     defaultFileTitle: 'login', // Optional, this default: the page of the path itself
 );
@@ -216,7 +218,7 @@ response time does not tell whether an email address exists.
   in views (`configure(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
 - [Languages](docs/languages.md): one path for all languages, language of the request, switcher, own texts.
 - [Users and API keys](docs/users.md): user deletion handler, user managers and impersonation, IP whitelists,
-  login codes, reset links and lock-out, send limit, login rate limit, API key authentication.
+  login codes, reset links and lock-out, send limit, login rate limit, API key authentication, log of sent emails.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.
 - [UPGRADE.md](UPGRADE.md): changes and migration instructions.
 

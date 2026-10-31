@@ -18,9 +18,11 @@ use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\ClientData;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\email\Mailer;
+use actra\backend\libs\email\SentEmailLogger;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
 use actra\backend\view\backend\php\notifications;
+use actra\backend\view\backend\php\sentEmails;
 use actra\backend\view\backend\php\tokens;
 use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
@@ -33,6 +35,7 @@ use actra\yuf\core\HttpResponse;
 use actra\yuf\core\HttpStatusCodeEnum;
 use actra\yuf\core\Language;
 use actra\yuf\core\LanguageCollection;
+use actra\yuf\core\Logger;
 use actra\yuf\core\RequestLanguageProvider;
 use actra\yuf\core\ResponseSender;
 use actra\yuf\core\Route;
@@ -52,6 +55,7 @@ final class ActraBackend
 {
     public const string RIGHT_BACKEND_ACCESS = 'backend_access';
     public const string RIGHT_MANAGE_USERS = 'manage_users';
+    public const string RIGHT_VIEW_SENT_EMAILS = 'view_sent_emails';
     private const string NAVIGATION_SVG_PATH_USERS
         = 'M2 22C2 17.5817 5.58172 14 10 14C14.4183 14 18 17.5817 18 22H16C16 18.6863 13.3137 16 10 16'
         . 'C6.68629 16 4 18.6863 4 22H2ZM10 13C6.685 13 4 10.315 4 7C4 3.685 6.685 1 10 1'
@@ -94,6 +98,11 @@ final class ActraBackend
      *     page of the project (the login page is then `login.html`)
      * @param LanguageCollection $languages The languages of the application: `$app->core->availableLanguages` (`App`
      *     adds its languages when it runs) or `$core->availableLanguages`
+     * @param MailerSettings $mailerSettings Every mail of its mailer is written to the log of sent emails (page
+     *     "Sent emails", table `sent_emails`), also the mails the project sends with the mailer directly; create the
+     *     backend once per mailer
+     * @param ?Logger $logger Logs an entry of the log of sent emails that could not be written (`$app->getLogger()`,
+     *     `$core->createFileLogger()`); `null` as explicit opt-out: PHP's `error_log()`
      */
     public static function create(
         string $path,
@@ -101,11 +110,12 @@ final class ActraBackend
         ActraBackendSettings $actraBackendSettings,
         DbSettings $dbSettings,
         MailerSettings $mailerSettings,
+        ?Logger $logger,
         string $viewGroup = 'backend',
         string $defaultFileTitle = BackendPaths::LOGIN_FILE_TITLE,
         ?string $templateDirectory = null,
     ): ActraBackend {
-        return new ActraBackend(
+        $actraBackend = new ActraBackend(
             path: $path,
             viewGroup: $viewGroup,
             defaultFileTitle: $defaultFileTitle,
@@ -115,6 +125,11 @@ final class ActraBackend
             mailerSettings: $mailerSettings,
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',
         );
+        $mailerSettings->mailer->addSentMailListener(
+            sentMailListener: new SentEmailLogger(repositories: $actraBackend->getRepositories(), logger: $logger),
+        );
+
+        return $actraBackend;
     }
 
     /**
@@ -436,6 +451,7 @@ final class ActraBackend
         $childNavigation->addItem(navigationItem: users::getNavigationItem(paths: $paths, messages: $messages));
         $childNavigation->addItem(navigationItem: tokens::getNavigationItem(paths: $paths, messages: $messages));
         $childNavigation->addItem(navigationItem: visits::getNavigationItem(paths: $paths, messages: $messages));
+        $childNavigation->addItem(navigationItem: sentEmails::getNavigationItem(paths: $paths, messages: $messages));
         $childNavigation->addItem(
             navigationItem: notifications::getNavigationItem(paths: $paths, messages: $messages),
         );

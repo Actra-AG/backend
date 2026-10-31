@@ -116,6 +116,11 @@ final readonly class BackendPaths
         return $this->path . 'profileRemovePassword.html';
     }
 
+    public function sentEmails(): string
+    {
+        return $this->path . 'sentEmails.html';
+    }
+
     public function tokens(?int $userId): string
     {
         return $this->path . ($userId === null ? 'tokens.html' : 'tokens-' . $userId . '.html');

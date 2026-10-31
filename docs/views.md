@@ -34,7 +34,7 @@ an own `login`; it then has to do what the page does):
 `language`, `login`, `loginPassword`, `loginPasswordToken`, `loginToken`, `logout`, `notification`, `notificationSend`,
 `notifications`, `passwordForgotten`, `passwordForgottenRes`, `passwordReset`, `passwordResetRes`, `profile`,
 `profileChangePassword`, `profileCreatePassword`, `profileGenerateApiKey`, `profileRemoveApiKey`,
-`profileRemovePassword`, `tokens`, `user`, `userAdd`, `userDelete`, `userGenerateApiKey`, `userImpersonate`,
+`profileRemovePassword`, `sentEmails`, `tokens`, `user`, `userAdd`, `userDelete`, `userGenerateApiKey`, `userImpersonate`,
 `userImpersonateEnd`, `userInvite`, `userMod`, `userRemoveApiKey`, `users`, `visits`.
 
 ### Further routes

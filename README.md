@@ -82,7 +82,6 @@ use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\App;
 use actra\yuf\auth\LoginRateLimit;
-use actra\yuf\core\FileLogger;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\SmtpEncryptionEnum;
 use actra\yuf\mailer\SmtpMailer;
@@ -93,15 +92,9 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $app = App::fromEnvironment(envFilePath: __DIR__ . '/../.env.php', copyrightYear: 2026)
     ->withLanguage(code: 'en', locale: 'en_GB')
-    ->withHtmlRoute(path: '/', viewGroup: 'frontend');
+    ->withHtmlRoute(path: '/', viewGroup: 'frontend')
+    ->withFileLogger(); // yuf's FileLogger, optionally with a mailer
 $core = $app->core;
-// The logger of the project, also for the App (yuf's default is the same FileLogger without mailer)
-$logger = new FileLogger(
-    logEmailRecipient: $core->environmentSettings->logEmailRecipient,
-    logDirectory: $core->logDirectory,
-    httpRequest: $core->httpRequest,
-    mailer: null,
-);
 
 $actraBackend = ActraBackend::create(
     path: '/backend/', // The URL path where the backend will be accessible
@@ -124,7 +117,7 @@ $actraBackend = ActraBackend::create(
                 secret: $core->environmentSettings->getString(key: 'rateLimit.secret'),
             ),
             failMode: RateLimitFailModeEnum::CLOSED,
-            logger: $logger,
+            logger: $app->getLogger(),
         ),
         maxAllowedLoginAttempts: 5, // Optional, defaults to 5
         frontendHref: 'https://example.com', // Optional
@@ -137,7 +130,7 @@ $actraBackend = ActraBackend::create(
         senderEmail: 'noreply@example.com',
         senderName: 'My Project',
         signature: 'Best regards, Your Team',
-        // Or GraphMailer for Microsoft 365 (yuf's docs/mail.md); the same mailer can serve the FileLogger
+        // Or GraphMailer for Microsoft 365 (yuf's docs/mail.md); the same mailer can serve withFileLogger()
         mailer: new SmtpMailer(
             serverAddress: $core->httpRequest->getServerAddress(),
             hostName: $core->environmentSettings->getString(key: 'mailer.hostname'),
@@ -153,7 +146,7 @@ $actraBackend = ActraBackend::create(
     ),
 );
 
-$actraBackend->configure(app: $app->withLogger(logger: $logger))->run();
+$actraBackend->configure(app: $app)->run();
 ```
 
 `App` has one navigation: the routes with the view factory of the backend (its own routes and the project routes with
@@ -176,6 +169,7 @@ Projects that call `Core::prepareHttpResponse()` themselves create the backend t
 login path and the navigation provider:
 
 ```php
+$logger = $core->createFileLogger(); // yuf's FileLogger, also for LoginRateLimit
 $core->prepareHttpResponse(
     logger: $logger,
     routeCollection: new RouteCollection(

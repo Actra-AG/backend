@@ -68,9 +68,12 @@ in [UPGRADE.md](UPGRADE.md).
 
 Create the backend with `ActraBackend::create()` in the front controller and add it to yuf's
 [`App`](https://github.com/Actra-AG/yuf/blob/main/docs/setup.md#application-entry-point) with `configure()`: it
-adds the backend routes, the login page as login path (visitors without login are sent there and back to the requested
-page afterwards; one login page for all language routes) and the navigation. Keep the instance: the routes of project
-views based on `BackendView` need it ([docs/views.md](docs/views.md)). The backend has no global state; everything a
+adds the backend route, the profile language of the logged-in user as language of the request, the login page as login
+path (visitors without login are sent there and back to the requested page afterwards) and the navigation. The backend
+route serves the pages of the backend (login, users, profile, …) and the project views of its view group
+(`app/view/backend/`) under one path for all languages ([docs/views.md](docs/views.md),
+[docs/languages.md](docs/languages.md)): `/` for an application that is only a backend, e.g. `/backend/` next to a
+frontend. The backend has no global state; everything a
 view needs comes through its `BackendViewContext`.
 
 ### With `App`
@@ -97,11 +100,9 @@ $app = App::fromEnvironment(envFilePath: __DIR__ . '/../.env.php', copyrightYear
 $core = $app->core;
 
 $actraBackend = ActraBackend::create(
-    path: '/backend/', // The URL path where the backend will be accessible
-    isDefaultForLanguage: false, // true: "/" redirects to the backend (the language must have no other default route)
+    path: '/backend/', // The URL path of the backend pages and of the project views of viewGroup
+    languages: $app->core->availableLanguages, // The languages of the App (withLanguage())
     actraBackendSettings: new ActraBackendSettings(
-        // The Language object of the App (not a new Language): App::withRoute() throws otherwise
-        language: $app->getLanguage(code: 'en'),
         ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
         backendName: 'My Project Backend',
         javaScriptPaths: [
@@ -144,12 +145,14 @@ $actraBackend = ActraBackend::create(
             port: $core->environmentSettings->getInt(key: 'mailer.port'),
         ),
     ),
+    viewGroup: 'backend', // Optional, this default: the project views in app/view/backend/
+    defaultFileTitle: 'login', // Optional, this default: the page of the path itself
 );
 
 $actraBackend->configure(app: $app)->run();
 ```
 
-`App` has one navigation: the routes with the view factory of the backend (its own routes and the project routes with
+`App` has one navigation: the routes with the view factory of the backend (its own route and the project routes with
 `createViewFactory()`) get the backend navigation (project items: `ActraBackendSettings::$projectNavigation`), all
 other routes get an empty one. A project with its own frontend navigation passes it to `configure()`:
 
@@ -160,24 +163,27 @@ $actraBackend->configure(
 )->run();
 ```
 
-The backend routes accept `.html` only and show the login page for the path itself (`/backend/` and
-`/backend/login.html`, no redirect between them), as before `App`.
+The backend route accepts `.html` only and shows the page of `defaultFileTitle` for the path itself (`/backend/` and
+`/backend/login.html`, no redirect between them). Former backend paths can redirect to it permanently:
+`configure(app: $app, formerPaths: ['/auth/'])` (`/auth/users.html?reset` → `/backend/users.html?reset`).
 
 ### With `Core`
 
-Projects that call `Core::prepareHttpResponse()` themselves create the backend the same way and add its routes, the
-login path and the navigation provider:
+Projects that call `Core::prepareHttpResponse()` themselves create the backend the same way (`languages:
+$core->availableLanguages`) and add its route, the login path, the navigation provider and the request language
+provider:
 
 ```php
 $logger = $core->createFileLogger(); // yuf's FileLogger, also for LoginRateLimit
 $core->prepareHttpResponse(
     logger: $logger,
     routeCollection: new RouteCollection(
-        routes: [...$projectRoutes, ...$actraBackend->createRoutes()],
+        routes: [...$projectRoutes, ...$actraBackend->createRoutes(viewDirectory: $core->viewDirectory)],
         loginPath: $actraBackend->getLoginPath(),
     ),
     // $frontendNavigation: the navigation of the other routes (see "With App"), null: none
     navigationProvider: $actraBackend->createNavigationProvider(frontendNavigation: null),
+    requestLanguageProvider: $actraBackend->createRequestLanguageProvider(),
 );
 ```
 
@@ -207,8 +213,8 @@ response time does not tell whether an email address exists.
 
 - [Assets](docs/assets.md): CSS, JavaScript, fonts and message blocks.
 - [Project views](docs/views.md): views, tables and search forms of the project in the backend, project services
-  in views (`createViewFactory(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
-- [Languages](docs/languages.md): language of the backend, additional language routes, own texts.
+  in views (`configure(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
+- [Languages](docs/languages.md): one path for all languages, language of the request, switcher, own texts.
 - [Users and API keys](docs/users.md): user deletion handler, user managers and impersonation, IP whitelists,
   login codes, reset links and lock-out, send limit, login rate limit, API key authentication.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.

@@ -15,7 +15,8 @@ use actra\yuf\form\component\field\SelectOptionsField;
 use actra\yuf\html\HtmlText;
 
 /**
- * Select for the language of a backend user. The empty option means "language of the main route" (stored as NULL).
+ * Select for the language of a backend user. The empty option means "language of the session or the browser" (stored
+ * as NULL).
  */
 final class LanguageField extends SelectOptionsField
 {

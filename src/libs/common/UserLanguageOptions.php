@@ -10,35 +10,34 @@ declare(strict_types=1);
 namespace actra\backend\libs\common;
 
 use actra\backend\BackendViewContext;
-use actra\backend\i18n\MessageTemplate;
-use actra\backend\settings\BackendRouteCollection;
+use actra\yuf\core\LanguageCollection;
 use actra\yuf\form\FormOptions;
 use actra\yuf\html\HtmlText;
 use Locale;
 
 /**
- * The languages a backend user can choose from (the languages of the backend routes) with their display names.
+ * The languages a backend user can choose from (the languages of the backend) with their display names.
  *
  * @internal
  */
 final readonly class UserLanguageOptions
 {
     /**
-     * @param string $displayLocale The locale the language names are written in (the language of the current route)
-     * @param string $defaultTemplate Text for "no language", with the placeholder `[language]` (main route language)
+     * @param string $displayLocale The locale the language names are written in (the language of the request)
+     * @param string $defaultLabel Text for "no language": the language of the session or the browser
      */
     public function __construct(
-        private BackendRouteCollection $backendRouteCollection,
+        private LanguageCollection $languages,
         private string $displayLocale,
-        private string $defaultTemplate,
+        private string $defaultLabel,
     ) {}
 
     public static function forContext(BackendViewContext $context): UserLanguageOptions
     {
         return new UserLanguageOptions(
-            backendRouteCollection: $context->actraBackend->backendRouteCollection,
-            displayLocale: $context->route->language->locale,
-            defaultTemplate: $context->messages->common->languageDefault,
+            languages: $context->actraBackend->languages,
+            displayLocale: $context->language->locale,
+            defaultLabel: $context->messages->common->languageDefault,
         );
     }
 
@@ -47,16 +46,16 @@ final readonly class UserLanguageOptions
      */
     public function isSelectable(): bool
     {
-        return count(value: $this->backendRouteCollection->listLanguageCodes()) > 1;
+        return $this->languages->isMultiLang();
     }
 
     public function createFormOptions(): FormOptions
     {
         $formOptions = new FormOptions();
-        foreach ($this->backendRouteCollection->listLanguageCodes() as $languageCode) {
+        foreach ($this->languages->languages as $language) {
             $formOptions->addItem(
-                key: $languageCode,
-                htmlText: HtmlText::fromText(text: $this->getDisplayName(languageCode: $languageCode)),
+                key: $language->code,
+                htmlText: HtmlText::fromText(text: $this->getDisplayName(languageCode: $language->code)),
             );
         }
 
@@ -76,18 +75,11 @@ final readonly class UserLanguageOptions
     }
 
     /**
-     * The text for "no language": the user gets the language of the main route.
+     * The text for "no language": the user gets the language of the session or the browser.
      */
     public function getDefaultLabel(): string
     {
-        return MessageTemplate::fill(
-            template: $this->defaultTemplate,
-            values: [
-                'language' => $this->getDisplayName(
-                    languageCode: $this->backendRouteCollection->getMainRoute()->language->code,
-                ),
-            ],
-        );
+        return $this->defaultLabel;
     }
 
     /**

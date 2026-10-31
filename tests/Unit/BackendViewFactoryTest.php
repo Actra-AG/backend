@@ -14,10 +14,11 @@ use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 use actra\backend\BackendViewFactory;
 use actra\backend\tests\Double\ActraBackendTestInstance;
+use actra\backend\tests\Double\view\factory\php\logout as ProjectLogout;
 use actra\backend\tests\Double\view\factory\php\PlainView;
 use actra\backend\tests\Double\view\factory\php\ProjectBackendView;
 use actra\backend\tests\Double\ViewContextFactory;
-use actra\backend\view\backend\php\logout;
+use actra\backend\view\backend\php\login;
 use actra\yuf\core\Route;
 use actra\yuf\core\ViewContext;
 use LogicException;
@@ -25,11 +26,15 @@ use PHPUnit\Framework\TestCase;
 
 final class BackendViewFactoryTest extends TestCase
 {
-    private function createContext(string $fileTitle): ViewContext
+    /**
+     * A request on the backend route `/factory/` (project views of `tests/Double/view/factory/php/`), or on another
+     * route of the project.
+     */
+    private function createContext(string $fileTitle, string $path = '/factory/'): ViewContext
     {
         return ViewContextFactory::create(
             route: new Route(
-                path: '/factory/',
+                path: $path,
                 viewDirectory: __DIR__,
                 viewClassPrefix: 'actra\\backend\\tests\\Double',
                 viewGroup: 'factory',
@@ -43,7 +48,7 @@ final class BackendViewFactoryTest extends TestCase
     #[\Override]
     protected function setUp(): void
     {
-        $this->actraBackend = ActraBackendTestInstance::create();
+        $this->actraBackend = ActraBackendTestInstance::create(path: '/factory/', viewGroup: 'factory');
     }
 
     private function createFactory(): BackendViewFactory
@@ -117,20 +122,42 @@ final class BackendViewFactoryTest extends TestCase
     public function testViewsOfTheBackendIgnoreTheCreateClosure(): void
     {
         $calls = [];
-        $context = ViewContextFactory::create(
-            route: new Route(
-                path: '/backend/',
-                viewDirectory: __DIR__,
-                viewClassPrefix: 'actra\\backend',
-                viewGroup: ActraBackend::VIEW_GROUP,
-            ),
-            fileTitle: 'logout',
+
+        $view = $this->createFactoryWithClosure(calls: $calls)->createView(
+            context: $this->createContext(fileTitle: 'login'),
         );
 
-        $view = $this->createFactoryWithClosure(calls: $calls)->createView(context: $context);
-
         $this->assertSame([], $calls);
-        $this->assertInstanceOf(logout::class, $view);
+        $this->assertInstanceOf(login::class, $view);
+    }
+
+    public function testBackendRouteServesThePagesOfTheBackend(): void
+    {
+        $context = $this->createContext(fileTitle: 'login');
+
+        $view = $this->createFactory()->createView(context: $context);
+
+        $this->assertInstanceOf(login::class, $view);
+    }
+
+    public function testProjectViewReplacesThePageOfTheBackend(): void
+    {
+        $view = $this->createFactory()->createView(context: $this->createContext(fileTitle: 'logout'));
+
+        $this->assertInstanceOf(ProjectLogout::class, $view);
+    }
+
+    public function testOtherRoutesDoNotServeThePagesOfTheBackend(): void
+    {
+        $this->assertNull(
+            $this->createFactory()->createView(context: $this->createContext(fileTitle: 'login', path: '/other/')),
+        );
+    }
+
+    public function testFileTitleThatIsNoClassNameHasNoPageOfTheBackend(): void
+    {
+        $this->assertNull($this->createFactory()->createView(context: $this->createContext(fileTitle: 'log-in')));
+        $this->assertNull($this->createFactory()->createView(context: $this->createContext(fileTitle: 'BackendView')));
     }
 
     public function testFileWithoutClassHasNoView(): void

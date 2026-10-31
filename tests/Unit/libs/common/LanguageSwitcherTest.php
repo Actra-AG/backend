@@ -11,58 +11,50 @@ namespace actra\backend\tests\Unit\libs\common;
 
 use actra\backend\libs\common\LanguageSwitcher;
 use actra\backend\libs\common\LanguageSwitcherEntry;
-use actra\backend\settings\BackendRoute;
-use actra\backend\settings\BackendRouteCollection;
 use actra\yuf\core\Language;
+use actra\yuf\core\LanguageCollection;
 use PHPUnit\Framework\TestCase;
 
 final class LanguageSwitcherTest extends TestCase
 {
-    private function createRoute(string $path, string $languageCode): BackendRoute
-    {
-        return new BackendRoute(path: $path, language: new Language(code: $languageCode, locale: $languageCode));
-    }
-
     /**
-     * @param list<BackendRoute> $additionalRoutes
+     * @param list<string> $languageCodes
      */
     private function createSwitcher(
+        array $languageCodes,
         string $currentUri,
-        array $additionalRoutes,
-        int $currentIndex = 0,
+        string $currentLanguageCode = 'de',
+        string $switchPath = '/backend/language.html',
     ): LanguageSwitcher {
-        $mainRoute = $this->createRoute(path: '/backend/', languageCode: 'de');
-        $collection = new BackendRouteCollection(mainRoute: $mainRoute, additionalRoutes: $additionalRoutes);
-
         return new LanguageSwitcher(
-            backendRouteCollection: $collection,
-            currentRoute: $collection->routes[$currentIndex]
-                ?? LanguageSwitcherTest::fail('No route at index ' . $currentIndex),
+            languages: new LanguageCollection(languages: array_map(
+                callback: static fn(string $code): Language => new Language(code: $code, locale: $code),
+                array: $languageCodes,
+            )),
+            currentLanguage: new Language(code: $currentLanguageCode, locale: $currentLanguageCode),
+            switchPath: $switchPath,
             currentUri: $currentUri,
         );
     }
 
-    public function testIsNotAvailableWithOneRoute(): void
+    public function testIsNotAvailableWithOneLanguage(): void
     {
-        $switcher = $this->createSwitcher(currentUri: '/backend/', additionalRoutes: []);
+        $switcher = $this->createSwitcher(languageCodes: ['de'], currentUri: '/backend/');
 
         $this->assertFalse($switcher->isAvailable());
     }
 
-    public function testEntriesLinkTheSamePageUnderEveryRoute(): void
+    public function testEntriesSwitchTheLanguageAndLeadBackToThePage(): void
     {
-        $switcher = $this->createSwitcher(
-            currentUri: '/backend/user-5.html',
-            additionalRoutes: [$this->createRoute(path: '/en/backend/', languageCode: 'en')],
-        );
+        $switcher = $this->createSwitcher(languageCodes: ['de', 'en'], currentUri: '/backend/user-5.html');
 
         $entries = $switcher->createEntries();
 
         $this->assertTrue($switcher->isAvailable());
         $this->assertSame(
             [
-                ['de', 'Deutsch', '/backend/user-5.html', true],
-                ['en', 'English', '/en/backend/user-5.html', false],
+                ['de', 'Deutsch', '/backend/language.html?language=de&returnTo=%2Fbackend%2Fuser-5.html', true],
+                ['en', 'English', '/backend/language.html?language=en&returnTo=%2Fbackend%2Fuser-5.html', false],
             ],
             $this->describeEntries(entries: $entries),
         );
@@ -71,35 +63,46 @@ final class LanguageSwitcherTest extends TestCase
     public function testQueryIsNotCarriedOver(): void
     {
         $switcher = $this->createSwitcher(
-            currentUri: '/en/backend/profile.html?generateApiKey=1',
-            additionalRoutes: [$this->createRoute(path: '/en/backend/', languageCode: 'en')],
-            currentIndex: 1,
+            languageCodes: ['de', 'en'],
+            currentUri: '/backend/profile.html?generateApiKey=1',
+            currentLanguageCode: 'en',
         );
 
         $entries = $switcher->createEntries();
 
         $this->assertSame(
             [
-                ['de', 'Deutsch', '/backend/profile.html', false],
-                ['en', 'English', '/en/backend/profile.html', true],
+                ['de', 'Deutsch', '/backend/language.html?language=de&returnTo=%2Fbackend%2Fprofile.html', false],
+                ['en', 'English', '/backend/language.html?language=en&returnTo=%2Fbackend%2Fprofile.html', true],
             ],
             $this->describeEntries(entries: $entries),
         );
     }
 
-    public function testRenderCreatesOneDataObjectPerEntryWithEncodedValues(): void
+    public function testSwitchPathWithCsrfTokenKeepsItsQuery(): void
     {
         $switcher = $this->createSwitcher(
-            currentUri: '/backend/?a=1',
-            additionalRoutes: [$this->createRoute(path: '/fr/backend/', languageCode: 'fr')],
+            languageCodes: ['de', 'en'],
+            currentUri: '/backend/users.html',
+            switchPath: '/backend/language.html?csrf=token',
         );
+
+        $this->assertSame(
+            '/backend/language.html?csrf=token&language=en&returnTo=%2Fbackend%2Fusers.html',
+            array_last(array: $switcher->createEntries())?->href,
+        );
+    }
+
+    public function testRenderCreatesOneDataObjectPerEntryWithEncodedValues(): void
+    {
+        $switcher = $this->createSwitcher(languageCodes: ['de', 'fr'], currentUri: '/backend/?a=1');
 
         $data = $switcher->render()->items;
 
         $this->assertCount(2, $data);
         $french = $data[1]->toTemplateData();
         $this->assertSame('Français', $french->label);
-        $this->assertSame('/fr/backend/', $french->href);
+        $this->assertSame('/backend/language.html?language=fr&amp;returnTo=%2Fbackend%2F', $french->href);
         $this->assertFalse($french->isCurrent);
     }
 

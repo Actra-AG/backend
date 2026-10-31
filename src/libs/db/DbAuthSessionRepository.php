@@ -85,6 +85,29 @@ final class DbAuthSessionRepository
         return $row === null ? null : $this->createDbAuthSession(row: $row);
     }
 
+    /**
+     * The profile language of the user of an auth session: during an impersonation that of the impersonating user (of
+     * the parent session); `null` for a user without language or an unknown session.
+     */
+    public function findLanguageCode(int $id): ?string
+    {
+        $row = $this->db->selectRow(
+            sql: '
+                SELECT auth_users.language
+                FROM auth_sessions
+                    LEFT JOIN auth_sessions AS parent_sessions ON parent_sessions.id=auth_sessions.parent_id
+                    INNER JOIN auth_users
+                        ON auth_users.id=COALESCE(parent_sessions.user_id, auth_sessions.user_id)
+                WHERE auth_sessions.id=?
+            ',
+            parameters: [
+                $id,
+            ],
+        );
+
+        return $row?->getNullableString(column: 'language');
+    }
+
     private function createDbAuthSession(DbRow $row): DbAuthSession
     {
         $passwordSalt = $row->getNullableString(column: 'password_salt');

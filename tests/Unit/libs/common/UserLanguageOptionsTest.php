@@ -10,39 +10,30 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\common;
 
 use actra\backend\libs\common\UserLanguageOptions;
-use actra\backend\settings\BackendRoute;
-use actra\backend\settings\BackendRouteCollection;
 use actra\yuf\core\Language;
+use actra\yuf\core\LanguageCollection;
 use actra\yuf\form\FormOption;
 use PHPUnit\Framework\TestCase;
 
 final class UserLanguageOptionsTest extends TestCase
 {
     /**
-     * @param list<string> $additionalLanguageCodes
+     * @param list<string> $additionalLanguageCodes The languages after German
      */
     private function createOptions(
         array $additionalLanguageCodes,
         string $displayLocale = 'de_CH',
     ): UserLanguageOptions {
-        $additionalRoutes = array_map(
-            callback: static fn(string $languageCode): BackendRoute => new BackendRoute(
-                path: '/' . $languageCode . '/backend/',
-                language: new Language(code: $languageCode, locale: $languageCode),
-            ),
-            array: $additionalLanguageCodes,
-        );
-
         return new UserLanguageOptions(
-            backendRouteCollection: new BackendRouteCollection(
-                mainRoute: new BackendRoute(
-                    path: '/backend/',
-                    language: new Language(code: 'de', locale: 'de_CH'),
+            languages: new LanguageCollection(languages: array_map(
+                callback: static fn(string $languageCode): Language => new Language(
+                    code: $languageCode,
+                    locale: $languageCode,
                 ),
-                additionalRoutes: $additionalRoutes,
-            ),
+                array: ['de', ...$additionalLanguageCodes],
+            )),
             displayLocale: $displayLocale,
-            defaultTemplate: 'Standard ([language])',
+            defaultLabel: 'Automatisch',
         );
     }
 
@@ -71,7 +62,7 @@ final class UserLanguageOptionsTest extends TestCase
         $this->assertSame('Allemand', $options->getDisplayName(languageCode: 'de'));
     }
 
-    public function testFormOptionsContainTheLanguageOfEveryRoute(): void
+    public function testFormOptionsContainEveryLanguage(): void
     {
         $formOptions = $this->createOptions(additionalLanguageCodes: ['en', 'fr'])->createFormOptions();
 
@@ -83,19 +74,11 @@ final class UserLanguageOptionsTest extends TestCase
         $this->assertSame('Französisch', $french->htmlText->render());
     }
 
-    public function testDefaultLabelNamesTheLanguageOfTheMainRoute(): void
-    {
-        $this->assertSame(
-            'Standard (Deutsch)',
-            $this->createOptions(additionalLanguageCodes: ['en'])->getDefaultLabel(),
-        );
-    }
-
     public function testRenderReturnsDefaultLabelWithoutLanguage(): void
     {
         $options = $this->createOptions(additionalLanguageCodes: ['en']);
 
-        $this->assertSame('Standard (Deutsch)', $options->render(languageCode: null));
+        $this->assertSame('Automatisch', $options->render(languageCode: null));
         $this->assertSame('Englisch', $options->render(languageCode: 'en'));
     }
 }

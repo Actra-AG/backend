@@ -10,13 +10,14 @@ declare(strict_types=1);
 namespace actra\backend\tests\Double;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\BackendMessages;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\BackendNavigation;
-use actra\backend\settings\BackendRoute;
 use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\auth\LoginRateLimit;
 use actra\yuf\core\Language;
+use actra\yuf\core\LanguageCollection;
 use actra\yuf\db\DbSettings;
 use actra\yuf\mailer\AbstractMailer;
 use actra\yuf\mailer\SmtpMailer;
@@ -28,16 +29,18 @@ use actra\yuf\mailer\SmtpMailer;
 final class ActraBackendTestInstance
 {
     /**
-     * @param list<BackendRoute> $additionalRoutes
      * @param list<string> $ipWhitelist The global IP whitelist of the backend
-     * @param Language $language The language of the main route `/backend/`
+     * @param ?LanguageCollection $languages The languages of the application; default: German only
+     * @param array<string, BackendMessages> $messages Own texts by language code
+     * @param string $path The backend path
+     * @param string $viewGroup The view group of the project views on the backend route
      */
     public static function create(
         ?DbSettings $dbSettings = null,
-        Language $language = new Language(code: 'de', locale: 'de_CH.UTF-8'),
+        ?LanguageCollection $languages = null,
         ?BackendNavigation $projectNavigation = null,
         bool $hasApi = false,
-        array $additionalRoutes = [],
+        array $messages = [],
         ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
         array $ipWhitelist = [],
         ?LoginRateLimit $loginRateLimit = null,
@@ -48,19 +51,22 @@ final class ActraBackendTestInstance
             smtpPassword: 'example',
             serverNameCache: null,
         ),
+        string $path = '/backend/',
+        string $viewGroup = 'backend',
     ): ActraBackend {
         return ActraBackend::create(
-            path: '/backend/',
-            isDefaultForLanguage: false,
+            path: $path,
+            languages: $languages ?? new LanguageCollection(
+                languages: [new Language(code: 'de', locale: 'de_CH.UTF-8')],
+            ),
             actraBackendSettings: new ActraBackendSettings(
-                language: $language,
                 ipWhitelist: $ipWhitelist,
                 backendName: 'Test backend',
                 javaScriptPaths: [],
                 stylesPaths: [],
                 loginRateLimit: $loginRateLimit,
                 hasApi: $hasApi,
-                additionalRoutes: $additionalRoutes,
+                messages: $messages,
                 projectNavigation: $projectNavigation,
                 tokenSendLimit: $tokenSendLimit,
             ),
@@ -76,6 +82,7 @@ final class ActraBackendTestInstance
                 signature: '',
                 mailer: $mailer,
             ),
+            viewGroup: $viewGroup,
         );
     }
 }

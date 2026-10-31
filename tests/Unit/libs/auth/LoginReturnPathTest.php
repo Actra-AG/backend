@@ -15,6 +15,8 @@ use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpRequest;
+use actra\yuf\core\Language;
+use actra\yuf\core\LanguageCollection;
 use actra\yuf\core\LoginRedirect;
 use actra\yuf\core\Route;
 use DateTimeImmutable;
@@ -41,7 +43,31 @@ final class LoginReturnPathTest extends TestCase
     #[DataProvider('returnTargets')]
     public function testFirstAllowedPage(?string $returnTo, string $expected): void
     {
-        $actraBackend = ActraBackendTestInstance::create();
+        $this->assertSame($expected, $this->findFirstAllowedPage(returnTo: $returnTo, languageCode: null));
+    }
+
+    /**
+     * One path for all languages: a user with a language stays on the path (v4 moved the user to the route of the
+     * language), the next request gets the language from the profile (`ProfileLanguageProvider`).
+     */
+    public function testUserWithLanguageKeepsThePath(): void
+    {
+        $this->assertSame(
+            '/backend/user-5.html',
+            $this->findFirstAllowedPage(returnTo: '/backend/user-5.html', languageCode: 'en'),
+        );
+        $this->assertSame(
+            '/backend/users.html?reset',
+            $this->findFirstAllowedPage(returnTo: null, languageCode: 'en'),
+        );
+    }
+
+    private function findFirstAllowedPage(?string $returnTo, ?string $languageCode): string
+    {
+        $actraBackend = ActraBackendTestInstance::create(languages: new LanguageCollection(languages: [
+            new Language(code: 'de', locale: 'de_CH.UTF-8'),
+            new Language(code: 'en', locale: 'en_GB.UTF-8'),
+        ]));
         $context = $actraBackend->createContext(
             viewContext: ViewContextFactory::create(
                 route: new Route(path: '/backend/', viewDirectory: __DIR__),
@@ -66,7 +92,7 @@ final class LoginReturnPathTest extends TestCase
                 accessRightCollection: AccessRightCollection::createFromStringArray(input: ['backend_access', 'manage_users']),
                 firstName: 'Test',
                 lastName: 'User',
-                languageCode: null,
+                languageCode: $languageCode,
                 password: null,
                 wrongLoginAttempts: 0,
                 ipWhitelist: [],
@@ -76,9 +102,9 @@ final class LoginReturnPathTest extends TestCase
             clientData: $context->clientData,
         );
 
-        $this->assertSame($expected, $myAuthUser->getFirstAllowedPage(
+        return $myAuthUser->getFirstAllowedPage(
             context: $context,
             returnPath: LoginRedirect::findReturnPath(httpRequest: $context->viewContext->httpRequest),
-        ));
+        );
     }
 }

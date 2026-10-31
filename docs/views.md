@@ -1,15 +1,48 @@
 # Project views, tables and search forms
 
-Project views based on `BackendView` receive a `BackendViewContext`: the `ViewContext` of yuf
-(`$this->context`) and the services of the backend (`$this->backendContext`). The routes of these views use the view
-factory of the backend; other views on the same route keep getting the yuf `ViewContext`:
+## Views on the backend route
+
+The backend route (`path` of `ActraBackend::create()`) serves the project views of its view group (`viewGroup`,
+default `backend`: `app/view/backend/php/orders.php` with `app/view/backend/html/orders.html` and the language files
+in `app/view/backend/language/<code>/`) and the pages of the backend itself, under one path for all languages:
 
 ```php
-use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 
-// $actraBackend from ActraBackend::create(); with Core: new Route(…, viewFactory: $actraBackend->createViewFactory())
+$actraBackend = ActraBackend::create(path: '/backend/', /* … */); // viewGroup: 'backend'
+$actraBackend->configure(app: $app)->run(); // /backend/orders.html
+
+namespace app\view\backend\php;
+
+final class orders extends BackendView
+{
+    // requiredViewGroupName: the view group of the backend route by default
+}
+```
+
+Project views based on `BackendView` receive a `BackendViewContext`: the `ViewContext` of yuf (`$this->context`) and
+the services of the backend (`$this->backendContext`); other views on the same route keep getting the yuf
+`ViewContext`. The pages of the backend render their content files and templates from the library.
+
+### Pages of the backend
+
+For a file name without project view, the backend route serves the page of the backend with that name. These names
+are reserved on the backend path: a project view with one of them replaces the page of the backend (deliberately, e.g.
+an own `login`; it then has to do what the page does):
+
+`language`, `login`, `loginPassword`, `loginPasswordToken`, `loginToken`, `logout`, `notification`, `notificationSend`,
+`notifications`, `passwordForgotten`, `passwordForgottenRes`, `passwordReset`, `passwordResetRes`, `profile`,
+`profileChangePassword`, `profileCreatePassword`, `profileGenerateApiKey`, `profileRemoveApiKey`,
+`profileRemovePassword`, `tokens`, `user`, `userAdd`, `userDelete`, `userGenerateApiKey`, `userImpersonate`,
+`userImpersonateEnd`, `userInvite`, `userMod`, `userRemoveApiKey`, `users`, `visits`.
+
+### Further routes
+
+A project route with views based on `BackendView` outside the backend path uses the view factory of the backend too
+(it does not serve the pages of the backend):
+
+```php
 $app = $actraBackend->configure(app: $app)->withHtmlRoute(
     path: '/orders/',
     viewGroup: 'orders',
@@ -28,9 +61,10 @@ final class orders extends BackendView
 ### Project services
 
 Views that need services of the project (repositories, mailers) get them as constructor arguments: pass a `create`
-closure to `createViewFactory()`. It receives the class name and the `BackendViewContext` of every project view based
-on `BackendView` on this route; the views of the backend itself and views of other classes are created as before.
-Without closure, the views are created with `new $className(context: $context)`.
+closure to `configure()` (backend route; with `Core`: `createRoutes(create:)`) or `createViewFactory()` (further
+routes). It receives the class name and the `BackendViewContext` of every project view based on `BackendView` on this
+route; the pages of the backend itself and views of other classes are created as before. Without closure, the views
+are created with `new $className(context: $context)`.
 
 ```php
 use actra\backend\BackendView;
@@ -39,25 +73,21 @@ use actra\backend\BackendViewContext;
 // The project marks the views that need its services, e.g. with an interface
 interface UsesRepositories {}
 
-new Route(
-    path: '/de/orders/',
-    viewDirectory: $core->viewDirectory,
-    viewGroup: 'orders',
-    viewFactory: $actraBackend->createViewFactory(
-        create: static fn(string $className, BackendViewContext $context): BackendView => is_subclass_of(
-            object_or_class: $className,
-            class: UsesRepositories::class,
-        )
-            ? new $className(context: $context, repositories: $projectRepositories)
-            : new $className(context: $context),
-    ),
-);
+$actraBackend->configure(
+    app: $app,
+    create: static fn(string $className, BackendViewContext $context): BackendView => is_subclass_of(
+        object_or_class: $className,
+        class: UsesRepositories::class,
+    )
+        ? new $className(context: $context, repositories: $projectRepositories)
+        : new $className(context: $context),
+)->run();
 
 final class orders extends BackendView implements UsesRepositories
 {
     public function __construct(BackendViewContext $context, private readonly ProjectRepositories $repositories)
     {
-        parent::__construct(context: $context, requiredViewGroupName: 'orders');
+        parent::__construct(context: $context);
     }
 }
 ```
@@ -77,7 +107,8 @@ parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQue
 
 | Property / method | Content |
 |:--|:--|
-| `messages`, `route`, `paths` | Texts, backend route and links of the request language (`$paths->user(id: 5)`) |
+| `language`, `messages`, `dateFormatter` | The language of the request, its texts and dates (`formatDateTime()`) |
+| `paths` | The links to the backend pages (`$paths->user(id: 5)`) |
 | `repositories` | The repositories (`->users()`, `->groups()`, …, `->db()` for the database of the backend) |
 | `currentUser`, `getCurrentUser()` | The logged-in `MyAuthUser` (`null` / `UnauthorizedException` without login) |
 | `mailer` | Sends emails with the mailer of the `MailerSettings` (`->sendTextMail()`) |

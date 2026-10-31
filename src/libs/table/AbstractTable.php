@@ -57,7 +57,7 @@ abstract class AbstractTable extends DbResultTable
     }
 
     /**
-     * A date column in the format of the locale of the backend route (yuf's `DateColumn::useLocale()`).
+     * A date column in the format of the locale of the language of the request (yuf's `DateColumn::useLocale()`).
      */
     protected function createDateColumn(
         string $identifier,
@@ -73,7 +73,7 @@ abstract class AbstractTable extends DbResultTable
             sortAscendingByDefault: $sortAscendingByDefault,
         );
         $dateColumn->useLocale(
-            language: $this->backendContext->route->language,
+            language: $this->backendContext->language,
             timeStyle: $withTime ? DateStyleEnum::MEDIUM : DateStyleEnum::NONE,
         );
 

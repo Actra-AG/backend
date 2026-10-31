@@ -9,51 +9,60 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\common;
 
-use actra\backend\settings\BackendRoute;
-use actra\backend\settings\BackendRouteCollection;
+use actra\yuf\core\Language;
+use actra\yuf\core\LanguageCollection;
+use actra\yuf\core\LanguageSwitch;
 use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use Locale;
 
 /**
- * Builds the entries of the language switcher in the page header: the current page under every backend route.
+ * Builds the entries of the language switcher in the page header: links to the language switch of the backend
+ * (`language.html`, yuf's `LanguageSwitch` parameters) that lead back to the current page.
  *
  * @internal
  */
 final readonly class LanguageSwitcher
 {
     /**
+     * @param string $switchPath The page of the language switch, with the CSRF token of the session for a logged-in
+     *                           user (it saves the language in the profile only with a valid token)
      * @param string $currentUri The URI of the current request; its query is dropped, because backend pages can
      *                           trigger actions with GET parameters
      */
     public function __construct(
-        private BackendRouteCollection $backendRouteCollection,
-        private BackendRoute $currentRoute,
+        private LanguageCollection $languages,
+        private Language $currentLanguage,
+        private string $switchPath,
         private string $currentUri,
     ) {}
 
     /**
-     * A language can only be switched if the backend has more than one.
+     * A language can only be switched if the application has more than one.
      */
     public function isAvailable(): bool
     {
-        return count(value: $this->backendRouteCollection->routes) > 1;
+        return $this->languages->isMultiLang();
     }
 
     /**
-     * @return list<LanguageSwitcherEntry> One entry per route, in the order of the routes
+     * @return list<LanguageSwitcherEntry> One entry per language, in the order of the languages
      */
     public function createEntries(): array
     {
         $uriWithoutQuery = explode(separator: '?', string: $this->currentUri, limit: 2)[0];
         $entries = [];
-        foreach ($this->backendRouteCollection->routes as $route) {
-            $languageCode = $route->language->code;
+        foreach ($this->languages->languages as $language) {
+            $languageCode = $language->code;
             $entries[] = new LanguageSwitcherEntry(
                 languageCode: $languageCode,
                 label: $this->getLanguageName(languageCode: $languageCode),
-                href: $this->backendRouteCollection->translatePath(uri: $uriWithoutQuery, targetRoute: $route),
-                isCurrent: $route->path === $this->currentRoute->path,
+                href: LanguageSwitch::createUri(
+                    switchPath: $this->switchPath,
+                    languageCode: $languageCode,
+                    returnUri: $uriWithoutQuery,
+                ),
+                isCurrent: $languageCode === $this->currentLanguage->code,
             );
         }
 

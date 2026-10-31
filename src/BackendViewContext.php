@@ -12,11 +12,12 @@ namespace actra\backend;
 use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\UserController;
+use actra\backend\libs\common\DateFormatter;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\ClientData;
 use actra\backend\libs\email\Mailer;
-use actra\backend\settings\BackendRoute;
 use actra\yuf\auth\AuthSession;
+use actra\yuf\core\Language;
 use actra\yuf\core\ViewContext;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\layout\NavigationItemCollection;
@@ -29,18 +30,19 @@ use LogicException;
  */
 final readonly class BackendViewContext
 {
-    /** The texts of the backend route of the request */
-    public BackendMessages $messages;
-
     /**
-     * @param BackendRoute $route The backend route of the request (its language)
-     * @param BackendPaths $paths The links to the backend pages on that route
+     * @param Language $language The language of the request (`ActraBackend::getLanguageOfRequest()`)
+     * @param BackendMessages $messages The texts in the language of the request
+     * @param DateFormatter $dateFormatter Dates in the locale of the language of the request
+     * @param BackendPaths $paths The links to the backend pages
      * @param ?MyAuthUser $currentUser The logged-in user, `null` without login
      */
     public function __construct(
         public ViewContext $viewContext,
         public ActraBackend $actraBackend,
-        public BackendRoute $route,
+        public Language $language,
+        public BackendMessages $messages,
+        public DateFormatter $dateFormatter,
         public BackendPaths $paths,
         public BackendRepositories $repositories,
         public Mailer $mailer,
@@ -49,9 +51,7 @@ final readonly class BackendViewContext
         public ClientData $clientData,
         public ?MyAuthUser $currentUser,
         public UserController $userController,
-    ) {
-        $this->messages = $route->messages;
-    }
+    ) {}
 
     /**
      * The logged-in user, for views and forms that require a login.

@@ -14,8 +14,9 @@ use IntlDateFormatter;
 use UnexpectedValueException;
 
 /**
- * Formats dates for the locale of a backend route (`BackendRoute::$dateFormatter`), e.g. `09.10.2026, 14:05:33` for
- * `de_CH` and `9 Oct 2026, 14:05:33` for `en_GB`. The ICU formatters are created on first use.
+ * Formats dates for the locale of the language of a request (`BackendViewContext::$dateFormatter`), e.g.
+ * `09.10.2026, 14:05:33` for `de_CH` and `9 Oct 2026, 14:05:33` for `en_GB`. The ICU formatters are created on first
+ * use.
  */
 final class DateFormatter
 {

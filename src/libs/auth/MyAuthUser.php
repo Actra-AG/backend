@@ -83,14 +83,12 @@ final class MyAuthUser extends AuthUser
     }
 
     /**
-     * The page requested before the login (validated local path), otherwise the first page of the navigation, on the
-     * route of the user's language.
+     * The page requested before the login (validated local path), otherwise the first page of the navigation. The page
+     * has one path for all languages: the next request gets the user's profile language (`ProfileLanguageProvider`).
      */
     public function getFirstAllowedPage(BackendViewContext $context, ?string $returnPath): string
     {
-        $target = $returnPath ?? $this->getFirstNavigationHref(context: $context);
-
-        return $this->moveToLanguageRoute(context: $context, target: $target);
+        return $returnPath ?? $this->getFirstNavigationHref(context: $context);
     }
 
     private function getFirstNavigationHref(BackendViewContext $context): string
@@ -103,25 +101,6 @@ final class MyAuthUser extends AuthUser
         }
 
         return $navigationItem->href;
-    }
-
-    /**
-     * A user with a language continues on the backend route of that language. Without a language (no preference) or
-     * for a language without route, the user stays on the route of the login.
-     */
-    private function moveToLanguageRoute(BackendViewContext $context, string $target): string
-    {
-        $languageCode = $this->dbAuthUser->languageCode;
-        if ($languageCode === null) {
-            return $target;
-        }
-        $backendRouteCollection = $context->actraBackend->backendRouteCollection;
-        $languageRoute = $backendRouteCollection->findByLanguage(languageCode: $languageCode);
-        if ($languageRoute === null) {
-            return $target;
-        }
-
-        return $backendRouteCollection->translatePath(uri: $target, targetRoute: $languageRoute);
     }
 
     public function getUserName(CommonMessages $messages): string

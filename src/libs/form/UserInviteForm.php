@@ -41,10 +41,11 @@ final class UserInviteForm extends Form
         $this->addCssClass(className: 'form');
         $common = $this->backendContext->messages->common;
         $messages = $this->backendContext->messages->user;
-        $recipientRoute = $this->backendContext->actraBackend->getRouteForLanguage(
-            languageCode: $dbAuthUser->languageCode,
+        $actraBackend = $this->backendContext->actraBackend;
+        // In the language of the recipient; without one in the first language of the backend
+        $recipientMessages = $actraBackend->getMessages(
+            languageCode: $dbAuthUser->languageCode ?? $actraBackend->languages->getFirstLanguage()->code,
         );
-        $recipientMessages = $recipientRoute->messages;
         $this->addField(
             formField: $this->subjectField = new TextField(
                 name: 'subjectField',
@@ -70,7 +71,7 @@ final class UserInviteForm extends Form
                         '',
                         $recipientMessages->user->inviteAccessCreated,
                         $this->context->httpRequest->getProtocol()->value . '://'
-                        . $this->context->httpRequest->getHost() . $recipientRoute->path,
+                        . $this->context->httpRequest->getHost() . $actraBackend->path,
                         '',
                         MessageTemplate::fill(
                             template: $recipientMessages->user->inviteLoginInstructions,
@@ -79,7 +80,7 @@ final class UserInviteForm extends Form
                         '',
                         $recipientMessages->common->closingGreeting,
                         '',
-                        $this->backendContext->actraBackend->mailerSettings->signature,
+                        $actraBackend->mailerSettings->signature,
                     ],
                 ),
                 requiredError: HtmlText::fromText(text: $common->messageBodyRequired),

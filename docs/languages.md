@@ -1,83 +1,97 @@
 # Languages
 
-All texts of the backend come from message classes; English and German are included. The texts of a request follow
-the language of its route: the main route (`path` of `ActraBackend::create()`) uses `ActraBackendSettings::$language`,
-further languages get their own route. Every language is a language of the `App` (`withLanguage()`), and the backend
-gets its `Language` object (`App::withRoute()` throws for another object with the same code):
+The backend has one path for all languages (yuf's `usesRequestLanguage`, see yuf's
+[docs/setup.md](https://github.com/Actra-AG/yuf/blob/main/docs/setup.md#languages)): `/backend/users.html` is the
+same page in every language. Its languages are those of the `App` (`withLanguage()`); the first one is the main
+language. The language of each request is the first available one of:
+
+1. the profile language of the logged-in user (`auth_users.language`; during an impersonation that of the
+   impersonating user),
+2. the language chosen with the language switcher (stored in the session),
+3. the browser language (`Accept-Language`),
+4. the first language of the `App`.
 
 ```php
-use actra\backend\settings\BackendRoute;
-
 $app = App::fromEnvironment(/* … */)
-    ->withLanguage(code: 'en', locale: 'en_GB')
-    ->withLanguage(code: 'de', locale: 'de_CH');
+    ->withLanguage(code: 'de', locale: 'de_CH.UTF-8')
+    ->withLanguage(code: 'en', locale: 'en_GB.UTF-8');
 $actraBackend = ActraBackend::create(
     path: '/backend/',
-    isDefaultForLanguage: false,
-    actraBackendSettings: new ActraBackendSettings(
-        language: $app->getLanguage(code: 'en'), // English texts under /backend/
-        ...
-        additionalRoutes: [
-            // German texts under /de/backend/
-            new BackendRoute(path: '/de/backend/', language: $app->getLanguage(code: 'de')),
-        ]
-    ),
-    ...
+    languages: $app->core->availableLanguages, // App adds its languages when it runs
+    actraBackendSettings: new ActraBackendSettings(/* … */),
+    /* … */
 );
 $actraBackend->configure(app: $app)->run();
 ```
 
-With `Core`, the `Language` objects are those of `Core::$availableLanguages`.
+The project views of the backend route have the same language ([views.md](views.md)); their language files
+(`app/view/backend/language/<code>/`) keep working. `configure()` registers the profile language as yuf's
+`RequestLanguageProvider` (`createRequestLanguageProvider()`), so further project routes with
+`usesRequestLanguage: true` (e.g. a JSON route) get the same language as the backend. Routes with a fixed language
+(e.g. a frontend at `/de/`, `/fr/`) are not affected.
 
-A route gets German texts for `de` and English texts for every other language. To change single texts, pass own
-messages (`ActraBackendSettings::$messages` for the main route, `messages` of a `BackendRoute`):
+With `Core`, pass `languages: $core->availableLanguages` and
+`requestLanguageProvider: $actraBackend->createRequestLanguageProvider()` to `Core::prepareHttpResponse()`.
+
+## Texts
+
+A language gets German texts for `de` and English texts for every other language. To change single texts, pass own
+messages per language code (`ActraBackendSettings::$messages`):
 
 ```php
 use actra\backend\i18n\AuthMessages;
 use actra\backend\i18n\BackendMessages;
 
-messages: BackendMessages::german()->with(
-    auth: AuthMessages::german()->with(loginPageTitle: 'Login')
-)
+new ActraBackendSettings(
+    /* … */
+    messages: [
+        'de' => BackendMessages::german()->with(auth: AuthMessages::german()->with(loginPageTitle: 'Login')),
+    ],
+);
 ```
 
-The languages of the routes must be available languages of the yuf application if a route is the default route of
-its language (`isDefaultForLanguage`).
+Views read the texts, the `Language` and the `DateFormatter` of the request from `BackendViewContext` (`messages`,
+`language`, `dateFormatter`); text for another user (e.g. an email) comes from `$actraBackend->getMessages()` with the
+user's language. The welcome email uses the language of the user (without one: the first language), its link the path of the
+backend.
 
-With several languages, every user can choose a language (user forms, profile). After login the user continues on
-the backend route of that language, and the welcome email uses it (text and link). Users without a language stay on
-the route they logged in with; their welcome email uses the main route.
+## Language switcher and profile
 
-Navigation items of the project follow the route language if they are added by a `BackendNavigation`:
+With several languages, the page header shows a language switcher, also on the login page. Its links lead to
+`/backend/language.html` (yuf's `LanguageSwitch` parameters `language` and `returnTo`), which sets the language of the
+session and returns to the page. For a logged-in user it also saves the language in the profile (the link carries the
+CSRF token of the session), because the profile language wins over the session.
+
+In the user forms and the profile, every user can choose a language or "Automatic" (no profile language: the session
+or the browser decides). After the login the user stays on the requested page; it is shown in the profile language.
+
+## Navigation of the project
+
+Navigation items of the project follow the language of the request if they are added by a `BackendNavigation`:
 
 ```php
 use actra\backend\settings\BackendNavigation;
-use actra\backend\settings\BackendRoute;
+use actra\yuf\core\Language;
 
 final class ProjectNavigation implements BackendNavigation
 {
-    public function addNavigationItems(
-        NavigationItemCollection $navigationItemCollection,
-        BackendRoute $backendRoute
-    ): void {
+    public function addNavigationItems(NavigationItemCollection $navigationItemCollection, Language $language): void
+    {
         $navigationItemCollection->addItem(navigationItem: new NavigationItem(
             navKey: 'orders',
-            href: '/' . $backendRoute->language->code . '/orders/', // the project's route of that language
+            href: '/backend/orders.html', // a project view of the backend route
             svgPath: '...',
-            title: $backendRoute->language->code === 'de' ? 'Bestellungen' : 'Orders',
+            title: HtmlText::fromText(text: $language->code === 'de' ? 'Bestellungen' : 'Orders'),
             requiredAccessRights: AccessRightCollection::createEmpty()
         ));
     }
 }
 
 new ActraBackendSettings(
-    ...
+    /* … */
     projectNavigation: new ProjectNavigation()
 );
 ```
 
 `ActraBackend::createNavigation()` (the backend navigation of `configure()` and `createNavigationProvider()`) calls
-the hook once per request, for the backend route of the request; each
-navigation key may be added once.
-
-With several languages, the page header shows a language switcher that links to the same page in each language.
+the hook once per request; each navigation key may be added once.

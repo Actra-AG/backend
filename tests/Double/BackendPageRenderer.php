@@ -11,7 +11,6 @@ namespace actra\backend\tests\Double;
 
 use actra\backend\ActraBackend;
 use actra\backend\libs\db\ClientData;
-use actra\backend\settings\BackendRoute;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\common\AcceptingMailDomainResolver;
@@ -23,7 +22,7 @@ use actra\yuf\core\LanguageCollection;
 use actra\yuf\core\LocaleHandler;
 use actra\yuf\core\RequestMethodEnum;
 use actra\yuf\core\ResolvedRoute;
-use actra\yuf\core\RouteCollection;
+use actra\yuf\core\Route;
 use actra\yuf\db\DbSettings;
 use actra\yuf\form\FormContext;
 use actra\yuf\security\CspNonce;
@@ -35,14 +34,14 @@ use actra\yuf\template\TemplateEngine;
 use LogicException;
 
 /**
- * Renders a page of the backend like yuf's `Core` (view, content template and page template), in German on
- * `/backend/` and in English on `/en/backend/`, with the API turned on.
+ * Renders a page of the backend like yuf's `Core` (view, content template and page template) on `/backend/`, in German
+ * or English as the language of the request, with the API turned on.
  */
 final readonly class BackendPageRenderer
 {
     public const string IP_ADDRESS = '192.0.2.20';
     public ActraBackend $actraBackend;
-    private RouteCollection $routeCollection;
+    private Route $route;
     private LanguageCollection $languageCollection;
 
     /**
@@ -50,24 +49,27 @@ final readonly class BackendPageRenderer
      */
     public function __construct(DbSettings $dbSettings, array $ipWhitelist = [])
     {
-        $english = new Language(code: 'en', locale: 'en_GB.UTF-8');
+        $this->languageCollection = new LanguageCollection(languages: [
+            new Language(code: 'de', locale: 'de_CH.UTF-8'),
+            new Language(code: 'en', locale: 'en_GB.UTF-8'),
+        ]);
         $this->actraBackend = ActraBackendTestInstance::create(
             dbSettings: $dbSettings,
+            languages: $this->languageCollection,
             hasApi: true,
-            additionalRoutes: [new BackendRoute(path: '/en/backend/', language: $english)],
             ipWhitelist: $ipWhitelist,
         );
-        $this->routeCollection = new RouteCollection(routes: $this->actraBackend->createRoutes());
-        $this->languageCollection = new LanguageCollection(
-            languages: [$this->actraBackend->actraBackendSettings->language, $english],
-        );
+        $this->route = array_first(array: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/view/'))
+            ?? throw new LogicException(message: 'The backend has no route');
     }
 
     /**
+     * @param string $languageCode The language of the request (as resolved by yuf's `RequestLanguageResolver`)
      * @param list<string> $pathVars The path variables after the file title (`user-5.html`: `['5']`)
      * @param array<string, string> $postParameters A POST request with these values, a GET request without
      * @param ?string $formName The form that is sent (the query of its action, `?FormName`)
      * @param array<string, string> $queryParameters The query of the request
+     * @param RecordingResponseSender $responseSender Keeps the response of a view that ends with a redirect
      */
     public function render(
         string $languageCode,
@@ -77,9 +79,11 @@ final readonly class BackendPageRenderer
         array $postParameters = [],
         ?string $formName = null,
         array $queryParameters = [],
+        RecordingResponseSender $responseSender = new RecordingResponseSender(),
     ): string {
-        $route = $this->routeCollection->getRouteForLanguage(languageCode: $languageCode)
-            ?? throw new LogicException(message: 'No backend route for the language ' . $languageCode);
+        $route = $this->route;
+        $language = $this->languageCollection->getLanguageByCode(languageCode: $languageCode)
+            ?? throw new LogicException(message: 'No language ' . $languageCode);
         $fileName = implode(separator: '-', array: [$fileTitle, ...$pathVars]) . '.html';
         $queryParameters = $formName === null ? $queryParameters : [$formName => '', ...$queryParameters];
         $queryString = http_build_query(data: $queryParameters, encoding_type: PHP_QUERY_RFC3986);
@@ -92,7 +96,7 @@ final readonly class BackendPageRenderer
             queryParameters: $queryParameters,
             postParameters: $postParameters,
         );
-        $localeHandler = new LocaleHandler(language: $route->language, availableLanguages: $this->languageCollection);
+        $localeHandler = new LocaleHandler(language: $language, availableLanguages: $this->languageCollection);
         $contentHandler = new ContentHandler(
             contentType: ContentType::createHtml(),
             cspNonce: new CspNonce(value: 'nonce'),
@@ -100,7 +104,7 @@ final readonly class BackendPageRenderer
         $contentHandler->processRequest(
             resolvedRoute: new ResolvedRoute(
                 route: $route,
-                language: $route->language,
+                language: $language,
                 fileName: $fileName,
                 fileGroup: null,
                 fileTitle: $fileTitle,
@@ -132,7 +136,7 @@ final readonly class BackendPageRenderer
             documentRoot: '/tmp/public/',
             copyright: '2026',
             robots: 'noindex, nofollow',
-            responseSender: new RecordingResponseSender(),
+            responseSender: $responseSender,
             navigationProvider: $this->actraBackend->createNavigation(...),
         );
 

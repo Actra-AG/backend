@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit;
 
 use actra\backend\ActraBackend;
+use actra\backend\i18n\AuthMessages;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\ArraySessionHandler;
 use actra\backend\tests\Double\RecordingLogger;
@@ -22,10 +23,12 @@ use actra\yuf\core\BaseView;
 use actra\yuf\core\CoreSettings;
 use actra\yuf\core\EnvironmentSettings;
 use actra\yuf\core\HttpRequest;
+use actra\yuf\core\HttpResponse;
 use actra\yuf\core\HttpStatusCodeEnum;
-use actra\yuf\core\Language;
+use actra\yuf\core\LanguageCollection;
 use actra\yuf\core\RecordingResponseSender;
 use actra\yuf\core\ResponseSender;
+use actra\yuf\core\ResponseSentException;
 use actra\yuf\core\Route;
 use actra\yuf\core\ViewContext;
 use actra\yuf\core\ViewMap;
@@ -59,6 +62,15 @@ final class AppConfigurationTest extends TestCase
             mkdir(directory: $this->appDirectory . $directory, recursive: true);
         }
         file_put_contents(filename: $this->appDirectory . 'view/factory/html/plain.html', data: '<p>Plain</p>');
+        file_put_contents(
+            filename: $this->appDirectory . 'view/factory/html/PlainView.html',
+            data: '<p>{tst:lang key=\'greeting\'}</p>',
+        );
+        mkdir(directory: $this->appDirectory . 'view/factory/language/en', recursive: true);
+        file_put_contents(
+            filename: $this->appDirectory . 'view/factory/language/en/global.lang.php',
+            data: '<?php $txt[\'greeting\'] = \'Hello\';',
+        );
         $_SESSION = []; // Sessions are disabled in the CLI; ArraySessionHandler starts none
     }
 
@@ -86,9 +98,23 @@ final class AppConfigurationTest extends TestCase
         rmdir(directory: $this->appDirectory);
     }
 
-    private function createApp(string $uri, ResponseSender $responseSender, ExceptionHandler $exceptionHandler): App
-    {
-        $httpRequest = new HttpRequest(host: 'example.com', uri: $uri);
+    /**
+     * @param array<string, string> $headers The headers of the request
+     * @param string $viewClassPrefix The namespace of the project views
+     */
+    private function createApp(
+        string $uri,
+        ResponseSender $responseSender,
+        ExceptionHandler $exceptionHandler,
+        array $headers = [],
+        string $viewClassPrefix = Core::APP_CLASS_PREFIX,
+    ): App {
+        $httpRequest = new HttpRequest(
+            host: 'example.com',
+            uri: $uri,
+            queryString: (string) parse_url(url: $uri, component: PHP_URL_QUERY),
+            headers: $headers,
+        );
 
         return App::fromCore(
             core: new Core(
@@ -116,8 +142,10 @@ final class AppConfigurationTest extends TestCase
                 httpRequest: $httpRequest,
                 responseSender: $responseSender,
             ),
+            viewClassPrefix: $viewClassPrefix,
         )
             ->withLanguage(code: 'de', locale: 'de_CH.UTF-8')
+            ->withLanguage(code: 'en', locale: 'en_GB.UTF-8')
             ->withSessionHandler(sessionHandler: new ArraySessionHandler(httpRequest: $httpRequest))
             ->withLogger(logger: new RecordingLogger())
             ->withExceptionHandler(exceptionHandler: $exceptionHandler);
@@ -125,7 +153,7 @@ final class AppConfigurationTest extends TestCase
 
     private static function createActraBackend(App $app): ActraBackend
     {
-        return ActraBackendTestInstance::create(language: $app->getLanguage(code: 'de'));
+        return ActraBackendTestInstance::create(languages: $app->core->availableLanguages);
     }
 
     private static function createNavigation(string $navKey): NavigationItemCollection
@@ -202,34 +230,119 @@ final class AppConfigurationTest extends TestCase
     {
         $actraBackend = ActraBackendTestInstance::create();
 
-        $routes = $actraBackend->createRoutes();
+        $routes = $actraBackend->createRoutes(viewDirectory: '/app/view/');
 
         $this->assertSame(
             ['/backend/'],
             array_map(callback: static fn(Route $route): string => $route->path, array: $routes),
         );
         $route = array_first(array: $routes) ?? AppConfigurationTest::fail('No backend route');
-        $this->assertSame($actraBackend->actraBackendSettings->language, $route->language);
+        $this->assertTrue($route->usesRequestLanguage);
+        $this->assertNull($route->language);
         $this->assertSame('login.html', $route->defaultFileName);
+        $this->assertSame('/app/view/backend/', $route->viewDirectory);
+        $this->assertSame(Core::APP_CLASS_PREFIX, $route->viewClassPrefix);
         $this->assertSame('/backend/login.html', $actraBackend->getLoginPath());
     }
 
-    public function testBackendLanguageThatIsNotTheObjectOfTheAppThrows(): void
+    /**
+     * Prepares a request of an `App` that is only a backend: the backend at "/" with the project views of the view
+     * group `factory` (`tests/Double/view/factory/php/`), former backend path `/auth/`.
+     */
+    private function prepareBackendApp(string $uri): HttpResponse
+    {
+        $exceptionHandler = new ExceptionHandler();
+
+        return RecordingResponseSender::capture(
+            action: function (ResponseSender $responseSender) use ($uri, $exceptionHandler): void {
+                $app = $this->createApp(
+                    uri: $uri,
+                    responseSender: $responseSender,
+                    exceptionHandler: $exceptionHandler,
+                    headers: ['Accept-Language' => 'en'],
+                    viewClassPrefix: 'actra\\backend\\tests\\Double',
+                );
+                try {
+                    ActraBackendTestInstance::create(
+                        languages: $app->core->availableLanguages,
+                        path: '/',
+                        viewGroup: 'factory',
+                    )->configure(app: $app, formerPaths: ['/auth/'])->prepare()->sendAndExit(
+                        responseSender: $responseSender,
+                    );
+                } catch (ResponseSentException $responseSentException) {
+                    throw $responseSentException;
+                } catch (Throwable $throwable) {
+                    $exceptionHandler->handleException(throwable: $throwable);
+                }
+            },
+        );
+    }
+
+    public function testBackendRouteServesThePagesOfTheBackendFromTheLibrary(): void
+    {
+        $httpResponse = $this->prepareBackendApp(uri: '/login.html');
+
+        $this->assertSame(HttpStatusCodeEnum::HTTP_OK, $httpResponse->httpStatusCode);
+        $this->assertStringContainsString(
+            new AuthMessages()->loginIntro,
+            $httpResponse->getContentString() ?? '',
+        );
+    }
+
+    public function testBackendRouteServesTheProjectViewsWithTheirLanguageFiles(): void
+    {
+        $httpResponse = $this->prepareBackendApp(uri: '/PlainView.html');
+
+        $this->assertSame(HttpStatusCodeEnum::HTTP_OK, $httpResponse->httpStatusCode);
+        $this->assertSame('<p>Hello</p>', $httpResponse->getContentString());
+    }
+
+    public function testFormerPathRedirectsToTheBackendPath(): void
+    {
+        $httpResponse = $this->prepareBackendApp(uri: '/auth/users.html?reset');
+
+        $this->assertSame(HttpStatusCodeEnum::HTTP_MOVED_PERMANENTLY, $httpResponse->httpStatusCode);
+        $this->assertSame('https://example.com/users.html?reset', $httpResponse->getHeader(key: 'Location'));
+    }
+
+    public function testLanguagesThatAreNotThoseOfTheAppThrow(): void
     {
         $app = $this->createApp(
             uri: '/',
             responseSender: new RecordingResponseSender(),
             exceptionHandler: new ExceptionHandler(),
         );
-        $actraBackend = ActraBackendTestInstance::create(language: new Language(code: 'de', locale: 'de_CH.UTF-8'));
+        $actraBackend = ActraBackendTestInstance::create(
+            languages: new LanguageCollection(languages: [$app->getLanguage(code: 'de')]),
+        );
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
-            'The language "de" of the route "/backend/" is not added: call withLanguage() first and give the route'
-            . ' $app->getLanguage(code: \'de\').',
+            'The backend needs the languages of the App: ActraBackend::create(languages: '
+            . '$app->core->availableLanguages, …).',
         );
 
         $actraBackend->configure(app: $app);
+    }
+
+    /**
+     * One path for all languages: without login and session, the browser decides (yuf's `RequestLanguageResolver`).
+     */
+    public function testLoginPageHasTheLanguageOfTheBrowser(): void
+    {
+        $app = $this->createApp(
+            uri: '/backend/login.html',
+            responseSender: new RecordingResponseSender(),
+            exceptionHandler: new ExceptionHandler(),
+            headers: ['Accept-Language' => 'en-GB,en;q=0.8'],
+        );
+
+        $httpResponse = AppConfigurationTest::createActraBackend(app: $app)->configure(app: $app)->prepare();
+
+        $this->assertSame(HttpStatusCodeEnum::HTTP_OK, $httpResponse->httpStatusCode);
+        $this->assertSame('en', $httpResponse->getHeader(key: 'Content-Language'));
+        $this->assertStringContainsString('<html class="no-js" lang="en">', $httpResponse->getContentString() ?? '');
     }
 
     public function testNavigationProviderSeparatesBackendAndFrontendRoutes(): void

@@ -9,15 +9,16 @@ declare(strict_types=1);
 
 namespace actra\backend;
 
+use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\auth\ProfileLanguageProvider;
 use actra\backend\libs\auth\UserController;
+use actra\backend\libs\common\DateFormatter;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\ClientData;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\email\Mailer;
 use actra\backend\settings\ActraBackendSettings;
-use actra\backend\settings\BackendRoute;
-use actra\backend\settings\BackendRouteCollection;
 use actra\backend\settings\MailerSettings;
 use actra\backend\view\backend\php\notifications;
 use actra\backend\view\backend\php\tokens;
@@ -25,8 +26,14 @@ use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
 use actra\yuf\App;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\Core;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
+use actra\yuf\core\HttpResponse;
+use actra\yuf\core\HttpStatusCodeEnum;
+use actra\yuf\core\Language;
+use actra\yuf\core\LanguageCollection;
+use actra\yuf\core\RequestLanguageProvider;
 use actra\yuf\core\ResponseSender;
 use actra\yuf\core\Route;
 use actra\yuf\core\ViewContext;
@@ -43,7 +50,6 @@ use LogicException;
 
 final class ActraBackend
 {
-    public const string VIEW_GROUP = 'backend';
     public const string RIGHT_BACKEND_ACCESS = 'backend_access';
     public const string RIGHT_MANAGE_USERS = 'manage_users';
     private const string NAVIGATION_SVG_PATH_USERS
@@ -54,70 +60,109 @@ final class ActraBackend
         . 'C21 19.564 19.5483 17.4671 17.4628 16.5271L18.2837 14.7028ZM17.5962 3.41321'
         . 'C19.5944 4.23703 21 6.20361 21 8.5C21 11.3702 18.8042 13.7252 16 13.9776V11.9646'
         . 'C17.6967 11.7222 19 10.264 19 8.5C19 7.11935 18.2016 5.92603 17.041 5.35635L17.5962 3.41321Z';
+    public readonly BackendPaths $paths;
     private ?BackendRepositories $repositories = null;
+    /** @var array<string, BackendMessages> The texts per language code, created on first use */
+    private array $messages = [];
 
     /**
-     * @param string $path The path of the main route
+     * @param string $path The path of the backend route
      */
     private function __construct(
         public readonly string $path,
+        public readonly string $viewGroup,
+        public readonly string $defaultFileTitle,
+        public readonly LanguageCollection $languages,
         public readonly ActraBackendSettings $actraBackendSettings,
         public readonly DbSettings $dbSettings,
         public readonly MailerSettings $mailerSettings,
         public readonly string $templateDirectory,
-        public readonly BackendRouteCollection $backendRouteCollection,
-    ) {}
+    ) {
+        $this->paths = new BackendPaths(path: $path);
+    }
 
     /**
-     * Creates the backend under `$path` in the language of the settings (main route) and under the additional routes
-     * of the settings (`ActraBackendSettings::$additionalRoutes`). Add its routes with `configure()` (yuf's `App`) or
-     * `createRoutes()` (`Core`), and keep the instance for the routes of the project views based on `BackendView`
-     * (`createViewFactory()`).
+     * Creates the backend under `$path`: one route for the pages of the backend (login, users, profile, …) and the
+     * project views of `$viewGroup` (`app/view/backend/php/orders.php`), one path for all languages. A project view
+     * with the name of a page of the backend replaces that page (see `BackendViewFactory`). Every request gets the
+     * language of the user's profile, else of the session (language switcher), of the browser or the first language
+     * (yuf's `RequestLanguageResolver`). Add the route with `configure()` (yuf's `App`) or `createRoutes()` (`Core`).
+     *
+     * @param string $path The path of the backend, e.g. `/` (an application that is only a backend) or `/backend/`
+     * @param string $viewGroup The view group of the project views on the backend route (directory and namespace)
+     * @param string $defaultFileTitle The page of the path itself (`/backend/`): the login page of the backend, or a
+     *     page of the project (the login page is then `login.html`)
+     * @param LanguageCollection $languages The languages of the application: `$app->core->availableLanguages` (`App`
+     *     adds its languages when it runs) or `$core->availableLanguages`
      */
     public static function create(
         string $path,
-        bool $isDefaultForLanguage,
+        LanguageCollection $languages,
         ActraBackendSettings $actraBackendSettings,
         DbSettings $dbSettings,
         MailerSettings $mailerSettings,
+        string $viewGroup = 'backend',
+        string $defaultFileTitle = BackendPaths::LOGIN_FILE_TITLE,
         ?string $templateDirectory = null,
     ): ActraBackend {
         return new ActraBackend(
             path: $path,
+            viewGroup: $viewGroup,
+            defaultFileTitle: $defaultFileTitle,
+            languages: $languages,
             actraBackendSettings: $actraBackendSettings,
             dbSettings: $dbSettings,
             mailerSettings: $mailerSettings,
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',
-            backendRouteCollection: new BackendRouteCollection(
-                mainRoute: new BackendRoute(
-                    path: $path,
-                    language: $actraBackendSettings->language,
-                    isDefaultForLanguage: $isDefaultForLanguage,
-                    messages: $actraBackendSettings->messages,
-                ),
-                additionalRoutes: $actraBackendSettings->additionalRoutes,
-            ),
         );
     }
 
     /**
-     * A copy of the `App` with the routes of the backend, its login page as login path (visitors without login are
-     * sent there and back to the requested page afterwards) and the navigation (`createNavigationProvider()`). The
-     * languages of the backend routes must be the objects of the `App`:
-     * `new ActraBackendSettings(language: $app->getLanguage(code: 'de'), …)`.
+     * A copy of the `App` with the route of the backend (`withHtmlRoute()` with `usesRequestLanguage`, the target of
+     * "/" if no other route is), the profile language of the logged-in user as language of the request
+     * (`createRequestLanguageProvider()`, also for the project routes with `usesRequestLanguage`), its login page as
+     * login path (visitors without login are sent there and back to the requested page afterwards) and the navigation
+     * (`createNavigationProvider()`).
      *
      * @param ?Closure(ViewContext): NavigationItemCollection $frontendNavigation See `createNavigationProvider()`
+     * @param (Closure(class-string<BackendView> $className, BackendViewContext $context): BackendView)|null $create
+     *     Creates the project views of the backend route, see `createViewFactory()`
+     * @param list<string> $formerPaths Former paths of the backend (e.g. `/auth/`), redirected permanently to the
+     *     backend path (`createFormerPathRoute()`)
      *
-     * @throws LogicException if a language of the backend routes is not the object of the `App` (see
-     *     `App::withRoute()`) or a path is already used
+     * @throws LogicException if the languages of the backend are not those of the `App` (`create()`) or a path is
+     *     already used
      */
-    public function configure(App $app, ?Closure $frontendNavigation = null): App
-    {
-        foreach ($this->createRoutes() as $route) {
-            $app = $app->withRoute(route: $route);
+    public function configure(
+        App $app,
+        ?Closure $frontendNavigation = null,
+        ?Closure $create = null,
+        array $formerPaths = [],
+    ): App {
+        if ($this->languages !== $app->core->availableLanguages) {
+            throw new LogicException(
+                message: 'The backend needs the languages of the App: ActraBackend::create(languages: '
+                    . '$app->core->availableLanguages, …).',
+            );
+        }
+        $app = $app->withHtmlRoute(
+            path: $this->path,
+            viewGroup: $this->viewGroup,
+            defaultFileTitle: $this->defaultFileTitle,
+            viewFactory: $this->createViewFactory(create: $create),
+            redirectDefaultFileName: false,
+            usesRequestLanguage: true,
+        );
+        foreach ($formerPaths as $formerPath) {
+            $app = $app->withRoute(route: $this->createFormerPathRoute(
+                formerPath: $formerPath,
+                httpRequest: $app->core->httpRequest,
+                responseSender: $app->core->responseSender,
+            ));
         }
 
         return $app
+            ->withRequestLanguageProvider(requestLanguageProvider: $this->createRequestLanguageProvider())
             ->withLoginPath(loginPath: $this->getLoginPath())
             ->withNavigation(
                 navigationProvider: $this->createNavigationProvider(frontendNavigation: $frontendNavigation),
@@ -125,27 +170,85 @@ final class ActraBackend
     }
 
     /**
-     * The routes of the backend, for projects that call `Core::prepareHttpResponse()` themselves:
-     * `new RouteCollection(routes: [...$projectRoutes, ...$actraBackend->createRoutes()], loginPath:
-     * $actraBackend->getLoginPath())`.
+     * The route of the backend (like `configure()`), for projects that call `Core::prepareHttpResponse()` themselves:
+     * `new RouteCollection(routes: [...$projectRoutes, ...$actraBackend->createRoutes(viewDirectory:
+     * $core->viewDirectory)], loginPath: $actraBackend->getLoginPath())`.
+     *
+     * @param string $viewDirectory The view directory of the project (`Core::$viewDirectory`)
+     * @param string $viewClassPrefix The namespace of the project views
+     * @param bool $isDefaultForLanguage `true`: "/" redirects to the backend (if no route with a fixed language is
+     *     the default)
+     * @param (Closure(class-string<BackendView> $className, BackendViewContext $context): BackendView)|null $create
+     *     Creates the project views of the backend route, see `createViewFactory()`
      *
      * @return list<Route>
      */
-    public function createRoutes(): array
-    {
-        return array_map(
-            callback: $this->createRoute(...),
-            array: $this->backendRouteCollection->routes,
+    public function createRoutes(
+        string $viewDirectory,
+        string $viewClassPrefix = Core::APP_CLASS_PREFIX,
+        bool $isDefaultForLanguage = false,
+        ?Closure $create = null,
+    ): array {
+        return [
+            new Route(
+                path: $this->path,
+                viewDirectory: $viewDirectory,
+                viewClassPrefix: $viewClassPrefix,
+                viewGroup: $this->viewGroup,
+                defaultFileName: $this->defaultFileTitle . '.' . ContentType::HTML,
+                isDefaultForLanguage: $isDefaultForLanguage,
+                defaultContentType: ContentType::createHtml(),
+                acceptedExtension: ContentType::HTML,
+                viewFactory: $this->createViewFactory(create: $create),
+                usesRequestLanguage: true,
+            ),
+        ];
+    }
+
+    /**
+     * A route that redirects a former path of the backend permanently (301) to the backend path, with the file name
+     * and the query: `/auth/users.html?reset` to `/backend/users.html?reset`. For old bookmarks and links in emails.
+     */
+    public function createFormerPathRoute(
+        string $formerPath,
+        HttpRequest $httpRequest,
+        ResponseSender $responseSender,
+    ): Route {
+        $path = $this->path;
+
+        return new Route(
+            path: $formerPath,
+            viewDirectory: __DIR__ . '/view/',
+            viewCallback: static function () use ($formerPath, $path, $httpRequest, $responseSender): never {
+                $query = $httpRequest->getQuery();
+                HttpResponse::redirectAndExit(
+                    relativeOrAbsoluteUri: $path . substr(string: $httpRequest->getPath(), offset: strlen(
+                        string: $formerPath,
+                    )) . ($query === '' ? '' : '?' . $query),
+                    httpRequest: $httpRequest,
+                    httpStatusCode: HttpStatusCodeEnum::HTTP_MOVED_PERMANENTLY,
+                    responseSender: $responseSender,
+                );
+            },
+            defaultContentType: ContentType::createHtml(),
         );
     }
 
     /**
-     * The login page of the main route (`/backend/login.html`), the login path of yuf's `App` and `RouteCollection`:
-     * one login page for all language routes.
+     * The language of the request is the profile language of the logged-in user (yuf's `RequestLanguageProvider`), for
+     * `Core::prepareHttpResponse(requestLanguageProvider:)`; `configure()` adds it to the `App`.
+     */
+    public function createRequestLanguageProvider(): RequestLanguageProvider
+    {
+        return new ProfileLanguageProvider(repositories: $this->getRepositories());
+    }
+
+    /**
+     * The login page of the backend (`/backend/login.html`), the login path of yuf's `App` and `RouteCollection`.
      */
     public function getLoginPath(): string
     {
-        return new BackendPaths(path: $this->backendRouteCollection->getMainRoute()->path)->login();
+        return $this->paths->login();
     }
 
     /**
@@ -167,13 +270,31 @@ final class ActraBackend
     }
 
     /**
-     * The backend route of a request: the route with the same path, otherwise (e.g. a project view based on
-     * `BackendView`) the backend route of its language.
+     * The texts of the backend in a language (`ActraBackendSettings::$messages`, else
+     * `BackendMessages::forLanguageCode()`), e.g. for an email to a user in the user's language.
      */
-    public function getRouteOfRequest(Route $route): BackendRoute
+    public function getMessages(string $languageCode): BackendMessages
     {
-        return $this->backendRouteCollection->findByPath(path: $route->path)
-            ?? $this->backendRouteCollection->getForLanguage(languageCode: $route->language?->code);
+        return $this->messages[$languageCode] ??= $this->actraBackendSettings->messages[$languageCode]
+            ?? BackendMessages::forLanguageCode(languageCode: $languageCode);
+    }
+
+    /**
+     * The language of a request: that of the route or of the request (`usesRequestLanguage`), else the first language
+     * of the backend (a route without language).
+     *
+     * @throws LogicException if the application has no language
+     */
+    public function getLanguageOfRequest(ViewContext $viewContext): Language
+    {
+        if ($viewContext->locale->language !== null) {
+            return $viewContext->locale->language;
+        }
+        if ($this->languages->isEmpty()) {
+            throw new LogicException(message: 'The backend needs a language: add one with App::withLanguage().');
+        }
+
+        return $this->languages->getFirstLanguage();
     }
 
     /**
@@ -190,8 +311,7 @@ final class ActraBackend
                 message: 'The backend needs a session: do not disable individualSessionHandler for backend routes.',
             );
         }
-        $route = $this->getRouteOfRequest(route: $viewContext->route);
-        $paths = new BackendPaths(path: $route->path);
+        $language = $this->getLanguageOfRequest(viewContext: $viewContext);
         $repositories = $this->getRepositories();
         $clientData = ClientData::fromRequest(httpRequest: $viewContext->httpRequest, authSession: $authSession);
         $currentUser = MyAuthUser::findLoggedIn(
@@ -203,8 +323,10 @@ final class ActraBackend
         return new BackendViewContext(
             viewContext: $viewContext,
             actraBackend: $this,
-            route: $route,
-            paths: $paths,
+            language: $language,
+            messages: $this->getMessages(languageCode: $language->code),
+            dateFormatter: new DateFormatter(locale: $language->locale),
+            paths: $this->paths,
             repositories: $repositories,
             mailer: $this->createMailer(responseSender: $viewContext->responseSender),
             session: $session,
@@ -266,16 +388,9 @@ final class ActraBackend
     }
 
     /**
-     * The backend route of a language (e.g. the language of a user), the main route for an unknown language.
-     */
-    public function getRouteForLanguage(?string $languageCode): BackendRoute
-    {
-        return $this->backendRouteCollection->getForLanguage(languageCode: $languageCode);
-    }
-
-    /**
-     * The view factory for routes with views based on `BackendView`: `new Route(…, viewFactory:
-     * $actraBackend->createViewFactory())`. Views of other classes on the same route keep working.
+     * The view factory of the backend route (`configure()`, `createRoutes()`) and of further project routes with views
+     * based on `BackendView`: `new Route(…, viewFactory: $actraBackend->createViewFactory())`. Views of other classes
+     * on the same route keep working. Only the backend route serves the pages of the backend itself.
      *
      * @param (Closure(class-string<BackendView> $className, BackendViewContext $context): BackendView)|null $create
      *     Creates the project views based on `BackendView` with further dependencies (repositories, mailers of the
@@ -287,25 +402,9 @@ final class ActraBackend
         return new BackendViewFactory(actraBackend: $this, create: $create);
     }
 
-    private function createRoute(BackendRoute $backendRoute): Route
-    {
-        return new Route(
-            path: $backendRoute->path,
-            viewDirectory: __DIR__ . '/view/',
-            viewClassPrefix: 'actra\\backend',
-            viewGroup: ActraBackend::VIEW_GROUP,
-            defaultFileName: BackendPaths::LOGIN_FILE_NAME,
-            isDefaultForLanguage: $backendRoute->isDefaultForLanguage,
-            defaultContentType: ContentType::createHtml(),
-            language: $backendRoute->language,
-            acceptedExtension: ContentType::HTML,
-            viewFactory: $this->createViewFactory(),
-        );
-    }
-
     /**
      * The navigation provider of yuf (one per application): routes with the view factory of the backend
-     * (`createViewFactory()`, also the backend routes themselves) get the navigation of the backend
+     * (`createViewFactory()`, also the backend route itself) get the navigation of the backend
      * (`createNavigation()`), the other routes that of the project.
      *
      * @param ?Closure(ViewContext): NavigationItemCollection $frontendNavigation The navigation of the other routes of
@@ -326,13 +425,13 @@ final class ActraBackend
 
     /**
      * The navigation of the backend and of the project (`ActraBackendSettings::$projectNavigation`) in the language of
-     * the backend route of the request, for the routes of the backend (see `createNavigationProvider()`).
+     * the request, for the routes of the backend (see `createNavigationProvider()`).
      */
     public function createNavigation(ViewContext $viewContext): NavigationItemCollection
     {
-        $route = $this->getRouteOfRequest(route: $viewContext->route);
-        $paths = new BackendPaths(path: $route->path);
-        $messages = $route->messages;
+        $language = $this->getLanguageOfRequest(viewContext: $viewContext);
+        $paths = $this->paths;
+        $messages = $this->getMessages(languageCode: $language->code);
         $childNavigation = new NavigationItemCollection();
         $childNavigation->addItem(navigationItem: users::getNavigationItem(paths: $paths, messages: $messages));
         $childNavigation->addItem(navigationItem: tokens::getNavigationItem(paths: $paths, messages: $messages));
@@ -344,7 +443,7 @@ final class ActraBackend
         $navigationItemCollection = new NavigationItemCollection();
         $this->actraBackendSettings->projectNavigation?->addNavigationItems(
             navigationItemCollection: $navigationItemCollection,
-            backendRoute: $route,
+            language: $language,
         );
         $navigationItemCollection->addItem(navigationItem: new NavigationItem(
             navKey: 'users',

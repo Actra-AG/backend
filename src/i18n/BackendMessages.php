@@ -14,8 +14,8 @@ use actra\yuf\form\FormMessages;
 use actra\yuf\table\TableMessages;
 
 /**
- * All texts of the backend in one language, per backend route (`ActraBackendSettings::$messages` for the main route,
- * `BackendRoute::$messages`). Use `english()`, `german()` or `forLanguageCode()`, or change single texts of them:
+ * All texts of the backend in one language (own texts per language code: `ActraBackendSettings::$messages`). Use
+ * `english()`, `german()` or `forLanguageCode()`, or change single texts of them:
  * `BackendMessages::german()->with(auth: AuthMessages::german()->with(loginPageTitle: 'Login'))`.
  */
 final readonly class BackendMessages

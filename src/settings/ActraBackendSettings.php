@@ -12,29 +12,23 @@ namespace actra\backend\settings;
 use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\auth\UserDeleteHandler;
 use actra\yuf\auth\LoginRateLimit;
-use actra\yuf\core\Language;
 
 final readonly class ActraBackendSettings
 {
-    /** The texts of the main route (path of `ActraBackend::create()` in `$language`) */
-    public BackendMessages $messages;
-
     /**
-     * @param Language $language The language of the main route
      * @param list<string> $ipWhitelist
      * @param list<string> $javaScriptPaths
      * @param list<string> $stylesPaths
      * @param ?LoginRateLimit $loginRateLimit Limits the logins, password verifications and login code requests per
      *     client IP address and email address (yuf's `Authenticator`); `null` as explicit opt-out
-     * @param ?BackendMessages $messages Texts of the main route; default: `BackendMessages::forLanguageCode()`
-     * @param list<BackendRoute> $additionalRoutes The backend in further languages, one route per language
-     * @param ?BackendNavigation $projectNavigation Adds the project's navigation items per route language
+     * @param array<string, BackendMessages> $messages Own texts by language code (`ActraBackend::getMessages()`); a
+     *     language without entry gets `BackendMessages::forLanguageCode()`
+     * @param ?BackendNavigation $projectNavigation Adds the project's navigation items in the language of the request
      * @param ?UserDeleteHandler $userDeleteHandler Deletes the project's data of a user before the user is deleted
      * @param ?TokenSendLimit $tokenSendLimit Limits the login codes and password reset links per user; `null` turns
      *     the limit off
      */
     public function __construct(
-        public Language $language,
         public array $ipWhitelist,
         public string $backendName,
         public array $javaScriptPaths,
@@ -44,12 +38,9 @@ final readonly class ActraBackendSettings
         public string $frontendHref = '',
         public string $frontendName = '',
         public bool $hasApi = false,
-        ?BackendMessages $messages = null,
-        public array $additionalRoutes = [],
+        public array $messages = [],
         public ?BackendNavigation $projectNavigation = null,
         public ?UserDeleteHandler $userDeleteHandler = null,
         public ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
-    ) {
-        $this->messages = $messages ?? BackendMessages::forLanguageCode(languageCode: $language->code);
-    }
+    ) {}
 }

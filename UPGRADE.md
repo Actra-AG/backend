@@ -2,6 +2,86 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.0.0 (2026-10-31)
+
+### ⚠️ Requires `actra/yuf` `~8.6.0`
+
+No migration needed for yuf v8.6.0 (yuf's `UPGRADE.md`); the backend uses its routes with the language of the request.
+
+### ⚠️ One route for the whole backend, one path for all languages
+
+The backend has one route (`usesRequestLanguage`) for its own pages and the project views of its view group
+(`app/view/backend/`), instead of one library route per language plus project routes. The language of a request is the
+profile language of the logged-in user, else the language of the session (language switcher), of the browser, the
+first language of the `App` ([docs/languages.md](docs/languages.md)). Its languages are those of the `App`.
+
+Before (a project that is only a backend: project views at `/` and `/en/`, library pages at `/auth/` and `/en/auth/`):
+
+```php
+$app = $app
+    ->withHtmlRoute(path: '/', viewGroup: 'backend', defaultFileTitle: 'overview', viewFactory: $viewFactory)
+    ->withHtmlRoute(path: '/en/', viewGroup: 'backend', defaultFileTitle: 'overview', languageCode: 'en',
+        viewFactory: $viewFactory);
+$actraBackend = ActraBackend::create(
+    path: '/auth/',
+    isDefaultForLanguage: false,
+    actraBackendSettings: new ActraBackendSettings(
+        language: $app->getLanguage(code: 'de'),
+        …,
+        messages: BackendMessages::german()->with(…),
+        additionalRoutes: [new BackendRoute(path: '/en/auth/', language: $app->getLanguage(code: 'en'))],
+    ),
+    …
+);
+$viewFactory = $actraBackend->createViewFactory(create: $create);
+$actraBackend->configure(app: $app)->run();
+```
+
+After (`/overview.html`, `/users.html`, `/login.html`, … in every language):
+
+```php
+$actraBackend = ActraBackend::create(
+    path: '/',
+    languages: $app->core->availableLanguages, // with Core: $core->availableLanguages
+    actraBackendSettings: new ActraBackendSettings(
+        …,
+        messages: ['de' => BackendMessages::german()->with(…)], // optional, per language code
+    ),
+    …,
+    defaultFileTitle: 'overview', // the page of "/", default: 'login'
+);
+$actraBackend->configure(
+    app: $app, // without the project routes of the backend views
+    create: $create, // was createViewFactory(create:)
+    formerPaths: ['/auth/', '/en/auth/', '/en/'], // optional: 301 to the same page under "/"
+)->run();
+```
+
+A project with a frontend (fixed languages at `/de/`, `/fr/`, `/it/`) puts the backend and its project views at
+`/backend/` (`path: '/backend/'`); the frontend routes stay as they are.
+
+- `ActraBackend::create()`: new `languages:`, `viewGroup:` (default `backend`) and `defaultFileTitle:` (default
+  `login`); `isDefaultForLanguage:` removed (`App` makes the route the target of "/" unless a route with a fixed
+  language is).
+- With `Core`: `createRoutes(viewDirectory: $core->viewDirectory, isDefaultForLanguage: …, create: …)` and
+  `requestLanguageProvider: $actraBackend->createRequestLanguageProvider()` for `Core::prepareHttpResponse()`; former
+  paths with `createFormerPathRoute()`.
+- Move the project views of the backend layout to the view group of the backend route; drop their own routes.
+  `BackendView::__construct(requiredViewGroupName:)` defaults to that view group (`ActraBackend::VIEW_GROUP` removed).
+  The page names of the backend (`login`, `users`, `profile`, …, [docs/views.md](docs/views.md#pages-of-the-backend))
+  are reserved on the backend path: a project view with such a name replaces the page of the backend.
+- `BackendPaths::LOGIN_FILE_NAME` → `LOGIN_FILE_TITLE`.
+- Removed: `BackendRoute`, `BackendRouteCollection` (`translatePath()`), `ActraBackendSettings::$language` and
+  `$additionalRoutes`, `ActraBackend::$backendRouteCollection`, `getRouteOfRequest()`, `getRouteForLanguage()`.
+- `BackendViewContext::$route` → `$language` (yuf's `Language`) and `$dateFormatter`; `$messages` follows the language
+  of the request. Texts of a language outside a view: `$actraBackend->getMessages(languageCode:)`.
+- `BackendNavigation::addNavigationItems(navigationItemCollection:, language: Language)` replaces `backendRoute:`.
+- The language switcher links to the new page `language.html` of the backend path, which sets the session language
+  and, for a logged-in user, the profile language. Its template markup is unchanged.
+- After the login the user stays on the requested path (before: moved to the route of the profile language).
+- Users without language: the session or the browser decides (`CommonMessages::$languageDefault` is "Automatic …"
+  without the `[language]` placeholder); their welcome email is in the first language.
+
 ## v4.2.0 (2026-10-31)
 
 ### ⚠️ Requires `actra/yuf` `~8.5.0`

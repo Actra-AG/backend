@@ -35,7 +35,7 @@ use Closure;
 /**
  * A `ViewContext` for the tests: an HTML request of a file title on the given route, with a session in memory (and its
  * CSRF token source) and a `RecordingResponseSender`; email fields accept every mail domain unless a resolver is
- * given.
+ * given. The request has no language unless a locale handler is given (the backend then takes its first language).
  */
 final class ViewContextFactory
 {
@@ -51,6 +51,7 @@ final class ViewContextFactory
         ?Closure $navigationProvider = null,
         string $documentRoot = '/tmp/public/',
         MailDomainResolver $mailDomainResolver = new AcceptingMailDomainResolver(),
+        LocaleHandler $locale = new LocaleHandler(language: null, availableLanguages: new LanguageCollection()),
     ): ViewContext {
         return new ViewContext(
             httpRequest: $httpRequest,
@@ -67,7 +68,7 @@ final class ViewContextFactory
             fileTitle: $fileTitle,
             pathVars: new PathVars(values: [0 => $fileTitle]),
             content: new ContentHandler(contentType: ContentType::createHtml(), cspNonce: new CspNonce(value: 'nonce')),
-            locale: new LocaleHandler(language: null, availableLanguages: new LanguageCollection()),
+            locale: $locale,
             templateEngine: new TemplateEngine(
                 cache: new DirectoryTemplateCache(
                     cacheDirectory: sys_get_temp_dir(),

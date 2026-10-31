@@ -64,7 +64,7 @@ final class LoginRedirectTest extends TestCase
             mailer: $this->mailer,
         );
         $this->routeCollection = new RouteCollection(
-            routes: $this->actraBackend->createRoutes(),
+            routes: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/../../Double/view/'),
             loginPath: $this->actraBackend->getLoginPath(),
         );
         $this->session = new Session(storage: new ArraySessionStorage());

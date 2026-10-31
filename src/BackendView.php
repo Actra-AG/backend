@@ -38,13 +38,15 @@ abstract class BackendView extends BaseView
     protected readonly BackendViewContext $backendContext;
 
     /**
+     * @param ?string $requiredViewGroupName The view group of the route; `null`: that of the backend route
+     *     (`ActraBackend::$viewGroup`)
      * @param array<int, string> $activeHtmlIdList
      */
     public function __construct(
         BackendViewContext $context,
         bool $forceLogout = false,
         InputParameterCollection $inputParameterCollection = new InputParameterCollection(),
-        string $requiredViewGroupName = ActraBackend::VIEW_GROUP,
+        ?string $requiredViewGroupName = null,
         int $maxAllowedPathVars = 0,
         private readonly array $activeHtmlIdList = [],
         private readonly bool $useNavigator = false,
@@ -64,7 +66,7 @@ abstract class BackendView extends BaseView
         }
         parent::__construct(
             context: $context->viewContext,
-            requiredViewGroupName: $requiredViewGroupName,
+            requiredViewGroupName: $requiredViewGroupName ?? $actraBackend->viewGroup,
             ipWhitelist: $actraBackend->actraBackendSettings->ipWhitelist,
             authUser: $myAuthUser,
             requiredAccessRights: static::getRequiredAccessRights(),
@@ -143,6 +145,7 @@ abstract class BackendView extends BaseView
         $actraBackendSettings = $actraBackend->actraBackendSettings;
         $htmlDocument = $this->context->getHtmlDocument();
         $htmlDocument->templateDirectory = $actraBackend->templateDirectory;
+        $this->useBackendContentFile(htmlDocument: $htmlDocument);
         $this->prepareHtmlDocument(htmlDocument: $htmlDocument);
         foreach ($this->activeHtmlIdList as $key => $val) {
             $htmlDocument->setActiveHtmlId(key: $key, val: $val);
@@ -249,6 +252,23 @@ abstract class BackendView extends BaseView
         );
     }
 
+    /**
+     * The pages of the backend itself render their content file of the library, not of the view directory of the
+     * route (the backend route is a route of the project). A view can still choose another one in
+     * `prepareHtmlDocument()` (`HtmlDocument::useContentFile()`).
+     */
+    private function useBackendContentFile(HtmlDocument $htmlDocument): void
+    {
+        if (!str_starts_with(haystack: static::class, needle: BackendViewFactory::BACKEND_VIEW_NAMESPACE)) {
+            return;
+        }
+        $contentFilePath = __DIR__ . '/view/backend/html/'
+            . substr(string: static::class, offset: strlen(string: BackendViewFactory::BACKEND_VIEW_NAMESPACE)) . '.html';
+        if (is_file(filename: $contentFilePath)) {
+            $htmlDocument->useContentFile(filePath: $contentFilePath);
+        }
+    }
+
     private function addLayoutTexts(HtmlReplacementCollection $replacements): void
     {
         $messages = $this->backendContext->messages;
@@ -270,9 +290,13 @@ abstract class BackendView extends BaseView
 
     private function addLanguageSwitcher(HtmlReplacementCollection $replacements): void
     {
+        $context = $this->backendContext;
+        $switchPath = $context->paths->language();
         $languageSwitcher = new LanguageSwitcher(
-            backendRouteCollection: $this->backendContext->actraBackend->backendRouteCollection,
-            currentRoute: $this->backendContext->route,
+            languages: $context->actraBackend->languages,
+            currentLanguage: $context->language,
+            // A logged-in user saves the language in the profile, which wins over the session
+            switchPath: $context->authSession->isLoggedIn() ? $this->createCsrfLink(path: $switchPath) : $switchPath,
             currentUri: $this->context->httpRequest->getUri(),
         );
         $replacements->addBool(identifier: 'hasLanguageSwitcher', booleanValue: $languageSwitcher->isAvailable());

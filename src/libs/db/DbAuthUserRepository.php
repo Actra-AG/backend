@@ -278,6 +278,17 @@ final class DbAuthUserRepository
         );
     }
 
+    public function updateLanguage(int $id, string $languageCode): void
+    {
+        $this->db->execute(
+            sql: 'UPDATE auth_users SET language=? WHERE id=?',
+            parameters: [
+                $languageCode,
+                $id,
+            ],
+        );
+    }
+
     /**
      * Counts a password attempt atomically, only below the limit: `false` if the limit is reached (locked out). The
      * counter is reset only by a new password (`setPassword()`, `removePassword()`), not by a successful login.

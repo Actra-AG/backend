@@ -23,6 +23,7 @@ final readonly class TestUsers
      * A user of the group "Administrator" of `db/data.sql` (backend access) unless `withRights: false`.
      *
      * @param list<string> $ipWhitelist
+     * @param ?string $languageCode The profile language, `null` for none
      */
     public function create(
         string $email,
@@ -31,15 +32,16 @@ final readonly class TestUsers
         bool $withRights = true,
         array $ipWhitelist = [],
         int $wrongLoginAttempts = 0,
+        ?string $languageCode = null,
     ): int {
         $hash = $password === null ? null : Password::generateNew(rawPassword: $password);
         $this->db->execute(
             sql: '
                 INSERT INTO auth_users
                 SET email=?, phone=\'\', first_name=\'Test\', last_name=\'User\', is_active=?, password_salt=?,
-                    password_hash=?, wrong_login_attempts=?
+                    password_hash=?, wrong_login_attempts=?, language=?
             ',
-            parameters: [$email, $isActive ? 1 : 0, $hash?->salt, $hash?->hash, $wrongLoginAttempts],
+            parameters: [$email, $isActive ? 1 : 0, $hash?->salt, $hash?->hash, $wrongLoginAttempts, $languageCode],
         );
         $userId = $this->db->getLastInsertId();
         if ($withRights) {

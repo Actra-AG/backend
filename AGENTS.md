@@ -40,8 +40,10 @@ This project follows the Actra coding standard, installed as development depende
   - `libs/auth/`, `libs/db/`, `libs/email/`, `libs/common/` – authentication, repositories and records, mails.
   - `libs/form/` – the forms (yuf form API), `component/` custom fields, `rule/` custom rules.
   - `libs/table/` – the tables (yuf `DbResultTable`).
-  - `view/backend/php/` – the views (one class per route), `view/backend/html/` their HTML content templates,
-    `view/backend/templates/` the page templates, `view/backend/confirmation/` the template of `ConfirmationView`.
+  - `view/backend/php/` – the pages of the backend (one class per page; served on the backend route of the project
+    by `BackendViewFactory`, so a new page name is reserved there: add it to `docs/views.md`), `view/backend/html/`
+    their HTML content templates (rendered with `HtmlDocument::useContentFile()`), `view/backend/templates/` the page
+    templates, `view/backend/confirmation/` the template of `ConfirmationView`.
   - `assets/` – default CSS (`css/backend.css`) and JavaScript (`js/backend.js`, ES modules in `js/modules/`) that
     projects publish or bundle themselves.
 - `db/` – `schema.sql` and `data.sql` for new installations, `updates/<version>.sql` for upgrades.
@@ -73,8 +75,9 @@ This project follows the Actra coding standard, installed as development depende
 - Message classes in `src/i18n/` (English default, German in `german()`), shared texts in `CommonMessages`; read from
   `BackendViewContext::$messages`, output with `BackendView::addTexts()`. Placeholders `[name]` are filled with
   `MessageTemplate::fill()` and checked by `tests/Unit/i18n/MessagesTest.php`.
-- One route per language: `$messages`, `$route` and `$paths` of `BackendViewContext` belong to the route of the request.
-  Text for another user (e.g. an email) uses that user's route: `$actraBackend->getRouteForLanguage()`.
+- One path for all languages (yuf's `usesRequestLanguage`): `$language`, `$messages` and `$dateFormatter` of
+  `BackendViewContext` belong to the language of the request. Text for another user (e.g. an email) uses that user's
+  language: `$actraBackend->getMessages(languageCode:)`.
 - No static state: services reach classes through `BackendViewContext` (views, forms, tables) or as constructor
   arguments; outside a request through the `ActraBackend` instance.
 

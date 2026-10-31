@@ -100,7 +100,7 @@ final class user extends BackendView
         $hasApi = $this->backendContext->actraBackend->actraBackendSettings->hasApi;
         $messages = $this->backendContext->messages->user;
         $common = $this->backendContext->messages->common;
-        $dateFormatter = $this->backendContext->route->dateFormatter;
+        $dateFormatter = $this->backendContext->dateFormatter;
         $replacements = $htmlDocument->replacements;
         $this->addTexts(
             replacements: $replacements,

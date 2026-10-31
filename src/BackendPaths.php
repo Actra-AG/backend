@@ -10,20 +10,20 @@ declare(strict_types=1);
 namespace actra\backend;
 
 /**
- * The links to the pages of the backend on one backend route (`/backend/user-5.html`).
+ * The links to the pages of the backend (`/backend/user-5.html`).
  */
 final readonly class BackendPaths
 {
-    public const string LOGIN_FILE_NAME = 'login.html';
+    public const string LOGIN_FILE_TITLE = 'login';
 
     /**
-     * @param string $path The path of the backend route, e.g. `/backend/` or `/en/backend/`
+     * @param string $path The path of the backend route, e.g. `/backend/`
      */
     public function __construct(public string $path) {}
 
     public function login(): string
     {
-        return $this->path . BackendPaths::LOGIN_FILE_NAME;
+        return $this->path . BackendPaths::LOGIN_FILE_TITLE . '.html';
     }
 
     public function loginPassword(): string
@@ -39,6 +39,11 @@ final readonly class BackendPaths
     public function loginToken(): string
     {
         return $this->path . 'loginToken.html';
+    }
+
+    public function language(): string
+    {
+        return $this->path . 'language.html';
     }
 
     public function logout(): string

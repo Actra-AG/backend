@@ -54,8 +54,8 @@ final class NotificationSendForm extends Form
                 name: 'subjectField',
                 label: HtmlText::fromText(text: $messages->common->subjectLabel),
                 value: '',
-                maxLength: DbAuthUserNotification::MAX_SUBJECT_LENGTH,
                 requiredError: HtmlText::fromText(text: $messages->common->subjectRequired),
+                maxLength: DbAuthUserNotification::MAX_SUBJECT_LENGTH,
             ),
         );
         $this->addField(

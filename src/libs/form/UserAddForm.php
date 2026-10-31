@@ -53,16 +53,16 @@ final class UserAddForm extends Form
             formField: $this->firstNameField = new TextField(
                 name: 'firstName',
                 label: HtmlText::fromText(text: $common->firstNameLabel),
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->firstNameRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
             formField: $this->lastNameField = new TextField(
                 name: 'lastName',
                 label: HtmlText::fromText(text: $common->lastNameLabel),
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->lastNameRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
@@ -71,9 +71,9 @@ final class UserAddForm extends Form
                 label: HtmlText::fromText(text: $common->emailLabel),
                 value: null,
                 invalidError: HtmlText::fromText(text: $common->emailInvalid),
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
-                requiredError: HtmlText::fromText(text: $common->emailRequired),
                 mailDomainResolver: $context->viewContext->formContext->mailDomainResolver,
+                requiredError: HtmlText::fromText(text: $common->emailRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
@@ -113,11 +113,11 @@ final class UserAddForm extends Form
         );
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
-                messages: $this->backendContext->messages->common,
                 name: 'ipWhitelistField',
                 label: HtmlText::fromText(text: $common->ipWhitelistLabel),
                 value: [],
                 invalidErrorMessage: HtmlText::fromText(text: $common->ipWhitelistInvalid),
+                messages: $this->backendContext->messages->common,
             ),
         );
         $this->addComponent(

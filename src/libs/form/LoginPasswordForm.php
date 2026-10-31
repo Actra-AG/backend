@@ -55,8 +55,8 @@ final class LoginPasswordForm extends Form
                 label: HtmlText::fromText(text: $messages->common->emailLabel),
                 value: null,
                 invalidError: HtmlText::fromText(text: $messages->auth->emailInvalid),
-                requiredError: HtmlText::fromText(text: $messages->auth->emailRequired),
                 mailDomainResolver: $context->viewContext->formContext->mailDomainResolver,
+                requiredError: HtmlText::fromText(text: $messages->auth->emailRequired),
             ),
         );
         $this->emailField->autoFocus = true;

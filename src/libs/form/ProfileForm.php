@@ -51,8 +51,8 @@ final class ProfileForm extends Form
                 name: 'firstName',
                 label: HtmlText::fromText(text: $messages->common->firstNameLabel),
                 value: $dbAuthUser->firstName,
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $messages->common->firstNameRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
@@ -60,8 +60,8 @@ final class ProfileForm extends Form
                 name: 'lastName',
                 label: HtmlText::fromText(text: $messages->common->lastNameLabel),
                 value: $dbAuthUser->lastName,
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $messages->common->lastNameRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
@@ -85,11 +85,11 @@ final class ProfileForm extends Form
         $this->languageField = $languageField;
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
-                messages: $this->backendContext->messages->common,
                 name: 'ipWhitelistField',
                 label: HtmlText::fromText(text: $messages->common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
                 invalidErrorMessage: HtmlText::fromText(text: $messages->common->ipWhitelistInvalid),
+                messages: $this->backendContext->messages->common,
             ),
         );
         $this->ipWhitelistField->fieldInfo = HtmlText::fromText(

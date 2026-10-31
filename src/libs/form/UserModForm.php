@@ -59,8 +59,8 @@ final class UserModForm extends Form
                 name: 'firstName',
                 label: HtmlText::fromText(text: $common->firstNameLabel),
                 value: $dbAuthUser->firstName,
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->firstNameRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
@@ -68,8 +68,8 @@ final class UserModForm extends Form
                 name: 'lastName',
                 label: HtmlText::fromText(text: $common->lastNameLabel),
                 value: $dbAuthUser->lastName,
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
                 requiredError: HtmlText::fromText(text: $common->lastNameRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
@@ -78,9 +78,9 @@ final class UserModForm extends Form
                 label: HtmlText::fromText(text: $common->emailLabel),
                 value: $dbAuthUser->email,
                 invalidError: HtmlText::fromText(text: $common->emailInvalid),
-                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
-                requiredError: HtmlText::fromText(text: $common->emailRequired),
                 mailDomainResolver: $context->viewContext->formContext->mailDomainResolver,
+                requiredError: HtmlText::fromText(text: $common->emailRequired),
+                maxLength: DbAuthUser::MAX_TEXT_LENGTH,
             ),
         );
         $this->addField(
@@ -122,11 +122,11 @@ final class UserModForm extends Form
         );
         $this->addField(
             formField: $this->ipWhitelistField = new IpWhitelistField(
-                messages: $this->backendContext->messages->common,
                 name: 'ipWhitelistField',
                 label: HtmlText::fromText(text: $common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
                 invalidErrorMessage: HtmlText::fromText(text: $common->ipWhitelistInvalid),
+                messages: $this->backendContext->messages->common,
             ),
         );
         $this->addComponent(

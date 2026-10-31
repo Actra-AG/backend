@@ -2,6 +2,11 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.1.2 (2026-10-31)
+
+No migration needed. The backend follows `actra/coding-standard` v2.0.0 (development dependency): named arguments in
+the order of the parameters. Behaviour and HTML are unchanged.
+
 ## v5.1.1 (2026-10-31)
 
 ### ⚠️ Security: login codes in the log of sent emails

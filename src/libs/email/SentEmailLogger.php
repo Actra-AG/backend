@@ -17,7 +17,8 @@ use RuntimeException;
 
 /**
  * Writes every mail of the mailer of the `MailerSettings` to the log of sent emails (page "Sent emails"), attached by
- * `ActraBackend::create()`. The mail is sent at that point: a database error is logged instead of thrown, so a
+ * `ActraBackend::create()`. Secrets that the sender registered (`Mailer::sendTextMail(secrets:)`) are masked in the
+ * subject. The mail is sent at that point: a database error is logged instead of thrown, so a
  * caller never sends the mail a second time.
  *
  * @internal
@@ -27,9 +28,13 @@ final readonly class SentEmailLogger implements SentMailListener
     /**
      * @param ?Logger $logger Logs a failed entry; `null`: PHP's `error_log()`
      */
+    /**
+     * @param SentEmailSecrets $sentEmailSecrets The secrets of the mail being sent, masked in the logged subject
+     */
     public function __construct(
         private BackendRepositories $repositories,
         private ?Logger $logger,
+        private SentEmailSecrets $sentEmailSecrets,
     ) {}
 
     #[\Override]
@@ -37,7 +42,14 @@ final readonly class SentEmailLogger implements SentMailListener
     {
         try {
             // Opens the database connection of the backend on the first mail
-            $this->repositories->sentEmails()->insert(sentMail: $sentMail);
+            $this->repositories->sentEmails()->insert(sentMail: new SentMail(
+                sentAt: $sentMail->sentAt,
+                fromEmail: $sentMail->fromEmail,
+                toEmails: $sentMail->toEmails,
+                ccEmails: $sentMail->ccEmails,
+                bccEmails: $sentMail->bccEmails,
+                subject: $this->sentEmailSecrets->mask(text: $sentMail->subject),
+            ));
         } catch (RuntimeException $runtimeException) {
             // PDOException (connection) and DbRuntimeException (query) are RuntimeExceptions
             if ($this->logger === null) {

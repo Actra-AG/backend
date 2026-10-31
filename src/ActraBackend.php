@@ -19,6 +19,7 @@ use actra\backend\libs\db\ClientData;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\email\Mailer;
 use actra\backend\libs\email\SentEmailLogger;
+use actra\backend\libs\email\SentEmailSecrets;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\MailerSettings;
 use actra\backend\view\backend\php\notifications;
@@ -66,6 +67,8 @@ final class ActraBackend
         . 'C17.6967 11.7222 19 10.264 19 8.5C19 7.11935 18.2016 5.92603 17.041 5.35635L17.5962 3.41321Z';
     public readonly BackendPaths $paths;
     private ?BackendRepositories $repositories = null;
+    /** The secrets of the mail being sent, shared by the mailers and the log of sent emails */
+    private readonly SentEmailSecrets $sentEmailSecrets;
     /** @var array<string, BackendMessages> The texts per language code, created on first use */
     private array $messages = [];
 
@@ -83,6 +86,7 @@ final class ActraBackend
         public readonly string $templateDirectory,
     ) {
         $this->paths = new BackendPaths(path: $path);
+        $this->sentEmailSecrets = new SentEmailSecrets();
     }
 
     /**
@@ -126,7 +130,11 @@ final class ActraBackend
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',
         );
         $mailerSettings->mailer->addSentMailListener(
-            sentMailListener: new SentEmailLogger(repositories: $actraBackend->getRepositories(), logger: $logger),
+            sentMailListener: new SentEmailLogger(
+                repositories: $actraBackend->getRepositories(),
+                logger: $logger,
+                sentEmailSecrets: $actraBackend->sentEmailSecrets,
+            ),
         );
 
         return $actraBackend;
@@ -281,7 +289,11 @@ final class ActraBackend
      */
     public function createMailer(ResponseSender $responseSender): Mailer
     {
-        return new Mailer(mailerSettings: $this->mailerSettings, responseSender: $responseSender);
+        return new Mailer(
+            mailerSettings: $this->mailerSettings,
+            responseSender: $responseSender,
+            sentEmailSecrets: $this->sentEmailSecrets,
+        );
     }
 
     /**

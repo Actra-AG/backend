@@ -2,6 +2,20 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.1.1 (2026-10-31)
+
+### ⚠️ Security: login codes in the log of sent emails
+
+The log of sent emails of v5.1.0 stored the subject of the login code mail with the code (`EWOYS5 ist Ihr
+Bestätigungscode`): users with `view_sent_emails` could read the valid codes of other users. The log now shows
+`•••••• ist Ihr Bestätigungscode`; the mail itself is unchanged.
+
+- Apply `db/updates/5.1.1.sql`: it masks the codes in the logged subjects of the default texts (English, German).
+  With own texts for the subject (`loginTokenSubject` in `ActraBackendSettings::$messages`), empty the log instead:
+  `TRUNCATE sent_emails`.
+- Project mails with a secret in the subject: send them with `Mailer::sendTextMail(secrets: [$code])` (and
+  `sendTextMailAfterResponse()`), so the log masks it ([docs/users.md](docs/users.md#log-of-sent-emails)).
+
 ## v5.1.0 (2026-10-31)
 
 ### ⚠️ Requires `actra/yuf` `~8.7.0`

@@ -141,7 +141,9 @@ An `UnauthorizedException` is thrown if the bearer token is missing, malformed, 
 ## Log of sent emails
 
 Every mail of the mailer of the `MailerSettings` is written to the table `sent_emails`: time, sender, recipients (to,
-cc, bcc) and subject, no content. `ActraBackend::create()` attaches the log to that mailer (yuf's
+cc, bcc) and subject, no content. Secrets in the subject are masked (`••••••`): the backend registers the login code of
+its login code mail; project mails sent with `Mailer::sendTextMail(secrets: [$code])` (`$actraBackend->createMailer()`,
+`BackendViewContext::$mailer`) do the same. The mail itself is unchanged. `ActraBackend::create()` attaches the log to that mailer (yuf's
 `SentMailListener`), so it covers the mails of the backend (login codes, invitations, password reset links,
 notifications) and every mail the project sends with that mailer, also in CLI scripts. Create the backend once per
 mailer; a mailer of its own (not the one of the `MailerSettings`) is not logged.

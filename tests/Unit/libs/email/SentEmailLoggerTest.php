@@ -12,6 +12,7 @@ namespace actra\backend\tests\Unit\libs\email;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\DB;
 use actra\backend\libs\email\SentEmailLogger;
+use actra\backend\libs\email\SentEmailSecrets;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\RecordingLogger;
 use actra\backend\tests\Double\RecordingResponseSender;
@@ -66,6 +67,7 @@ final class SentEmailLoggerTest extends TestCase
                 connect: static fn(): DB => throw new PDOException(message: 'Database unreachable'),
             ),
             logger: $recordingLogger,
+            sentEmailSecrets: new SentEmailSecrets(),
         ));
         $textMail = new TextMail(
             senderEmail: 'backend@example.com',
@@ -88,7 +90,11 @@ final class SentEmailLoggerTest extends TestCase
     {
         $recordingLogger = new RecordingLogger();
         $repositories = BackendRepositories::fromDb(db: TestDatabase::connect());
-        $sentEmailLogger = new SentEmailLogger(repositories: $repositories, logger: $recordingLogger);
+        $sentEmailLogger = new SentEmailLogger(
+            repositories: $repositories,
+            logger: $recordingLogger,
+            sentEmailSecrets: new SentEmailSecrets(),
+        );
 
         // Longer than from_email (varchar(254)): rejected in the strict SQL mode of MariaDB
         $sentEmailLogger->onMailSent(sentMail: new SentMail(
@@ -101,5 +107,30 @@ final class SentEmailLoggerTest extends TestCase
         ));
 
         $this->assertCount(1, $recordingLogger->exceptions);
+    }
+
+    /**
+     * Secrets are masked only in the mails sent with them; the next mail is logged as it is.
+     */
+    public function testSecretsAreMaskedOnlyInTheirMail(): void
+    {
+        $db = TestDatabase::connect();
+        $actraBackend = ActraBackendTestInstance::create(
+            dbSettings: TestDatabase::settings(),
+            mailer: new RecordingMailer(),
+        );
+        $mailer = $actraBackend->createMailer(responseSender: new RecordingResponseSender());
+        $recipient = 'secret-' . bin2hex(string: random_bytes(length: 4)) . '@example.com';
+
+        $mailer->sendTextMail(recipient: $recipient, subject: 'Code 4711', textBody: '4711', secrets: ['4711']);
+        $mailer->sendTextMail(recipient: $recipient, subject: 'Order 4711', textBody: 'Order');
+
+        $subjects = array_map(
+            callback: static fn(DbRow $row): string => $row->getString(column: 'subject'),
+            array: $db->selectRows(sql: 'SELECT subject FROM sent_emails WHERE to_emails=? ORDER BY id', parameters: [
+                $recipient,
+            ]),
+        );
+        $this->assertSame(['Code ' . SentEmailSecrets::MASK, 'Order 4711'], $subjects);
     }
 }

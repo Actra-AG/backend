@@ -59,6 +59,8 @@ final class EmailLoginToken
                     $context->mailer->mailerSettings->signature,
                 ],
             ),
+            // The code is in the subject: the log of sent emails shows it masked
+            secrets: [$token],
         );
     }
 }

@@ -12,6 +12,7 @@ namespace actra\backend\tests\Unit\libs\auth;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\ClientData;
+use actra\backend\libs\email\SentEmailSecrets;
 use actra\backend\libs\form\LoginForm;
 use actra\backend\libs\form\LoginPasswordForm;
 use actra\backend\libs\form\LoginTokenForm;
@@ -284,6 +285,32 @@ final class LoginFlowTest extends TestCase
         $this->assertFalse(new LoginForm(context: $context)->process());
         $this->assertSame(0, $this->testUsers->countTokens(email: $email));
         $this->assertSame([], $this->responseSender->afterResponseCallbacks);
+    }
+
+    /**
+     * The log of sent emails shows the login code of the subject masked; the mail contains it.
+     */
+    public function testLoginCodeIsMaskedInTheLogOfSentEmails(): void
+    {
+        $email = LoginFlowTest::email(name: 'masked');
+        $this->testUsers->create(email: $email);
+        $this->assertTrue($this->requestToken(email: $email));
+
+        $this->responseSender->runAfterResponseCallbacks();
+
+        $this->assertCount(1, $this->mailer->sentMails);
+        $sentMail = $this->mailer->sentMails[0];
+        $this->assertSame(1, preg_match(
+            pattern: '/^([A-Z0-9]{6}) ist Ihr Bestätigungscode$/u',
+            subject: $sentMail->getSubject(),
+            matches: $matches,
+        ));
+        $this->assertStringContainsString($matches[1], $sentMail->getBody());
+        $loggedSubject = TestDatabase::connect()->selectRow(
+            sql: 'SELECT subject FROM sent_emails WHERE to_emails=?',
+            parameters: [$email],
+        )?->getString(column: 'subject');
+        $this->assertSame(SentEmailSecrets::MASK . ' ist Ihr Bestätigungscode', $loggedSubject);
     }
 
     public function testTokenRequestOfAUserWithoutPasswordSendsAToken(): void

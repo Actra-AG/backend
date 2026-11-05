@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.2.0 (2026-11-05)
+
+### ⚠️ Requires `actra/yuf` `~8.8.0`
+
+The backend needs no change. Code that reads mailboxes with yuf: `ReceivedMail::$textBody` of HTML-only mails
+now writes links as `text <url>`. Adapt patterns or stored texts that match this text (yuf's `UPGRADE.md`, v8.8.0).
+
 ## v5.1.2 (2026-10-31)
 
 No migration needed. The backend follows `actra/coding-standard` v2.0.0 (development dependency): named arguments in

@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.3.0 (2026-11-06)
+
+### ⚠️ Requires `actra/yuf` `~8.9.0`
+
+The backend needs no change. `ZipCodeValidator` and `ZipCodeField` of projects now accept only 9485–9498 for
+Liechtenstein (`LI`); before, every LI postcode was accepted (yuf's `UPGRADE.md`, v8.9.0).
+
 ## v5.2.0 (2026-11-05)
 
 ### ⚠️ Requires `actra/yuf` `~8.8.0`

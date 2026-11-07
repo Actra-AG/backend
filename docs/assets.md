@@ -28,6 +28,26 @@ attention:
 <p class="msg msg-warning" role="status"><strong>Warning:</strong> The event is fully booked.</p>
 ```
 
+## Searchable selects (Tom Select, optional)
+
+`initTomSelect()` turns every `select.chosen` into a [Tom Select](https://tom-select.js.org/) with a search field. yuf
+renders this class with `SelectOptionsField(renderAsChosenEnhancedField: true)`. It is opt-in, `initBackend()` does not
+call it: install the npm package (`npm i -D tom-select@2.6.2`, Apache-2.0) and pass its constructor:
+
+```js
+import TomSelect from 'tom-select/dist/js/tom-select.popular.js';
+import { initBackend, initTomSelect } from '../../vendor/actra/backend/src/assets/js/backend.js';
+
+initBackend();
+initTomSelect(TomSelect);
+```
+
+```css
+@import url("../../vendor/actra/backend/src/assets/css/backend.css");
+@import url("tom-select/dist/css/tom-select.css");
+@import url("../../vendor/actra/backend/src/assets/css/tom-select.css");
+```
+
 After changing the version of `actra/backend`, rebuild (or republish) the CSS and JavaScript bundles of the project.
 
 After the assets are available through the application's public asset URLs, reference them when initializing the

@@ -3,6 +3,7 @@ import { initNavMainSubToggle } from './modules/nav-main-sub-toggle.js';
 import { initDialog } from './modules/dialog.js';
 import { initDropdown } from './modules/dropdown.js';
 import { initResponsiveTable } from './modules/responsive-table.js';
+import { initTomSelect } from './modules/tom-select.js';
 
 export {
   initNavMainToggle,
@@ -10,6 +11,7 @@ export {
   initDialog,
   initDropdown,
   initResponsiveTable,
+  initTomSelect,
 };
 
 export function initBackend() {

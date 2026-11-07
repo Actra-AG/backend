@@ -45,7 +45,8 @@ with `composer install --no-dev --optimize-autoloader`.
 
 Include `src/assets/css/backend.css` and `src/assets/js/backend.js` in the asset build or publishing of the project and
 publish the fonts below `/fonts/backend/` ([docs/assets.md](docs/assets.md)). Rebuild them after every update of
-`actra/backend`.
+`actra/backend`. Searchable selects with Tom Select are optional
+([docs/assets.md](docs/assets.md#searchable-selects-tom-select-optional)).
 
 ### 3. Database Setup
 

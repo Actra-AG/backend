@@ -1,0 +1,3 @@
+/* Optional: the look of Tom Select (initTomSelect()) in the backend. Import it after backend.css and after
+   tom-select/dist/css/tom-select.css of the project's npm package tom-select. */
+@import url("blocks/_tom-select.css");

@@ -1,0 +1,63 @@
+/* Tom Select (searchable selects, select.chosen): the look of the form fields on top of tom-select.css */
+/* stylelint-disable selector-class-pattern -- class names of Tom Select (plugin-dropdown_input) */
+.ts-wrapper {
+  width: 100%;
+}
+
+.ts-control,
+.ts-wrapper.single.input-active .ts-control {
+  padding: var(--space-xxs) 2em var(--space-xxs) var(--space-xs);
+  border: 1px solid var(--form-input-border-clr);
+  background-color: var(--form-input-bg-clr);
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-image: var(--icon-arrow-down-s-line);
+  background-size: 1.125em;
+  border-radius: var(--br-s);
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+
+  .full & {
+    background-color: var(--form-input-bg-clr);
+  }
+
+  .focus & {
+    outline: 1px solid var(--form-input-border-clr-focus);
+    border-color: var(--form-input-border-clr-focus);
+  }
+
+  .has-error & {
+    background-color: var(--clr-error-50);
+    border-color: var(--clr-error-400);
+  }
+}
+
+.plugin-dropdown_input.focus.dropdown-active .ts-control {
+  border: 1px solid var(--form-input-border-clr-focus);
+}
+
+.ts-dropdown {
+  border: 1px solid var(--form-input-border-clr);
+  background-color: var(--surface-0);
+  color: inherit;
+  font-size: inherit;
+  border-radius: 0 0 var(--br-s) var(--br-s);
+
+  .option,
+  .no-results {
+    padding: var(--space-xxs) var(--space-xs);
+  }
+
+  .active {
+    background-color: var(--clr-primary-100);
+    color: inherit;
+  }
+}
+
+.plugin-dropdown_input .dropdown-input {
+  font-size: inherit;
+  padding: var(--space-xxs) var(--space-xs);
+  border-color: var(--form-input-border-clr);
+}

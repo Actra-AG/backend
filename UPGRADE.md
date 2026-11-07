@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.4.0 (2026-11-07)
+
+No migration needed. New, optional: searchable selects with Tom Select. `initTomSelect(TomSelect)` (`backend.js`)
+enhances every `select.chosen` (yuf `renderAsChosenEnhancedField: true`), `src/assets/css/tom-select.css` styles it.
+Projects install the npm package `tom-select` ([docs/assets.md](docs/assets.md#searchable-selects-tom-select-optional));
+projects with an own Tom Select setup for `select.chosen` may replace it.
+
 ## v5.3.0 (2026-11-06)
 
 ### ⚠️ Requires `actra/yuf` `~8.9.0`

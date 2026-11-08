@@ -36,7 +36,8 @@ Languages `fr` and `it` get French and Italian texts (formal address, Swiss usag
 Visible output changes for these languages: all pages, the form and table texts, the emails (e.g. the subject of the
 login code mail, `[token] est votre code de confirmation`), the "no results" of Tom Select (`backend.js`). Own
 `ActraBackendSettings::$messages` for `fr` or `it` stay as they are; remove those that only translated the English
-texts.
+texts. The scroll hint of wide tables (`backend.js`) follows the language of the page: before, it was German in every
+language, now also English pages show it in English.
 
 ### New: shared login, the visitor stays on the site
 

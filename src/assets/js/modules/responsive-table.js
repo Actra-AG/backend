@@ -5,6 +5,15 @@ export function initResponsiveTable() {
     return;
   }
 
+  // The hint in the language of the page (backend languages de, fr, it; English otherwise)
+  const scrollHintTexts = {
+    de: 'Horizontal Scrollen um mehr zu sehen (Shift+Scrollrad)',
+    fr: 'Faites défiler horizontalement pour en voir plus (Maj+molette)',
+    it: 'Scorrere orizzontalmente per vedere di più (Maiusc+rotellina)',
+  };
+  const scrollHintText =
+    scrollHintTexts[document.documentElement.lang] ?? 'Scroll horizontally to see more (Shift+scroll wheel)';
+
   tables.forEach(table => {
     const scrollWrapper = document.createElement('div');
     scrollWrapper.classList.add('scrollable');
@@ -18,8 +27,7 @@ export function initResponsiveTable() {
 
     const scrollHint = document.createElement('div');
     scrollHint.classList.add('scroll-hint');
-    scrollHint.textContent =
-      'Horizontal Scrollen um mehr zu sehen (Shift+Scrollrad)';
+    scrollHint.textContent = scrollHintText;
     scrollHint.setAttribute('aria-hidden', 'true');
 
     const updateShadows = () => {

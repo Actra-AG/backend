@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.10.0 (2026-11-08)
+
+### ⚠️ Requires `actra/yuf` `~8.18.0`
+
+The backend's API is unchanged. yuf v8.18.0 adds `TemplateCache::remove()` and `TemplateEngine::removeCompiled()`;
+projects with their own `TemplateCache` implementation add `remove()` (yuf's `UPGRADE.md`, v8.18.0).
+
 ## v5.9.2 (2026-11-08)
 
 No migration needed. Documentation only: the examples in `README.md`, `docs/login.md` and `docs/testing.md` pass the

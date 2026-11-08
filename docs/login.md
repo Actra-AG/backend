@@ -62,6 +62,7 @@ database (`ActraBackend::create(connectDb:)`). After every login the session coo
 $sharedLogin = new SharedLogin(
     directory: '/var/www/shared/login-hand-over',
     loginLifetimeInSeconds: 86400,
+    clock: new SystemClock(),
 );
 
 // The login host (login.example.com): the sites it serves
@@ -118,7 +119,10 @@ requested page stays on the site. The subject of the hand-over is the user ID, s
 (`ActraBackend::create(connectDb:)`).
 
 ```php
-$loginHandOver = new LoginHandOver(directory: '/var/www/shared/login-hand-over');
+$loginHandOver = new LoginHandOver(
+    directory: '/var/www/shared/login-hand-over',
+    clock: new SystemClock(),
+);
 
 // The login host: the sites it logs in
 new ActraBackendSettings(/* … */, loginHandOver: new LoginHandOverSettings(

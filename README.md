@@ -86,7 +86,9 @@ use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\App;
 use actra\yuf\auth\LoginRateLimit;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbConnectionParameters;
+use actra\yuf\db\DbQueryLogList;
 use actra\yuf\db\DbSettings;
 use actra\yuf\db\FrameworkDb;
 use actra\yuf\mailer\SmtpEncryptionEnum;
@@ -101,15 +103,19 @@ $app = App::fromEnvironment(envFilePath: __DIR__ . '/../.env.php', copyrightYear
     ->withHtmlRoute(path: '/', viewGroup: 'frontend')
     ->withFileLogger(); // yuf's FileLogger, optionally with a mailer
 $core = $app->core;
+$clock = new SystemClock();
 // One database connection per request for the project and the backend, opened on first use
 $db = null;
-$connectDb = static function () use (&$db, $core): FrameworkDb {
-    return $db ??= new FrameworkDb(connectionParameters: DbConnectionParameters::forMysql(dbSettings: new DbSettings(
-        hostName: $core->environmentSettings->getString(key: 'db.host'),
-        databaseName: $core->environmentSettings->getString(key: 'db.name'),
-        userName: $core->environmentSettings->getString(key: 'db.user'),
-        password: $core->environmentSettings->getString(key: 'db.password'),
-    )));
+$connectDb = static function () use (&$db, $core, $clock): FrameworkDb {
+    return $db ??= new FrameworkDb(
+        connectionParameters: DbConnectionParameters::forMysql(dbSettings: new DbSettings(
+            hostName: $core->environmentSettings->getString(key: 'db.host'),
+            databaseName: $core->environmentSettings->getString(key: 'db.name'),
+            userName: $core->environmentSettings->getString(key: 'db.user'),
+            password: $core->environmentSettings->getString(key: 'db.password'),
+        )),
+        queryLog: new DbQueryLogList(clock: $clock),
+    );
 };
 
 $actraBackend = ActraBackend::create(
@@ -129,6 +135,7 @@ $actraBackend = ActraBackend::create(
             rateLimiter: new RateLimiter(
                 directory: $core->cacheDirectory . 'rateLimit', // Not served by the web server
                 secret: $core->environmentSettings->getString(key: 'rateLimit.secret'),
+                clock: $clock,
             ),
             failMode: RateLimitFailModeEnum::CLOSED,
             logger: $app->getLogger(),
@@ -153,6 +160,7 @@ $actraBackend = ActraBackend::create(
             smtpUserName: $core->environmentSettings->getString(key: 'mailer.username'),
             smtpPassword: $core->environmentSettings->getString(key: 'mailer.password'),
             serverNameCache: $core->fileCache,
+            clock: $clock,
             encryption: $core->environmentSettings->getEnum(
                 key: 'mailer.encryption',
                 enumClass: SmtpEncryptionEnum::class,

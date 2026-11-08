@@ -2,6 +2,12 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.9.2 (2026-11-08)
+
+No migration needed. Documentation only: the examples in `README.md`, `docs/login.md` and `docs/testing.md` pass the
+arguments that yuf v8.16.0 requires (`clock:`, `queryLog:` of `FrameworkDb`). The examples in older entries below
+show the yuf versions of their release.
+
 ## v5.9.1 (2026-11-08)
 
 No migration needed. Documentation only.

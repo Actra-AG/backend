@@ -13,12 +13,15 @@ abstract class DatabaseTestCase extends TestCase
 
     protected function setUp(): void
     {
-        $db = new FrameworkDb(connectionParameters: DbConnectionParameters::forMysql(dbSettings: new DbSettings(
-            hostName: 'db',
-            databaseName: 'app_test',
-            userName: 'db',
-            password: 'db',
-        )));
+        $db = new FrameworkDb(
+            connectionParameters: DbConnectionParameters::forMysql(dbSettings: new DbSettings(
+                hostName: 'db',
+                databaseName: 'app_test',
+                userName: 'db',
+                password: 'db',
+            )),
+            queryLog: new DbQueryLogList(clock: new SystemClock()),
+        );
         $db->beginTransaction();
         $this->repositories = BackendRepositories::fromDb(db: $db);
     }

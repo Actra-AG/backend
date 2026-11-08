@@ -706,8 +706,7 @@ the new argument `userId:`, new are `createTokenWithinLimit()` and `deleteUnclai
 
 ## v2.4.4 (2026-10-10)
 
-The tag `v2.4.3` points to an old commit of v1 (2026-10-04) by mistake; do not use it. These fixes were released as
-v2.4.4.
+v2.4.3 was never released; these fixes were released as v2.4.4.
 
 ### Fixes
 

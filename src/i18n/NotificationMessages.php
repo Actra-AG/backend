@@ -55,4 +55,46 @@ final readonly class NotificationMessages
             defaultMessage: 'Nachricht...',
         );
     }
+
+    public static function french(): NotificationMessages
+    {
+        return new NotificationMessages(
+            title: 'Notifications',
+            sendTitle: 'Envoyer une notification',
+            sendInfo: 'Les notifications sont envoyées à une seconde d’intervalle. Veuillez ne cliquer qu’une seule '
+                . 'fois sur «[send]».',
+            sentSuccess: 'La notification a été envoyée.',
+            detailsHeading: 'Détails',
+            recipientsLabel: 'Destinataires',
+            sentDateLabel: 'Date d’envoi',
+            senderLabel: 'Expéditeur',
+            senderDetailLabel: 'Expéditeur',
+            messageLabel: 'Message',
+            dateLabel: 'Date',
+            userGroupRequired: 'Veuillez sélectionner un groupe d’utilisateurs.',
+            defaultGreeting: 'Bonjour [firstName] [lastName]',
+            defaultMessage: 'Message…',
+        );
+    }
+
+    public static function italian(): NotificationMessages
+    {
+        return new NotificationMessages(
+            title: 'Notifiche',
+            sendTitle: 'Inviare una notifica',
+            sendInfo: 'Le notifiche vengono inviate a un secondo di distanza l’una dall’altra. La preghiamo di '
+                . 'cliccare una sola volta su «[send]».',
+            sentSuccess: 'La notifica è stata inviata.',
+            detailsHeading: 'Dettagli',
+            recipientsLabel: 'Destinatari',
+            sentDateLabel: 'Data di invio',
+            senderLabel: 'Mittente',
+            senderDetailLabel: 'Mittente',
+            messageLabel: 'Messaggio',
+            dateLabel: 'Data',
+            userGroupRequired: 'Selezioni un gruppo di utenti.',
+            defaultGreeting: 'Buongiorno [firstName] [lastName]',
+            defaultMessage: 'Messaggio…',
+        );
+    }
 }

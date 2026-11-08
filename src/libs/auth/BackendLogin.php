@@ -14,17 +14,21 @@ use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\auth\LoginHandOver;
 use actra\yuf\auth\LoginRequest;
+use actra\yuf\auth\SharedLogin;
+use actra\yuf\auth\SharedLoginUser;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\LoginRedirect;
+use actra\yuf\core\RequestMethodEnum;
+use actra\yuf\exception\NotFoundException;
 use actra\yuf\exception\UnauthorizedException;
 use LogicException;
 
 /**
  * The steps of the login of backend users, for the login pages of the backend and of a project on any route with a
  * session (`ActraBackend::createLogin()`): request a login code by email (or with the password), log in with the code,
- * log out. The code is bound to the browser session that requested it. On a login host, the login is handed over to
- * sites on other hosts of the same server (yuf's `LoginHandOver`, `docs/login.md`). Texts for own pages:
- * `$login->context->messages->auth`.
+ * log out. The code is bound to the browser session that requested it. Hosts of the same server share the login
+ * (yuf's `SharedLogin`, `checkSharedLogin()`, `redirectAfterLogin()`) or a login host hands it over to sites (yuf's
+ * `LoginHandOver`), see `docs/login.md`. Texts for own pages: `$login->context->messages->auth`.
  */
 final readonly class BackendLogin
 {
@@ -92,9 +96,12 @@ final readonly class BackendLogin
      */
     public function logInWithCode(#[\SensitiveParameter] string $code): LoginCodeResultEnum
     {
-        return new MyAuthenticator(context: $this->context)->tokenLogin(inputToken: $code) === null
-            ? LoginCodeResultEnum::INVALID
-            : LoginCodeResultEnum::LOGGED_IN;
+        if (new MyAuthenticator(context: $this->context)->tokenLogin(inputToken: $code) === null) {
+            return LoginCodeResultEnum::INVALID;
+        }
+        $this->storeNewSharedLoginId();
+
+        return LoginCodeResultEnum::LOGGED_IN;
     }
 
     /**
@@ -122,9 +129,86 @@ final readonly class BackendLogin
         return $myAuthUser;
     }
 
+    /**
+     * Ends the login of the session; with a shared login (`ActraBackendSettings::$sharedLogin`) also on the other hosts
+     * (they log out at their next request).
+     */
     public function logOut(): void
     {
+        $sharedLogin = $this->context->actraBackend->actraBackendSettings->sharedLogin?->sharedLogin;
+        $sharedLoginId = SharedLoginSession::find(session: $this->context->session);
+        if ($sharedLogin !== null && $sharedLoginId !== null && $this->context->authSession->isLoggedIn()) {
+            $sharedLogin->end(sharedLoginId: $sharedLoginId);
+        }
         $this->context->authSession->logOut();
+    }
+
+    /**
+     * Site with a shared login (`SharedLoginSettings::$site`), on its login page (GET, without login): checks once per
+     * browser session at the login host whether the visitor is logged in there (invisible redirects, the visitor
+     * returns logged in to the requested page, or to the login page of the site). Redirects and ends the script if the
+     * check is due, returns otherwise (no shared login, logged in, a sent form, or checked already).
+     *
+     * @param string $defaultReturnPath The page after a login on the login host if the request has no return path
+     */
+    public function checkSharedLogin(string $defaultReturnPath = '/'): void
+    {
+        $settings = $this->context->actraBackend->actraBackendSettings->sharedLogin;
+        $httpRequest = $this->context->viewContext->httpRequest;
+        if (
+            $settings === null
+            || $settings->site === null
+            || $this->context->authSession->isLoggedIn()
+            || $httpRequest->getMethod() !== RequestMethodEnum::GET
+            || $settings->sharedLogin->isChecked(httpRequest: $httpRequest)
+        ) {
+            return;
+        }
+        $this->redirect(
+            uri: $settings->sharedLogin->createCheckUrl(
+                httpRequest: $httpRequest,
+                site: $settings->site,
+                returnPath: $this->findReturnPath() ?? $defaultReturnPath,
+            ),
+            withLaxSessionCookie: false,
+        );
+    }
+
+    /**
+     * The hand-over page of the shared login (backend page `loginShared`, on the login host and on the sites): runs a
+     * step of yuf's `SharedLogin` (`receiveOnSite()`, `receiveOnLoginHost()`), logs in its user (`AuthMethodEnum::SSO`,
+     * logged; a login of the session before is ended on this host) and redirects to the next step. Refused steps are
+     * logged (`ActraBackend::create(logger:)`); on a site they lead to its login page.
+     *
+     * @throws NotFoundException without `ActraBackendSettings::$sharedLogin`
+     * @throws UnauthorizedException on the login host for a bad step (yuf's `receiveOnLoginHost()`) or a user who may
+     *     not log in
+     */
+    public function handOverSharedLogin(): never
+    {
+        $settings = $this->context->actraBackend->actraBackendSettings->sharedLogin ?? throw new NotFoundException();
+        $httpRequest = $this->context->viewContext->httpRequest;
+        $site = $settings->site;
+        $step = $site === null
+            ? $settings->sharedLogin->receiveOnLoginHost(
+                httpRequest: $httpRequest,
+                allowedHosts: $settings->allowedHosts,
+                user: $this->findSharedLoginUser(),
+            )
+            : $settings->sharedLogin->receiveOnSite(httpRequest: $httpRequest, site: $site);
+        if ($step->failure !== null) {
+            $this->context->actraBackend->logMessage(message: 'Shared login: ' . $step->failure);
+        }
+        $redirectUrl = $step->redirectUrl;
+        if ($step->logIn !== null && !$this->logInSharedUser(sharedLoginUser: $step->logIn)) {
+            if ($site === null) {
+                throw new UnauthorizedException();
+            }
+            // The user may not log in here (e.g. inactive, IP whitelist): the login page, without a new check
+            $redirectUrl = $site->loginPath . (str_contains(haystack: $site->loginPath, needle: '?') ? '&' : '?')
+                . SharedLogin::CHECKED_PARAMETER . '=1';
+        }
+        $this->redirect(uri: $redirectUrl, withLaxSessionCookie: true);
     }
 
     /**
@@ -191,20 +275,64 @@ final readonly class BackendLogin
     }
 
     /**
-     * The redirect of the login pages of the backend after the login: to the hand-over page of the site of a login
-     * request (`findHandOverUrl()`), else to the requested page, else to the first page of the backend navigation.
+     * The redirect of the login pages after the login (also of the project): to the hand-over page of the site of a
+     * login request (`findHandOverUrl()`), else to the requested page, else to the first page of the backend
+     * navigation. On a site with a shared login, the login is first pushed to the login host (invisible redirects,
+     * yuf's `SharedLogin::createPushUrl()`); with a shared login the session cookie is sent as `Lax`, so the hosts see
+     * the login on a request that comes from another host.
+     *
+     * @param ?string $returnPath The validated page requested before the login (`LoginTokenForm::getReturnPath()`),
+     *     e.g. `?? '/'` on a login page of the project; `null`: the first page of the backend navigation
      */
     public function redirectAfterLogin(MyAuthUser $myAuthUser, ?string $loginRequestId, ?string $returnPath): never
     {
+        $this->redirectLoggedIn(
+            myAuthUser: $myAuthUser,
+            loginRequestId: $loginRequestId,
+            returnPath: $returnPath,
+            pushSharedLogin: true,
+        );
+    }
+
+    /**
+     * The redirect of a login page for a visitor who is logged in already: like `redirectAfterLogin()`, without pushing
+     * the login to the login host again.
+     */
+    public function redirectLoggedInUser(MyAuthUser $myAuthUser, ?string $loginRequestId, ?string $returnPath): never
+    {
+        $this->redirectLoggedIn(
+            myAuthUser: $myAuthUser,
+            loginRequestId: $loginRequestId,
+            returnPath: $returnPath,
+            pushSharedLogin: false,
+        );
+    }
+
+    private function redirectLoggedIn(
+        MyAuthUser $myAuthUser,
+        ?string $loginRequestId,
+        ?string $returnPath,
+        bool $pushSharedLogin,
+    ): never {
+        $settings = $this->context->actraBackend->actraBackendSettings->sharedLogin;
         $handOverUrl = $this->findHandOverUrl(myAuthUser: $myAuthUser, loginRequestId: $loginRequestId);
         if ($handOverUrl !== null) {
-            HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $handOverUrl,
+            $this->redirect(uri: $handOverUrl, withLaxSessionCookie: $settings !== null);
+        }
+        $uri = $myAuthUser->getFirstAllowedPage(context: $this->context, returnPath: $returnPath);
+        if ($pushSharedLogin && $settings !== null && $settings->site !== null) {
+            $uri = $settings->sharedLogin->createPushUrl(
                 httpRequest: $this->context->viewContext->httpRequest,
-                responseSender: $this->context->viewContext->responseSender,
+                site: $settings->site,
+                user: new SharedLoginUser(
+                    subject: (string) $myAuthUser->id,
+                    sharedLoginId: SharedLoginSession::find(session: $this->context->session)
+                        ?? $this->storeNewSharedLoginId(),
+                ),
+                returnPath: $uri,
             );
         }
-        $myAuthUser->redirectToFirstAllowedPage(context: $this->context, returnPath: $returnPath);
+        $this->redirect(uri: $uri, withLaxSessionCookie: $settings !== null);
     }
 
     /**
@@ -225,12 +353,65 @@ final readonly class BackendLogin
             message: 'The hand-over of a login needs ActraBackendSettings::$loginHandOver.',
         );
         $ticket = $settings->loginHandOver->redeemTicket(httpRequest: $this->context->viewContext->httpRequest);
-        $this->logOut();
+        $this->context->authSession->logOut();
         if (new MyAuthenticator(context: $this->context)->handOverLogin(subject: $ticket->subject) === null) {
             throw new UnauthorizedException();
         }
+        $this->storeNewSharedLoginId();
 
         return $ticket->returnPath;
+    }
+
+    /**
+     * Login host: its login as user of the shared login, `null` without login (or before the shared login ID is set).
+     */
+    private function findSharedLoginUser(): ?SharedLoginUser
+    {
+        $myAuthUser = $this->getCurrentUser();
+        $sharedLoginId = SharedLoginSession::find(session: $this->context->session);
+
+        return $myAuthUser === null || $sharedLoginId === null
+            ? null
+            : new SharedLoginUser(subject: (string) $myAuthUser->id, sharedLoginId: $sharedLoginId);
+    }
+
+    /**
+     * Logs in the user of a shared login step with its shared login ID; a login of the session before ends on this host
+     * only. `false` if the user may not log in (unknown, inactive, IP whitelist, …; logged).
+     */
+    private function logInSharedUser(SharedLoginUser $sharedLoginUser): bool
+    {
+        $this->context->authSession->logOut();
+        if (new MyAuthenticator(context: $this->context)->handOverLogin(subject: $sharedLoginUser->subject) === null) {
+            return false;
+        }
+        SharedLoginSession::store(session: $this->context->session, sharedLoginId: $sharedLoginUser->sharedLoginId);
+
+        return true;
+    }
+
+    /**
+     * A login on this host (not handed over) gets a new shared login ID, if the backend has a shared login.
+     */
+    private function storeNewSharedLoginId(): string
+    {
+        $sharedLoginId = SharedLogin::createSharedLoginId();
+        if ($this->context->actraBackend->actraBackendSettings->sharedLogin !== null) {
+            SharedLoginSession::store(session: $this->context->session, sharedLoginId: $sharedLoginId);
+        }
+
+        return $sharedLoginId;
+    }
+
+    private function redirect(string $uri, bool $withLaxSessionCookie): never
+    {
+        $viewContext = $this->context->viewContext;
+        HttpResponse::redirectAndExit(
+            relativeOrAbsoluteUri: $uri,
+            httpRequest: $viewContext->httpRequest,
+            sameSiteLaxSessionHandler: $withLaxSessionCookie ? $viewContext->sessionHandler : null,
+            responseSender: $viewContext->responseSender,
+        );
     }
 
     /**

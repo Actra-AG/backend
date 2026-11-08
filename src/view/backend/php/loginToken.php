@@ -38,8 +38,8 @@ final class loginToken extends BackendView
     {
         $login = new BackendLogin(context: $this->backendContext);
         if ($this->backendContext->authSession->isLoggedIn()) {
-            // Logged in on the login host already: a login request of a site is handed over at once
-            $login->redirectAfterLogin(
+            // Logged in already: a login request of a site is handed over at once
+            $login->redirectLoggedInUser(
                 myAuthUser: $this->backendContext->getCurrentUser(),
                 loginRequestId: $login->findLoginRequest()?->id,
                 returnPath: $login->findReturnPath(),

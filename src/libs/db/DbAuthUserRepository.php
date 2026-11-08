@@ -16,10 +16,11 @@ use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbDateTime;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
+use actra\yuf\db\FrameworkDb;
 
 final class DbAuthUserRepository
 {
-    public function __construct(private readonly DB $db) {}
+    public function __construct(private readonly FrameworkDb $db) {}
 
     public function getDbQuery(): DbQuery
     {

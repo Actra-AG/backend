@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "description": "Builds the assets of actra/backend into dist/ (committed, part of the Composer package)",
+  "scripts": {
+    "build:css": "postcss src/assets/css/backend.css -o dist/backend.min.css --no-map && postcss src/assets/css/tom-select.css -o dist/tom-select.min.css --no-map",
+    "build:js": "esbuild src/assets/js/backend.bundle.js --bundle --minify --format=iife --global-name=actraBackend --target=es2020 --outfile=dist/backend.min.js",
+    "build": "npm run build:css && npm run build:js"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.4",
+    "cssnano": "^8.0.6",
+    "esbuild": "^0.28.2",
+    "postcss": "^8.5.26",
+    "postcss-cli": "^11.0.1",
+    "postcss-import": "^17.0.0",
+    "postcss-preset-env": "^11.4.0"
+  },
+  "browserslist": [
+    "defaults"
+  ]
+}

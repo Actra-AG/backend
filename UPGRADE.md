@@ -2,6 +2,73 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.6.0 (2026-11-08)
+
+### ⚠️ Requires `actra/yuf` `~8.14.0`
+
+yuf v8.13.0 adds the shared login (`SharedLogin`) and the view test helpers (`ViewTestClient`), v8.14.0 the French and
+Italian texts of forms, tables and login results (yuf's `UPGRADE.md`). The backend needs no further change for it.
+
+### ⚠️ `ActraBackend::create()`: `connectDb:` replaces `dbSettings:`
+
+The backend uses the database connection of the project (one per request), opened on first use:
+
+Before: `ActraBackend::create(…, dbSettings: $dbSettings, …)`.
+After: `ActraBackend::create(…, connectDb: $connectDb, …)` with a closure that returns the project's `FrameworkDb`
+(e.g. `static function () use (&$db, $dbSettings): FrameworkDb { return $db ??= new FrameworkDb(connectionParameters:
+DbConnectionParameters::forMysql(dbSettings: $dbSettings)); }`, [README.md](README.md#with-app)).
+
+The class `actra\backend\libs\db\DB` and `ActraBackend::$dbSettings` are removed: use yuf's `FrameworkDb`
+(`BackendRepositories::fromDb(db:)` and the repositories take a `FrameworkDb`, [docs/testing.md](docs/testing.md)).
+
+### ⚠️ `ActraBackendSettings`: required `sharedLogin:`
+
+The login shared by several hosts of the server
+([docs/login.md](docs/login.md#shared-login-the-visitor-stays-on-the-site)). Pass `null` to keep the login on the host:
+
+Before: `new ActraBackendSettings(…, loginHandOver: null, …)`.
+After: `new ActraBackendSettings(…, loginHandOver: null, sharedLogin: null, …)`.
+
+### ⚠️ French and Italian texts
+
+Languages `fr` and `it` get French and Italian texts (formal address, Swiss usage) instead of English:
+`BackendMessages::french()`, `italian()`, chosen by `forLanguageCode()` ([docs/languages.md](docs/languages.md#texts)).
+Visible output changes for these languages: all pages, the form and table texts, the emails (e.g. the subject of the
+login code mail, `[token] est votre code de confirmation`), the "no results" of Tom Select (`backend.js`). Own
+`ActraBackendSettings::$messages` for `fr` or `it` stay as they are; remove those that only translated the English
+texts.
+
+### New: shared login, the visitor stays on the site
+
+The visitor logs in on the login page of the site; invisible redirects over the new backend page `loginShared`
+(reserved name, `BackendPaths::loginShared()`) share the login with the login host and its other sites, logout ends it
+on all hosts ([docs/login.md](docs/login.md#shared-login-the-visitor-stays-on-the-site)):
+
+- `SharedLoginSettings` (`ActraBackendSettings::$sharedLogin`): yuf's `SharedLogin`, on the login host the allowed
+  hosts, on a site its `SharedLoginSite`.
+- `ActraBackend::createSharedLoginTarget()`: the login target of a site (pages that need a login check first).
+- `BackendLogin::checkSharedLogin()` (login page of a site), `redirectAfterLogin()` pushes the login on a site (also
+  for login pages of the project), new `redirectLoggedInUser()`, `handOverSharedLogin()`; `logOut()` ends a shared login
+  on all hosts.
+
+The one-way hand-over of v5.5.0 (`loginHandOver:`) keeps working.
+
+### New: built assets
+
+`dist/backend.min.css`, `dist/backend.min.js` (a classic script that runs `initBackend()`, functions as
+`window.actraBackend`) and `dist/tom-select.min.css`: projects copy them after an update instead of building
+`src/assets/` ([docs/assets.md](docs/assets.md)). Projects with an own bundle keep importing `src/assets/`.
+
+### Tests of project code
+
+[docs/testing.md](docs/testing.md) names the limits of a rolled-back transaction (code with an own transaction, e.g.
+`BackendLogin::requestCode()`) and how to test the login and views (a separate test database, `tokenSendLimit: null`,
+yuf's `ViewTestClient`).
+
+### Development
+
+Requires `actra/coding-standard` `^2.3` (no findings).
+
 ## v5.5.0 (2026-11-08)
 
 ### ⚠️ Requires `actra/yuf` `~8.12.0`

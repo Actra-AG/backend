@@ -1,15 +1,30 @@
 # Assets
 
-The package ships default assets in `src/assets`.
+The package ships its CSS and JavaScript built in `dist/`, so a project only copies files after an update:
 
-Projects using this library should include these assets in their own build or asset publishing process. Depending on the
-project setup, this can mean importing them into a npm, Grunt, or other asset pipeline, bundling and minifying them
-together with project-specific assets, or publishing them directly as static files.
+- `dist/backend.min.css`: all CSS of `src/assets/css/backend.css` (imports inlined, custom media and nesting resolved,
+  prefixed for the browsers of `browserslist` "defaults", minified).
+- `dist/backend.min.js`: all JavaScript of `src/assets/js/backend.js` as one classic script (no module, no bundler):
+  it runs `initBackend()` when the page is loaded and exposes the functions as `window.actraBackend`.
+- `dist/tom-select.min.css`: the optional look of Tom Select ([below](#searchable-selects-tom-select-optional)).
 
-The main entrypoints are:
+Copy them to the public directory after `composer update` (e.g. as a Composer script or in the deployment) and pass
+the paths to `ActraBackendSettings` (`$stylesPaths`, `$javaScriptPaths`):
 
-- `src/assets/css/backend.css`
-- `src/assets/js/backend.js`
+```json
+"scripts": {
+  "post-update-cmd": [
+    "cp vendor/actra/backend/dist/backend.min.css public/css/backend.min.css",
+    "cp vendor/actra/backend/dist/backend.min.js public/js/backend.min.js"
+  ]
+}
+```
+
+Projects that build their own bundle (e.g. with project CSS) import the sources instead: `src/assets/css/backend.css`
+and the ES module `src/assets/js/backend.js` (`initBackend()` and the single functions).
+
+Development of the backend: after a change in `src/assets/`, run `npm ci` once and `npm run build`, and commit
+`dist/` with the change. The workflow `assets` fails if `dist/` is not up to date.
 
 The default CSS expects the bundled backend fonts to be available below the public font path:
 
@@ -32,7 +47,17 @@ attention:
 
 `initTomSelect()` turns every `select.chosen` into a [Tom Select](https://tom-select.js.org/) with a search field. yuf
 renders this class with `SelectOptionsField(renderAsChosenEnhancedField: true)`. It is opt-in, `initBackend()` does not
-call it: install the npm package (`npm i -D tom-select@2.6.2`, Apache-2.0) and pass its constructor:
+call it. With the built files, include Tom Select's own script and CSS (npm package `tom-select@2.6.2`, Apache-2.0,
+`dist/js/tom-select.popular.min.js` and `dist/css/tom-select.css`) and `dist/tom-select.min.css` after
+`backend.min.css`, then call it after both scripts:
+
+```html
+<script src="/js/tom-select.popular.min.js" defer></script>
+<script src="/js/backend.min.js" defer></script>
+<script src="/js/project.js" defer></script> <!-- actraBackend.initTomSelect(TomSelect); -->
+```
+
+In an own bundle, pass the constructor of the npm package:
 
 ```js
 import TomSelect from 'tom-select/dist/js/tom-select.popular.js';
@@ -48,11 +73,4 @@ initTomSelect(TomSelect);
 @import url("../../vendor/actra/backend/src/assets/css/tom-select.css");
 ```
 
-After changing the version of `actra/backend`, rebuild (or republish) the CSS and JavaScript bundles of the project.
-
-After the assets are available through the application's public asset URLs, reference them when initializing the
-backend:
-
-```php
-$actraBackend = ActraBackend::create(/* see "Usage" in README.md */);
-```
+After changing the version of `actra/backend`, copy the built files again (or rebuild the own bundle).

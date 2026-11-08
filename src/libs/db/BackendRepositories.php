@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\yuf\db\FrameworkDb;
 use Closure;
 
 /**
@@ -16,7 +17,7 @@ use Closure;
  */
 final class BackendRepositories
 {
-    private ?DB $db = null;
+    private ?FrameworkDb $db = null;
     private ?DbAuthApiKeyRepository $apiKeys = null;
     private ?DbAuthGroupRepository $groups = null;
     private ?DbAuthIpWhitelistRepository $ipWhitelists = null;
@@ -31,16 +32,16 @@ final class BackendRepositories
     private ?DbSentEmailRepository $sentEmails = null;
 
     /**
-     * @param Closure(): DB $connect
+     * @param Closure(): FrameworkDb $connect
      */
     public function __construct(private readonly Closure $connect) {}
 
-    public static function fromDb(DB $db): BackendRepositories
+    public static function fromDb(FrameworkDb $db): BackendRepositories
     {
-        return new BackendRepositories(connect: static fn(): DB => $db);
+        return new BackendRepositories(connect: static fn(): FrameworkDb => $db);
     }
 
-    public function db(): DB
+    public function db(): FrameworkDb
     {
         return $this->db ??= ($this->connect)();
     }

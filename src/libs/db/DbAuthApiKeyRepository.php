@@ -14,10 +14,11 @@ use actra\yuf\auth\SecretTokenHash;
 use actra\yuf\common\StringUtils;
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
+use actra\yuf\db\FrameworkDb;
 
 final class DbAuthApiKeyRepository
 {
-    public function __construct(private readonly DB $db) {}
+    public function __construct(private readonly FrameworkDb $db) {}
 
     private const string API_KEY_PREFIX = 'api_key';
     private const int PUBLIC_ID_LENGTH = 6;

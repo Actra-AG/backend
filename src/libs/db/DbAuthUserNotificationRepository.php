@@ -11,10 +11,11 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\db\DbQuery;
 use actra\yuf\db\DbRow;
+use actra\yuf\db\FrameworkDb;
 
 final class DbAuthUserNotificationRepository
 {
-    public function __construct(private readonly DB $db) {}
+    public function __construct(private readonly FrameworkDb $db) {}
 
     public function getDbQuery(): DbQuery
     {

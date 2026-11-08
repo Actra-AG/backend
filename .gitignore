@@ -8,12 +8,16 @@
 !/.gitattributes
 !/.github/
 !/.github/workflows/
+!/.github/workflows/assets.yml
 !/.github/workflows/release.yml
 !/.gitignore
 !/.php-cs-fixer.dist.php
 !/AGENTS.md
 !/CLAUDE.md
 !/composer.json
+!/package.json
+!/package-lock.json
+!/postcss.config.js
 !/LICENSE
 !/phpstan.neon
 !/phpunit.xml
@@ -23,6 +27,10 @@
 # Allow the db files
 !/db
 !/db/**
+
+# Allow the built assets
+!/dist
+!/dist/**
 
 # Allow the docs
 !/docs

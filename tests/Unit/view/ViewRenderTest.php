@@ -25,8 +25,8 @@ use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Renders every view of the backend in both languages, logged out and logged in where the view allows it: a missing
- * replacement or a broken template fails (`TemplateException`), as does a placeholder left in the output.
+ * Renders every view of the backend in all four languages, logged out and logged in where the view allows it: a
+ * missing replacement or a broken template fails (`TemplateException`), as does a placeholder left in the output.
  */
 final class ViewRenderTest extends TestCase
 {
@@ -85,6 +85,7 @@ final class ViewRenderTest extends TestCase
                 loginHandOver: new LoginHandOver(directory: sys_get_temp_dir() . '/backend-unused-hand-over'),
                 allowedHosts: [],
             ),
+            languageCodes: ['de', 'en', 'fr', 'it'],
         );
     }
 
@@ -99,7 +100,7 @@ final class ViewRenderTest extends TestCase
      */
     public static function views(): iterable
     {
-        foreach (['de', 'en'] as $languageCode) {
+        foreach (['de', 'en', 'fr', 'it'] as $languageCode) {
             foreach (ViewRenderTest::LOGGED_OUT_VIEWS as $fileTitle) {
                 yield $languageCode . ' ' . $fileTitle . ' logged out' => [$languageCode, $fileTitle, null];
             }

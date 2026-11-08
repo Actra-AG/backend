@@ -11,10 +11,11 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\db\DbRow;
+use actra\yuf\db\FrameworkDb;
 
 final class DbAuthGroupRepository
 {
-    public function __construct(private readonly DB $db) {}
+    public function __construct(private readonly FrameworkDb $db) {}
 
     public const string SELECT_QUERY = '
 		SELECT auth_groups.id,

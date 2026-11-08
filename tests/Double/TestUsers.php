@@ -9,15 +9,15 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Double;
 
-use actra\backend\libs\db\DB;
 use actra\yuf\auth\Password;
+use actra\yuf\db\FrameworkDb;
 
 /**
  * Users in the `TestDatabase`: each test creates its own (unique email address).
  */
 final readonly class TestUsers
 {
-    public function __construct(private DB $db) {}
+    public function __construct(private FrameworkDb $db) {}
 
     /**
      * A user of the group "Administrator" of `db/data.sql` (backend access) unless `withRights: false`.

@@ -78,6 +78,68 @@ final readonly class LogMessages
         );
     }
 
+    public static function french(): LogMessages
+    {
+        return new LogMessages(
+            visitsNavigationTitle: 'Tentatives de connexion',
+            visitsPageTitle: 'Visites',
+            tokensNavigationTitle: 'Codes',
+            tokensPageTitle: 'Codes',
+            statusLabel: 'Statut',
+            typeLabel: 'Type',
+            visitDateColumn: 'Date',
+            visitSessionIdColumn: 'ID de session',
+            visitIpAddressColumn: 'Adresse IP',
+            visitEmailColumn: 'Adresse e-mail',
+            tokenCreatedDateColumn: 'Créé (date)',
+            tokenCreatedClientColumn: 'Créé (client)',
+            tokenClaimedDateColumn: 'Utilisé (date)',
+            tokenClaimedClientColumn: 'Utilisé (client)',
+            authTokenTypePassword: 'Réinitialisation du mot de passe',
+            authTokenTypeActivation: 'Activation',
+            authTokenTypeLogin: 'Connexion',
+            sentEmailsNavigationTitle: 'E-mails',
+            sentEmailsPageTitle: 'E-mails envoyés',
+            sentEmailDateColumn: 'Envoyé',
+            sentEmailFromColumn: 'De',
+            sentEmailToColumn: 'À',
+            sentEmailCcColumn: 'Cc',
+            sentEmailBccColumn: 'Cci',
+            sentEmailSubjectColumn: 'Objet',
+        );
+    }
+
+    public static function italian(): LogMessages
+    {
+        return new LogMessages(
+            visitsNavigationTitle: 'Tentativi di accesso',
+            visitsPageTitle: 'Visite',
+            tokensNavigationTitle: 'Codici',
+            tokensPageTitle: 'Codici',
+            statusLabel: 'Stato',
+            typeLabel: 'Tipo',
+            visitDateColumn: 'Data',
+            visitSessionIdColumn: 'ID sessione',
+            visitIpAddressColumn: 'Indirizzo IP',
+            visitEmailColumn: 'Indirizzo e-mail',
+            tokenCreatedDateColumn: 'Creato (data)',
+            tokenCreatedClientColumn: 'Creato (client)',
+            tokenClaimedDateColumn: 'Utilizzato (data)',
+            tokenClaimedClientColumn: 'Utilizzato (client)',
+            authTokenTypePassword: 'Reimpostazione della password',
+            authTokenTypeActivation: 'Attivazione',
+            authTokenTypeLogin: 'Accesso',
+            sentEmailsNavigationTitle: 'E-mail',
+            sentEmailsPageTitle: 'E-mail inviate',
+            sentEmailDateColumn: 'Inviata',
+            sentEmailFromColumn: 'Da',
+            sentEmailToColumn: 'A',
+            sentEmailCcColumn: 'Cc',
+            sentEmailBccColumn: 'Ccn',
+            sentEmailSubjectColumn: 'Oggetto',
+        );
+    }
+
     public function authTokenType(AuthTokenTypeEnum $authTokenType): string
     {
         return match ($authTokenType) {

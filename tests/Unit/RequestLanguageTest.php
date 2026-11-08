@@ -85,10 +85,14 @@ final class RequestLanguageTest extends TestCase
             AuthMessages::german()->loginPageTitle,
             $this->actraBackend->getMessages(languageCode: 'de')->auth->loginPageTitle,
         );
+        $this->assertSame(
+            AuthMessages::french()->loginPageTitle,
+            $this->actraBackend->getMessages(languageCode: 'fr')->auth->loginPageTitle,
+        );
         // Languages without included texts are English
         $this->assertSame(
             new AuthMessages()->loginPageTitle,
-            $this->actraBackend->getMessages(languageCode: 'fr')->auth->loginPageTitle,
+            $this->actraBackend->getMessages(languageCode: 'rm')->auth->loginPageTitle,
         );
         $this->assertSame(
             $this->actraBackend->getMessages(languageCode: 'de'),

@@ -43,9 +43,9 @@ with `composer install --no-dev --optimize-autoloader`.
 
 ### 2. Assets
 
-Include `src/assets/css/backend.css` and `src/assets/js/backend.js` in the asset build or publishing of the project and
-publish the fonts below `/fonts/backend/` ([docs/assets.md](docs/assets.md)). Rebuild them after every update of
-`actra/backend`. Searchable selects with Tom Select are optional
+Copy the built `dist/backend.min.css` and `dist/backend.min.js` to the public directory after every update of
+`actra/backend` and publish the fonts below `/fonts/backend/` ([docs/assets.md](docs/assets.md)); projects with an own
+bundle import `src/assets/` instead. Searchable selects with Tom Select are optional
 ([docs/assets.md](docs/assets.md#searchable-selects-tom-select-optional)).
 
 ### 3. Database Setup
@@ -86,7 +86,9 @@ use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\App;
 use actra\yuf\auth\LoginRateLimit;
+use actra\yuf\db\DbConnectionParameters;
 use actra\yuf\db\DbSettings;
+use actra\yuf\db\FrameworkDb;
 use actra\yuf\mailer\SmtpEncryptionEnum;
 use actra\yuf\mailer\SmtpMailer;
 use actra\yuf\security\RateLimiter;
@@ -99,6 +101,16 @@ $app = App::fromEnvironment(envFilePath: __DIR__ . '/../.env.php', copyrightYear
     ->withHtmlRoute(path: '/', viewGroup: 'frontend')
     ->withFileLogger(); // yuf's FileLogger, optionally with a mailer
 $core = $app->core;
+// One database connection per request for the project and the backend, opened on first use
+$db = null;
+$connectDb = static function () use (&$db, $core): FrameworkDb {
+    return $db ??= new FrameworkDb(connectionParameters: DbConnectionParameters::forMysql(dbSettings: new DbSettings(
+        hostName: $core->environmentSettings->getString(key: 'db.host'),
+        databaseName: $core->environmentSettings->getString(key: 'db.name'),
+        userName: $core->environmentSettings->getString(key: 'db.user'),
+        password: $core->environmentSettings->getString(key: 'db.password'),
+    )));
+};
 
 $actraBackend = ActraBackend::create(
     path: '/backend/', // The URL path of the backend pages and of the project views of viewGroup
@@ -107,10 +119,10 @@ $actraBackend = ActraBackend::create(
         ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
         backendName: 'My Project Backend',
         javaScriptPaths: [
-            '/assets/js/backend.js'
+            '/js/backend.min.js', // Copy of dist/backend.min.js
         ],
         stylesPaths: [
-            '/assets/css/backend.css',
+            '/css/backend.min.css', // Copy of dist/backend.min.css
         ],
         // Required, null as explicit opt-out: limits logins and code/reset requests per IP and email address
         loginRateLimit: new LoginRateLimit(
@@ -123,13 +135,15 @@ $actraBackend = ActraBackend::create(
         ),
         // Required, null as explicit opt-out: login on another host of the same server (docs/login.md)
         loginHandOver: null,
+        // Required, null as explicit opt-out: the login shared by several hosts of the server (docs/login.md)
+        sharedLogin: null,
         maxAllowedLoginAttempts: 5, // Optional, defaults to 5
         frontendHref: 'https://example.com', // Optional
         frontendName: 'Go to Website', // Optional
         hasApi: false, // Optional, defaults to false
         tokenSendLimit: new TokenSendLimit(maxTokens: 5, withinMinutes: 15), // Optional, this default; null: off
     ),
-    dbSettings: new DbSettings,
+    connectDb: $connectDb, // The project's own repositories use the same $connectDb
     mailerSettings: new MailerSettings(
         senderEmail: 'noreply@example.com',
         senderName: 'My Project',
@@ -178,7 +192,8 @@ The backend users can log in on a page of the project, in its own layout, with t
 optionally the password): `ActraBackend::createLogin(viewContext:)` gives the steps of the login (`BackendLogin`) on
 any route with a session, `LoginForm` and `LoginTokenForm` render the forms. Send visitors without login there with
 `configure(app: $app, loginTarget: LoginTarget::local(path: '/login.html'))`. Sites on one server can share the login
-of one host (`ActraBackendSettings::$loginHandOver`, `createRemoteLoginTarget()`; [docs/login.md](docs/login.md)).
+of one host while the visitor logs in on the site's own login page (`ActraBackendSettings::$sharedLogin`,
+`createSharedLoginTarget()`; [docs/login.md](docs/login.md)).
 
 ### With `Core`
 
@@ -231,7 +246,7 @@ response time does not tell whether an email address exists.
 - [Login on a page of the project](docs/login.md): `BackendLogin`, login forms, login path, example views.
 - [Users and API keys](docs/users.md): user deletion handler, user managers and impersonation, IP whitelists,
   login codes, reset links and lock-out, send limit, login rate limit, API key authentication, log of sent emails.
-- [Integration tests](docs/testing.md): tests of project code against the backend tables.
+- [Tests of project code](docs/testing.md): against the backend tables, the login and views.
 - [UPGRADE.md](UPGRADE.md): changes and migration instructions.
 
 ## Development

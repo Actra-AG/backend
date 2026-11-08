@@ -35,8 +35,11 @@ With `Core`, pass `languages: $core->availableLanguages` and
 
 ## Texts
 
-A language gets German texts for `de` and English texts for every other language. To change single texts, pass own
-messages per language code (`ActraBackendSettings::$messages`):
+The backend includes texts in German (`de`), French (`fr`) and Italian (`it`), with the formal address and Swiss usage,
+and English (`en`, and every other language). They cover the pages, the forms (yuf's `FormMessages`), the tables and
+the emails; dates follow the locale of the language. Better wording of an included text goes into the backend, not
+into a project override. To change single texts for one project, pass own messages per language code
+(`ActraBackendSettings::$messages`):
 
 ```php
 use actra\backend\i18n\AuthMessages;

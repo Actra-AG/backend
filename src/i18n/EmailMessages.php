@@ -59,4 +59,49 @@ final readonly class EmailMessages
                 . 'können Sie diese E-Mail ignorieren.',
         );
     }
+
+    public static function french(): EmailMessages
+    {
+        return new EmailMessages(
+            greeting: 'Bonjour',
+            loginTokenSubject: '[token] est votre code de confirmation',
+            loginTokenIntroPasswordLogin: 'Le code de confirmation suivant vous permet de vous connecter en toute '
+                . 'sécurité au backend:',
+            loginTokenIntroPasswordless: 'Le code de confirmation suivant vous permet de vous connecter au backend '
+                . 'en toute sécurité et sans mot de passe:',
+            loginTokenValidity: 'Veuillez noter que ce code ne peut être utilisé qu’une seule fois et qu’il expire '
+                . 'après [minutes] minutes.',
+            loginTokenIgnore: 'Si vous n’avez pas demandé de code de confirmation pour l’adresse e-mail [email], '
+                . 'vous pouvez ignorer cet e-mail.',
+            passwordResetSubject: 'Votre nouveau mot de passe',
+            passwordResetIntro: 'Vous avez indiqué sur [host] avoir oublié votre mot de passe.',
+            passwordResetLinkInstruction: 'Cliquez sur le lien suivant pour choisir un nouveau mot de passe:',
+            passwordResetValidity: 'Veuillez noter que ce lien ne peut être utilisé qu’une seule fois et qu’il '
+                . 'expire après [minutes] minutes.',
+            passwordResetIgnore: 'Si vous ne souhaitez pas réinitialiser le mot de passe de l’adresse e-mail '
+                . '[email], vous pouvez ignorer cet e-mail.',
+        );
+    }
+
+    public static function italian(): EmailMessages
+    {
+        return new EmailMessages(
+            greeting: 'Buongiorno',
+            loginTokenSubject: '[token] è il Suo codice di conferma',
+            loginTokenIntroPasswordLogin: 'Con il seguente codice di conferma può accedere al backend in modo sicuro:',
+            loginTokenIntroPasswordless: 'Con il seguente codice di conferma può accedere al backend in modo sicuro '
+                . 'e senza password:',
+            loginTokenValidity: 'La preghiamo di notare che questo codice può essere utilizzato una sola volta e '
+                . 'scade dopo [minutes] minuti.',
+            loginTokenIgnore: 'Se non ha richiesto un codice di conferma per l’indirizzo e-mail [email], può '
+                . 'ignorare questa e-mail.',
+            passwordResetSubject: 'La Sua nuova password',
+            passwordResetIntro: 'Ha indicato su [host] di aver dimenticato la password.',
+            passwordResetLinkInstruction: 'Clicchi sul link seguente per scegliere una nuova password:',
+            passwordResetValidity: 'La preghiamo di notare che questo link può essere utilizzato una sola volta e '
+                . 'scade dopo [minutes] minuti.',
+            passwordResetIgnore: 'Se non desidera reimpostare la password per l’indirizzo e-mail [email], può '
+                . 'ignorare questa e-mail.',
+        );
+    }
 }

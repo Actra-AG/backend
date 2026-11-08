@@ -15,10 +15,11 @@ use actra\yuf\clock\Clock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbDateTime;
 use actra\yuf\db\DbRow;
+use actra\yuf\db\FrameworkDb;
 
 final class DbAuthSessionRepository
 {
-    public function __construct(private readonly DB $db) {}
+    public function __construct(private readonly FrameworkDb $db) {}
 
     private const string SELECT_QUERY = '
         SELECT auth_sessions.id,

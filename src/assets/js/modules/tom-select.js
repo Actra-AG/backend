@@ -8,7 +8,8 @@ export function initTomSelect(TomSelect) {
     return;
   }
 
-  const noResults = document.documentElement.lang === 'en' ? 'No results' : 'Keine Treffer';
+  const noResultsTexts = {de: 'Keine Treffer', fr: 'Aucun résultat', it: 'Nessun risultato'};
+  const noResults = noResultsTexts[document.documentElement.lang] ?? 'No results';
 
   selects.forEach(select => {
     new TomSelect(select, {

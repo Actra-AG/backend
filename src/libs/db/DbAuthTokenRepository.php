@@ -17,6 +17,7 @@ use actra\yuf\clock\SystemClock;
 use actra\yuf\common\StringUtils;
 use actra\yuf\db\DbDateTime;
 use actra\yuf\db\DbQuery;
+use actra\yuf\db\FrameworkDb;
 use Throwable;
 
 /**
@@ -33,7 +34,7 @@ final class DbAuthTokenRepository
     private const string LINK_TOKEN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     private const string LINK_TOKEN_PATTERN = '/^[A-Za-z0-9]{22}$/D';
 
-    public function __construct(private readonly DB $db) {}
+    public function __construct(private readonly FrameworkDb $db) {}
 
     public function getDbQuery(): DbQuery
     {

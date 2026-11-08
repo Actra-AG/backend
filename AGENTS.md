@@ -31,7 +31,8 @@ This project follows the Actra coding standard, installed as development depende
   by `BackendViewFactory`, so a new page name is reserved there: add it to `docs/views.md`), `view/backend/html/`
   their HTML content templates (rendered with `HtmlDocument::useContentFile()`), `view/backend/templates/` the page
   templates, `view/backend/confirmation/` the template of `ConfirmationView`.
-- `src/assets/` – default CSS and JavaScript that projects publish or bundle themselves.
+- `src/assets/` – default CSS and JavaScript; `dist/` their built files (`npm run build` after every change of
+  `src/assets/`, committed with it, see `docs/assets.md`).
 
 ## Project-specific rules
 
@@ -41,8 +42,9 @@ This project follows the Actra coding standard, installed as development depende
   only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.
-- `tests/Unit/view/ViewRenderTest.php` renders every view in both languages with `tests/Double/BackendPageRenderer.php`
-  (like yuf's `Core`); add every new view there.
+- `tests/Unit/view/ViewRenderTest.php` renders every view in all four languages with
+  `tests/Double/BackendPageRenderer.php` (like yuf's `Core`); add every new view there (a view that only redirects,
+  like `loginShared`, gets its own test).
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).
 

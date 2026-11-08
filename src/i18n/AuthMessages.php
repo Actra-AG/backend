@@ -100,4 +100,90 @@ final readonly class AuthMessages
             tokenSubmitLabel: 'anmelden',
         );
     }
+
+    public static function french(): AuthMessages
+    {
+        return new AuthMessages(
+            loginPageTitle: 'Connexion',
+            logoutPageTitle: 'Déconnexion',
+            passwordForgottenPageTitle: 'Mot de passe oublié?',
+            passwordResetPageTitle: 'Réinitialiser le mot de passe',
+            loginIntro: 'Saisissez ci-dessous l’adresse e-mail que vous avez enregistrée chez nous. Vous recevrez '
+                . 'un code que vous pourrez saisir à l’étape suivante pour vous connecter.',
+            loginPasswordIntro: 'Saisissez ci-dessous vos données d’accès.',
+            loginTokenIntro: 'Nous avons envoyé un code à l’adresse e-mail saisie à l’étape précédente. Saisissez '
+                . 'ce code dans le champ ci-dessous pour vous connecter.',
+            loginTokenTipLabel: 'Conseil:',
+            loginTokenTipText: 'pas d’e-mail dans votre boîte de réception? Vérifiez aussi le dossier des spams.',
+            backToLogin: 'Retour à la connexion',
+            logoutHeading: 'Au revoir',
+            logoutStatus: 'La déconnexion a été effectuée.',
+            loginLink: 'Se connecter',
+            loginTicketHeading: 'Connexion non terminée',
+            loginTicketInvalid: 'La connexion n’a pas pu être terminée: le lien n’est pas valable ou a expiré. '
+                . 'Veuillez vous reconnecter.',
+            passwordForgottenIntro: 'Saisissez l’adresse e-mail que vous avez enregistrée chez nous. Vous recevrez '
+                . 'ensuite un e-mail avec un lien pour réinitialiser votre mot de passe.',
+            passwordForgottenResult: 'Si l’adresse e-mail est enregistrée chez nous, vous recevrez un e-mail '
+                . 'automatique dans les prochaines minutes. Il contient un lien pour réinitialiser le mot de passe.',
+            passwordResetIntro: 'Saisissez ci-dessous votre nouveau mot de passe.',
+            passwordResetDone: 'Le nouveau mot de passe a été enregistré.',
+            emailInvalid: 'Vous avez saisi une adresse e-mail non valable.',
+            emailRequired: 'Saisissez votre adresse e-mail.',
+            passwordLabel: 'Mot de passe',
+            passwordRequired: 'Saisissez votre mot de passe.',
+            credentialsInvalid: 'Les données d’accès saisies ne sont pas valables.',
+            tooManyAttempts: 'Trop de tentatives. Veuillez réessayer dans quelques minutes.',
+            loginSubmitLabel: 'continuer',
+            loginPasswordSubmitLabel: 'Continuer',
+            passwordForgottenLinkLabel: 'Mot de passe oublié?',
+            tokenLabel: 'Code',
+            tokenRequired: 'Saisissez le code.',
+            tokenInvalid: 'Vous avez saisi un code non valable.',
+            tokenSubmitLabel: 'se connecter',
+        );
+    }
+
+    public static function italian(): AuthMessages
+    {
+        return new AuthMessages(
+            loginPageTitle: 'Accesso',
+            logoutPageTitle: 'Disconnessione',
+            passwordForgottenPageTitle: 'Password dimenticata?',
+            passwordResetPageTitle: 'Reimpostare la password',
+            loginIntro: 'Inserisca qui sotto l’indirizzo e-mail registrato presso di noi. Riceverà un codice da '
+                . 'inserire nel passo successivo per accedere.',
+            loginPasswordIntro: 'Inserisca qui sotto i Suoi dati di accesso.',
+            loginTokenIntro: 'Abbiamo inviato un codice all’indirizzo e-mail indicato nel passo precedente. '
+                . 'Inserisca questo codice nel campo seguente per accedere.',
+            loginTokenTipLabel: 'Suggerimento:',
+            loginTokenTipText: 'nessuna e-mail nella casella di posta? Controlli anche la cartella dello spam.',
+            backToLogin: 'Torna all’accesso',
+            logoutHeading: 'Arrivederci',
+            logoutStatus: 'La disconnessione è avvenuta con successo.',
+            loginLink: 'Accedere',
+            loginTicketHeading: 'Accesso non completato',
+            loginTicketInvalid: 'Non è stato possibile completare l’accesso: il link non è valido o è scaduto. La '
+                . 'preghiamo di accedere di nuovo.',
+            passwordForgottenIntro: 'Inserisca l’indirizzo e-mail registrato presso di noi. Riceverà poi un’e-mail '
+                . 'con un link per reimpostare la Sua password.',
+            passwordForgottenResult: 'Se l’indirizzo e-mail è registrato presso di noi, nei prossimi minuti '
+                . 'riceverà un’e-mail automatica. Contiene un link per reimpostare la password.',
+            passwordResetIntro: 'Inserisca qui sotto la nuova password.',
+            passwordResetDone: 'La nuova password è stata salvata.',
+            emailInvalid: 'Ha inserito un indirizzo e-mail non valido.',
+            emailRequired: 'Inserisca il Suo indirizzo e-mail.',
+            passwordLabel: 'Password',
+            passwordRequired: 'Inserisca la Sua password.',
+            credentialsInvalid: 'I dati di accesso inseriti non sono validi.',
+            tooManyAttempts: 'Troppi tentativi. Riprovi tra qualche minuto.',
+            loginSubmitLabel: 'continuare',
+            loginPasswordSubmitLabel: 'Continuare',
+            passwordForgottenLinkLabel: 'Password dimenticata?',
+            tokenLabel: 'Codice',
+            tokenRequired: 'Inserisca il codice.',
+            tokenInvalid: 'Ha inserito un codice non valido.',
+            tokenSubmitLabel: 'accedere',
+        );
+    }
 }

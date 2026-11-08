@@ -12,6 +12,7 @@ namespace actra\backend\tests\Double;
 use actra\backend\ActraBackend;
 use actra\backend\libs\db\ClientData;
 use actra\backend\settings\LoginHandOverSettings;
+use actra\backend\settings\SharedLoginSettings;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\common\AcceptingMailDomainResolver;
@@ -37,8 +38,8 @@ use actra\yuf\template\TemplateEngine;
 use LogicException;
 
 /**
- * Renders a page of the backend like yuf's `Core` (view, content template and page template) on `/backend/`, in German
- * or English as the language of the request, with the API turned on.
+ * Renders a page of the backend like yuf's `Core` (view, content template and page template) on `/backend/`, in the
+ * language of the request (German and English, optionally French and Italian), with the API turned on.
  */
 final readonly class BackendPageRenderer
 {
@@ -49,17 +50,25 @@ final readonly class BackendPageRenderer
 
     /**
      * @param list<string> $ipWhitelist The global IP whitelist of the backend
+     * @param list<string> $languageCodes The languages of the backend (`de`, `en`, `fr`, `it`), the first one is the
+     *                                    main language
      */
     public function __construct(
         DbSettings $dbSettings,
         array $ipWhitelist = [],
         ?LoginHandOverSettings $loginHandOver = null,
         AbstractMailer $mailer = new RecordingMailer(),
+        array $languageCodes = ['de', 'en'],
+        ?SharedLoginSettings $sharedLogin = null,
     ) {
-        $this->languageCollection = new LanguageCollection(languages: [
-            new Language(code: 'de', locale: 'de_CH.UTF-8'),
-            new Language(code: 'en', locale: 'en_GB.UTF-8'),
-        ]);
+        $locales = ['de' => 'de_CH.UTF-8', 'en' => 'en_GB.UTF-8', 'fr' => 'fr_CH.UTF-8', 'it' => 'it_CH.UTF-8'];
+        $this->languageCollection = new LanguageCollection(languages: array_map(
+            static fn(string $code): Language => new Language(
+                code: $code,
+                locale: $locales[$code] ?? throw new LogicException(message: 'No locale for ' . $code),
+            ),
+            $languageCodes,
+        ));
         $this->actraBackend = ActraBackendTestInstance::create(
             dbSettings: $dbSettings,
             languages: $this->languageCollection,
@@ -67,6 +76,7 @@ final readonly class BackendPageRenderer
             ipWhitelist: $ipWhitelist,
             mailer: $mailer,
             loginHandOver: $loginHandOver,
+            sharedLogin: $sharedLogin,
         );
         $this->route = array_first(array: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/view/'))
             ?? throw new LogicException(message: 'The backend has no route');

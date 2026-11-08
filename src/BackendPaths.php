@@ -37,6 +37,14 @@ final readonly class BackendPaths
     }
 
     /**
+     * The hand-over page of the shared login (`SharedLoginSettings`), on the login host and on the sites.
+     */
+    public function loginShared(): string
+    {
+        return $this->path . 'loginShared.html';
+    }
+
+    /**
      * The hand-over page of a site that logs in on another host (`ActraBackend::createRemoteLoginTarget()`).
      */
     public function loginTicket(): string

@@ -58,4 +58,48 @@ final readonly class ProfileMessages
             currentPasswordIncorrect: 'Das aktuelle Passwort ist nicht korrekt.',
         );
     }
+
+    public static function french(): ProfileMessages
+    {
+        return new ProfileMessages(
+            profilePageTitle: 'Mon profil',
+            changePasswordPageTitle: 'Modifier le mot de passe',
+            createPasswordPageTitle: 'Créer un mot de passe',
+            removePasswordPageTitle: 'Supprimer le mot de passe',
+            ipWhitelistInfo: 'Une adresse IP par ligne. Veillez à ne pas exclure votre adresse IP actuelle.',
+            currentIpMustBeAllowed: 'La liste blanche IP doit autoriser votre adresse IP actuelle [ipAddress].',
+            passwordProtectionHeading: 'Protection par mot de passe',
+            passwordProtectionIntro: 'En plus du code à usage unique envoyé par e-mail, vous pouvez protéger votre '
+                . 'accès au backend par un mot de passe.',
+            createPasswordLink: 'Créer un mot de passe',
+            passwordLoginIntro: 'La connexion par mot de passe se fait sur une page de connexion séparée:',
+            passwordLabel: 'Mot de passe',
+            changeLink: 'Modifier',
+            currentPasswordLabel: 'Mot de passe actuel',
+            currentPasswordRequired: 'Veuillez saisir le mot de passe actuel.',
+            currentPasswordIncorrect: 'Le mot de passe actuel n’est pas correct.',
+        );
+    }
+
+    public static function italian(): ProfileMessages
+    {
+        return new ProfileMessages(
+            profilePageTitle: 'Il mio profilo',
+            changePasswordPageTitle: 'Modificare la password',
+            createPasswordPageTitle: 'Creare una password',
+            removePasswordPageTitle: 'Rimuovere la password',
+            ipWhitelistInfo: 'Un indirizzo IP per riga. Faccia attenzione a non escludere il Suo indirizzo IP attuale.',
+            currentIpMustBeAllowed: 'La whitelist IP deve consentire il Suo indirizzo IP attuale [ipAddress].',
+            passwordProtectionHeading: 'Protezione con password',
+            passwordProtectionIntro: 'Oltre al codice monouso inviato per e-mail, può proteggere il Suo accesso al '
+                . 'backend con una password.',
+            createPasswordLink: 'Creare una password',
+            passwordLoginIntro: 'L’accesso con password avviene tramite una pagina di accesso separata:',
+            passwordLabel: 'Password',
+            changeLink: 'Modificare',
+            currentPasswordLabel: 'Password attuale',
+            currentPasswordRequired: 'Inserisca la password attuale.',
+            currentPasswordIncorrect: 'La password attuale non è corretta.',
+        );
+    }
 }

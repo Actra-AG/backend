@@ -10,10 +10,11 @@ declare(strict_types=1);
 namespace actra\backend\libs\db;
 
 use actra\yuf\auth\AuthResultEnum;
+use actra\yuf\db\FrameworkDb;
 
 final class DbAuthLoginRepository
 {
-    public function __construct(private readonly DB $db) {}
+    public function __construct(private readonly FrameworkDb $db) {}
 
     public function insert(
         ?int $userId,

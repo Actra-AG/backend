@@ -9,8 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Double;
 
-use actra\backend\libs\db\DB;
+use actra\yuf\db\DbConnectionParameters;
 use actra\yuf\db\DbSettings;
+use actra\yuf\db\FrameworkDb;
 use PDO;
 use PDOException;
 use PHPUnit\Framework\TestCase;
@@ -39,12 +40,14 @@ final class TestDatabase
     /**
      * Creates the database on first use; skips the test without a database.
      */
-    public static function connect(): DB
+    public static function connect(): FrameworkDb
     {
         try {
             TestDatabase::createOnce();
 
-            return DB::fromSettings(dbSettings: TestDatabase::settings());
+            return new FrameworkDb(
+                connectionParameters: DbConnectionParameters::forMysql(dbSettings: TestDatabase::settings()),
+            );
         } catch (PDOException $pdoException) {
             TestCase::markTestSkipped('No test database available: ' . $pdoException->getMessage());
         }

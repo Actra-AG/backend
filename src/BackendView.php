@@ -56,7 +56,8 @@ abstract class BackendView extends BaseView
         $authSession = $context->authSession;
         $myAuthUser = $context->currentUser;
         if ($forceLogout) {
-            $authSession->logOut();
+            // With a shared login also on the other hosts
+            new BackendLogin(context: $context)->logOut();
             $myAuthUser = null;
         }
         if ($myAuthUser !== null) {

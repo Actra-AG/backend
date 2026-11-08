@@ -9,102 +9,189 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Unit\i18n;
 
-use actra\backend\i18n\AuthMessages;
 use actra\backend\i18n\BackendMessages;
-use actra\backend\i18n\CommonMessages;
-use actra\backend\i18n\EmailMessages;
-use actra\backend\i18n\LayoutMessages;
-use actra\backend\i18n\LogMessages;
 use actra\backend\i18n\MessageTemplate;
-use actra\backend\i18n\NotificationMessages;
-use actra\backend\i18n\ProfileMessages;
-use actra\backend\i18n\UserMessages;
 use actra\yuf\form\FormMessages;
+use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionObject;
 use ReflectionProperty;
 
 /**
- * Checks every message class of the backend: complete texts in both languages and the same placeholders.
+ * Checks every part of the backend texts (`BackendMessages`): complete texts in all four languages, the same
+ * placeholders, translated French and Italian texts and the forms of address used in Switzerland.
  */
 final class MessagesTest extends TestCase
 {
+    private const array PARTS = [
+        'form',
+        'common',
+        'layout',
+        'auth',
+        'user',
+        'profile',
+        'notification',
+        'log',
+        'email',
+        'table',
+        'authResult',
+    ];
     /**
-     * @return array<string, array{object, object}> English and German variant per message class
+     * Texts that are the same in English and in the language (names of things, abbreviations, placeholders only).
      */
-    public static function messagesProvider(): array
-    {
-        $english = BackendMessages::english();
-        $german = BackendMessages::german();
+    private const array SAME_AS_ENGLISH = [
+        'fr' => [
+            'auth.tokenLabel',
+            'common.fullName',
+            'common.messageBodyLabel',
+            'common.userOption',
+            'log.authTokenTypeActivation',
+            'log.sentEmailCcColumn',
+            'log.tokensNavigationTitle',
+            'log.tokensPageTitle',
+            'log.typeLabel',
+            'log.visitDateColumn',
+            'notification.dateLabel',
+            'notification.messageLabel',
+            'notification.title',
+        ],
+        'it' => [
+            'auth.passwordLabel',
+            'common.fullName',
+            'common.userOption',
+            'log.sentEmailCcColumn',
+            'profile.passwordLabel',
+            'user.no',
+        ],
+    ];
 
-        return [
-            CommonMessages::class => [$english->common, $german->common],
-            LayoutMessages::class => [$english->layout, $german->layout],
-            AuthMessages::class => [$english->auth, $german->auth],
-            UserMessages::class => [$english->user, $german->user],
-            ProfileMessages::class => [$english->profile, $german->profile],
-            NotificationMessages::class => [$english->notification, $german->notification],
-            LogMessages::class => [$english->log, $german->log],
-            EmailMessages::class => [$english->email, $german->email],
-        ];
-    }
-
-    #[DataProvider('messagesProvider')]
-    public function testEveryTextIsNonEmptyInBothLanguages(object $english, object $german): void
+    /**
+     * @return array<string, array{string, object}> Every part in every language
+     */
+    public static function partsProvider(): array
     {
-        $emptyTexts = [];
-        foreach (['en' => $english, 'de' => $german] as $languageCode => $messages) {
-            foreach ($this->readTexts(messages: $messages) as $name => $text) {
-                if (trim(string: $text) === '') {
-                    $emptyTexts[] = $languageCode . ': ' . $name;
-                }
+        $parts = [];
+        foreach (MessagesTest::createAllMessages() as $languageCode => $messages) {
+            foreach (MessagesTest::PARTS as $part) {
+                $parts[$languageCode . ' ' . $part] = [$languageCode, MessagesTest::readPart(
+                    messages: $messages,
+                    part: $part,
+                )];
             }
         }
 
-        $this->assertSame([], $emptyTexts);
+        return $parts;
     }
 
-    #[DataProvider('messagesProvider')]
-    public function testGermanTextsUseTheSamePlaceholdersAsTheEnglishTexts(object $english, object $german): void
+    /**
+     * @return array<string, array{string}> The parts by name
+     */
+    public static function partNamesProvider(): array
     {
-        $germanTexts = $this->readTexts(messages: $german);
+        $names = [];
+        foreach (MessagesTest::PARTS as $part) {
+            $names[$part] = [$part];
+        }
+
+        return $names;
+    }
+
+    #[DataProvider('partsProvider')]
+    public function testEveryTextIsNonEmpty(string $languageCode, object $messages): void
+    {
+        $emptyTexts = [];
+        foreach (MessagesTest::readTexts(messages: $messages) as $name => $text) {
+            if (trim(string: $text) === '') {
+                $emptyTexts[] = $name;
+            }
+        }
+
+        $this->assertSame([], $emptyTexts, $languageCode);
+    }
+
+    /**
+     * Every language has the placeholders of the German text (yuf's defaults are German for some parts).
+     */
+    #[DataProvider('partNamesProvider')]
+    public function testEveryLanguageUsesThePlaceholdersOfTheGermanTexts(string $part): void
+    {
+        $allMessages = MessagesTest::createAllMessages();
+        $germanTexts = MessagesTest::readPartTexts(messages: $allMessages['de'], part: $part);
         $differences = [];
-        foreach ($this->readTexts(messages: $english) as $name => $englishText) {
-            $englishPlaceholders = MessageTemplate::listPlaceholderNames(template: $englishText);
-            $germanPlaceholders = MessageTemplate::listPlaceholderNames(template: $germanTexts[$name] ?? '');
-            if ($englishPlaceholders !== $germanPlaceholders) {
-                $differences[] = $name;
+        foreach ($allMessages as $languageCode => $messages) {
+            $texts = MessagesTest::readPartTexts(messages: $messages, part: $part);
+            foreach ($germanTexts as $name => $germanText) {
+                $expected = MessageTemplate::listPlaceholderNames(template: $germanText);
+                if (MessageTemplate::listPlaceholderNames(template: $texts[$name] ?? '') !== $expected) {
+                    $differences[] = $languageCode . ': ' . $name;
+                }
             }
         }
 
         $this->assertSame([], $differences);
     }
 
-    #[DataProvider('messagesProvider')]
-    public function testMessagesContainNoHtml(object $english, object $german): void
+    /**
+     * No French or Italian text is left in English or German, except the listed ones.
+     */
+    #[DataProvider('partNamesProvider')]
+    public function testFrenchAndItalianTextsAreTranslated(string $part): void
     {
-        $textsWithHtml = [];
-        foreach (['en' => $english, 'de' => $german] as $languageCode => $messages) {
-            foreach ($this->readTexts(messages: $messages) as $name => $text) {
-                if (preg_match(pattern: '/<[a-z\/!]/i', subject: $text) === 1) {
-                    $textsWithHtml[] = $languageCode . ': ' . $name;
+        $allMessages = MessagesTest::createAllMessages();
+        $englishTexts = MessagesTest::readPartTexts(messages: $allMessages['en'], part: $part);
+        $germanTexts = MessagesTest::readPartTexts(messages: $allMessages['de'], part: $part);
+        $untranslated = [];
+        foreach (['fr', 'it'] as $languageCode) {
+            $texts = MessagesTest::readPartTexts(messages: $allMessages[$languageCode], part: $part);
+            foreach ($texts as $name => $text) {
+                $isAllowed = in_array(
+                    needle: $part . '.' . $name,
+                    haystack: MessagesTest::SAME_AS_ENGLISH[$languageCode],
+                    strict: true,
+                );
+                $sources = [$englishTexts[$name] ?? null, $germanTexts[$name] ?? null];
+                if (!$isAllowed && in_array(needle: $text, haystack: $sources, strict: true)) {
+                    $untranslated[] = $languageCode . ': ' . $name;
                 }
             }
         }
 
-        $this->assertSame([], $textsWithHtml);
+        $this->assertSame([], $untranslated);
+    }
+
+    #[DataProvider('partsProvider')]
+    public function testMessagesContainNoHtml(string $languageCode, object $messages): void
+    {
+        $textsWithHtml = [];
+        foreach (MessagesTest::readTexts(messages: $messages) as $name => $text) {
+            if (preg_match(pattern: '/<[a-z\/!]/i', subject: $text) === 1) {
+                $textsWithHtml[] = $name;
+            }
+        }
+
+        $this->assertSame([], $textsWithHtml, $languageCode);
     }
 
     /**
-     * The German texts address the user formally ("Ihr", "Ihre"), never with a lowercase "ihr".
+     * Swiss usage: formal address ("Sie", "vous", "Lei"), no "ß" in German.
      */
-    #[DataProvider('messagesProvider')]
-    public function testGermanTextsUseTheFormalAddress(object $english, object $german): void
+    #[DataProvider('partsProvider')]
+    public function testTextsUseTheFormalAddressAndSwissSpelling(string $languageCode, object $messages): void
     {
+        $patterns = [
+            'de' => '/\bihr(e|en|em|er|es)?\b|\bdu\b|\bdein|ß/u',
+            'fr' => '/\b(tu|te|toi|ton|ta|tes)\b/iu',
+            'it' => '/\b(tu|ti|tuo|tua|tuoi|tue)\b/iu',
+        ];
+        if (!array_key_exists(key: $languageCode, array: $patterns)) {
+            $this->assertSame('en', $languageCode);
+
+            return;
+        }
         $informalTexts = [];
-        foreach ($this->readTexts(messages: $german) as $name => $text) {
-            if (preg_match(pattern: '/\bihr(e|en|em|er|es)?\b/u', subject: $text) === 1) {
+        foreach (MessagesTest::readTexts(messages: $messages) as $name => $text) {
+            if (preg_match(pattern: $patterns[$languageCode], subject: $text) === 1) {
                 $informalTexts[] = $name;
             }
         }
@@ -122,17 +209,51 @@ final class MessagesTest extends TestCase
         $this->assertEquals(new FormMessages(), BackendMessages::english()->form);
     }
 
-    public function testForLanguageCodeReturnsGermanForGermanAndEnglishForEveryOtherLanguage(): void
+    public function testForLanguageCodeReturnsTheIncludedLanguagesAndEnglishForEveryOtherLanguage(): void
     {
         $this->assertEquals(BackendMessages::german(), BackendMessages::forLanguageCode(languageCode: 'de'));
         $this->assertEquals(BackendMessages::english(), BackendMessages::forLanguageCode(languageCode: 'en'));
-        $this->assertEquals(BackendMessages::english(), BackendMessages::forLanguageCode(languageCode: 'fr'));
+        $this->assertEquals(BackendMessages::french(), BackendMessages::forLanguageCode(languageCode: 'fr'));
+        $this->assertEquals(BackendMessages::italian(), BackendMessages::forLanguageCode(languageCode: 'it'));
+        $this->assertEquals(BackendMessages::english(), BackendMessages::forLanguageCode(languageCode: 'rm'));
+    }
+
+    /**
+     * @return array{en: BackendMessages, de: BackendMessages, fr: BackendMessages, it: BackendMessages} The included
+     *     texts by language code
+     */
+    private static function createAllMessages(): array
+    {
+        return [
+            'en' => BackendMessages::english(),
+            'de' => BackendMessages::german(),
+            'fr' => BackendMessages::french(),
+            'it' => BackendMessages::italian(),
+        ];
+    }
+
+    private static function readPart(BackendMessages $messages, string $part): object
+    {
+        $value = new ReflectionObject(object: $messages)->getProperty(name: $part)->getValue(object: $messages);
+        if (!is_object(value: $value)) {
+            throw new LogicException(message: 'No part ' . $part);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @return array<string, string> The texts of a part by name
+     */
+    private static function readPartTexts(BackendMessages $messages, string $part): array
+    {
+        return MessagesTest::readTexts(messages: MessagesTest::readPart(messages: $messages, part: $part));
     }
 
     /**
      * @return array<string, string> The string properties of a message class by name
      */
-    private function readTexts(object $messages): array
+    private static function readTexts(object $messages): array
     {
         $texts = [];
         $properties = new ReflectionObject(object: $messages)->getProperties(filter: ReflectionProperty::IS_PUBLIC);

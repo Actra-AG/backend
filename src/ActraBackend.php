@@ -13,11 +13,11 @@ use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\ProfileLanguageProvider;
+use actra\backend\libs\auth\SharedLoginSession;
 use actra\backend\libs\auth\UserController;
 use actra\backend\libs\common\DateFormatter;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\ClientData;
-use actra\backend\libs\db\DB;
 use actra\backend\libs\email\Mailer;
 use actra\backend\libs\email\SentEmailLogger;
 use actra\backend\libs\email\SentEmailSecrets;
@@ -30,6 +30,8 @@ use actra\backend\view\backend\php\users;
 use actra\backend\view\backend\php\visits;
 use actra\yuf\App;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\auth\AuthSession;
+use actra\yuf\auth\SharedLogin;
 use actra\yuf\Core;
 use actra\yuf\core\ContentType;
 use actra\yuf\core\HttpRequest;
@@ -44,13 +46,14 @@ use actra\yuf\core\ResponseSender;
 use actra\yuf\core\Route;
 use actra\yuf\core\ViewContext;
 use actra\yuf\datacheck\validatorTypes\IpValidator;
-use actra\yuf\db\DbSettings;
+use actra\yuf\db\FrameworkDb;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDataObject;
 use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
+use actra\yuf\session\Session;
 use Closure;
 use InvalidArgumentException;
 use LogicException;
@@ -77,6 +80,7 @@ final class ActraBackend
 
     /**
      * @param string $path The path of the backend route
+     * @param Closure(): FrameworkDb $connectDb
      */
     private function __construct(
         public readonly string $path,
@@ -84,9 +88,10 @@ final class ActraBackend
         public readonly string $defaultFileTitle,
         public readonly LanguageCollection $languages,
         public readonly ActraBackendSettings $actraBackendSettings,
-        public readonly DbSettings $dbSettings,
+        private readonly Closure $connectDb,
         public readonly MailerSettings $mailerSettings,
         public readonly string $templateDirectory,
+        private readonly ?Logger $logger,
     ) {
         $this->paths = new BackendPaths(path: $path);
         $this->sentEmailSecrets = new SentEmailSecrets();
@@ -105,17 +110,22 @@ final class ActraBackend
      *     page of the project (the login page is then `login.html`)
      * @param LanguageCollection $languages The languages of the application: `$app->core->availableLanguages` (`App`
      *     adds its languages when it runs) or `$core->availableLanguages`
+     * @param Closure(): FrameworkDb $connectDb Returns the connection to the database of the backend tables, called once
+     *     on first use: the project's own connection (one per request for project and backend, e.g.
+     *     `static fn(): FrameworkDb => $db`) or a new one (`static fn(): FrameworkDb => new FrameworkDb(
+     *     connectionParameters: DbConnectionParameters::forMysql(dbSettings: $dbSettings))`)
      * @param MailerSettings $mailerSettings Every mail of its mailer is written to the log of sent emails (page
      *     "Sent emails", table `sent_emails`), also the mails the project sends with the mailer directly; create the
      *     backend once per mailer
-     * @param ?Logger $logger Logs an entry of the log of sent emails that could not be written (`$app->getLogger()`,
-     *     `$core->createFileLogger()`); `null` as explicit opt-out: PHP's `error_log()`
+     * @param ?Logger $logger Logs an entry of the log of sent emails that could not be written and refused steps of the
+     *     shared login (`$app->getLogger()`, `$core->createFileLogger()`); `null` as explicit opt-out: PHP's
+     *     `error_log()`
      */
     public static function create(
         string $path,
         LanguageCollection $languages,
         ActraBackendSettings $actraBackendSettings,
-        DbSettings $dbSettings,
+        Closure $connectDb,
         MailerSettings $mailerSettings,
         ?Logger $logger,
         string $viewGroup = 'backend',
@@ -128,9 +138,10 @@ final class ActraBackend
             defaultFileTitle: $defaultFileTitle,
             languages: $languages,
             actraBackendSettings: $actraBackendSettings,
-            dbSettings: $dbSettings,
+            connectDb: $connectDb,
             mailerSettings: $mailerSettings,
             templateDirectory: $templateDirectory ?? __DIR__ . '/view/backend/templates/',
+            logger: $logger,
         );
         $mailerSettings->mailer->addSentMailListener(
             sentMailListener: new SentEmailLogger(
@@ -297,6 +308,38 @@ final class ActraBackend
     }
 
     /**
+     * The login page of a site with a shared login (yuf's `LoginTarget::shared()`, `docs/login.md`): a page that needs a
+     * login checks once per browser session at the login host whether the visitor is logged in there, else it goes to
+     * the login page of the site (`SharedLoginSettings::$site`). For `configure(loginTarget:)` or `RouteCollection`.
+     *
+     * @throws LogicException without `ActraBackendSettings::$sharedLogin` for a site
+     */
+    public function createSharedLoginTarget(): LoginTarget
+    {
+        $settings = $this->actraBackendSettings->sharedLogin;
+        if ($settings === null || $settings->site === null) {
+            throw new LogicException(message: 'A shared login target needs ActraBackendSettings::$sharedLogin of a site.');
+        }
+
+        return LoginTarget::shared(sharedLogin: $settings->sharedLogin, site: $settings->site);
+    }
+
+    /**
+     * Logs a message with the logger of the backend (`create(logger:)`), PHP's `error_log()` without one.
+     *
+     * @internal
+     */
+    public function logMessage(string $message): void
+    {
+        if ($this->logger === null) {
+            error_log(message: $message);
+
+            return;
+        }
+        $this->logger->logMessage(message: $message);
+    }
+
+    /**
      * The login page of the backend (`/backend/login.html`), for `LoginTarget::local()` of yuf's `App` and
      * `RouteCollection`.
      */
@@ -311,7 +354,7 @@ final class ActraBackend
     public function getRepositories(): BackendRepositories
     {
         return $this->repositories ??= new BackendRepositories(
-            connect: fn(): DB => DB::fromSettings(dbSettings: $this->dbSettings),
+            connect: $this->connectDb,
         );
     }
 
@@ -381,6 +424,7 @@ final class ActraBackend
                 message: 'The backend needs a session: do not disable individualSessionHandler for backend routes.',
             );
         }
+        $this->logOutIfSharedLoginEnded(session: $session, authSession: $authSession);
         $language = $this->getLanguageOfRequest(viewContext: $viewContext);
         $repositories = $this->getRepositories();
         $clientData = ClientData::fromRequest(httpRequest: $viewContext->httpRequest, authSession: $authSession);
@@ -410,6 +454,27 @@ final class ActraBackend
                 currentUser: $currentUser,
             ),
         );
+    }
+
+    /**
+     * Every request with a login: logs out if the shared login was ended on another host (`SharedLogin::isEnded()`). A
+     * login without shared login ID (from before the shared login was set up) gets a new one.
+     */
+    private function logOutIfSharedLoginEnded(Session $session, AuthSession $authSession): void
+    {
+        $sharedLogin = $this->actraBackendSettings->sharedLogin?->sharedLogin;
+        if ($sharedLogin === null || !$authSession->isLoggedIn()) {
+            return;
+        }
+        $sharedLoginId = SharedLoginSession::find(session: $session);
+        if ($sharedLoginId === null) {
+            SharedLoginSession::store(session: $session, sharedLoginId: SharedLogin::createSharedLoginId());
+
+            return;
+        }
+        if ($sharedLogin->isEnded(sharedLoginId: $sharedLoginId)) {
+            $authSession->logOut();
+        }
     }
 
     /**

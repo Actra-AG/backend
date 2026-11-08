@@ -47,4 +47,38 @@ final readonly class LayoutMessages
             dialogConfirmDelete: 'Ja, löschen',
         );
     }
+
+    public static function french(): LayoutMessages
+    {
+        return new LayoutMessages(
+            skipLink: 'Aller au contenu',
+            navigationTitleUsers: 'Utilisateurs',
+            openMenu: 'Ouvrir le menu',
+            closeMenu: 'Fermer le menu',
+            languageSwitcherLabel: 'Changer de langue',
+            cancelSessionChange: 'Annuler le changement de session',
+            myProfile: 'Mon profil',
+            logout: 'Se déconnecter',
+            deleteConfirmation: 'Vraiment supprimer?',
+            dialogCancel: 'Annuler',
+            dialogConfirmDelete: 'Oui, supprimer',
+        );
+    }
+
+    public static function italian(): LayoutMessages
+    {
+        return new LayoutMessages(
+            skipLink: 'Passare al contenuto',
+            navigationTitleUsers: 'Utenti',
+            openMenu: 'Aprire il menu',
+            closeMenu: 'Chiudere il menu',
+            languageSwitcherLabel: 'Cambiare lingua',
+            cancelSessionChange: 'Annullare il cambio di sessione',
+            myProfile: 'Il mio profilo',
+            logout: 'Disconnettersi',
+            deleteConfirmation: 'Eliminare davvero?',
+            dialogCancel: 'Annullare',
+            dialogConfirmDelete: 'Sì, eliminare',
+        );
+    }
 }

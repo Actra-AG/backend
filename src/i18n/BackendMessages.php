@@ -15,7 +15,7 @@ use actra\yuf\table\TableMessages;
 
 /**
  * All texts of the backend in one language (own texts per language code: `ActraBackendSettings::$messages`). Use
- * `english()`, `german()` or `forLanguageCode()`, or change single texts of them:
+ * `english()`, `german()`, `french()`, `italian()` or `forLanguageCode()`, or change single texts of them:
  * `BackendMessages::german()->with(auth: AuthMessages::german()->with(loginPageTitle: 'Login'))`.
  */
 final readonly class BackendMessages
@@ -50,12 +50,15 @@ final readonly class BackendMessages
     }
 
     /**
-     * The included texts of a language: German for `de`, English for every other language.
+     * The included texts of a language: German for `de`, French for `fr`, Italian for `it`, English for every other
+     * language.
      */
     public static function forLanguageCode(string $languageCode): BackendMessages
     {
         return match ($languageCode) {
             'de' => BackendMessages::german(),
+            'fr' => BackendMessages::french(),
+            'it' => BackendMessages::italian(),
             default => BackendMessages::english(),
         };
     }
@@ -105,6 +108,40 @@ final readonly class BackendMessages
             email: EmailMessages::german(),
             table: new TableMessages(),
             authResult: new AuthResultMessages(),
+        );
+    }
+
+    public static function french(): BackendMessages
+    {
+        return new BackendMessages(
+            form: FormMessages::french(),
+            common: CommonMessages::french(),
+            layout: LayoutMessages::french(),
+            auth: AuthMessages::french(),
+            user: UserMessages::french(),
+            profile: ProfileMessages::french(),
+            notification: NotificationMessages::french(),
+            log: LogMessages::french(),
+            email: EmailMessages::french(),
+            table: TableMessages::french(),
+            authResult: AuthResultMessages::french(),
+        );
+    }
+
+    public static function italian(): BackendMessages
+    {
+        return new BackendMessages(
+            form: FormMessages::italian(),
+            common: CommonMessages::italian(),
+            layout: LayoutMessages::italian(),
+            auth: AuthMessages::italian(),
+            user: UserMessages::italian(),
+            profile: ProfileMessages::italian(),
+            notification: NotificationMessages::italian(),
+            log: LogMessages::italian(),
+            email: EmailMessages::italian(),
+            table: TableMessages::italian(),
+            authResult: AuthResultMessages::italian(),
         );
     }
 }

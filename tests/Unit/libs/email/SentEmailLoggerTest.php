@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\email;
 
 use actra\backend\libs\db\BackendRepositories;
-use actra\backend\libs\db\DB;
 use actra\backend\libs\email\SentEmailLogger;
 use actra\backend\libs\email\SentEmailSecrets;
 use actra\backend\tests\Double\ActraBackendTestInstance;
@@ -18,6 +17,7 @@ use actra\backend\tests\Double\RecordingLogger;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\TestDatabase;
 use actra\yuf\db\DbRow;
+use actra\yuf\db\FrameworkDb;
 use actra\yuf\mailer\RecordingMailer;
 use actra\yuf\mailer\SentMail;
 use actra\yuf\mailer\TextMail;
@@ -64,7 +64,7 @@ final class SentEmailLoggerTest extends TestCase
         $recordingMailer = new RecordingMailer();
         $recordingMailer->addSentMailListener(sentMailListener: new SentEmailLogger(
             repositories: new BackendRepositories(
-                connect: static fn(): DB => throw new PDOException(message: 'Database unreachable'),
+                connect: static fn(): FrameworkDb => throw new PDOException(message: 'Database unreachable'),
             ),
             logger: $recordingLogger,
             sentEmailSecrets: new SentEmailSecrets(),

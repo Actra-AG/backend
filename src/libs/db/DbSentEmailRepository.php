@@ -11,6 +11,7 @@ namespace actra\backend\libs\db;
 
 use actra\yuf\db\DbDateTime;
 use actra\yuf\db\DbQuery;
+use actra\yuf\db\FrameworkDb;
 use actra\yuf\mailer\SentMail;
 
 /**
@@ -21,7 +22,7 @@ final readonly class DbSentEmailRepository
     /** Separates the addresses of a list column */
     public const string EMAIL_SEPARATOR = ', ';
 
-    public function __construct(private DB $db) {}
+    public function __construct(private FrameworkDb $db) {}
 
     public function insert(SentMail $sentMail): void
     {

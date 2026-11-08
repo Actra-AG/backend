@@ -4,10 +4,10 @@ Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older v
 
 ## v5.6.0 (2026-11-08)
 
-### ⚠️ Requires `actra/yuf` `~8.14.0`
+### ⚠️ Requires `actra/yuf` `~8.14.1`
 
-yuf v8.13.0 adds the shared login (`SharedLogin`) and the view test helpers (`ViewTestClient`), v8.14.0 the French and
-Italian texts of forms, tables and login results (yuf's `UPGRADE.md`). The backend needs no further change for it.
+yuf v8.14.1 adds the shared login (`SharedLogin`), the view test helpers (`ViewTestClient`) and the French and Italian
+texts of forms, tables and login results (yuf's `UPGRADE.md`). The backend needs no further change for it.
 
 ### ⚠️ `ActraBackend::create()`: `connectDb:` replaces `dbSettings:`
 

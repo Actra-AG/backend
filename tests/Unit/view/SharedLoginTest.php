@@ -137,7 +137,7 @@ final class SharedLoginTest extends TestCase
 
     /**
      * A visitor without login on the login host: the check leads back to the login page of the site, which then shows
-     * its form (checked: no second check, no loop).
+     * its form (marked with `loginChecked=1`: no second check, no loop).
      */
     public function testCheckWithoutLoginOnTheLoginHostShowsTheLoginPageOfTheSite(): void
     {
@@ -160,10 +160,11 @@ final class SharedLoginTest extends TestCase
         ]);
         $this->assertStringContainsString('action="?LoginForm"', $loginPage);
         $this->assertFalse(new AuthSession(session: $this->siteSession)->isLoggedIn());
-        // The cookie of the check: the next visit of the login page shows the form at once
-        $this->assertStringContainsString('action="?LoginForm"', $this->requestSite(
-            fileTitle: 'login',
-        ));
+        // No memory of the check: the next visit of the login page without the marker checks again
+        $this->assertStringStartsWith(
+            'https://' . SharedLoginTest::LOGIN_HOST . SharedLoginTest::HAND_OVER_PATH . '?loginCheck=',
+            $this->requestSite(fileTitle: 'login'),
+        );
     }
 
     /**

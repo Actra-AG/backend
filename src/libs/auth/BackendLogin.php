@@ -144,10 +144,11 @@ final readonly class BackendLogin
     }
 
     /**
-     * Site with a shared login (`SharedLoginSettings::$site`), on its login page (GET, without login): checks once per
-     * browser session at the login host whether the visitor is logged in there (invisible redirects, the visitor
-     * returns logged in to the requested page, or to the login page of the site). Redirects and ends the script if the
-     * check is due, returns otherwise (no shared login, logged in, a sent form, or checked already).
+     * Site with a shared login (`SharedLoginSettings::$site`), on its login page (GET, without login): checks at every
+     * such request at the login host whether the visitor is logged in there (invisible redirects, the visitor returns
+     * logged in to the requested page, or to the login page of the site). Redirects and ends the script if the check is
+     * due, returns otherwise (no shared login, logged in, a sent form, or the login page returning from the check,
+     * marked with `loginChecked=1`).
      *
      * @param string $defaultReturnPath The page after a login on the login host if the request has no return path
      */

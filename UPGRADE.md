@@ -2,6 +2,16 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.8.0 (2026-11-08)
+
+### ⚠️ Requires `actra/yuf` `~8.15.0`
+
+With the shared login, a site checks at the login host at every GET without login of its login page
+(`checkSharedLogin()`) and of a page that needs a login (`createSharedLoginTarget()`), no longer once per browser
+session; only the login page that returns from a check (`loginChecked=1`) shows its form without a check. yuf removes
+`SharedLogin::CHECKED_COOKIE_NAME` and `CHECKED_LIFETIME_IN_SECONDS` (yuf's `UPGRADE.md`, v8.15.0); the backend used
+neither, projects that did remove them.
+
 ## v5.7.0 (2026-11-08)
 
 ### ⚠️ `ActraBackendSettings`: `frontendName:` removed

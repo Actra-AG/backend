@@ -309,7 +309,7 @@ final class ActraBackend
 
     /**
      * The login page of a site with a shared login (yuf's `LoginTarget::shared()`, `docs/login.md`): a page that needs a
-     * login checks once per browser session at the login host whether the visitor is logged in there, else it goes to
+     * login checks at every GET without login at the login host whether the visitor is logged in there, else it goes to
      * the login page of the site (`SharedLoginSettings::$site`). For `configure(loginTarget:)` or `RouteCollection`.
      *
      * @throws LogicException without `ActraBackendSettings::$sharedLogin` for a site

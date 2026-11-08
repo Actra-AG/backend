@@ -45,10 +45,10 @@ sees a page of the login host, only invisible redirects over the hand-over page 
 - **Push:** after the correct code on the site, `redirectAfterLogin()` passes the login to the login host and returns
   to the requested page (site → login host → site → login host → site). The response to the code form stays on the
   site (see "Forms and CSP" below).
-- **Silent check:** a site without login asks the login host once per browser session whether the visitor is logged in
-  there, only on its login page (`checkSharedLogin()`) and on pages that need a login (`createSharedLoginTarget()`),
-  never on other pages. Logged in there: the visitor is logged in on the site and returns to the requested page;
-  otherwise the login page of the site shows its form (no loop).
+- **Silent check:** a site without login asks the login host whether the visitor is logged in there, at every GET of
+  its login page (`checkSharedLogin()`) and of pages that need a login (`createSharedLoginTarget()`), never on other
+  pages. Logged in there: the visitor is logged in on the site and returns to the requested page; otherwise the login
+  page of the site shows its form, marked with `loginChecked=1`, which makes no further check (no loop).
 - **Logout everywhere:** every login gets a shared login ID in the session; `logOut()` (also the backend page
   `logout`) ends it, every host logs out at its next request with a login.
 
@@ -184,7 +184,7 @@ final class login extends BaseView
         if ($login->getCurrentUser() !== null) {
             $this->redirect(uri: $login->findReturnPath() ?? '/');
         }
-        // Shared login, site: logged in on the login host? (once per browser session, invisible redirects)
+        // Shared login, site: logged in on the login host? (at every GET without login, invisible redirects)
         $login->checkSharedLogin();
         $loginForm = new LoginForm(login: $login);
         if ($loginForm->process()) {

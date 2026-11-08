@@ -2,6 +2,50 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.5.0 (2026-11-08)
+
+### ⚠️ Requires `actra/yuf` `~8.12.0`
+
+yuf v8.10.0 adds the HTML part and the attachments of `ReceivedMail`; v8.11.0 types the login page as `LoginTarget`,
+v8.12.0 adds the login on another host of the same server (yuf's `UPGRADE.md`). Projects with `Core` pass the login
+page of the backend as `LoginTarget`:
+
+Before: `new RouteCollection(routes: [...], loginPath: $actraBackend->getLoginPath())`.
+After: `new RouteCollection(routes: [...], loginTarget: LoginTarget::local(path: $actraBackend->getLoginPath()))`.
+
+Projects with `App` and `configure()` need no change for it; own `$app->withLoginPath(loginPath: …)` calls become
+`withLoginTarget(loginTarget: LoginTarget::local(path: …))`.
+
+### ⚠️ `ActraBackendSettings`: required `loginHandOver:`
+
+The login on another host of the same server ([docs/login.md](docs/login.md#one-login-host-for-several-sites)). Pass
+`null` to keep the login on the host:
+
+Before: `new ActraBackendSettings(…, loginRateLimit: $loginRateLimit, …)`.
+After: `new ActraBackendSettings(…, loginRateLimit: $loginRateLimit, loginHandOver: null, …)`.
+
+### New: login on a page of the project or on another host
+
+Projects can log the backend users in on a page of their own, e.g. in the layout of the frontend, and sites on one
+server can share the login of one host ([docs/login.md](docs/login.md)):
+
+- `ActraBackend::createLogin(viewContext:)`: `BackendLogin` for any route with a session, with `requestCode()`,
+  `requestCodeWithPassword()`, `logInWithCode()`, `getCurrentUser()`, `logOut()`, `findReturnPath()`,
+  `createNextStepUri()` and, for the hand-over, `isLoginHost()`, `findLoginRequest()`, `findHandOverUrl()`,
+  `redirectAfterLogin()`, `logInWithTicket()`; results `LoginCodeRequestResultEnum`, `PasswordLoginResultEnum`,
+  `LoginCodeResultEnum`.
+- `LoginForm` and `LoginTokenForm` are public: `new LoginForm(login: $login)`, `getReturnPath()`,
+  `getLoginRequestId()`.
+- `configure(app:, loginTarget: LoginTarget::local(path: '/login.html'))` sends visitors without login to the page of
+  the project (default: the backend login page, which stays available).
+- `LoginHandOverSettings` (`ActraBackendSettings::$loginHandOver`): the shared directory (yuf's `LoginHandOver`) and,
+  on the login host, the sites it logs in. A site configures `loginTarget: $actraBackend->createRemoteLoginTarget(url:
+  'https://login.example.net/backend/login.html')`; the new backend page `loginTicket` (reserved name) is its
+  hand-over page. The subject of the hand-over is the user ID: all hosts share the user database.
+
+The backend login pages use `BackendLogin`; their HTML is unchanged. On a login host, the login forms have one more
+hidden field (`loginRequest`).
+
 ## v5.4.0 (2026-11-07)
 
 No migration needed. New, optional: searchable selects with Tom Select. `initTomSelect(TomSelect)` (`backend.js`)

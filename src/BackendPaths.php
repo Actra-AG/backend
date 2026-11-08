@@ -36,6 +36,14 @@ final readonly class BackendPaths
         return $this->path . 'loginPasswordToken.html';
     }
 
+    /**
+     * The hand-over page of a site that logs in on another host (`ActraBackend::createRemoteLoginTarget()`).
+     */
+    public function loginTicket(): string
+    {
+        return $this->path . 'loginTicket.html';
+    }
+
     public function loginToken(): string
     {
         return $this->path . 'loginToken.html';

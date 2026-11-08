@@ -10,9 +10,9 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\BackendView;
+use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\form\LoginTokenForm;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\core\LoginRedirect;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -36,10 +36,13 @@ final class loginToken extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
+        $login = new BackendLogin(context: $this->backendContext);
         if ($this->backendContext->authSession->isLoggedIn()) {
-            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(
-                context: $this->backendContext,
-                returnPath: LoginRedirect::findReturnPath(httpRequest: $this->context->httpRequest),
+            // Logged in on the login host already: a login request of a site is handed over at once
+            $login->redirectAfterLogin(
+                myAuthUser: $this->backendContext->getCurrentUser(),
+                loginRequestId: $login->findLoginRequest()?->id,
+                returnPath: $login->findReturnPath(),
             );
         }
         $htmlDocument->templateName = 'authentication';
@@ -61,12 +64,13 @@ final class loginToken extends BackendView
             identifier: 'backToLoginText',
             htmlText: HtmlText::fromText(text: $messages->backToLogin),
         );
-        $loginTokenForm = new LoginTokenForm(context: $this->backendContext);
+        $loginTokenForm = new LoginTokenForm(login: $login);
         // The user logged in by the form: the context still holds the state before the login
         $myAuthUser = $loginTokenForm->process();
         if ($myAuthUser !== null) {
-            $myAuthUser->redirectToFirstAllowedPage(
-                context: $this->backendContext,
+            $login->redirectAfterLogin(
+                myAuthUser: $myAuthUser,
+                loginRequestId: $loginTokenForm->getLoginRequestId(),
                 returnPath: $loginTokenForm->getReturnPath(),
             );
         }

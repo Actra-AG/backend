@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Log in | Test backend</title>
+  <meta name="author" content="Actra AG Webagentur"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <script nonce="nonce">
+    document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  </script>
+  </head>
+<body class="body-authentication">
+<header class="auth-header">
+  <div class="auth-logo">Test backend</div>
+    <nav class="language-switcher" aria-label="Change language">
+    <ul class="language-switcher-list">
+              <li>
+                      <a href="/backend/language.html?language=de&amp;returnTo=%2Fbackend%2Flogin.html" lang="de"
+               hreflang="de">Deutsch</a>
+                  </li>
+              <li>
+                      <span lang="en" aria-current="true">English</span>
+          
+                  </li>
+          </ul>
+  </nav>
+  </header>
+<main class="auth-main | flow">
+  <p>Enter the email address you are registered with. You will receive a code that you can enter in the next step to log in.</p>
+<form method="post" action="?LoginForm" class="form form-login"><input type="hidden" name="csrftoken" value="…"><input type="hidden" name="returnTo" value="/backend/user-5.html"><dl><dt><label for="email">Email</label></dt><dd><input type="email" name="email" id="email" value="" autofocus></dd></dl><div class="form-control"><button type="submit" name="submit">Continue</button></div></form></main>
+</body>
+</html>

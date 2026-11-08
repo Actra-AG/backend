@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\form;
 
 use actra\backend\BackendViewContext;
+use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\form\LoginForm;
 use actra\backend\libs\form\LoginPasswordForm;
 use actra\backend\libs\form\LoginTokenForm;
@@ -33,11 +34,11 @@ final class LoginFormMarkupTest extends TestCase
     public static function loginForms(): array
     {
         return [
-            'LoginForm' => [static fn(BackendViewContext $context): Form => new LoginForm(context: $context)],
+            'LoginForm' => [static fn(BackendViewContext $context): Form => new LoginForm(login: new BackendLogin(context: $context))],
             'LoginPasswordForm' => [
-                static fn(BackendViewContext $context): Form => new LoginPasswordForm(context: $context),
+                static fn(BackendViewContext $context): Form => new LoginPasswordForm(login: new BackendLogin(context: $context)),
             ],
-            'LoginTokenForm' => [static fn(BackendViewContext $context): Form => new LoginTokenForm(context: $context)],
+            'LoginTokenForm' => [static fn(BackendViewContext $context): Form => new LoginTokenForm(login: new BackendLogin(context: $context))],
         ];
     }
 

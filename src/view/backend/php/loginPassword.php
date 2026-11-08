@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\BackendView;
+use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\form\LoginPasswordForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -44,12 +45,13 @@ final class loginPassword extends BackendView
             identifier: 'introText',
             htmlText: HtmlText::fromText(text: $messages->loginPasswordIntro),
         );
-        $loginPasswordForm = new LoginPasswordForm(context: $this->backendContext);
+        $loginPasswordForm = new LoginPasswordForm(login: new BackendLogin(context: $this->backendContext));
         if ($loginPasswordForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->keepReturnPath(
+                relativeOrAbsoluteUri: BackendLogin::createNextStepUri(
                     path: $this->backendContext->paths->loginPasswordToken(),
                     returnPath: $loginPasswordForm->getReturnPath(),
+                    loginRequestId: $loginPasswordForm->getLoginRequestId(),
                 ),
                 httpRequest: $this->context->httpRequest,
                 responseSender: $this->context->responseSender,

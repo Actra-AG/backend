@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\BackendView;
+use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\form\LoginTokenForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\html\HtmlDocument;
@@ -36,6 +37,7 @@ final class loginPasswordToken extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $this->backendContext->authSession->logOut();
+        $login = new BackendLogin(context: $this->backendContext);
         $htmlDocument->templateName = 'authentication';
         $messages = $this->backendContext->messages->auth;
         $replacements = $htmlDocument->replacements;
@@ -55,12 +57,13 @@ final class loginPasswordToken extends BackendView
             identifier: 'backToLoginText',
             htmlText: HtmlText::fromText(text: $messages->backToLogin),
         );
-        $loginTokenForm = new LoginTokenForm(context: $this->backendContext);
+        $loginTokenForm = new LoginTokenForm(login: $login);
         // The user logged in by the form: the context still holds the state before the login
         $myAuthUser = $loginTokenForm->process();
         if ($myAuthUser !== null) {
-            $myAuthUser->redirectToFirstAllowedPage(
-                context: $this->backendContext,
+            $login->redirectAfterLogin(
+                myAuthUser: $myAuthUser,
+                loginRequestId: $loginTokenForm->getLoginRequestId(),
                 returnPath: $loginTokenForm->getReturnPath(),
             );
         }

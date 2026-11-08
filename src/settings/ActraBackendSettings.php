@@ -25,6 +25,8 @@ final readonly class ActraBackendSettings
      *     language without entry gets `BackendMessages::forLanguageCode()`
      * @param ?BackendNavigation $projectNavigation Adds the project's navigation items in the language of the request
      * @param ?UserDeleteHandler $userDeleteHandler Deletes the project's data of a user before the user is deleted
+     * @param ?LoginHandOverSettings $loginHandOver The login on another host of the same server (login host and
+     *     sites, `docs/login.md`); `null` as explicit opt-out: the login stays on the host
      * @param ?TokenSendLimit $tokenSendLimit Limits the login codes and password reset links per user; `null` turns
      *     the limit off
      */
@@ -34,6 +36,7 @@ final readonly class ActraBackendSettings
         public array $javaScriptPaths,
         public array $stylesPaths,
         public ?LoginRateLimit $loginRateLimit,
+        public ?LoginHandOverSettings $loginHandOver,
         public int $maxAllowedLoginAttempts = 5,
         public string $frontendHref = '',
         public string $frontendName = '',

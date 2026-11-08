@@ -13,6 +13,7 @@ use actra\backend\ActraBackend;
 use actra\backend\i18n\BackendMessages;
 use actra\backend\settings\ActraBackendSettings;
 use actra\backend\settings\BackendNavigation;
+use actra\backend\settings\LoginHandOverSettings;
 use actra\backend\settings\MailerSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\auth\LoginRateLimit;
@@ -55,6 +56,7 @@ final class ActraBackendTestInstance
         string $path = '/backend/',
         string $viewGroup = 'backend',
         ?Logger $logger = new RecordingLogger(),
+        ?LoginHandOverSettings $loginHandOver = null,
     ): ActraBackend {
         return ActraBackend::create(
             path: $path,
@@ -67,6 +69,7 @@ final class ActraBackendTestInstance
                 javaScriptPaths: [],
                 stylesPaths: [],
                 loginRateLimit: $loginRateLimit,
+                loginHandOver: $loginHandOver,
                 hasApi: $hasApi,
                 messages: $messages,
                 projectNavigation: $projectNavigation,

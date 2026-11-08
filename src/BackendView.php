@@ -9,16 +9,14 @@ declare(strict_types=1);
 
 namespace actra\backend;
 
-use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\auth\BackendLogin;
+use actra\backend\libs\auth\LoggedInUserCheck;
 use actra\backend\libs\common\BreadcrumbItemCollection;
 use actra\backend\libs\common\LanguageSwitcher;
 use actra\backend\libs\common\SessionBreadcrumbTrail;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\auth\UnauthorizedIpAddressException;
 use actra\yuf\core\BaseView;
 use actra\yuf\core\InputParameterCollection;
-use actra\yuf\core\LoginRedirect;
-use actra\yuf\datacheck\validatorTypes\IpValidator;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
@@ -62,7 +60,8 @@ abstract class BackendView extends BaseView
             $myAuthUser = null;
         }
         if ($myAuthUser !== null) {
-            $this->checkLoggedInUser(context: $context, myAuthUser: $myAuthUser);
+            // In addition to the global IP whitelist (checked by `BaseView`)
+            LoggedInUserCheck::check(context: $context, myAuthUser: $myAuthUser);
         }
         parent::__construct(
             context: $context->viewContext,
@@ -75,38 +74,6 @@ abstract class BackendView extends BaseView
         );
         if ($myAuthUser !== null) {
             $context->repositories->sessions()->updateLastAction(id: $authSession->getAuthSessionId());
-        }
-    }
-
-    /**
-     * The checks of a logged-in user in addition to the global IP whitelist (checked by `BaseView`): the request must
-     * come from the user's own IP whitelist if the user has one (both lists must match). In an impersonation, the
-     * impersonating user must still be active and manage users, and the whitelist of the impersonating user applies.
-     */
-    private function checkLoggedInUser(BackendViewContext $context, MyAuthUser $myAuthUser): void
-    {
-        $whitelistUser = $myAuthUser->dbAuthUser;
-        $parentSessionId = $myAuthUser->parentSessionId;
-        if ($parentSessionId !== null) {
-            $parentSession = $context->repositories->sessions()->selectById(id: $parentSessionId);
-            $impersonator = $parentSession === null ? null : new MyAuthUser(
-                dbAuthUser: $parentSession->dbAuthUser,
-                parentSessionId: null,
-                repositories: $context->repositories,
-                clientData: $context->clientData,
-            );
-            if ($impersonator === null || !$impersonator->canManageUsers()) {
-                $context->authSession->logOut();
-                throw new UnauthorizedException();
-            }
-            $whitelistUser = $impersonator->dbAuthUser;
-        }
-        $ipAddress = $context->viewContext->httpRequest->getRemoteAddress();
-        if (
-            $whitelistUser->ipWhitelist !== []
-            && !IpValidator::isInWhitelist(whiteList: $whitelistUser->ipWhitelist, ipAddressToCheck: $ipAddress)
-        ) {
-            throw new UnauthorizedIpAddressException(message: 'Invalid IP address ' . $ipAddress);
         }
     }
 
@@ -324,12 +291,12 @@ abstract class BackendView extends BaseView
     abstract protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void;
 
     /**
-     * The path of the next login step with the page requested before the login (`?returnTo=`, see `RouteCollection`
-     * with `loginPath:`), so the user gets there after the login.
+     * The path of the next login step with the page requested before the login (`?returnTo=`, see yuf's
+     * `LoginTarget`), so the user gets there after the login.
      */
     protected function keepReturnPath(string $path, ?string $returnPath): string
     {
-        return $returnPath === null ? $path : LoginRedirect::createLoginUri(loginPath: $path, returnUri: $returnPath);
+        return BackendLogin::createNextStepUri(path: $path, returnPath: $returnPath, loginRequestId: null);
     }
 
     abstract protected function getPageTitle(): HtmlText;

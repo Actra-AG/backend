@@ -23,6 +23,7 @@ use actra\yuf\core\HttpRequest;
 use actra\yuf\core\HttpStatusCodeEnum;
 use actra\yuf\core\LanguageCollection;
 use actra\yuf\core\LocaleHandler;
+use actra\yuf\core\LoginTarget;
 use actra\yuf\core\RequestMethodEnum;
 use actra\yuf\core\ResolvedRoute;
 use actra\yuf\core\RouteCollection;
@@ -65,7 +66,7 @@ final class LoginRedirectTest extends TestCase
         );
         $this->routeCollection = new RouteCollection(
             routes: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/../../Double/view/'),
-            loginPath: $this->actraBackend->getLoginPath(),
+            loginTarget: LoginTarget::local(path: $this->actraBackend->getLoginPath()),
         );
         $this->session = new Session(storage: new ArraySessionStorage());
     }

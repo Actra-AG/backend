@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\auth;
 
 use actra\backend\BackendViewContext;
+use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\db\ClientData;
 use actra\backend\libs\email\SentEmailSecrets;
@@ -158,7 +159,7 @@ final class LoginFlowTest extends TestCase
             loginRateLimit: $loginRateLimit,
         );
 
-        return new LoginPasswordForm(context: $context);
+        return new LoginPasswordForm(login: new BackendLogin(context: $context));
     }
 
     private function passwordLogin(string $email, string $password = LoginFlowTest::PASSWORD): bool
@@ -179,7 +180,7 @@ final class LoginFlowTest extends TestCase
             loginRateLimit: $loginRateLimit,
         );
 
-        return new LoginForm(context: $context);
+        return new LoginForm(login: new BackendLogin(context: $context));
     }
 
     private function requestToken(string $email, ?TokenSendLimit $tokenSendLimit = new TokenSendLimit()): bool
@@ -282,7 +283,7 @@ final class LoginFlowTest extends TestCase
             mailDomainResolver: new RejectingMailDomainResolver(),
         );
 
-        $this->assertFalse(new LoginForm(context: $context)->process());
+        $this->assertFalse(new LoginForm(login: new BackendLogin(context: $context))->process());
         $this->assertSame(0, $this->testUsers->countTokens(email: $email));
         $this->assertSame([], $this->responseSender->afterResponseCallbacks);
     }
@@ -477,7 +478,7 @@ final class LoginFlowTest extends TestCase
             postParameters: ['email' => $email],
             loginRateLimit: $loginRateLimit,
         );
-        new LoginForm(context: $requestContext)->process();
+        new LoginForm(login: new BackendLogin(context: $requestContext))->process();
         $token = $this->responseSender->sendMailsAndGetLoginCode(mailer: $this->mailer);
         $tokenViewContext = ViewContextFactory::create(
             route: new Route(path: '/backend/', viewDirectory: __DIR__),
@@ -501,7 +502,7 @@ final class LoginFlowTest extends TestCase
             loginRateLimit: $loginRateLimit,
         )->createContext(viewContext: $tokenViewContext);
 
-        return [new LoginTokenForm(context: $tokenContext)->process(), $tokenContext];
+        return [new LoginTokenForm(login: new BackendLogin(context: $tokenContext))->process(), $tokenContext];
     }
 
     public function testTokenLogsTheUserIn(): void

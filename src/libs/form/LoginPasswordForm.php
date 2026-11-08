@@ -9,13 +9,10 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\BackendViewContext;
-use actra\backend\libs\auth\AuthTokens;
-use actra\backend\libs\auth\MyAuthenticator;
-use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\auth\BackendLogin;
+use actra\backend\libs\auth\PasswordLoginResultEnum;
+use actra\backend\libs\form\component\LoginRequestField;
 use actra\backend\libs\form\component\ReturnPathField;
-use actra\backend\settings\AuthTokenTypeEnum;
-use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\HiddenField;
@@ -29,15 +26,15 @@ use actra\yuf\html\HtmlText;
  */
 final class LoginPasswordForm extends Form
 {
-    private readonly BackendViewContext $backendContext;
     private readonly HiddenField $returnPathField;
+    private readonly ?HiddenField $loginRequestField;
     private readonly EmailField $emailField;
     private readonly PasswordField $passwordField;
 
-    public function __construct(BackendViewContext $context)
+    public function __construct(private readonly BackendLogin $login)
     {
-        $this->backendContext = $context;
-        $messages = $this->backendContext->messages;
+        $context = $login->context;
+        $messages = $context->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'LoginPasswordForm',
@@ -49,6 +46,10 @@ final class LoginPasswordForm extends Form
         $this->addField(
             formField: $this->returnPathField = ReturnPathField::create(httpRequest: $context->viewContext->httpRequest),
         );
+        $this->loginRequestField = LoginRequestField::create(login: $login);
+        if ($this->loginRequestField !== null) {
+            $this->addField(formField: $this->loginRequestField);
+        }
         $this->addField(
             formField: $this->emailField = new EmailField(
                 name: 'email',
@@ -74,7 +75,7 @@ final class LoginPasswordForm extends Form
             formComponent: new FormControl(
                 name: 'submit',
                 submitLabel: HtmlText::fromText(text: $messages->auth->loginPasswordSubmitLabel),
-                cancelLink: $this->backendContext->paths->passwordForgotten(),
+                cancelLink: $context->paths->passwordForgotten(),
                 cancelLabel: HtmlText::fromText(text: $messages->auth->passwordForgottenLinkLabel),
             ),
         );
@@ -85,28 +86,22 @@ final class LoginPasswordForm extends Form
         if (!$this->validate()) {
             return false;
         }
-        $result = new MyAuthenticator(context: $this->backendContext)->verifyPassword(
-            userName: $this->emailField->getValueAsString(),
-            inputPassword: $this->passwordField->getValueAsString(),
+        $result = $this->login->requestCodeWithPassword(
+            email: $this->emailField->getValueAsString(),
+            password: $this->passwordField->getValueAsString(),
         );
-        if (!$result instanceof MyAuthUser) {
-            $messages = $this->backendContext->messages->auth;
-            // The rate limit counts unknown addresses the same, so its message does not tell whether one exists
-            $this->addError(errorMessage: HtmlText::fromText(
-                text: $result === AuthResultEnum::ERROR_RATE_LIMITED
-                    ? $messages->tooManyAttempts
-                    : $messages->credentialsInvalid,
-            ));
-
-            return false;
+        if ($result === PasswordLoginResultEnum::CODE_SENT) {
+            return true;
         }
-        new AuthTokens(context: $this->backendContext)->createAndSend(
-            type: AuthTokenTypeEnum::LOGIN,
-            dbAuthUser: $result->dbAuthUser,
-            usedPasswordLogin: true,
-        );
+        $messages = $this->login->context->messages->auth;
+        // The rate limit counts unknown addresses the same, so its message does not tell whether one exists
+        $this->addError(errorMessage: HtmlText::fromText(
+            text: $result === PasswordLoginResultEnum::RATE_LIMITED
+                ? $messages->tooManyAttempts
+                : $messages->credentialsInvalid,
+        ));
 
-        return true;
+        return false;
     }
 
     /**
@@ -115,5 +110,14 @@ final class LoginPasswordForm extends Form
     public function getReturnPath(): ?string
     {
         return ReturnPathField::getReturnPath(hiddenField: $this->returnPathField);
+    }
+
+    /**
+     * The ID of the login request of a site (login host, `BackendLogin::findLoginRequest()`), `null` without one; it is
+     * checked again by `BackendLogin::findHandOverUrl()`.
+     */
+    public function getLoginRequestId(): ?string
+    {
+        return LoginRequestField::getLoginRequestId(hiddenField: $this->loginRequestField);
     }
 }

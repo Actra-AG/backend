@@ -10,9 +10,11 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\view;
 
 use actra\backend\settings\AuthTokenTypeEnum;
+use actra\backend\settings\LoginHandOverSettings;
 use actra\backend\tests\Double\BackendPageRenderer;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
+use actra\yuf\auth\LoginHandOver;
 use actra\yuf\mailer\SentMail;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
@@ -33,6 +35,7 @@ final class ViewRenderTest extends TestCase
         'loginPassword',
         'loginToken',
         'loginPasswordToken',
+        'loginTicket',
         'logout',
         'passwordForgotten',
         'passwordForgottenRes',
@@ -75,7 +78,14 @@ final class ViewRenderTest extends TestCase
     protected function setUp(): void
     {
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
-        $this->renderer = new BackendPageRenderer(dbSettings: TestDatabase::settings());
+        $this->renderer = new BackendPageRenderer(
+            dbSettings: TestDatabase::settings(),
+            // loginTicket without ticket: the page with the link to the login page, the directory is not used
+            loginHandOver: new LoginHandOverSettings(
+                loginHandOver: new LoginHandOver(directory: sys_get_temp_dir() . '/backend-unused-hand-over'),
+                allowedHosts: [],
+            ),
+        );
     }
 
     private static function email(string $name): string

@@ -68,6 +68,35 @@ final class MyAuthenticator extends Authenticator
     }
 
     /**
+     * Logs in the user of a redeemed login ticket (yuf's `LoginHandOver`, `AuthMethodEnum::SSO`): the subject is the
+     * user ID, the same on the login host and on the site. The logged-in user, `null` for an unknown or rejected user
+     * (logged with the email address of the user, else with the subject; the checks of yuf's `logInVerifiedUser()`
+     * apply: IP whitelist, inactive, lock-out).
+     */
+    public function handOverLogin(string $subject): ?MyAuthUser
+    {
+        $dbAuthUser = preg_match(pattern: '/^[1-9][0-9]{0,18}$/D', subject: $subject) === 1
+            ? $this->context->repositories->users()->selectById(id: (int) $subject)
+            : null;
+        $isLoggedIn = $this->logInIdentifiedUser(
+            authMethod: AuthMethodEnum::SSO,
+            authUser: $dbAuthUser === null ? null : new MyAuthUser(
+                dbAuthUser: $dbAuthUser,
+                parentSessionId: null,
+                repositories: $this->context->repositories,
+                clientData: $this->context->clientData,
+            ),
+            identifier: $dbAuthUser === null ? $subject : $dbAuthUser->email,
+        );
+
+        return $isLoggedIn ? MyAuthUser::findLoggedIn(
+            authSession: $this->context->authSession,
+            repositories: $this->context->repositories,
+            clientData: $this->context->clientData,
+        ) : null;
+    }
+
+    /**
      * The user that may get a login token by email: yuf's `precheck()` (unknown user, IP whitelist, inactive, out tried)
      * and no password (a user with password logs in with it, logged as `ERROR_NO_PASSWORD`). Rejections are logged;
      * `$authResult` is `ERROR_RATE_LIMITED` if the rate limit blocked the request.

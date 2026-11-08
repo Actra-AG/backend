@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend;
 
 use actra\backend\i18n\BackendMessages;
+use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\ProfileLanguageProvider;
 use actra\backend\libs\auth\UserController;
@@ -37,6 +38,7 @@ use actra\yuf\core\HttpStatusCodeEnum;
 use actra\yuf\core\Language;
 use actra\yuf\core\LanguageCollection;
 use actra\yuf\core\Logger;
+use actra\yuf\core\LoginTarget;
 use actra\yuf\core\RequestLanguageProvider;
 use actra\yuf\core\ResponseSender;
 use actra\yuf\core\Route;
@@ -50,6 +52,7 @@ use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
 use actra\yuf\layout\NavigationItemCollection;
 use Closure;
+use InvalidArgumentException;
 use LogicException;
 
 final class ActraBackend
@@ -143,8 +146,8 @@ final class ActraBackend
     /**
      * A copy of the `App` with the route of the backend (`withHtmlRoute()` with `usesRequestLanguage`, the target of
      * "/" if no other route is), the profile language of the logged-in user as language of the request
-     * (`createRequestLanguageProvider()`, also for the project routes with `usesRequestLanguage`), its login page as
-     * login path (visitors without login are sent there and back to the requested page afterwards) and the navigation
+     * (`createRequestLanguageProvider()`, also for the project routes with `usesRequestLanguage`), the login path
+     * (visitors without login are sent there and back to the requested page afterwards) and the navigation
      * (`createNavigationProvider()`).
      *
      * @param ?Closure(ViewContext): NavigationItemCollection $frontendNavigation See `createNavigationProvider()`
@@ -152,6 +155,9 @@ final class ActraBackend
      *     Creates the project views of the backend route, see `createViewFactory()`
      * @param list<string> $formerPaths Former paths of the backend (e.g. `/auth/`), redirected permanently to the
      *     backend path (`createFormerPathRoute()`)
+     * @param ?LoginTarget $loginTarget A login page of the project (`LoginTarget::local(path: '/login.html')`, see
+     *     `createLogin()`) or of a login host on the same server (`createRemoteLoginTarget()`); `null`: the login page
+     *     of the backend (`getLoginPath()`), which stays available either way
      *
      * @throws LogicException if the languages of the backend are not those of the `App` (`create()`) or a path is
      *     already used
@@ -161,6 +167,7 @@ final class ActraBackend
         ?Closure $frontendNavigation = null,
         ?Closure $create = null,
         array $formerPaths = [],
+        ?LoginTarget $loginTarget = null,
     ): App {
         if ($this->languages !== $app->core->availableLanguages) {
             throw new LogicException(
@@ -186,7 +193,7 @@ final class ActraBackend
 
         return $app
             ->withRequestLanguageProvider(requestLanguageProvider: $this->createRequestLanguageProvider())
-            ->withLoginPath(loginPath: $this->getLoginPath())
+            ->withLoginTarget(loginTarget: $loginTarget ?? LoginTarget::local(path: $this->getLoginPath()))
             ->withNavigation(
                 navigationProvider: $this->createNavigationProvider(frontendNavigation: $frontendNavigation),
             );
@@ -195,7 +202,7 @@ final class ActraBackend
     /**
      * The route of the backend (like `configure()`), for projects that call `Core::prepareHttpResponse()` themselves:
      * `new RouteCollection(routes: [...$projectRoutes, ...$actraBackend->createRoutes(viewDirectory:
-     * $core->viewDirectory)], loginPath: $actraBackend->getLoginPath())`.
+     * $core->viewDirectory)], loginTarget: LoginTarget::local(path: $actraBackend->getLoginPath()))`.
      *
      * @param string $viewDirectory The view directory of the project (`Core::$viewDirectory`)
      * @param string $viewClassPrefix The namespace of the project views
@@ -267,7 +274,31 @@ final class ActraBackend
     }
 
     /**
-     * The login page of the backend (`/backend/login.html`), the login path of yuf's `App` and `RouteCollection`.
+     * The login page of another host of the same server for a site (yuf's `LoginTarget::remote()`, `docs/login.md`):
+     * the login host hands the login over to the hand-over page of the backend (`BackendPaths::loginTicket()`) through
+     * the directory of `ActraBackendSettings::$loginHandOver`. For `configure(loginTarget:)` or `RouteCollection`.
+     *
+     * @param string $url The login page of the login host (`https://login.example.net/backend/login.html`)
+     *
+     * @throws LogicException without `ActraBackendSettings::$loginHandOver`
+     * @throws InvalidArgumentException if the URL is no `https` URL with a host and a path (yuf's `LoginTarget`)
+     */
+    public function createRemoteLoginTarget(string $url): LoginTarget
+    {
+        $loginHandOverSettings = $this->actraBackendSettings->loginHandOver ?? throw new LogicException(
+            message: 'A login on another host needs ActraBackendSettings::$loginHandOver.',
+        );
+
+        return LoginTarget::remote(
+            url: $url,
+            loginHandOver: $loginHandOverSettings->loginHandOver,
+            handOverPath: $this->paths->loginTicket(),
+        );
+    }
+
+    /**
+     * The login page of the backend (`/backend/login.html`), for `LoginTarget::local()` of yuf's `App` and
+     * `RouteCollection`.
      */
     public function getLoginPath(): string
     {
@@ -322,6 +353,18 @@ final class ActraBackend
         }
 
         return $this->languages->getFirstLanguage();
+    }
+
+    /**
+     * The steps of the login of backend users (login code by email, optionally password) for a login page of the project
+     * on any route with a session, e.g. in the layout of its frontend: `new LoginForm(login: $login)`, then
+     * `new LoginTokenForm(login: $login)` ([docs/login.md](../docs/login.md)). Texts in the language of the request.
+     *
+     * @throws LogicException for a route without session
+     */
+    public function createLogin(ViewContext $viewContext): BackendLogin
+    {
+        return new BackendLogin(context: $this->createContext(viewContext: $viewContext));
     }
 
     /**

@@ -121,6 +121,8 @@ $actraBackend = ActraBackend::create(
             failMode: RateLimitFailModeEnum::CLOSED,
             logger: $app->getLogger(),
         ),
+        // Required, null as explicit opt-out: login on another host of the same server (docs/login.md)
+        loginHandOver: null,
         maxAllowedLoginAttempts: 5, // Optional, defaults to 5
         frontendHref: 'https://example.com', // Optional
         frontendName: 'Go to Website', // Optional
@@ -170,6 +172,14 @@ The backend route accepts `.html` only and shows the page of `defaultFileTitle` 
 `/backend/login.html`, no redirect between them). Former backend paths can redirect to it permanently:
 `configure(app: $app, formerPaths: ['/auth/'])` (`/auth/users.html?reset` → `/backend/users.html?reset`).
 
+### Login on a page of the project
+
+The backend users can log in on a page of the project, in its own layout, with the login code by email (and
+optionally the password): `ActraBackend::createLogin(viewContext:)` gives the steps of the login (`BackendLogin`) on
+any route with a session, `LoginForm` and `LoginTokenForm` render the forms. Send visitors without login there with
+`configure(app: $app, loginTarget: LoginTarget::local(path: '/login.html'))`. Sites on one server can share the login
+of one host (`ActraBackendSettings::$loginHandOver`, `createRemoteLoginTarget()`; [docs/login.md](docs/login.md)).
+
 ### With `Core`
 
 Projects that call `Core::prepareHttpResponse()` themselves create the backend the same way (`languages:
@@ -182,7 +192,7 @@ $core->prepareHttpResponse(
     logger: $logger,
     routeCollection: new RouteCollection(
         routes: [...$projectRoutes, ...$actraBackend->createRoutes(viewDirectory: $core->viewDirectory)],
-        loginPath: $actraBackend->getLoginPath(),
+        loginTarget: LoginTarget::local(path: $actraBackend->getLoginPath()),
     ),
     // $frontendNavigation: the navigation of the other routes (see "With App"), null: none
     navigationProvider: $actraBackend->createNavigationProvider(frontendNavigation: null),
@@ -218,6 +228,7 @@ response time does not tell whether an email address exists.
 - [Project views](docs/views.md): views, tables and search forms of the project in the backend, project services
   in views (`configure(create:)`), breadcrumb, confirmation dialogs and pages (`ConfirmationView`).
 - [Languages](docs/languages.md): one path for all languages, language of the request, switcher, own texts.
+- [Login on a page of the project](docs/login.md): `BackendLogin`, login forms, login path, example views.
 - [Users and API keys](docs/users.md): user deletion handler, user managers and impersonation, IP whitelists,
   login codes, reset links and lock-out, send limit, login rate limit, API key authentication, log of sent emails.
 - [Integration tests](docs/testing.md): tests of project code against the backend tables.

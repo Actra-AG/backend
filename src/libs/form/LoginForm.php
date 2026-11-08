@@ -9,12 +9,10 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\BackendViewContext;
-use actra\backend\libs\auth\AuthTokens;
-use actra\backend\libs\auth\MyAuthenticator;
+use actra\backend\libs\auth\BackendLogin;
+use actra\backend\libs\auth\LoginCodeRequestResultEnum;
+use actra\backend\libs\form\component\LoginRequestField;
 use actra\backend\libs\form\component\ReturnPathField;
-use actra\backend\settings\AuthTokenTypeEnum;
-use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\EmailField;
 use actra\yuf\form\component\field\HiddenField;
@@ -22,18 +20,19 @@ use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
 /**
- * @internal
+ * The first step of the login: the email address, to which the login code is sent (`BackendLogin::requestCode()`).
+ * Texts in the language of the request; the page requested before the login is kept in a hidden field.
  */
 final class LoginForm extends Form
 {
-    private readonly BackendViewContext $backendContext;
     private readonly HiddenField $returnPathField;
+    private readonly ?HiddenField $loginRequestField;
     private readonly EmailField $emailField;
 
-    public function __construct(BackendViewContext $context)
+    public function __construct(private readonly BackendLogin $login)
     {
-        $this->backendContext = $context;
-        $messages = $this->backendContext->messages;
+        $context = $login->context;
+        $messages = $context->messages;
         parent::__construct(context: $context->viewContext->formContext, name: 'LoginForm', messages: $messages->form);
         $this->addCssClass(className: 'form');
         $this->addCssClass(className: 'form-login');
@@ -41,6 +40,10 @@ final class LoginForm extends Form
         $this->addField(
             formField: $this->returnPathField = ReturnPathField::create(httpRequest: $context->viewContext->httpRequest),
         );
+        $this->loginRequestField = LoginRequestField::create(login: $login);
+        if ($this->loginRequestField !== null) {
+            $this->addField(formField: $this->loginRequestField);
+        }
         $this->addField(
             formField: $this->emailField = new EmailField(
                 name: 'email',
@@ -61,41 +64,24 @@ final class LoginForm extends Form
         );
     }
 
+    /**
+     * Whether the form was sent and the code requested: continue with the page of the code then
+     * (`BackendLogin::createNextStepUri()` with `getReturnPath()` and `getLoginRequestId()`). The answer is the same for
+     * unknown addresses; only the rate limit is answered with an error.
+     */
     public function process(): bool
     {
         if (!$this->validate()) {
             return false;
         }
-
-        return $this->sendTokenIfAllowed();
-    }
-
-    /**
-     * Sends a token if the user may log in with it. The form answers the same in every case, so it does not reveal
-     * whether the email address exists; only the rate limit (which counts unknown addresses the same) is answered
-     * with an error.
-     *
-     * @return bool Whether the request was not blocked by the rate limit
-     */
-    private function sendTokenIfAllowed(): bool
-    {
-        $myAuthenticator = new MyAuthenticator(context: $this->backendContext);
-        $myAuthUser = $myAuthenticator->findTokenLoginUser(email: $this->emailField->getValueAsString());
-        if ($myAuthenticator->authResult === AuthResultEnum::ERROR_RATE_LIMITED) {
+        $result = $this->login->requestCode(email: $this->emailField->getValueAsString());
+        if ($result === LoginCodeRequestResultEnum::RATE_LIMITED) {
             $this->addError(
-                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->auth->tooManyAttempts),
+                errorMessage: HtmlText::fromText(text: $this->login->context->messages->auth->tooManyAttempts),
             );
 
             return false;
         }
-        if ($myAuthUser === null) {
-            return true;
-        }
-        new AuthTokens(context: $this->backendContext)->createAndSend(
-            type: AuthTokenTypeEnum::LOGIN,
-            dbAuthUser: $myAuthUser->dbAuthUser,
-            usedPasswordLogin: false,
-        );
 
         return true;
     }
@@ -106,5 +92,14 @@ final class LoginForm extends Form
     public function getReturnPath(): ?string
     {
         return ReturnPathField::getReturnPath(hiddenField: $this->returnPathField);
+    }
+
+    /**
+     * The ID of the login request of a site (login host, `BackendLogin::findLoginRequest()`), `null` without one; it is
+     * checked again by `BackendLogin::findHandOverUrl()`.
+     */
+    public function getLoginRequestId(): ?string
+    {
+        return LoginRequestField::getLoginRequestId(hiddenField: $this->loginRequestField);
     }
 }

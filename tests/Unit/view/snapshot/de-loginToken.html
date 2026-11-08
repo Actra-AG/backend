@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html class="no-js" lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Anmelden | Test backend</title>
+  <meta name="author" content="Actra AG Webagentur"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <script nonce="nonce">
+    document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  </script>
+  </head>
+<body class="body-authentication">
+<header class="auth-header">
+  <div class="auth-logo">Test backend</div>
+    <nav class="language-switcher" aria-label="Sprache wechseln">
+    <ul class="language-switcher-list">
+              <li>
+                      <span lang="de" aria-current="true">Deutsch</span>
+          
+                  </li>
+              <li>
+                      <a href="/backend/language.html?language=en&amp;returnTo=%2Fbackend%2FloginToken.html" lang="en"
+               hreflang="en">English</a>
+                  </li>
+          </ul>
+  </nav>
+  </header>
+<main class="auth-main | flow">
+  <p>Wir haben Ihnen einen Code an die E-Mail-Adresse geschickt, die Sie im vorherigen Schritt angegeben haben. Geben Sie diesen Code im folgenden Feld ein, um sich anzumelden.</p>
+<p><strong>Tipp:</strong> keine E-Mail im Postfach? Prüfen Sie auch den Spam-Ordner.</p>
+<form method="post" action="?LoginTokenForm" class="form form-login"><input type="hidden" name="csrftoken" value="…"><input type="hidden" name="returnTo" value="/backend/user-5.html"><dl><dt><label for="token">Code</label></dt><dd><input type="text" name="token" id="token" value="" autofocus></dd></dl><div class="form-control"><button type="submit" name="submit">anmelden</button></div></form>
+<div class="flex justify-content-center">
+    <a href="/backend/login.html" class="link-back">Zurück zur Anmeldung</a>
+</div></main>
+</body>
+</html>

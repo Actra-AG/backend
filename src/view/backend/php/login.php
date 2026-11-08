@@ -10,10 +10,10 @@ declare(strict_types=1);
 namespace actra\backend\view\backend\php;
 
 use actra\backend\BackendView;
+use actra\backend\libs\auth\BackendLogin;
 use actra\backend\libs\form\LoginForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
-use actra\yuf\core\LoginRedirect;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -37,10 +37,13 @@ final class login extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
+        $login = new BackendLogin(context: $this->backendContext);
         if ($this->backendContext->authSession->isLoggedIn()) {
-            $this->backendContext->getCurrentUser()->redirectToFirstAllowedPage(
-                context: $this->backendContext,
-                returnPath: LoginRedirect::findReturnPath(httpRequest: $this->context->httpRequest),
+            // Logged in on the login host already: a login request of a site is handed over at once
+            $login->redirectAfterLogin(
+                myAuthUser: $this->backendContext->getCurrentUser(),
+                loginRequestId: $login->findLoginRequest()?->id,
+                returnPath: $login->findReturnPath(),
             );
         }
         $htmlDocument->templateName = 'authentication';
@@ -50,12 +53,13 @@ final class login extends BackendView
             identifier: 'introText',
             htmlText: HtmlText::fromText(text: $messages->loginIntro),
         );
-        $loginForm = new LoginForm(context: $this->backendContext);
+        $loginForm = new LoginForm(login: $login);
         if ($loginForm->process()) {
             HttpResponse::redirectAndExit(
-                relativeOrAbsoluteUri: $this->keepReturnPath(
+                relativeOrAbsoluteUri: BackendLogin::createNextStepUri(
                     path: $this->backendContext->paths->loginToken(),
                     returnPath: $loginForm->getReturnPath(),
+                    loginRequestId: $loginForm->getLoginRequestId(),
                 ),
                 httpRequest: $this->context->httpRequest,
                 responseSender: $this->context->responseSender,

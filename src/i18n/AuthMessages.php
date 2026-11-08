@@ -33,6 +33,9 @@ final readonly class AuthMessages
         public string $logoutHeading = 'Goodbye',
         public string $logoutStatus = 'You have been logged out successfully.',
         public string $loginLink = 'Log in',
+        public string $loginTicketHeading = 'Login not completed',
+        public string $loginTicketInvalid = 'The login could not be completed: the link is invalid or has expired. '
+            . 'Please log in again.',
         public string $passwordForgottenIntro = 'Enter the email address you are registered with. You will then '
             . 'receive an email with a link to reset your password.',
         public string $passwordForgottenResult = 'If the email address is registered with us, you will receive an '
@@ -72,6 +75,9 @@ final readonly class AuthMessages
             logoutHeading: 'Auf Wiedersehen',
             logoutStatus: 'Sie wurden erfolgreich abgemeldet.',
             loginLink: 'Anmelden',
+            loginTicketHeading: 'Anmeldung nicht abgeschlossen',
+            loginTicketInvalid: 'Die Anmeldung konnte nicht abgeschlossen werden: Der Link ist ungültig oder '
+                . 'abgelaufen. Bitte melden Sie sich erneut an.',
             passwordForgottenIntro: 'Geben Sie die E-Mail-Adresse ein, mit der Sie registriert sind. Sie erhalten '
                 . 'danach eine E-Mail mit einem Link zum Zurücksetzen Ihres Passworts.',
             passwordForgottenResult: 'Falls die E-Mail-Adresse bei uns registriert ist, erhalten Sie in den nächsten '

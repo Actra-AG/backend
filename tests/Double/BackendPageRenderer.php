@@ -11,6 +11,7 @@ namespace actra\backend\tests\Double;
 
 use actra\backend\ActraBackend;
 use actra\backend\libs\db\ClientData;
+use actra\backend\settings\LoginHandOverSettings;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\common\AcceptingMailDomainResolver;
@@ -25,6 +26,8 @@ use actra\yuf\core\ResolvedRoute;
 use actra\yuf\core\Route;
 use actra\yuf\db\DbSettings;
 use actra\yuf\form\FormContext;
+use actra\yuf\mailer\AbstractMailer;
+use actra\yuf\mailer\RecordingMailer;
 use actra\yuf\security\CspNonce;
 use actra\yuf\security\SessionCsrfTokenSource;
 use actra\yuf\session\Session;
@@ -47,8 +50,12 @@ final readonly class BackendPageRenderer
     /**
      * @param list<string> $ipWhitelist The global IP whitelist of the backend
      */
-    public function __construct(DbSettings $dbSettings, array $ipWhitelist = [])
-    {
+    public function __construct(
+        DbSettings $dbSettings,
+        array $ipWhitelist = [],
+        ?LoginHandOverSettings $loginHandOver = null,
+        AbstractMailer $mailer = new RecordingMailer(),
+    ) {
         $this->languageCollection = new LanguageCollection(languages: [
             new Language(code: 'de', locale: 'de_CH.UTF-8'),
             new Language(code: 'en', locale: 'en_GB.UTF-8'),
@@ -58,6 +65,8 @@ final readonly class BackendPageRenderer
             languages: $this->languageCollection,
             hasApi: true,
             ipWhitelist: $ipWhitelist,
+            mailer: $mailer,
+            loginHandOver: $loginHandOver,
         );
         $this->route = array_first(array: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/view/'))
             ?? throw new LogicException(message: 'The backend has no route');
@@ -70,6 +79,8 @@ final readonly class BackendPageRenderer
      * @param ?string $formName The form that is sent (the query of its action, `?FormName`)
      * @param array<string, string> $queryParameters The query of the request
      * @param RecordingResponseSender $responseSender Keeps the response of a view that ends with a redirect
+     * @param string $host The host of the request
+     * @param array<string, string> $cookies The cookies of the request
      */
     public function render(
         string $languageCode,
@@ -80,6 +91,8 @@ final readonly class BackendPageRenderer
         ?string $formName = null,
         array $queryParameters = [],
         RecordingResponseSender $responseSender = new RecordingResponseSender(),
+        string $host = 'example.com',
+        array $cookies = [],
     ): string {
         $route = $this->route;
         $language = $this->languageCollection->getLanguageByCode(languageCode: $languageCode)
@@ -88,11 +101,12 @@ final readonly class BackendPageRenderer
         $queryParameters = $formName === null ? $queryParameters : [$formName => '', ...$queryParameters];
         $queryString = http_build_query(data: $queryParameters, encoding_type: PHP_QUERY_RFC3986);
         $httpRequest = new HttpRequest(
-            host: 'example.com',
+            host: $host,
             method: $postParameters === [] ? RequestMethodEnum::GET : RequestMethodEnum::POST,
             uri: $route->path . $fileName . ($queryString === '' ? '' : '?' . $queryString),
             queryString: $queryString,
             remoteAddress: BackendPageRenderer::IP_ADDRESS,
+            cookies: $cookies,
             queryParameters: $queryParameters,
             postParameters: $postParameters,
         );

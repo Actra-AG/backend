@@ -18,12 +18,8 @@ This project follows the Actra coding standard, installed as development depende
   login via email, profile, API keys, IP whitelists, notifications, visit and token logs) for projects built on the
   [yuf framework](https://github.com/Actra-AG/yuf) (`actra/yuf`). Its public API includes the database tables and the
   generated HTML, CSS and JavaScript (`standards/versioning.md`).
-- Minimum PHP version: 8.5. Releases are Git tags with a section in `UPGRADE.md`; pushing the tag publishes the
-  GitHub release with that section (`.github/workflows/release.yml`, `standards/versioning.md`, section 1).
-- yuf is developed in parallel (local checkout usually at `../yuf`); raise it as described in
-  `standards/versioning.md`, section 8.
-- The migration to the current yuf and the global standard is complete (v2.0.0, follow-up done with
-  v2.4.2); open for the frontend developer:
+- yuf is developed in parallel (local checkout usually at `../yuf`).
+- Open for the frontend developer:
   [docs/plans/frontend-coding-standard/plan.md](docs/plans/frontend-coding-standard/plan.md).
 - No skeleton project. No example app; views are checked in the consuming project (see "Dependencies and tooling").
 - Changes of HTML templates and CSS need a frontend review (`AGENTS.md` of the coding standard, "Working on a
@@ -31,37 +27,22 @@ This project follows the Actra coding standard, installed as development depende
 
 ## Directory layout
 
-- `src/` – library code, namespace `actra\backend\` (PSR-4 in `composer.json`; the lowercase view classes match their
-  file names, so `composer dump-autoload --optimize --strict-psr` runs without warnings).
-  - `ActraBackend.php`, `BackendView.php`, `ConfirmationView.php` – entry point, base view and base of project
-    confirmation pages.
-  - `settings/` – settings value objects and enums.
-  - `i18n/` – the message classes with all user-visible texts (English defaults, `german()` variant).
-  - `libs/auth/`, `libs/db/`, `libs/email/`, `libs/common/` – authentication, repositories and records, mails.
-  - `libs/form/` – the forms (yuf form API), `component/` custom fields, `rule/` custom rules.
-  - `libs/table/` – the tables (yuf `DbResultTable`).
-  - `view/backend/php/` – the pages of the backend (one class per page; served on the backend route of the project
-    by `BackendViewFactory`, so a new page name is reserved there: add it to `docs/views.md`), `view/backend/html/`
-    their HTML content templates (rendered with `HtmlDocument::useContentFile()`), `view/backend/templates/` the page
-    templates, `view/backend/confirmation/` the template of `ConfirmationView`.
-  - `assets/` – default CSS (`css/backend.css`) and JavaScript (`js/backend.js`, ES modules in `js/modules/`) that
-    projects publish or bundle themselves.
-- `db/` – `schema.sql` and `data.sql` for new installations, `updates/<version>.sql` for upgrades.
-- `tests/` – PHPUnit tests, `Unit/` only.
-- `docs/` – user documentation (details of `README.md`), `docs/upgrade/v1.md` with the upgrade notes of v1, plans in
-  `docs/plans/`.
+- `src/view/backend/php/` – the pages of the backend (one class per page; served on the backend route of the project
+  by `BackendViewFactory`, so a new page name is reserved there: add it to `docs/views.md`), `view/backend/html/`
+  their HTML content templates (rendered with `HtmlDocument::useContentFile()`), `view/backend/templates/` the page
+  templates, `view/backend/confirmation/` the template of `ConfirmationView`.
+- `src/assets/` – default CSS and JavaScript that projects publish or bundle themselves.
 
 ## Project-specific rules
 
 ### Dependencies and tooling
 
-- Runtime dependencies: `actra/yuf` (`~8.9.0`), `ext-intl` and `ext-mbstring`. Composer loads all classes; there is
-  no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap only requires `vendor/autoload.php`).
+- Composer loads all classes; there is no `actra/autoloader` (PHPStan and PHPUnit need no paths, the test bootstrap
+  only requires `vendor/autoload.php`).
 - Tests that need the database use `tests/Double/TestDatabase.php` (database `test_backend` in DDEV, created from
   `db/schema.sql` and `db/data.sql` once per run; skipped without database) and `TestUsers` for fixtures.
 - `tests/Unit/view/ViewRenderTest.php` renders every view in both languages with `tests/Double/BackendPageRenderer.php`
   (like yuf's `Core`); add every new view there.
-- `.ddev/config.yaml` provides PHP 8.5 and MariaDB.
 - Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
   path repository (set up and adapted by the user).
 
@@ -78,8 +59,8 @@ This project follows the Actra coding standard, installed as development depende
 - One path for all languages (yuf's `usesRequestLanguage`): `$language`, `$messages` and `$dateFormatter` of
   `BackendViewContext` belong to the language of the request. Text for another user (e.g. an email) uses that user's
   language: `$actraBackend->getMessages(languageCode:)`.
-- No static state: services reach classes through `BackendViewContext` (views, forms, tables) or as constructor
-  arguments; outside a request through the `ActraBackend` instance.
+- Services reach classes through `BackendViewContext` (views, forms, tables) or as constructor arguments; outside a
+  request through the `ActraBackend` instance.
 
 ### Releases
 

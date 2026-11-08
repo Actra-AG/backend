@@ -31,9 +31,9 @@ For a file name without project view, the backend route serves the page of the b
 are reserved on the backend path: a project view with one of them replaces the page of the backend (deliberately, e.g.
 an own `login`; it then has to do what the page does):
 
-`language`, `login`, `loginPassword`, `loginPasswordToken`, `loginToken`, `logout`, `notification`, `notificationSend`,
-`notifications`, `passwordForgotten`, `passwordForgottenRes`, `passwordReset`, `passwordResetRes`, `profile`,
-`profileChangePassword`, `profileCreatePassword`, `profileGenerateApiKey`, `profileRemoveApiKey`,
+`language`, `login`, `loginPassword`, `loginPasswordToken`, `loginTicket`, `loginToken`, `logout`, `notification`,
+`notificationSend`, `notifications`, `passwordForgotten`, `passwordForgottenRes`, `passwordReset`, `passwordResetRes`,
+`profile`, `profileChangePassword`, `profileCreatePassword`, `profileGenerateApiKey`, `profileRemoveApiKey`,
 `profileRemovePassword`, `sentEmails`, `tokens`, `user`, `userAdd`, `userDelete`, `userGenerateApiKey`, `userImpersonate`,
 `userImpersonateEnd`, `userInvite`, `userMod`, `userRemoveApiKey`, `users`, `visits`.
 

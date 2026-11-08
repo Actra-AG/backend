@@ -9,9 +9,10 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\form;
 
-use actra\backend\BackendViewContext;
-use actra\backend\libs\auth\MyAuthenticator;
+use actra\backend\libs\auth\BackendLogin;
+use actra\backend\libs\auth\LoginCodeResultEnum;
 use actra\backend\libs\auth\MyAuthUser;
+use actra\backend\libs\form\component\LoginRequestField;
 use actra\backend\libs\form\component\ReturnPathField;
 use actra\yuf\form\component\collection\Form;
 use actra\yuf\form\component\field\HiddenField;
@@ -20,18 +21,19 @@ use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
 
 /**
- * @internal
+ * The second step of the login: the code sent by email (`BackendLogin::logInWithCode()`). Texts in the language of the
+ * request; the page requested before the login is kept in a hidden field.
  */
 final class LoginTokenForm extends Form
 {
-    private readonly BackendViewContext $backendContext;
     private readonly HiddenField $returnPathField;
+    private readonly ?HiddenField $loginRequestField;
     private readonly TextField $tokenField;
 
-    public function __construct(BackendViewContext $context)
+    public function __construct(private readonly BackendLogin $login)
     {
-        $this->backendContext = $context;
-        $messages = $this->backendContext->messages;
+        $context = $login->context;
+        $messages = $context->messages;
         parent::__construct(
             context: $context->viewContext->formContext,
             name: 'LoginTokenForm',
@@ -43,6 +45,10 @@ final class LoginTokenForm extends Form
         $this->addField(
             formField: $this->returnPathField = ReturnPathField::create(httpRequest: $context->viewContext->httpRequest),
         );
+        $this->loginRequestField = LoginRequestField::create(login: $login);
+        if ($this->loginRequestField !== null) {
+            $this->addField(formField: $this->loginRequestField);
+        }
         $this->addField(
             formField: $this->tokenField = new TextField(
                 name: 'token',
@@ -62,23 +68,23 @@ final class LoginTokenForm extends Form
     }
 
     /**
-     * The logged-in user, `null` if the form was not sent or the token is wrong.
+     * The logged-in user, `null` if the form was not sent or the code is invalid. Redirect to
+     * `BackendLogin::findHandOverUrl()` or `getReturnPath()` then.
      */
     public function process(): ?MyAuthUser
     {
         if (!$this->validate()) {
             return null;
         }
-        $myAuthUser = new MyAuthenticator(context: $this->backendContext)->tokenLogin(
-            inputToken: $this->tokenField->getValueAsString(),
-        );
-        if ($myAuthUser === null) {
+        if ($this->login->logInWithCode(code: $this->tokenField->getValueAsString()) === LoginCodeResultEnum::INVALID) {
             $this->tokenField->addError(
-                errorMessage: HtmlText::fromText(text: $this->backendContext->messages->auth->tokenInvalid),
+                errorMessage: HtmlText::fromText(text: $this->login->context->messages->auth->tokenInvalid),
             );
+
+            return null;
         }
 
-        return $myAuthUser;
+        return $this->login->getCurrentUser();
     }
 
     /**
@@ -87,5 +93,14 @@ final class LoginTokenForm extends Form
     public function getReturnPath(): ?string
     {
         return ReturnPathField::getReturnPath(hiddenField: $this->returnPathField);
+    }
+
+    /**
+     * The ID of the login request of a site (login host, `BackendLogin::findLoginRequest()`), `null` without one; it is
+     * checked again by `BackendLogin::findHandOverUrl()`.
+     */
+    public function getLoginRequestId(): ?string
+    {
+        return LoginRequestField::getLoginRequestId(hiddenField: $this->loginRequestField);
     }
 }

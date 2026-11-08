@@ -11,13 +11,16 @@ namespace actra\backend\tests\Unit;
 
 use actra\backend\ActraBackend;
 use actra\backend\i18n\AuthMessages;
+use actra\backend\settings\LoginHandOverSettings;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\ArraySessionHandler;
+use actra\backend\tests\Double\RecordingCookieWriter;
 use actra\backend\tests\Double\RecordingLogger;
 use actra\backend\tests\Double\view\factory\php\PlainView;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\App;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\auth\LoginHandOver;
 use actra\yuf\Core;
 use actra\yuf\core\BaseView;
 use actra\yuf\core\CoreSettings;
@@ -26,6 +29,7 @@ use actra\yuf\core\HttpRequest;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\HttpStatusCodeEnum;
 use actra\yuf\core\LanguageCollection;
+use actra\yuf\core\LoginTarget;
 use actra\yuf\core\RecordingResponseSender;
 use actra\yuf\core\ResponseSender;
 use actra\yuf\core\ResponseSentException;
@@ -39,6 +43,7 @@ use actra\yuf\layout\NavigationItemCollection;
 use FilesystemIterator;
 use LogicException;
 use Override;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -170,30 +175,67 @@ final class AppConfigurationTest extends TestCase
         return $navigation;
     }
 
-    public function testConfigureAddsTheRoutesAndTheLoginPath(): void
+    /**
+     * @return iterable<string, array{?string, string}> The login target (`null`: none, a path or an URL) and the pattern
+     *     of the redirect
+     */
+    public static function loginTargets(): iterable
     {
+        $returnTo = preg_quote(str: '?returnTo=%2Fbackend%2Fusers.html', delimiter: '#');
+        yield 'login page of the backend' => [null, '#^https://example\\.com/backend/login\\.html' . $returnTo . '$#D'];
+        yield 'login page of the project' => ['/login.html', '#^https://example\\.com/login\\.html' . $returnTo . '$#D'];
+        yield 'login page on another host' => [
+            'https://login.example.net/backend/login.html',
+            '#^https://login\\.example\\.net/backend/login\\.html\\?loginRequest=[0-9a-f]{64}$#D',
+        ];
+    }
+
+    #[DataProvider('loginTargets')]
+    public function testConfigureAddsTheRoutesAndTheLoginTarget(?string $loginTarget, string $expectedLocation): void
+    {
+        $directory = sys_get_temp_dir() . '/backend-hand-over-' . bin2hex(string: random_bytes(length: 8));
         $exceptionHandler = new ExceptionHandler();
         $httpResponse = RecordingResponseSender::capture(
-            action: function (ResponseSender $responseSender) use ($exceptionHandler): void {
+            action: function (ResponseSender $responseSender) use ($exceptionHandler, $loginTarget, $directory): void {
                 $app = $this->createApp(
                     uri: '/backend/users.html',
                     responseSender: $responseSender,
                     exceptionHandler: $exceptionHandler,
                 );
+                $actraBackend = ActraBackendTestInstance::create(
+                    languages: $app->core->availableLanguages,
+                    loginHandOver: new LoginHandOverSettings(
+                        loginHandOver: new LoginHandOver(
+                            directory: $directory,
+                            cookieWriter: new RecordingCookieWriter(),
+                            purgeProbabilityPercent: 0,
+                        ),
+                        allowedHosts: [],
+                    ),
+                );
                 try {
-                    AppConfigurationTest::createActraBackend(app: $app)->configure(app: $app)->prepare();
+                    $actraBackend->configure(app: $app, loginTarget: match (true) {
+                        $loginTarget === null => null,
+                        str_starts_with(haystack: $loginTarget, needle: 'https://')
+                            => $actraBackend->createRemoteLoginTarget(url: $loginTarget),
+                        default => LoginTarget::local(path: $loginTarget),
+                    })->prepare();
                 } catch (Throwable $throwable) {
                     // What PHP does with the exception handler that Core registered
                     $exceptionHandler->handleException(throwable: $throwable);
                 }
             },
         );
+        $files = glob(pattern: $directory . '/*');
+        foreach ($files === false ? [] : $files as $file) {
+            unlink(filename: $file);
+        }
+        if (is_dir(filename: $directory)) {
+            rmdir(directory: $directory);
+        }
 
         $this->assertSame(HttpStatusCodeEnum::HTTP_SEE_OTHER, $httpResponse->httpStatusCode);
-        $this->assertSame(
-            'https://example.com/backend/login.html?returnTo=%2Fbackend%2Fusers.html',
-            $httpResponse->getHeader(key: 'Location'),
-        );
+        $this->assertMatchesRegularExpression($expectedLocation, $httpResponse->getHeader(key: 'Location') ?? '');
     }
 
     public function testConfigureAddsTheNavigation(): void

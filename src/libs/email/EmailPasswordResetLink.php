@@ -56,7 +56,7 @@ final class EmailPasswordResetLink
                     '',
                     $messages->common->closingGreeting,
                     '',
-                    $context->mailer->mailerSettings->signature,
+                    $context->mailer->mailerSettings->createSignature(emailMessages: $emailMessages),
                 ],
             ),
         );

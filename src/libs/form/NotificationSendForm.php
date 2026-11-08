@@ -71,7 +71,9 @@ final class NotificationSendForm extends Form
                         '',
                         $messages->common->closingGreeting,
                         '',
-                        $this->backendContext->actraBackend->mailerSettings->signature,
+                        $this->backendContext->actraBackend->mailerSettings->createSignature(
+                            emailMessages: $messages->email,
+                        ),
                     ],
                 ),
                 requiredError: HtmlText::fromText(text: $messages->common->messageBodyRequired),

@@ -2,6 +2,50 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.7.0 (2026-11-08)
+
+### ⚠️ `ActraBackendSettings`: `frontendName:` removed
+
+The text of the link to the website (`frontendHref:`) follows the language of the request:
+`LayoutMessages::$frontendLink` ("Go to website", "Zur Website", "Vers le site web", "Al sito web"). It is text, no
+longer HTML. Another text per language: `messages:` ([docs/languages.md](docs/languages.md#texts)).
+
+Before: `new ActraBackendSettings(…, frontendHref: 'https://example.com', frontendName: 'Zur Website', …)`.
+After: `new ActraBackendSettings(…, frontendHref: 'https://example.com', …)`.
+
+### ⚠️ `MailerSettings`: `signature:` removed
+
+The signature of the emails follows the language of the email: `EmailMessages::$signature`, by default the sender name
+(`[senderName]`), below the closing greeting `CommonMessages::$closingGreeting` ("Freundliche Grüsse", …), which the
+emails had before already. Another signature (several lines, per language): `messages:`
+([docs/languages.md](docs/languages.md#texts)); leave out the closing greeting, it would appear twice.
+
+Before: `new MailerSettings(…, senderName: 'Example', signature: "Freundliche Grüsse\nExample", mailer: …)`.
+After: `new MailerSettings(…, senderName: 'Example', mailer: …)`.
+
+### ⚠️ `BackendLogin::findHandOverUrl()` is private
+
+Login pages of the project on a login host of the one-way hand-over call `redirectAfterLogin(myAuthUser:,
+loginRequestId:, returnPath:)` after the code form; it continues to the site without being blocked by the CSP (below).
+
+### ⚠️ Own templates: refresh in `authentication.html`
+
+The hand-over page `loginShared` continues to another host with `<meta http-equiv="refresh">` (replacement
+`refreshUrl`). A project with own page templates (`ActraBackend::create(templateDirectory:)`) adds it to the head of its
+`authentication.html`, as in `src/view/backend/templates/authentication.html`; without it the visitor continues with
+the link of the page ([docs/login.md](docs/login.md#forms-and-csp)).
+
+### Fixed: the push of the shared login after the code form
+
+Browsers apply yuf's CSP `form-action 'self'` to all redirects after a form, so the redirect from the code form to the
+login host was blocked and the login stayed on the site. After a login form (POST), `redirectAfterLogin()` now
+redirects to the hand-over page of the own host, which continues to the login host with a refresh (new texts
+`AuthMessages::$loginContinueHeading`, `$loginContinueStatus`, `$loginContinueLink`). The same for the one-way
+hand-over of a login host to a site. Projects need no CSP change; login pages of the project that call
+`redirectAfterLogin()` need no change. Pages with the template `authentication` no longer need a page of the backend
+navigation for a logged-in user (before: `UnauthorizedException`), so users with rights of the project only continue
+as well.
+
 ## v5.6.0 (2026-11-08)
 
 ### ⚠️ Requires `actra/yuf` `~8.14.1`

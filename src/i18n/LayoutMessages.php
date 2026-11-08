@@ -10,7 +10,8 @@ declare(strict_types=1);
 namespace actra\backend\i18n;
 
 /**
- * Texts of page layout, navigation and breadcrumbs.
+ * Texts of page layout, navigation and breadcrumbs; `frontendLink` is the text of the link to
+ * `ActraBackendSettings::$frontendHref`.
  * Defaults are English, german() returns the German variant. Override single texts with `with()`.
  */
 final readonly class LayoutMessages
@@ -29,6 +30,7 @@ final readonly class LayoutMessages
         public string $deleteConfirmation = 'Really delete?',
         public string $dialogCancel = 'Cancel',
         public string $dialogConfirmDelete = 'Yes, delete',
+        public string $frontendLink = 'Go to website',
     ) {}
 
     public static function german(): LayoutMessages
@@ -45,6 +47,7 @@ final readonly class LayoutMessages
             deleteConfirmation: 'Wirklich löschen?',
             dialogCancel: 'Abbrechen',
             dialogConfirmDelete: 'Ja, löschen',
+            frontendLink: 'Zur Website',
         );
     }
 
@@ -62,6 +65,7 @@ final readonly class LayoutMessages
             deleteConfirmation: 'Vraiment supprimer?',
             dialogCancel: 'Annuler',
             dialogConfirmDelete: 'Oui, supprimer',
+            frontendLink: 'Vers le site web',
         );
     }
 
@@ -79,6 +83,7 @@ final readonly class LayoutMessages
             deleteConfirmation: 'Eliminare davvero?',
             dialogCancel: 'Annullare',
             dialogConfirmDelete: 'Sì, eliminare',
+            frontendLink: 'Al sito web',
         );
     }
 }

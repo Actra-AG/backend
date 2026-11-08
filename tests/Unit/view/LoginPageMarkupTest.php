@@ -54,4 +54,28 @@ final class LoginPageMarkupTest extends TestCase
 
         $this->assertStringEqualsFile(__DIR__ . '/snapshot/' . $languageCode . '-' . $fileTitle . '.html', $html);
     }
+
+    /**
+     * The text of the link to the website follows the language of the request (`LayoutMessages::$frontendLink`).
+     */
+    public function testWebsiteLinkFollowsTheLanguage(): void
+    {
+        TestDatabase::connect();
+        $renderer = new BackendPageRenderer(
+            dbSettings: TestDatabase::settings(),
+            languageCodes: ['de', 'en', 'fr', 'it'],
+            frontendHref: 'https://www.example.com/',
+        );
+        $texts = ['de' => 'Zur Website', 'en' => 'Go to website', 'fr' => 'Vers le site web', 'it' => 'Al sito web'];
+        foreach ($texts as $languageCode => $text) {
+            $html = $renderer->render(
+                languageCode: $languageCode,
+                fileTitle: 'login',
+                pathVars: [],
+                session: new Session(storage: new ArraySessionStorage()),
+            );
+
+            $this->assertStringContainsString('<a href="https://www.example.com/">' . $text . '</a>', $html);
+        }
+    }
 }

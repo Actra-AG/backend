@@ -43,7 +43,8 @@ sees a page of the login host, only invisible redirects over the hand-over page 
 (`/backend/loginShared.html`, `BackendPaths::loginShared()`; the backend route is needed on every host):
 
 - **Push:** after the correct code on the site, `redirectAfterLogin()` passes the login to the login host and returns
-  to the requested page (site → login host → site → login host → site).
+  to the requested page (site → login host → site → login host → site). The response to the code form stays on the
+  site (see "Forms and CSP" below).
 - **Silent check:** a site without login asks the login host once per browser session whether the visitor is logged in
   there, only on its login page (`checkSharedLogin()`) and on pages that need a login (`createSharedLoginTarget()`),
   never on other pages. Logged in there: the visitor is logged in on the site and returns to the requested page;
@@ -92,6 +93,22 @@ the hand-over page, as to every backend page.
 The one-way hand-over below (the login page of the login host) keeps working; to migrate, replace
 `loginHandOver:` and `createRemoteLoginTarget()` by `sharedLogin:` and `createSharedLoginTarget()` on all hosts.
 
+### Forms and CSP
+
+yuf's default Content Security Policy has `form-action 'self'`, and browsers apply it to every redirect that follows a
+form, also to the later redirects of the chain: a response to a form must never lead to another host by redirects.
+`redirectAfterLogin()` therefore redirects the response to a login form (POST) to the hand-over page of its own host
+(`/backend/loginShared.html?loginContinue=<ID>`, the URL stored in the session, shown once). That page continues to
+the other host with `<meta http-equiv="refresh">` and shows a link in case the browser does not refresh; the refresh
+is a new navigation, outside the CSP of the form. The same applies to the one-way hand-over below. Silent checks and
+a visitor who is logged in already (GET) are redirected at once. No CSP change is needed in the project.
+
+- Login pages of the project call `redirectAfterLogin()` after the code form and never redirect to another host
+  themselves.
+- A project with own page templates (`ActraBackend::create(templateDirectory:)`) adds the refresh to the head of its
+  `authentication.html`, as in `src/view/backend/templates/authentication.html` (`refreshUrl`); without it the visitor
+  continues with the link.
+
 ## One login host for several sites
 
 Sites on one server can share the login page of one host (yuf's `LoginHandOver`, "Login on another host" in yuf's
@@ -122,9 +139,10 @@ $actraBackend->configure(
 
 1. **Site:** a visitor without login is redirected to the login page with `?loginRequest=<ID>`.
 2. **Login host:** the backend login pages carry the request through all steps (password, code) in a hidden field
-   (only on a login host; checked with `BackendLogin::findLoginRequest()`). After the login they redirect to the
-   hand-over page of the site (`findHandOverUrl()`); a user who is logged in on the login host already is sent there at
-   once. Without a valid request (unknown, expired, used, other browser, host not allowed) the login stays local.
+   (only on a login host; checked with `BackendLogin::findLoginRequest()`). After the login they continue to the
+   hand-over page of the site (`redirectAfterLogin()`, over the hand-over page of the login host, see "Forms and CSP"
+   above); a user who is logged in on the login host already is sent there at once. Without a valid request
+   (unknown, expired, used, other browser, host not allowed) the login stays local.
 3. **Site:** the hand-over page of the backend (`/backend/loginTicket.html`, `BackendPaths::loginTicket()`) redeems the
    ticket (`BackendLogin::logInWithTicket()`, logged as `SUCCESSFUL_SSO_LOGIN`) and redirects to the requested page,
    with the session cookie as `SameSite=Lax` for this response (the browser comes from another site). Without a valid
@@ -132,7 +150,8 @@ $actraBackend->configure(
 
 A login page of the project on the login host does the same with `BackendLogin`: `LoginForm` and `LoginTokenForm` keep
 the request (`getLoginRequestId()`), `BackendLogin::createNextStepUri()` passes it to the next step, and after the login
-`$login->findHandOverUrl(myAuthUser:, loginRequestId:)` gives the URL to redirect to (`null`: a normal login). The
+`$login->redirectAfterLogin(myAuthUser:, loginRequestId:, returnPath:)` continues to the site (without a valid request:
+a normal login). The
 global IP whitelist of the backend applies to the hand-over page, as to every backend page.
 
 ## Example: email page and code page

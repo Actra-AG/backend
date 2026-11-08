@@ -10,7 +10,8 @@ declare(strict_types=1);
 namespace actra\backend\i18n;
 
 /**
- * Texts of the emails sent by the backend (plain text, placeholders in square brackets).
+ * Texts of the emails sent by the backend (plain text, placeholders in square brackets). `signature` follows the
+ * closing greeting (`CommonMessages::$closingGreeting`); its default is the sender name (`MailerSettings`).
  * Defaults are English, german() returns the German variant. Override single texts with `with()`.
  */
 final readonly class EmailMessages
@@ -35,6 +36,7 @@ final readonly class EmailMessages
             . '[minutes] minutes.',
         public string $passwordResetIgnore = 'If you do not want to reset the password for the email address [email], '
             . 'you can ignore this email.',
+        public string $signature = '[senderName]',
     ) {}
 
     public static function german(): EmailMessages

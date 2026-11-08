@@ -56,7 +56,7 @@ final class EmailLoginToken
                     '',
                     $messages->common->closingGreeting,
                     '',
-                    $context->mailer->mailerSettings->signature,
+                    $context->mailer->mailerSettings->createSignature(emailMessages: $emailMessages),
                 ],
             ),
             // The code is in the subject: the log of sent emails shows it masked

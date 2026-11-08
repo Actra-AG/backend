@@ -36,6 +36,10 @@ final readonly class AuthMessages
         public string $loginTicketHeading = 'Login not completed',
         public string $loginTicketInvalid = 'The login could not be completed: the link is invalid or has expired. '
             . 'Please log in again.',
+        public string $loginContinueHeading = 'Logging in',
+        public string $loginContinueStatus = 'You are being logged in. If the next page does not open, continue with '
+            . 'the link.',
+        public string $loginContinueLink = 'Continue',
         public string $passwordForgottenIntro = 'Enter the email address you are registered with. You will then '
             . 'receive an email with a link to reset your password.',
         public string $passwordForgottenResult = 'If the email address is registered with us, you will receive an '
@@ -78,6 +82,10 @@ final readonly class AuthMessages
             loginTicketHeading: 'Anmeldung nicht abgeschlossen',
             loginTicketInvalid: 'Die Anmeldung konnte nicht abgeschlossen werden: Der Link ist ungültig oder '
                 . 'abgelaufen. Bitte melden Sie sich erneut an.',
+            loginContinueHeading: 'Anmeldung läuft',
+            loginContinueStatus: 'Sie werden angemeldet. Falls die nächste Seite nicht öffnet, fahren Sie mit dem '
+                . 'Link fort.',
+            loginContinueLink: 'Weiter',
             passwordForgottenIntro: 'Geben Sie die E-Mail-Adresse ein, mit der Sie registriert sind. Sie erhalten '
                 . 'danach eine E-Mail mit einem Link zum Zurücksetzen Ihres Passworts.',
             passwordForgottenResult: 'Falls die E-Mail-Adresse bei uns registriert ist, erhalten Sie in den nächsten '
@@ -122,6 +130,10 @@ final readonly class AuthMessages
             loginTicketHeading: 'Connexion non terminée',
             loginTicketInvalid: 'La connexion n’a pas pu être terminée: le lien n’est pas valable ou a expiré. '
                 . 'Veuillez vous reconnecter.',
+            loginContinueHeading: 'Connexion en cours',
+            loginContinueStatus: 'Vous êtes en cours de connexion. Si la page suivante ne s’ouvre pas, continuez avec '
+                . 'le lien.',
+            loginContinueLink: 'Continuer',
             passwordForgottenIntro: 'Saisissez l’adresse e-mail que vous avez enregistrée chez nous. Vous recevrez '
                 . 'ensuite un e-mail avec un lien pour réinitialiser votre mot de passe.',
             passwordForgottenResult: 'Si l’adresse e-mail est enregistrée chez nous, vous recevrez un e-mail '
@@ -165,6 +177,9 @@ final readonly class AuthMessages
             loginTicketHeading: 'Accesso non completato',
             loginTicketInvalid: 'Non è stato possibile completare l’accesso: il link non è valido o è scaduto. La '
                 . 'preghiamo di accedere di nuovo.',
+            loginContinueHeading: 'Accesso in corso',
+            loginContinueStatus: 'L’accesso è in corso. Se la pagina successiva non si apre, continuare con il link.',
+            loginContinueLink: 'Continuare',
             passwordForgottenIntro: 'Inserisca l’indirizzo e-mail registrato presso di noi. Riceverà poi un’e-mail '
                 . 'con un link per reimpostare la Sua password.',
             passwordForgottenResult: 'Se l’indirizzo e-mail è registrato presso di noi, nei prossimi minuti '

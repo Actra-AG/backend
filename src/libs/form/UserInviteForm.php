@@ -80,7 +80,7 @@ final class UserInviteForm extends Form
                         '',
                         $recipientMessages->common->closingGreeting,
                         '',
-                        $actraBackend->mailerSettings->signature,
+                        $actraBackend->mailerSettings->createSignature(emailMessages: $recipientMessages->email),
                     ],
                 ),
                 requiredError: HtmlText::fromText(text: $common->messageBodyRequired),

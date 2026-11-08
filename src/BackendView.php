@@ -137,10 +137,14 @@ abstract class BackendView extends BaseView
             identifier: 'frontendHref',
             html: $actraBackendSettings->frontendHref,
         );
-        $replacements->addHtml(
+        $replacements->addHtmlText(
             identifier: 'frontendName',
-            html: $actraBackendSettings->frontendName,
+            htmlText: HtmlText::fromText(text: $this->backendContext->messages->layout->frontendLink),
         );
+        if (!$replacements->has(identifier: 'refreshUrl')) {
+            // Only a page that continues to another URL by itself sets it (`loginShared`)
+            $replacements->addHtml(identifier: 'refreshUrl', html: '');
+        }
         $replacements->addHtmlDataObjectCollection(
             identifier: 'javaScriptPaths',
             htmlDataObjectCollection: $actraBackend->renderJavaScriptPaths(),
@@ -152,7 +156,9 @@ abstract class BackendView extends BaseView
         $this->renderBreadcrumb(
             htmlDocument: $htmlDocument,
         );
-        if (!$this->backendContext->authSession->isLoggedIn()) {
+        // The layout of the authentication pages has no navigation: a logged-in user without a page of the backend
+        // navigation (e.g. only rights of the project) still gets the hand-over page that continues after the login
+        if (!$this->backendContext->authSession->isLoggedIn() || $htmlDocument->templateName === 'authentication') {
             $replacements->addHtml(
                 identifier: 'firstPageHref',
                 html: $this->backendContext->paths->login(),

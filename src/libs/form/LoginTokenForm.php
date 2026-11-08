@@ -68,8 +68,8 @@ final class LoginTokenForm extends Form
     }
 
     /**
-     * The logged-in user, `null` if the form was not sent or the code is invalid. Redirect to
-     * `BackendLogin::findHandOverUrl()` or `getReturnPath()` then.
+     * The logged-in user, `null` if the form was not sent or the code is invalid. Redirect with
+     * `BackendLogin::redirectAfterLogin()` then.
      */
     public function process(): ?MyAuthUser
     {
@@ -97,7 +97,7 @@ final class LoginTokenForm extends Form
 
     /**
      * The ID of the login request of a site (login host, `BackendLogin::findLoginRequest()`), `null` without one; it is
-     * checked again by `BackendLogin::findHandOverUrl()`.
+     * checked again by `BackendLogin::redirectAfterLogin()`.
      */
     public function getLoginRequestId(): ?string
     {

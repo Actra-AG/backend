@@ -114,7 +114,7 @@ final class LoginPasswordForm extends Form
 
     /**
      * The ID of the login request of a site (login host, `BackendLogin::findLoginRequest()`), `null` without one; it is
-     * checked again by `BackendLogin::findHandOverUrl()`.
+     * checked again by `BackendLogin::redirectAfterLogin()`.
      */
     public function getLoginRequestId(): ?string
     {

@@ -60,6 +60,7 @@ final readonly class BackendPageRenderer
         AbstractMailer $mailer = new RecordingMailer(),
         array $languageCodes = ['de', 'en'],
         ?SharedLoginSettings $sharedLogin = null,
+        string $frontendHref = '',
     ) {
         $locales = ['de' => 'de_CH.UTF-8', 'en' => 'en_GB.UTF-8', 'fr' => 'fr_CH.UTF-8', 'it' => 'it_CH.UTF-8'];
         $this->languageCollection = new LanguageCollection(languages: array_map(
@@ -77,6 +78,7 @@ final readonly class BackendPageRenderer
             mailer: $mailer,
             loginHandOver: $loginHandOver,
             sharedLogin: $sharedLogin,
+            frontendHref: $frontendHref,
         );
         $this->route = array_first(array: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/view/'))
             ?? throw new LogicException(message: 'The backend has no route');

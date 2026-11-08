@@ -256,7 +256,7 @@ final readonly class BackendLogin
      * for the user (yuf's `LoginHandOver::createHandOverUrl()`, the subject is the user ID); `null` without login
      * request or if it is no longer valid: continue as after a normal login.
      */
-    public function findHandOverUrl(MyAuthUser $myAuthUser, ?string $loginRequestId): ?string
+    private function findHandOverUrl(MyAuthUser $myAuthUser, ?string $loginRequestId): ?string
     {
         $settings = $this->context->actraBackend->actraBackendSettings->loginHandOver;
         if ($settings === null || $settings->allowedHosts === [] || $loginRequestId === null) {
@@ -275,11 +275,12 @@ final readonly class BackendLogin
     }
 
     /**
-     * The redirect of the login pages after the login (also of the project): to the hand-over page of the site of a
-     * login request (`findHandOverUrl()`), else to the requested page, else to the first page of the backend
-     * navigation. On a site with a shared login, the login is first pushed to the login host (invisible redirects,
-     * yuf's `SharedLogin::createPushUrl()`); with a shared login the session cookie is sent as `Lax`, so the hosts see
-     * the login on a request that comes from another host.
+     * The redirect of the login pages after the login (also of the project): on a login host to the hand-over page of
+     * the site of a login request (yuf's `LoginHandOver`), else to the requested page, else to the first page of the
+     * backend navigation. On a site with a shared login, the login is first pushed to the login host (invisible
+     * redirects, yuf's `SharedLogin::createPushUrl()`); with a shared login the session cookie is sent as `Lax`, so the
+     * hosts see the login on a request that comes from another host. After a form (POST), the way to another host
+     * passes the hand-over page of this host (`LoginContinuation`, CSP `form-action`).
      *
      * @param ?string $returnPath The validated page requested before the login (`LoginTokenForm::getReturnPath()`),
      *     e.g. `?? '/'` on a login page of the project; `null`: the first page of the backend navigation
@@ -317,11 +318,11 @@ final readonly class BackendLogin
         $settings = $this->context->actraBackend->actraBackendSettings->sharedLogin;
         $handOverUrl = $this->findHandOverUrl(myAuthUser: $myAuthUser, loginRequestId: $loginRequestId);
         if ($handOverUrl !== null) {
-            $this->redirect(uri: $handOverUrl, withLaxSessionCookie: $settings !== null);
+            $this->redirectToOtherHost(url: $handOverUrl, withLaxSessionCookie: $settings !== null);
         }
         $uri = $myAuthUser->getFirstAllowedPage(context: $this->context, returnPath: $returnPath);
         if ($pushSharedLogin && $settings !== null && $settings->site !== null) {
-            $uri = $settings->sharedLogin->createPushUrl(
+            $pushUrl = $settings->sharedLogin->createPushUrl(
                 httpRequest: $this->context->viewContext->httpRequest,
                 site: $settings->site,
                 user: new SharedLoginUser(
@@ -331,8 +332,24 @@ final readonly class BackendLogin
                 ),
                 returnPath: $uri,
             );
+            $this->redirectToOtherHost(url: $pushUrl, withLaxSessionCookie: true);
         }
         $this->redirect(uri: $uri, withLaxSessionCookie: $settings !== null);
+    }
+
+    /**
+     * A GET redirects at once. The response to a form (POST) redirects to the hand-over page of this host, which
+     * continues to the URL: browsers block a redirect to another host after a form (CSP `form-action 'self'`, also for
+     * the later redirects of the chain), see `LoginContinuation`.
+     */
+    private function redirectToOtherHost(string $url, bool $withLaxSessionCookie): never
+    {
+        $context = $this->context;
+        if ($context->viewContext->httpRequest->getMethod() !== RequestMethodEnum::GET) {
+            $url = $context->paths->loginShared() . '?' . LoginContinuation::PARAMETER . '='
+                . LoginContinuation::store(session: $context->session, url: $url);
+        }
+        $this->redirect(uri: $url, withLaxSessionCookie: $withLaxSessionCookie);
     }
 
     /**

@@ -53,6 +53,23 @@ new ActraBackendSettings(
 );
 ```
 
+The link to the website in the page footer (`ActraBackendSettings::$frontendHref`) has the text
+`LayoutMessages::$frontendLink` ("Go to website", "Zur Website", …). The emails end with the closing greeting
+(`CommonMessages::$closingGreeting`) and the signature `EmailMessages::$signature`, by default the sender name
+(`MailerSettings::$senderName`, placeholder `[senderName]`); both are in the language of the email. A signature of
+several lines or one per language:
+
+```php
+use actra\backend\i18n\EmailMessages;
+
+messages: [
+    'de' => BackendMessages::german()->with(
+        email: EmailMessages::german()->with(signature: "[senderName]\nexample.com"),
+    ),
+    'fr' => BackendMessages::french()->with(email: EmailMessages::french()->with(signature: "L’équipe\nexample.com")),
+],
+```
+
 Views read the texts, the `Language` and the `DateFormatter` of the request from `BackendViewContext` (`messages`,
 `language`, `dateFormatter`); text for another user (e.g. an email) comes from `$actraBackend->getMessages()` with the
 user's language. The welcome email uses the language of the user (without one: the first language), its link the path of the

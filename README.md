@@ -138,16 +138,14 @@ $actraBackend = ActraBackend::create(
         // Required, null as explicit opt-out: the login shared by several hosts of the server (docs/login.md)
         sharedLogin: null,
         maxAllowedLoginAttempts: 5, // Optional, defaults to 5
-        frontendHref: 'https://example.com', // Optional
-        frontendName: 'Go to Website', // Optional
+        frontendHref: 'https://example.com', // Optional; its text: LayoutMessages::$frontendLink (docs/languages.md)
         hasApi: false, // Optional, defaults to false
         tokenSendLimit: new TokenSendLimit(maxTokens: 5, withinMinutes: 15), // Optional, this default; null: off
     ),
     connectDb: $connectDb, // The project's own repositories use the same $connectDb
     mailerSettings: new MailerSettings(
         senderEmail: 'noreply@example.com',
-        senderName: 'My Project',
-        signature: 'Best regards, Your Team',
+        senderName: 'My Project', // Also the signature of the emails: EmailMessages::$signature (docs/languages.md)
         // Or GraphMailer for Microsoft 365 (yuf's docs/mail.md); the same mailer can serve withFileLogger()
         mailer: new SmtpMailer(
             serverAddress: $core->httpRequest->getServerAddress(),

@@ -41,6 +41,7 @@ final class ActraBackendTestInstance
      * @param string $path The backend path
      * @param string $viewGroup The view group of the project views on the backend route
      * @param ?Closure(): FrameworkDb $connectDb The connection of the project; default: one from `$dbSettings`
+     * @param string $frontendHref The link to the website, `''` for none
      */
     public static function create(
         ?DbSettings $dbSettings = null,
@@ -64,6 +65,7 @@ final class ActraBackendTestInstance
         ?LoginHandOverSettings $loginHandOver = null,
         ?Closure $connectDb = null,
         ?SharedLoginSettings $sharedLogin = null,
+        string $frontendHref = '',
     ): ActraBackend {
         return ActraBackend::create(
             path: $path,
@@ -78,6 +80,7 @@ final class ActraBackendTestInstance
                 loginRateLimit: $loginRateLimit,
                 loginHandOver: $loginHandOver,
                 sharedLogin: $sharedLogin,
+                frontendHref: $frontendHref,
                 hasApi: $hasApi,
                 messages: $messages,
                 projectNavigation: $projectNavigation,
@@ -95,7 +98,6 @@ final class ActraBackendTestInstance
             mailerSettings: new MailerSettings(
                 senderEmail: 'backend@example.com',
                 senderName: 'Backend',
-                signature: '',
                 mailer: $mailer,
             ),
             logger: $logger,

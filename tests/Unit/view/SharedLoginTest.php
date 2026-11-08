@@ -240,6 +240,52 @@ final class SharedLoginTest extends TestCase
         );
     }
 
+    /**
+     * The page that continues after the form is shown once, only with the ID stored in the session: a second request
+     * or another ID is a normal step of the hand-over page (here refused: the login page of the site).
+     */
+    public function testContinuationIsShownOnceWithItsId(): void
+    {
+        $this->testUsers->create(email: $email = $this->createEmail());
+        $location = $this->postCodeOnTheSite(email: $email);
+        $this->continueOnTheSite(url: $location);
+        $loginPage = 'https://' . SharedLoginTest::SITE_HOST . '/backend/login.html?loginChecked=1';
+
+        $this->assertSame($loginPage, $this->requestSite(url: $location));
+        // Another browser session, another ID
+        $this->siteSession = new Session(storage: new ArraySessionStorage());
+        $this->testUsers->create(email: $otherEmail = $this->createEmail());
+        $this->postCodeOnTheSite(email: $otherEmail);
+        $this->assertSame($loginPage, $this->requestSite(query: ['loginContinue' => str_repeat(string: 'c', times: 32)]));
+    }
+
+    /**
+     * A user with rights of the project only (no page of the backend navigation) logs in on the site: the page that
+     * continues after the form is shown all the same.
+     */
+    public function testUserWithoutBackendPagesContinuesToTheLoginHost(): void
+    {
+        $db = TestDatabase::connect();
+        $userId = $this->testUsers->create(email: $email = $this->createEmail(), withRights: false);
+        $rightName = 'project_' . bin2hex(string: random_bytes(length: 4));
+        $db->execute(sql: 'INSERT INTO auth_rights SET name=?, title=?', parameters: [$rightName, 'Project']);
+        $db->execute(sql: 'INSERT INTO auth_groups SET title=?', parameters: [$rightName]);
+        $groupId = $db->getLastInsertId();
+        $db->execute(
+            sql: 'INSERT INTO auth_group_right SET group_id=?, right_name=?',
+            parameters: [$groupId, $rightName],
+        );
+        $db->execute(
+            sql: 'INSERT INTO auth_group_user SET user_id=?, group_id=?',
+            parameters: [$userId, $groupId],
+        );
+
+        $this->assertStringStartsWith(
+            'https://' . SharedLoginTest::LOGIN_HOST . SharedLoginTest::HAND_OVER_PATH . '?loginPush=',
+            $this->logInOnTheSite(email: $email),
+        );
+    }
+
     public function testBadStepOnTheSiteLeadsToItsLoginPage(): void
     {
         $this->assertSame(
@@ -283,6 +329,14 @@ final class SharedLoginTest extends TestCase
      */
     private function logInOnTheSite(string $email): string
     {
+        return $this->continueOnTheSite(url: $this->postCodeOnTheSite(email: $email));
+    }
+
+    /**
+     * The login page of the site (checked already), then the code: the redirect of the response to the code form.
+     */
+    private function postCodeOnTheSite(string $email): string
+    {
         $query = ['returnTo' => SharedLoginTest::RETURN_PATH, 'loginChecked' => '1'];
         $this->requestSite(fileTitle: 'login', query: $query);
         $this->requestSite(
@@ -293,11 +347,36 @@ final class SharedLoginTest extends TestCase
         );
         $code = $this->lastResponseSender->sendMailsAndGetLoginCode(mailer: $this->mailer);
 
-        return $this->requestSite(
+        $location = $this->requestSite(
             fileTitle: 'loginToken',
             post: ['token' => $code, 'returnTo' => SharedLoginTest::RETURN_PATH],
             formName: 'LoginTokenForm',
         );
+        // CSP `form-action 'self'`: the response to the form never redirects to another host
+        $this->assertMatchesRegularExpression(
+            '#^https://' . preg_quote(str: SharedLoginTest::SITE_HOST) . SharedLoginTest::HAND_OVER_PATH
+                . '\?loginContinue=[0-9a-f]{32}$#D',
+            $location,
+        );
+
+        return $location;
+    }
+
+    /**
+     * The page that continues after the form: the URL of its refresh (also its link).
+     */
+    private function continueOnTheSite(string $url): string
+    {
+        $html = $this->requestSite(url: $url);
+        $this->assertSame(1, preg_match(
+            pattern: '#<meta http-equiv="refresh" content="0;url=([^"]+)"/>#',
+            subject: $html,
+            matches: $matches,
+        ));
+        $continueUrl = html_entity_decode(string: $matches[1]);
+        $this->assertStringContainsString('<a href="' . $matches[1] . '">Weiter</a>', $html);
+
+        return $continueUrl;
     }
 
     /**

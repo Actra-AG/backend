@@ -220,11 +220,30 @@ final class LoginHandOverTest extends TestCase
         );
         $this->assertSame($carried, $carried && str_contains(haystack: $codePageHtml, needle: $hiddenField));
 
-        return $this->requestLoginHost(
+        $location = $this->requestLoginHost(
             fileTitle: 'loginToken',
             postParameters: ['token' => $code, 'loginRequest' => $carried ? $loginRequestId : ''],
             formName: 'LoginTokenForm',
         );
+        // CSP `form-action 'self'`: the response to the form never redirects to another host
+        $this->assertSame(LoginHandOverTest::LOGIN_HOST, parse_url(url: $location, component: PHP_URL_HOST));
+        if (!str_contains(haystack: $location, needle: '/backend/loginShared.html?loginContinue=')) {
+            return $location;
+        }
+        // The page of the login host that continues to the site (a new navigation)
+        parse_str(string: (string) parse_url(url: $location, component: PHP_URL_QUERY), result: $query);
+        $continueId = $query['loginContinue'] ?? '';
+        $html = $this->requestLoginHost(
+            fileTitle: 'loginShared',
+            queryParameters: ['loginContinue' => is_string(value: $continueId) ? $continueId : ''],
+        );
+        $this->assertSame(1, preg_match(
+            pattern: '#<meta http-equiv="refresh" content="0;url=([^"]+)"/>#',
+            subject: $html,
+            matches: $matches,
+        ));
+
+        return html_entity_decode(string: $matches[1]);
     }
 
     /**

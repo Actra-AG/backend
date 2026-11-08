@@ -19,6 +19,8 @@ final readonly class ActraBackendSettings
      * @param list<string> $ipWhitelist
      * @param list<string> $javaScriptPaths
      * @param list<string> $stylesPaths
+     * @param string $frontendHref The link to the website in the page footer, `''` for none; its text is
+     *     `LayoutMessages::$frontendLink` in the language of the request
      * @param ?LoginRateLimit $loginRateLimit Limits the logins, password verifications and login code requests per
      *     client IP address and email address (yuf's `Authenticator`); `null` as explicit opt-out
      * @param array<string, BackendMessages> $messages Own texts by language code (`ActraBackend::getMessages()`); a
@@ -42,7 +44,6 @@ final readonly class ActraBackendSettings
         public ?SharedLoginSettings $sharedLogin,
         public int $maxAllowedLoginAttempts = 5,
         public string $frontendHref = '',
-        public string $frontendName = '',
         public bool $hasApi = false,
         public array $messages = [],
         public ?BackendNavigation $projectNavigation = null,

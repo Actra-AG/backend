@@ -1,11 +1,10 @@
 # Frontend: coding standard
 
-For the frontend developer: please check and decide. Nothing is changed yet. The assets are in `src/assets/` and are
-bundled by the projects (e.g. `../drogeriehaas.ch`, esbuild).
+For the frontend developer: please check and decide (ActiveCollab task #11 of "Composer: actra/backend"). The assets
+are in `src/assets/`; the backend builds them into `dist/` itself (`npm run build`, see `docs/assets.md`).
 
-1. [ ] JavaScript: the standard wants plain files, each in a `{ … }` block, concatenated with uglify-js (no
-   `import`/`export`). `backend.js` uses ES modules and exports `initBackend()`. Convert (projects then drop esbuild
-   and the `initBackend()` call), or keep ES modules as documented deviation for this library or update the standards?
+1. [x] JavaScript: settled. esbuild bundles the ES modules into `dist/backend.min.js` (allowed for ES modules from
+   libraries since coding standard v1.18.0), PostCSS builds `dist/backend.min.css`.
 2. [ ] `js/modules/responsive-table.js` sets `style.display`: use `hidden` or a class instead.
 3. [ ] Lint: add `stylelint.config.js` and `prettier.config.js` from `vendor/actra/coding-standard/templates/` (with a
    `package.json` for `npm run lint` and `format` only, no build), then fix the findings?

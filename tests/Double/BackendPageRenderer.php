@@ -57,7 +57,7 @@ final readonly class BackendPageRenderer
         DbSettings $dbSettings,
         array $ipWhitelist = [],
         ?LoginHandOverSettings $loginHandOver = null,
-        AbstractMailer $mailer = new RecordingMailer(),
+        AbstractMailer $mailer = new RecordingMailer(clock: new SystemClock()),
         array $languageCodes = ['de', 'en'],
         ?SharedLoginSettings $sharedLogin = null,
         string $frontendHref = '',

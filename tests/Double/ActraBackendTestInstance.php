@@ -18,10 +18,12 @@ use actra\backend\settings\MailerSettings;
 use actra\backend\settings\SharedLoginSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\auth\LoginRateLimit;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\core\Language;
 use actra\yuf\core\LanguageCollection;
 use actra\yuf\core\Logger;
 use actra\yuf\db\DbConnectionParameters;
+use actra\yuf\db\DbQueryLogList;
 use actra\yuf\db\DbSettings;
 use actra\yuf\db\FrameworkDb;
 use actra\yuf\mailer\AbstractMailer;
@@ -58,6 +60,7 @@ final class ActraBackendTestInstance
             smtpUserName: 'example',
             smtpPassword: 'example',
             serverNameCache: null,
+            clock: new SystemClock(),
         ),
         string $path = '/backend/',
         string $viewGroup = 'backend',
@@ -94,6 +97,7 @@ final class ActraBackendTestInstance
                     userName: 'example',
                     password: 'example',
                 )),
+                queryLog: new DbQueryLogList(clock: new SystemClock()),
             ),
             mailerSettings: new MailerSettings(
                 senderEmail: 'backend@example.com',

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Double;
 
+use actra\yuf\clock\SystemClock;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\session\AbstractSessionHandler;
 use actra\yuf\session\SessionSettings;
@@ -25,7 +26,11 @@ final class ArraySessionHandler extends AbstractSessionHandler
 
     public function __construct(HttpRequest $httpRequest)
     {
-        parent::__construct(httpRequest: $httpRequest, sessionSettings: new SessionSettings());
+        parent::__construct(
+            httpRequest: $httpRequest,
+            sessionSettings: new SessionSettings(),
+            clock: new SystemClock(),
+        );
     }
 
     #[Override]

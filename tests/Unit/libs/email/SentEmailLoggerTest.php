@@ -16,6 +16,7 @@ use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\RecordingLogger;
 use actra\backend\tests\Double\RecordingResponseSender;
 use actra\backend\tests\Double\TestDatabase;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbRow;
 use actra\yuf\db\FrameworkDb;
 use actra\yuf\mailer\RecordingMailer;
@@ -30,7 +31,7 @@ final class SentEmailLoggerTest extends TestCase
     public function testEveryMailOfTheMailerIsLogged(): void
     {
         $db = TestDatabase::connect();
-        $recordingMailer = new RecordingMailer();
+        $recordingMailer = new RecordingMailer(clock: new SystemClock());
         $actraBackend = ActraBackendTestInstance::create(dbSettings: TestDatabase::settings(), mailer: $recordingMailer);
         $subject = 'Code ' . bin2hex(string: random_bytes(length: 4));
 
@@ -61,7 +62,7 @@ final class SentEmailLoggerTest extends TestCase
     public function testDatabaseErrorIsLoggedInsteadOfThrown(): void
     {
         $recordingLogger = new RecordingLogger();
-        $recordingMailer = new RecordingMailer();
+        $recordingMailer = new RecordingMailer(clock: new SystemClock());
         $recordingMailer->addSentMailListener(sentMailListener: new SentEmailLogger(
             repositories: new BackendRepositories(
                 connect: static fn(): FrameworkDb => throw new PDOException(message: 'Database unreachable'),
@@ -117,7 +118,7 @@ final class SentEmailLoggerTest extends TestCase
         $db = TestDatabase::connect();
         $actraBackend = ActraBackendTestInstance::create(
             dbSettings: TestDatabase::settings(),
-            mailer: new RecordingMailer(),
+            mailer: new RecordingMailer(clock: new SystemClock()),
         );
         $mailer = $actraBackend->createMailer(responseSender: new RecordingResponseSender());
         $recipient = 'secret-' . bin2hex(string: random_bytes(length: 4)) . '@example.com';

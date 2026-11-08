@@ -2,6 +2,16 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.9.0 (2026-11-08)
+
+### ⚠️ Requires `actra/yuf` `~8.17.0`
+
+The backend passes no new arguments and its API is unchanged. Projects migrate their own code along yuf's
+`UPGRADE.md`: v8.16.0 makes the `Clock` a required argument (`clock: new SystemClock()` for `FileCache`,
+`FileLogger`, `RateLimiter`, `LoginHandOver`, `SharedLogin`, the mailers, …, and `queryLog: new DbQueryLogList(clock:
+…)` for `FrameworkDb`); `App` and `Core` are unchanged. v8.17.0 adds `HtmlSanitizer::isAllowedUrl()`. Development
+tooling: `actra/coding-standard` ^2.4.
+
 ## v5.8.0 (2026-11-08)
 
 ### ⚠️ Requires `actra/yuf` `~8.15.0`

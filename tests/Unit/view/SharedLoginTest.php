@@ -22,6 +22,7 @@ use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\SharedLogin;
 use actra\yuf\auth\SharedLoginSite;
 use actra\yuf\auth\UnauthorizedAccessRightException;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\exception\NotFoundException;
 use actra\yuf\mailer\RecordingMailer;
 use actra\yuf\security\CsrfTokenSource;
@@ -59,7 +60,7 @@ final class SharedLoginTest extends TestCase
         $this->directory = sys_get_temp_dir() . '/backend-shared-login-' . bin2hex(string: random_bytes(length: 8));
         $this->siteCookies = new RecordingCookieWriter();
         $this->loginHostCookies = new RecordingCookieWriter();
-        $this->mailer = new RecordingMailer();
+        $this->mailer = new RecordingMailer(clock: new SystemClock());
         $this->site = $this->createRenderer(
             cookieWriter: $this->siteCookies,
             allowedHosts: [],
@@ -99,7 +100,7 @@ final class SharedLoginTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new SharedLoginSettings(
-            sharedLogin: new SharedLogin(directory: $this->directory, loginLifetimeInSeconds: 3600),
+            sharedLogin: new SharedLogin(directory: $this->directory, loginLifetimeInSeconds: 3600, clock: new SystemClock()),
             allowedHosts: [],
             site: null,
         );
@@ -312,6 +313,7 @@ final class SharedLoginTest extends TestCase
                 sharedLogin: new SharedLogin(
                     directory: $this->directory,
                     loginLifetimeInSeconds: 3600,
+                    clock: new SystemClock(),
                     cookieWriter: $cookieWriter,
                 ),
                 allowedHosts: $allowedHosts,

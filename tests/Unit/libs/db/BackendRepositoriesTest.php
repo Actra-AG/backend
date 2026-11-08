@@ -11,7 +11,9 @@ namespace actra\backend\tests\Unit\libs\db;
 
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\tests\Double\ActraBackendTestInstance;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbConnectionParameters;
+use actra\yuf\db\DbQueryLogList;
 use actra\yuf\db\FrameworkDb;
 use ArrayObject;
 use LogicException;
@@ -45,7 +47,7 @@ final class BackendRepositoriesTest extends TestCase
      */
     public function testBackendSharesTheConnectionOfTheProject(): void
     {
-        $db = new FrameworkDb(connectionParameters: new DbConnectionParameters(dsn: 'sqlite::memory:'));
+        $db = new FrameworkDb(connectionParameters: new DbConnectionParameters(dsn: 'sqlite::memory:'), queryLog: new DbQueryLogList(clock: new SystemClock()));
         $connections = new ArrayObject();
         $actraBackend = ActraBackendTestInstance::create(
             connectDb: static function () use ($db, $connections): FrameworkDb {

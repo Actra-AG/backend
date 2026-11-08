@@ -21,6 +21,7 @@ use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\App;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\LoginHandOver;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\Core;
 use actra\yuf\core\BaseView;
 use actra\yuf\core\CoreSettings;
@@ -207,6 +208,7 @@ final class AppConfigurationTest extends TestCase
                     loginHandOver: new LoginHandOverSettings(
                         loginHandOver: new LoginHandOver(
                             directory: $directory,
+                            clock: new SystemClock(),
                             cookieWriter: new RecordingCookieWriter(),
                             purgeProbabilityPercent: 0,
                         ),

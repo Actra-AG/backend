@@ -15,6 +15,7 @@ use actra\backend\tests\Double\BackendPageRenderer;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
 use actra\yuf\auth\LoginHandOver;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\mailer\SentMail;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
@@ -82,7 +83,7 @@ final class ViewRenderTest extends TestCase
             dbSettings: TestDatabase::settings(),
             // loginTicket without ticket: the page with the link to the login page, the directory is not used
             loginHandOver: new LoginHandOverSettings(
-                loginHandOver: new LoginHandOver(directory: sys_get_temp_dir() . '/backend-unused-hand-over'),
+                loginHandOver: new LoginHandOver(directory: sys_get_temp_dir() . '/backend-unused-hand-over', clock: new SystemClock()),
                 allowedHosts: [],
             ),
             languageCodes: ['de', 'en', 'fr', 'it'],

@@ -30,6 +30,7 @@ use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\auth\LoginRateLimit;
 use actra\yuf\clock\FixedClock;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\common\AcceptingMailDomainResolver;
 use actra\yuf\common\MailDomainResolver;
 use actra\yuf\core\HttpRequest;
@@ -64,7 +65,7 @@ final class LoginFlowTest extends TestCase
     {
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
         $this->responseSender = new RecordingResponseSender();
-        $this->mailer = new RecordingMailer();
+        $this->mailer = new RecordingMailer(clock: new SystemClock());
         $this->rateLimitDirectory = sys_get_temp_dir() . '/backend-rate-limit-' . bin2hex(string: random_bytes(length: 8));
     }
 
@@ -94,6 +95,7 @@ final class LoginFlowTest extends TestCase
             rateLimiter: new RateLimiter(
                 directory: $this->rateLimitDirectory,
                 secret: str_repeat(string: 's', times: 32),
+                clock: new SystemClock(),
                 purgeProbabilityPercent: 0,
             ),
             failMode: RateLimitFailModeEnum::CLOSED,
@@ -653,6 +655,7 @@ final class LoginFlowTest extends TestCase
             rateLimiter: new RateLimiter(
                 directory: $this->rateLimitDirectory,
                 secret: str_repeat(string: 's', times: 32),
+                clock: new SystemClock(),
                 purgeProbabilityPercent: 0,
             ),
             failMode: RateLimitFailModeEnum::CLOSED,

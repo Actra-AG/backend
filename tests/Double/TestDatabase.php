@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace actra\backend\tests\Double;
 
+use actra\yuf\clock\SystemClock;
 use actra\yuf\db\DbConnectionParameters;
+use actra\yuf\db\DbQueryLogList;
 use actra\yuf\db\DbSettings;
 use actra\yuf\db\FrameworkDb;
 use PDO;
@@ -47,6 +49,7 @@ final class TestDatabase
 
             return new FrameworkDb(
                 connectionParameters: DbConnectionParameters::forMysql(dbSettings: TestDatabase::settings()),
+                queryLog: new DbQueryLogList(clock: new SystemClock()),
             );
         } catch (PDOException $pdoException) {
             TestCase::markTestSkipped('No test database available: ' . $pdoException->getMessage());

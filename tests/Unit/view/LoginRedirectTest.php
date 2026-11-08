@@ -16,6 +16,7 @@ use actra\backend\tests\Double\ResponseSentException;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
 use actra\backend\tests\Double\ViewContextFactory;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\common\AcceptingMailDomainResolver;
 use actra\yuf\core\ContentHandler;
 use actra\yuf\core\ContentType;
@@ -58,7 +59,7 @@ final class LoginRedirectTest extends TestCase
     protected function setUp(): void
     {
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
-        $this->mailer = new RecordingMailer();
+        $this->mailer = new RecordingMailer(clock: new SystemClock());
         $this->lastResponseSender = new RecordingResponseSender();
         $this->actraBackend = ActraBackendTestInstance::create(
             dbSettings: TestDatabase::settings(),

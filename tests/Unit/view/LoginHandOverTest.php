@@ -21,6 +21,7 @@ use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\auth\LoginHandOver;
 use actra\yuf\clock\FixedClock;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\mailer\RecordingMailer;
 use actra\yuf\security\CsrfTokenSource;
@@ -59,7 +60,7 @@ final class LoginHandOverTest extends TestCase
         $this->directory = sys_get_temp_dir() . '/backend-login-hand-over-' . bin2hex(string: random_bytes(length: 8));
         $this->siteCookies = new RecordingCookieWriter();
         $this->loginHostCookies = new RecordingCookieWriter();
-        $this->mailer = new RecordingMailer();
+        $this->mailer = new RecordingMailer(clock: new SystemClock());
         $this->site = $this->createRenderer(cookieWriter: $this->siteCookies, allowedHosts: []);
         $this->loginHost = $this->createRenderer(
             cookieWriter: $this->loginHostCookies,
@@ -97,7 +98,7 @@ final class LoginHandOverTest extends TestCase
             dbSettings: TestDatabase::settings(),
             loginHandOver: new LoginHandOverSettings(
                 loginHandOver: $clock === null
-                    ? new LoginHandOver(directory: $this->directory, cookieWriter: $cookieWriter)
+                    ? new LoginHandOver(directory: $this->directory, clock: new SystemClock(), cookieWriter: $cookieWriter)
                     : new LoginHandOver(directory: $this->directory, clock: $clock, cookieWriter: $cookieWriter),
                 allowedHosts: $allowedHosts,
             ),

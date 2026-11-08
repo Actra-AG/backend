@@ -11,6 +11,7 @@ namespace actra\backend\tests\Unit\settings;
 
 use actra\backend\i18n\EmailMessages;
 use actra\backend\settings\MailerSettings;
+use actra\yuf\clock\SystemClock;
 use actra\yuf\mailer\RecordingMailer;
 use PHPUnit\Framework\TestCase;
 
@@ -43,7 +44,7 @@ final class MailerSettingsTest extends TestCase
         return new MailerSettings(
             senderEmail: 'noreply@example.com',
             senderName: 'Example team',
-            mailer: new RecordingMailer(),
+            mailer: new RecordingMailer(clock: new SystemClock()),
         );
     }
 }

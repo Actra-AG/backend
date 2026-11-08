@@ -47,7 +47,7 @@ times, `MyAuthUser::get()` 33 times, `Mailer::send…()` 34 times, `DbAuthUserRe
 - Static accessors used by projects (`DB::get()`, `MyAuthUser::get()`, `Mailer::send…()`, repositories) stay as
   deprecated wrappers for one release after their replacement exists in `BackendViewContext`.
 
-Browser checks: `../drogeriehaas.ch` (decision 2026-10-08). It installs `actra/backend` from Packagist today; the
+Browser checks: in the consuming project (decision 2026-10-08). It installs `actra/backend` from Packagist today; the
 user points it to `../backend` as Composer path repository and adapts it to each step (other projects are not
 modified from this repository). Steps that change views, templates or HTML are checked there.
 
@@ -307,7 +307,7 @@ depend on these versions and follows as its own step.
   context without another signature change. `db` defaults to `DB::get()`.
 - `BackendViewFactoryTest` (4 tests) with doubles in `tests/Double/` (`ActraBackendTestInstance` initializes the
   backend once with example settings, no database connection). 89 tests, baseline unchanged (144).
-- Browser check in `../drogeriehaas.ch` pending: the user adapts its views, tables, search forms and routes.
+- Browser check in the consuming project pending: the user adapts its views, tables, search forms and routes.
 
 ### Between steps 2 and 3 (2026-10-08)
 

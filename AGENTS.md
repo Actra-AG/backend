@@ -45,7 +45,7 @@ This project follows the Actra coding standard, installed as development depende
 - `tests/Unit/view/ViewRenderTest.php` renders every view in all four languages with
   `tests/Double/BackendPageRenderer.php` (like yuf's `Core`); add every new view there (a view that only redirects,
   like `loginShared`, gets its own test).
-- Consuming project for browser checks (`standards/testing.md`): `../drogeriehaas.ch` with this checkout as Composer
+- Browser checks (`standards/testing.md`) in a consuming project that the user names, with this checkout as Composer
   path repository (set up and adapted by the user).
 
 ### Forms (yuf form API)

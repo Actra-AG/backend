@@ -20,4 +20,4 @@ ALTER TABLE `auth_api_key`
     MODIFY `public_id` char(6) CHARACTER SET ascii COLLATE ascii_bin NOT NULL;
 
 -- The seed user of data.sql of earlier versions: give it your own address or delete it (see UPGRADE.md)
--- SELECT id, email, active FROM auth_user WHERE email = 'admin@actra.ch';
+-- SELECT id, email, active FROM auth_user WHERE id = 1;

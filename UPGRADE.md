@@ -2,6 +2,10 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.9.1 (2026-11-08)
+
+No migration needed. Documentation only.
+
 ## v5.9.0 (2026-11-08)
 
 ### ⚠️ Requires `actra/yuf` `~8.17.0`
@@ -612,9 +616,9 @@ codes requested before the update must be requested again.
 
 ### ⚠️ Seed user of `db/data.sql`
 
-Earlier versions of `data.sql` created the active administrator `admin@actra.ch`. Give that user your own address or
-delete it in every installation: `SELECT id, email, active FROM auth_user WHERE email='admin@actra.ch'`. New
-installations get `admin@example.invalid`, which cannot receive mail: change it to your own address (README).
+Earlier versions of `data.sql` created an active administrator with a fixed address (`id` 1). Give that user your own
+address or delete it in every installation: `SELECT id, email, active FROM auth_user WHERE id=1`. New installations
+get `admin@example.invalid`, which cannot receive mail: change it to your own address (README).
 
 ### ⚠️ API keys: `authenticateBearerOrThrow()`
 

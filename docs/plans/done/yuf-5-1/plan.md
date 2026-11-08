@@ -1,4 +1,4 @@
-# Plan: yuf ~5.1.0, Composer only, bugs from drogeriehaas.ch
+# Plan: yuf ~5.1.0, Composer only, bugs from the consuming project
 
 Status: done (2026-10-10, v2.4.0). One release for all items; no backwards compatibility layers.
 

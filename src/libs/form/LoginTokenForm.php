@@ -76,10 +76,14 @@ final class LoginTokenForm extends Form
         if (!$this->validate()) {
             return null;
         }
-        if ($this->login->logInWithCode(code: $this->tokenField->getValueAsString()) === LoginCodeResultEnum::INVALID) {
-            $this->tokenField->addError(
-                errorMessage: HtmlText::fromText(text: $this->login->context->messages->auth->tokenInvalid),
-            );
+        $authMessages = $this->login->context->messages->auth;
+        $error = match ($this->login->logInWithCode(code: $this->tokenField->getValueAsString())) {
+            LoginCodeResultEnum::LOGGED_IN => null,
+            LoginCodeResultEnum::INVALID => $authMessages->tokenInvalid,
+            LoginCodeResultEnum::RATE_LIMITED => $authMessages->tooManyAttempts,
+        };
+        if ($error !== null) {
+            $this->tokenField->addError(errorMessage: HtmlText::fromText(text: $error));
 
             return null;
         }

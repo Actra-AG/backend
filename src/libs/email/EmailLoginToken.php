@@ -38,7 +38,8 @@ final class EmailLoginToken
                 array: [
                     $emailMessages->greeting,
                     '',
-                    $usedPasswordLogin
+                    // Without password login (`ActraBackendSettings::$passwordLogin`) the mail mentions no password
+                    $usedPasswordLogin || !$context->actraBackend->actraBackendSettings->passwordLogin
                         ? $emailMessages->loginTokenIntroPasswordLogin
                         : $emailMessages->loginTokenIntroPasswordless,
                     '',

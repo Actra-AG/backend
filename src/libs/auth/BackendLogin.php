@@ -39,9 +39,10 @@ final readonly class BackendLogin
 
     /**
      * Sends a login code to a user who may log in without password: active, with rights, from the user's IP whitelist,
-     * not out tried, without password (a user with password uses `requestCodeWithPassword()`). Every rejection is
-     * logged and answered with `SENT` as well, so the answer does not tell whether the address exists. Above the
-     * `TokenSendLimit` nothing is sent; the code sent before stays valid.
+     * not out tried, without password (a user with password uses `requestCodeWithPassword()`). Without password login
+     * (`ActraBackendSettings::$passwordLogin`) stored passwords and wrong password attempts count for nothing. Every
+     * rejection is logged and answered with `SENT` as well, so the answer does not tell whether the address exists.
+     * Above the `TokenSendLimit` nothing is sent; the code sent before stays valid.
      */
     public function requestCode(string $email): LoginCodeRequestResultEnum
     {
@@ -64,7 +65,9 @@ final readonly class BackendLogin
 
     /**
      * Checks the password and sends a login code (second factor): the login is complete with `logInWithCode()`.
-     * Wrong passwords are counted per user (`ActraBackendSettings::$maxAllowedLoginAttempts`) and logged.
+     * Wrong passwords are counted per user (`ActraBackendSettings::$maxAllowedLoginAttempts`) and logged. Without
+     * password login (`ActraBackendSettings::$passwordLogin`) no password is verified: `CREDENTIALS_INVALID`, logged
+     * as `ERROR_NO_PASSWORD_LOGIN_ACTIVE`, no code is sent.
      */
     public function requestCodeWithPassword(
         string $email,
@@ -92,12 +95,17 @@ final readonly class BackendLogin
     /**
      * Logs in with the code sent to this browser session (`requestCode()`, `requestCodeWithPassword()`). A code is
      * valid once, for its expiration time (`AuthTokenTypeEnum::getExpirationInMinutes()`); after
-     * `ActraBackendSettings::$maxAllowedLoginAttempts` wrong codes the session needs a new one.
+     * `ActraBackendSettings::$maxAllowedLoginAttempts` wrong codes the session needs a new one. Every attempt is counted
+     * per client IP address (`codeLimits` of the `LoginRateLimit`); above the limit the code is not checked
+     * (`RATE_LIMITED`). Wrong and blocked codes are logged.
      */
     public function logInWithCode(#[\SensitiveParameter] string $code): LoginCodeResultEnum
     {
-        if (new MyAuthenticator(context: $this->context)->tokenLogin(inputToken: $code) === null) {
-            return LoginCodeResultEnum::INVALID;
+        $myAuthenticator = new MyAuthenticator(context: $this->context);
+        if ($myAuthenticator->tokenLogin(inputToken: $code) === null) {
+            return $myAuthenticator->authResult === AuthResultEnum::ERROR_RATE_LIMITED
+                ? LoginCodeResultEnum::RATE_LIMITED
+                : LoginCodeResultEnum::INVALID;
         }
         $this->storeNewSharedLoginId();
 

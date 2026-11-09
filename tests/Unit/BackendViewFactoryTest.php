@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit;
 
 use actra\backend\ActraBackend;
+use actra\backend\BackendPaths;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 use actra\backend\BackendViewFactory;
@@ -19,9 +20,12 @@ use actra\backend\tests\Double\view\factory\php\PlainView;
 use actra\backend\tests\Double\view\factory\php\ProjectBackendView;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\backend\view\backend\php\login;
+use actra\yuf\auth\UnauthorizedAccessRightException;
 use actra\yuf\core\Route;
 use actra\yuf\core\ViewContext;
+use actra\yuf\exception\NotFoundException;
 use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class BackendViewFactoryTest extends TestCase
@@ -170,5 +174,53 @@ final class BackendViewFactoryTest extends TestCase
         $this->expectException(LogicException::class);
 
         $this->createFactory()->createView(context: $this->createContext(fileTitle: 'NotAView'));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function passwordPages(): iterable
+    {
+        foreach (BackendPaths::PASSWORD_FILE_TITLES as $fileTitle) {
+            yield $fileTitle => [$fileTitle];
+        }
+    }
+
+    #[DataProvider('passwordPages')]
+    public function testPasswordPageExistsWithPasswordLogin(string $fileTitle): void
+    {
+        $this->assertTrue(is_subclass_of(
+            object_or_class: BackendViewFactory::BACKEND_VIEW_NAMESPACE . $fileTitle,
+            class: BackendView::class,
+        ));
+        try {
+            $view = $this->createFactory()->createView(context: $this->createContext(fileTitle: $fileTitle));
+        } catch (UnauthorizedAccessRightException) {
+            // The pages of the profile exist and need a login
+            return;
+        }
+
+        $this->assertInstanceOf(BackendView::class, $view);
+    }
+
+    /**
+     * Without password login the page answers 404 before a view is created (so no form of it is processed).
+     */
+    #[DataProvider('passwordPages')]
+    public function testPasswordPageIsNotFoundWithoutPasswordLogin(string $fileTitle): void
+    {
+        $factory = ActraBackendTestInstance::create(path: '/factory/', viewGroup: 'factory', passwordLogin: false)
+            ->createViewFactory();
+
+        $this->expectException(NotFoundException::class);
+        $factory->createView(context: $this->createContext(fileTitle: $fileTitle));
+    }
+
+    public function testOtherPagesExistWithoutPasswordLogin(): void
+    {
+        $factory = ActraBackendTestInstance::create(path: '/factory/', viewGroup: 'factory', passwordLogin: false)
+            ->createViewFactory();
+
+        $this->assertInstanceOf(login::class, $factory->createView(context: $this->createContext(fileTitle: 'login')));
     }
 }

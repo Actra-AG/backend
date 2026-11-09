@@ -52,6 +52,7 @@ final readonly class BackendPageRenderer
      * @param list<string> $ipWhitelist The global IP whitelist of the backend
      * @param list<string> $languageCodes The languages of the backend (`de`, `en`, `fr`, `it`), the first one is the
      *                                    main language
+     * @param bool $passwordLogin `false`: login by code only
      */
     public function __construct(
         DbSettings $dbSettings,
@@ -61,6 +62,7 @@ final readonly class BackendPageRenderer
         array $languageCodes = ['de', 'en'],
         ?SharedLoginSettings $sharedLogin = null,
         string $frontendHref = '',
+        bool $passwordLogin = true,
     ) {
         $locales = ['de' => 'de_CH.UTF-8', 'en' => 'en_GB.UTF-8', 'fr' => 'fr_CH.UTF-8', 'it' => 'it_CH.UTF-8'];
         $this->languageCollection = new LanguageCollection(languages: array_map(
@@ -79,6 +81,7 @@ final readonly class BackendPageRenderer
             loginHandOver: $loginHandOver,
             sharedLogin: $sharedLogin,
             frontendHref: $frontendHref,
+            passwordLogin: $passwordLogin,
         );
         $this->route = array_first(array: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/view/'))
             ?? throw new LogicException(message: 'The backend has no route');

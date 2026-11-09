@@ -16,6 +16,7 @@ use actra\backend\libs\auth\LoginCodeResultEnum;
 use actra\backend\libs\auth\PasswordLoginResultEnum;
 use actra\backend\libs\form\LoginForm;
 use actra\backend\libs\form\LoginTokenForm;
+use actra\backend\settings\TokenSendLimit;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\RecordingLogger;
 use actra\backend\tests\Double\RecordingResponseSender;
@@ -24,6 +25,8 @@ use actra\backend\tests\Double\TestUsers;
 use actra\backend\tests\Double\ViewContextFactory;
 use actra\yuf\auth\AuthResultEnum;
 use actra\yuf\auth\LoginRateLimit;
+use actra\yuf\clock\Clock;
+use actra\yuf\clock\FixedClock;
 use actra\yuf\clock\SystemClock;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\core\RequestMethodEnum;
@@ -35,6 +38,7 @@ use actra\yuf\security\RateLimiter;
 use actra\yuf\security\RateLimitFailModeEnum;
 use actra\yuf\session\ArraySessionStorage;
 use actra\yuf\session\Session;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -80,31 +84,39 @@ final class BackendLoginTest extends TestCase
         return $name . '-' . bin2hex(string: random_bytes(length: 4)) . '@example.com';
     }
 
-    private function createActraBackend(?LoginRateLimit $loginRateLimit = null): ActraBackend
-    {
+    private function createActraBackend(
+        ?LoginRateLimit $loginRateLimit = null,
+        bool $passwordLogin = true,
+        ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
+    ): ActraBackend {
         return ActraBackendTestInstance::create(
             dbSettings: TestDatabase::settings(),
+            tokenSendLimit: $tokenSendLimit,
             loginRateLimit: $loginRateLimit,
             mailer: $this->mailer,
+            passwordLogin: $passwordLogin,
         );
     }
 
     /**
-     * A login rate limit of one attempt per email address in a fresh directory.
+     * A login rate limit of one attempt per email address in the directory of the test (fresh per test).
      */
-    private function createLoginRateLimit(): LoginRateLimit
-    {
+    private function createLoginRateLimit(
+        int $maxCodeAttempts = 30,
+        Clock $clock = new SystemClock(),
+    ): LoginRateLimit {
         return new LoginRateLimit(
             rateLimiter: new RateLimiter(
                 directory: $this->rateLimitDirectory,
                 secret: str_repeat(string: 's', times: 32),
-                clock: new SystemClock(),
+                clock: $clock,
                 purgeProbabilityPercent: 0,
             ),
             failMode: RateLimitFailModeEnum::CLOSED,
             logger: new RecordingLogger(),
             clientLimits: [new RateLimit(maxHits: 100, windowSeconds: 900)],
             accountLimits: [new RateLimit(maxHits: 1, windowSeconds: 900)],
+            codeLimits: [new RateLimit(maxHits: $maxCodeAttempts, windowSeconds: 3600)],
         );
     }
 
@@ -120,6 +132,7 @@ final class BackendLoginTest extends TestCase
         array $queryParameters = [],
         array $postParameters = [],
         ?Session $session = null,
+        string $remoteAddress = BackendLoginTest::IP_ADDRESS,
     ): BackendLogin {
         $session ??= $this->session;
         $queryString = http_build_query(data: $queryParameters, encoding_type: PHP_QUERY_RFC3986);
@@ -132,7 +145,7 @@ final class BackendLoginTest extends TestCase
                 method: $postParameters === [] ? RequestMethodEnum::GET : RequestMethodEnum::POST,
                 uri: '/' . $fileTitle . '.html' . ($queryString === '' ? '' : '?' . $queryString),
                 queryString: $queryString,
-                remoteAddress: BackendLoginTest::IP_ADDRESS,
+                remoteAddress: $remoteAddress,
                 queryParameters: $queryParameters,
                 postParameters: $postParameters === [] ? [] : [
                     CsrfTokenSource::FIELD_NAME => ViewContextFactory::csrfToken(session: $session),
@@ -269,6 +282,92 @@ final class BackendLoginTest extends TestCase
         );
     }
 
+    public function testCodeAttemptsAboveTheRateLimitAreNotChecked(): void
+    {
+        $email = BackendLoginTest::email(name: 'code-limit');
+        $this->testUsers->create(email: $email);
+        $actraBackend = $this->createActraBackend(loginRateLimit: $this->createLoginRateLimit(maxCodeAttempts: 3));
+        $code = $this->requestCode(actraBackend: $actraBackend, email: $email);
+        $otherSession = new Session(storage: new ArraySessionStorage());
+
+        foreach ([$this->session, $this->session, $otherSession] as $session) {
+            $this->assertSame(
+                LoginCodeResultEnum::INVALID,
+                $this->createLogin(actraBackend: $actraBackend, session: $session)->logInWithCode(code: 'wrong'),
+            );
+        }
+        // Not checked: the right code stays valid in the session
+        $this->assertSame(
+            LoginCodeResultEnum::RATE_LIMITED,
+            $this->createLogin(actraBackend: $actraBackend)->logInWithCode(code: $code),
+        );
+        $this->assertSame(
+            LoginCodeResultEnum::LOGGED_IN,
+            $this->createLogin(actraBackend: $actraBackend, remoteAddress: '198.51.100.20')->logInWithCode(code: $code),
+        );
+        // The attempt of the other session has no user; the code is never logged
+        $this->assertSame(
+            [
+                AuthResultEnum::ERROR_WRONG_CODE->value,
+                AuthResultEnum::ERROR_WRONG_CODE->value,
+                AuthResultEnum::ERROR_RATE_LIMITED->value,
+                AuthResultEnum::SUCCESSFUL_OTP_LOGIN->value,
+            ],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+    }
+
+    public function testCodeRateLimitWindowResets(): void
+    {
+        $email = BackendLoginTest::email(name: 'code-window');
+        $this->testUsers->create(email: $email);
+        $now = new DateTimeImmutable(datetime: '2026-11-09 10:00:00');
+        $code = $this->requestCode(actraBackend: $this->createActraBackend(), email: $email);
+        $limitedNow = $this->createActraBackend(
+            loginRateLimit: $this->createLoginRateLimit(maxCodeAttempts: 1, clock: new FixedClock(now: $now)),
+        );
+        $limitedLater = $this->createActraBackend(
+            loginRateLimit: $this->createLoginRateLimit(
+                maxCodeAttempts: 1,
+                clock: new FixedClock(now: $now->modify(modifier: '+2 hours')),
+            ),
+        );
+
+        $this->assertSame(
+            LoginCodeResultEnum::INVALID,
+            $this->createLogin(actraBackend: $limitedNow)->logInWithCode(code: 'wrong'),
+        );
+        $this->assertSame(
+            LoginCodeResultEnum::RATE_LIMITED,
+            $this->createLogin(actraBackend: $limitedNow)->logInWithCode(code: $code),
+        );
+        $this->assertSame(
+            LoginCodeResultEnum::LOGGED_IN,
+            $this->createLogin(actraBackend: $limitedLater)->logInWithCode(code: $code),
+        );
+    }
+
+    public function testWrongCodeIsLoggedWithoutRateLimit(): void
+    {
+        $email = BackendLoginTest::email(name: 'code-log');
+        $this->testUsers->create(email: $email);
+        $actraBackend = $this->createActraBackend();
+        $code = $this->requestCode(actraBackend: $actraBackend, email: $email);
+
+        $this->assertSame(
+            LoginCodeResultEnum::INVALID,
+            $this->createLogin(actraBackend: $actraBackend)->logInWithCode(code: 'wrong'),
+        );
+        $this->assertSame(
+            LoginCodeResultEnum::LOGGED_IN,
+            $this->createLogin(actraBackend: $actraBackend)->logInWithCode(code: $code),
+        );
+        $this->assertSame(
+            [AuthResultEnum::ERROR_WRONG_CODE->value, AuthResultEnum::SUCCESSFUL_OTP_LOGIN->value],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+    }
+
     public function testPasswordSendsACode(): void
     {
         $email = BackendLoginTest::email(name: 'password');
@@ -308,6 +407,125 @@ final class BackendLoginTest extends TestCase
                 password: BackendLoginTest::PASSWORD,
             ),
         );
+    }
+
+    public function testUserWithPasswordGetsNoCode(): void
+    {
+        $email = BackendLoginTest::email(name: 'with-password');
+        $this->testUsers->create(email: $email, password: BackendLoginTest::PASSWORD);
+
+        $this->assertSame(
+            LoginCodeRequestResultEnum::SENT,
+            $this->createLogin(actraBackend: $this->createActraBackend())->requestCode(email: $email),
+        );
+        $this->assertSame([], $this->responseSender->afterResponseCallbacks);
+        $this->assertSame(
+            [AuthResultEnum::ERROR_NO_PASSWORD->value],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+    }
+
+    /**
+     * Without password login, a stored password is ignored: the user gets a code and logs in with it; the mail mentions
+     * no password.
+     */
+    public function testWithoutPasswordLoginUserWithPasswordGetsACode(): void
+    {
+        $email = BackendLoginTest::email(name: 'code-only');
+        $this->testUsers->create(email: $email, password: BackendLoginTest::PASSWORD);
+        $actraBackend = $this->createActraBackend(passwordLogin: false);
+
+        $code = $this->requestCode(actraBackend: $actraBackend, email: $email);
+
+        $this->assertSame(1, $this->testUsers->countTokens(email: $email));
+        $this->assertCount(1, $this->mailer->sentMails);
+        $mailBody = array_first(array: $this->mailer->sentMails)->getBody();
+        $this->assertStringContainsString(
+            $actraBackend->getMessages(languageCode: 'de')->email->loginTokenIntroPasswordLogin,
+            $mailBody,
+        );
+        $this->assertStringNotContainsStringIgnoringCase('passwort', $mailBody);
+        $login = $this->createLogin(actraBackend: $actraBackend);
+        $this->assertSame(LoginCodeResultEnum::LOGGED_IN, $login->logInWithCode(code: $code));
+        $this->assertSame($email, $login->getCurrentUser()?->dbAuthUser->email);
+    }
+
+    public function testWithoutPasswordLoginTheRightPasswordSendsNoCode(): void
+    {
+        $email = BackendLoginTest::email(name: 'code-only-password');
+        $this->testUsers->create(email: $email, password: BackendLoginTest::PASSWORD);
+
+        $this->assertSame(
+            PasswordLoginResultEnum::CREDENTIALS_INVALID,
+            $this->createLogin(actraBackend: $this->createActraBackend(passwordLogin: false))->requestCodeWithPassword(
+                email: $email,
+                password: BackendLoginTest::PASSWORD,
+            ),
+        );
+        $this->assertSame([], $this->responseSender->afterResponseCallbacks);
+        $this->assertSame(0, $this->testUsers->countTokens(email: $email));
+        $this->assertSame(
+            [AuthResultEnum::ERROR_NO_PASSWORD_LOGIN_ACTIVE->value],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+    }
+
+    /**
+     * The counter of wrong passwords locks a user out of the code login only with password login: without, a password
+     * reset to unlock does not exist.
+     */
+    public function testWrongPasswordAttemptsLockOutOnlyWithPasswordLogin(): void
+    {
+        $email = BackendLoginTest::email(name: 'out-tried');
+        $this->testUsers->create(email: $email, password: BackendLoginTest::PASSWORD, wrongLoginAttempts: 5);
+
+        $this->createLogin(actraBackend: $this->createActraBackend())->requestCode(email: $email);
+        $this->assertSame(
+            [AuthResultEnum::ERROR_OUT_TRIED->value],
+            $this->testUsers->listLoggedResults(email: $email),
+        );
+
+        $actraBackend = $this->createActraBackend(passwordLogin: false);
+        $code = $this->requestCode(actraBackend: $actraBackend, email: $email);
+        $this->assertSame(
+            LoginCodeResultEnum::LOGGED_IN,
+            $this->createLogin(actraBackend: $actraBackend)->logInWithCode(code: $code),
+        );
+    }
+
+    public function testWithoutPasswordLoginTheLimitsAndTheAnswerForUnknownAddressesStay(): void
+    {
+        $unknownEmail = BackendLoginTest::email(name: 'code-only-unknown');
+        $this->assertSame(
+            LoginCodeRequestResultEnum::SENT,
+            $this->createLogin(actraBackend: $this->createActraBackend(passwordLogin: false))->requestCode(
+                email: $unknownEmail,
+            ),
+        );
+        $this->assertSame([], $this->responseSender->afterResponseCallbacks);
+
+        $email = BackendLoginTest::email(name: 'code-only-rate-limit');
+        $this->testUsers->create(email: $email, password: BackendLoginTest::PASSWORD);
+        $actraBackend = $this->createActraBackend(
+            loginRateLimit: $this->createLoginRateLimit(),
+            passwordLogin: false,
+        );
+        $this->createLogin(actraBackend: $actraBackend)->requestCode(email: $email);
+        $this->assertSame(
+            LoginCodeRequestResultEnum::RATE_LIMITED,
+            $this->createLogin(actraBackend: $actraBackend)->requestCode(email: $email),
+        );
+        $this->assertSame(1, $this->testUsers->countTokens(email: $email));
+
+        $sendLimitEmail = BackendLoginTest::email(name: 'code-only-send-limit');
+        $this->testUsers->create(email: $sendLimitEmail, password: BackendLoginTest::PASSWORD);
+        $actraBackend = $this->createActraBackend(
+            passwordLogin: false,
+            tokenSendLimit: new TokenSendLimit(maxTokens: 1, withinMinutes: 15),
+        );
+        $this->createLogin(actraBackend: $actraBackend)->requestCode(email: $sendLimitEmail);
+        $this->createLogin(actraBackend: $actraBackend)->requestCode(email: $sendLimitEmail);
+        $this->assertSame(1, $this->testUsers->countTokens(email: $sendLimitEmail));
     }
 
     /**

@@ -15,6 +15,21 @@ namespace actra\backend;
 final readonly class BackendPaths
 {
     public const string LOGIN_FILE_TITLE = 'login';
+    /**
+     * The pages of the password login, reset and profile; they answer 404 without password login
+     * (`ActraBackendSettings::$passwordLogin`, `BackendViewFactory`), also a project view of the same name.
+     */
+    public const array PASSWORD_FILE_TITLES = [
+        'loginPassword',
+        'loginPasswordToken',
+        'passwordForgotten',
+        'passwordForgottenRes',
+        'passwordReset',
+        'passwordResetRes',
+        'profileChangePassword',
+        'profileCreatePassword',
+        'profileRemovePassword',
+    ];
 
     /**
      * @param string $path The path of the backend route, e.g. `/backend/`

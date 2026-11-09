@@ -13,6 +13,7 @@ use actra\yuf\core\BaseView;
 use actra\yuf\core\ClassNameViewFactory;
 use actra\yuf\core\ViewContext;
 use actra\yuf\core\ViewFactory;
+use actra\yuf\exception\NotFoundException;
 use Closure;
 
 /**
@@ -20,7 +21,9 @@ use Closure;
  * passes a `BackendViewContext` to views based on `BackendView`. Other views get the `ViewContext` as before, so a
  * project route can mix both. On the backend route (`ActraBackend::$path`), a file title without project view is a page
  * of the backend itself (`actra\backend\view\backend\php\<file title>`): a project view with the same name replaces the
- * page of the backend. Get it with `ActraBackend::createViewFactory()`.
+ * page of the backend. Without password login (`ActraBackendSettings::$passwordLogin`), the password pages of the
+ * backend route answer 404 (`BackendPaths::PASSWORD_FILE_TITLES`), before a view is created or a form processed. Get
+ * it with `ActraBackend::createViewFactory()`.
  */
 final readonly class BackendViewFactory implements ViewFactory
 {
@@ -53,9 +56,20 @@ final readonly class BackendViewFactory implements ViewFactory
         );
     }
 
+    /**
+     * @throws NotFoundException for a password page without password login
+     */
     #[\Override]
     public function createView(ViewContext $context): ?BaseView
     {
+        if (
+            !$this->actraBackend->actraBackendSettings->passwordLogin
+            && $context->route->path === $this->actraBackend->path
+            && $context->fileGroup === null
+            && in_array(needle: $context->fileTitle, haystack: BackendPaths::PASSWORD_FILE_TITLES, strict: true)
+        ) {
+            throw new NotFoundException();
+        }
         $projectView = $this->classNameViewFactory->createView(context: $context);
         if ($projectView !== null || $context->route->path !== $this->actraBackend->path) {
             return $projectView;

@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">=8.5",
-    "actra/yuf": "~8.18.0",
+    "actra/yuf": "~8.19.0",
     "ext-intl": "*",
     "ext-mbstring": "*"
   },
@@ -30,11 +30,11 @@
     }
   },
   "scripts": {
-    "cs": "php-cs-fixer check --diff",
-    "cs:fix": "php-cs-fixer fix",
-    "phpstan": "phpstan analyse --memory-limit=-1",
-    "phpstan:baseline": "phpstan analyse --memory-limit=-1 --generate-baseline",
-    "test": "phpunit",
+    "cs": "php-cs-fixer check --diff --show-progress=none",
+    "cs:fix": "php-cs-fixer fix --show-progress=none",
+    "phpstan": "phpstan analyse --memory-limit=-1 --no-progress",
+    "phpstan:baseline": "phpstan analyse --memory-limit=-1 --no-progress --generate-baseline",
+    "test": "phpunit --no-progress",
     "check": [
       "@cs",
       "@phpstan",

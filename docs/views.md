@@ -38,6 +38,9 @@ an own `login`; it then has to do what the page does):
 `userGenerateApiKey`, `userImpersonate`, `userImpersonateEnd`, `userInvite`, `userMod`, `userRemoveApiKey`, `users`,
 `visits`.
 
+Without password login (`ActraBackendSettings::$passwordLogin: false`), the password pages
+(`BackendPaths::PASSWORD_FILE_TITLES`) answer 404 on the backend path, also a project view with one of these names.
+
 ### Further routes
 
 A project route with views based on `BackendView` outside the backend path uses the view factory of the backend too

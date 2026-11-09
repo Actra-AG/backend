@@ -44,6 +44,7 @@ final class ActraBackendTestInstance
      * @param string $viewGroup The view group of the project views on the backend route
      * @param ?Closure(): FrameworkDb $connectDb The connection of the project; default: one from `$dbSettings`
      * @param string $frontendHref The link to the website, `''` for none
+     * @param bool $passwordLogin `false`: login by code only
      */
     public static function create(
         ?DbSettings $dbSettings = null,
@@ -69,6 +70,7 @@ final class ActraBackendTestInstance
         ?Closure $connectDb = null,
         ?SharedLoginSettings $sharedLogin = null,
         string $frontendHref = '',
+        bool $passwordLogin = true,
     ): ActraBackend {
         return ActraBackend::create(
             path: $path,
@@ -88,6 +90,7 @@ final class ActraBackendTestInstance
                 messages: $messages,
                 projectNavigation: $projectNavigation,
                 tokenSendLimit: $tokenSendLimit,
+                passwordLogin: $passwordLogin,
             ),
             // Connects on first use, like a project's lazy connection
             connectDb: $connectDb ?? static fn(): FrameworkDb => new FrameworkDb(

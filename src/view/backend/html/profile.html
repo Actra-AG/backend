@@ -17,6 +17,7 @@
     {tst:text value='form'}
   </div>
 
+  <tst:if compare="passwordLogin" operator="EQ" against="true">
   <div class="card | flow-layout-m">
     <div class="card-header">
       <h2>{tst:text value='passwordProtectionHeading'}</h2>
@@ -40,6 +41,7 @@
       </div>
     </tst:else>
   </div>
+  </tst:if>
 
 
   <tst:if compare="hasApi" operator="EQ" against="true">

@@ -24,11 +24,17 @@ use actra\yuf\session\Session;
 
 final class MyAuthUser extends AuthUser
 {
+    /**
+     * @param bool $passwordLogin `false` (`ActraBackendSettings::$passwordLogin`): the login sees no stored password
+     *     and no wrong password attempts, so no password is verified, a user with password gets a login code, and
+     *     the counter of wrong passwords locks nobody out (`MyAuthenticator`)
+     */
     public function __construct(
         public readonly DbAuthUser $dbAuthUser,
         public readonly ?int $parentSessionId,
         private readonly BackendRepositories $repositories,
         private readonly ClientData $clientData,
+        bool $passwordLogin = true,
     ) {
         parent::__construct(
             id: $dbAuthUser->id,
@@ -36,9 +42,9 @@ final class MyAuthUser extends AuthUser
                 $dbAuthUser->isActive
                 && !$dbAuthUser->accessRightCollection->isEmpty()
             ),
-            wrongPasswordAttempts: $dbAuthUser->wrongLoginAttempts,
+            wrongPasswordAttempts: $passwordLogin ? $dbAuthUser->wrongLoginAttempts : 0,
             accessRightCollection: $dbAuthUser->accessRightCollection,
-            password: $dbAuthUser->password,
+            password: $passwordLogin ? $dbAuthUser->password : null,
             ipWhitelist: $dbAuthUser->ipWhitelist,
         );
     }

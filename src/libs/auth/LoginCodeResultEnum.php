@@ -20,4 +20,9 @@ enum LoginCodeResultEnum
      * session (request a new code then)
      */
     case INVALID;
+    /**
+     * Too many code attempts from the client IP address (`codeLimits` of the `LoginRateLimit`); the code was not
+     * checked
+     */
+    case RATE_LIMITED;
 }

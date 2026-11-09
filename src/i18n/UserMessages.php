@@ -48,7 +48,7 @@ final readonly class UserMessages
         public string $inviteIntro = 'Enter the content of the welcome email that is to be sent to the person below.',
         public string $recipientLabel = 'Recipient:',
         public string $inviteSubmitButton = 'Send',
-        public string $inviteDefaultSubject = 'Access to the password-protected area',
+        public string $inviteDefaultSubject = 'Access to the protected area',
         public string $inviteGreeting = 'Hello [firstName] [lastName]',
         public string $inviteAccessCreated = 'We have set up an account for you in our backend:',
         public string $inviteLoginInstructions = 'To log in, enter your email address [email] and, in the next step, '
@@ -96,7 +96,7 @@ final readonly class UserMessages
                 . 'geschickt werden soll.',
             recipientLabel: 'Empfänger:',
             inviteSubmitButton: 'senden',
-            inviteDefaultSubject: 'Zugang zum passwortgeschützten Bereich',
+            inviteDefaultSubject: 'Zugang zum geschützten Bereich',
             inviteGreeting: 'Guten Tag [firstName] [lastName]',
             inviteAccessCreated: 'Wir haben Ihnen einen Zugang in unser Backend eingerichtet:',
             inviteLoginInstructions: 'Geben Sie zur Anmeldung Ihre E-Mail-Adresse [email] und beim nächsten Schritt '
@@ -144,7 +144,7 @@ final readonly class UserMessages
             inviteIntro: 'Saisissez ci-dessous le contenu souhaité de l’e-mail de bienvenue à envoyer à la personne.',
             recipientLabel: 'Destinataire:',
             inviteSubmitButton: 'envoyer',
-            inviteDefaultSubject: 'Accès à l’espace protégé par mot de passe',
+            inviteDefaultSubject: 'Accès à l’espace protégé',
             inviteGreeting: 'Bonjour [firstName] [lastName]',
             inviteAccessCreated: 'Nous avons créé pour vous un accès à notre backend:',
             inviteLoginInstructions: 'Pour vous connecter, saisissez votre adresse e-mail [email], puis, à l’étape '
@@ -193,7 +193,7 @@ final readonly class UserMessages
                 . 'persona.',
             recipientLabel: 'Destinatario:',
             inviteSubmitButton: 'inviare',
-            inviteDefaultSubject: 'Accesso all’area protetta da password',
+            inviteDefaultSubject: 'Accesso all’area protetta',
             inviteGreeting: 'Buongiorno [firstName] [lastName]',
             inviteAccessCreated: 'Abbiamo creato per Lei un accesso al nostro backend:',
             inviteLoginInstructions: 'Per accedere, inserisca il Suo indirizzo e-mail [email] e, nel passo '

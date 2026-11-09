@@ -2,6 +2,49 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.11.0 (2026-11-09)
+
+### ⚠️ Requires `actra/yuf` `~8.19.0`: wrong login codes are limited per IP address and logged
+
+Every entered login code (`BackendLogin::logInWithCode()`, `LoginTokenForm`) is counted per client IP address with the
+`codeLimits:` of yuf's `LoginRateLimit` (default 30 per hour), before the code is checked. Above the limit the code is
+not checked and the form shows `AuthMessages::$tooManyAttempts`. Wrong codes are logged on the page "Visits" (yuf's
+`AuthResultEnum::ERROR_WRONG_CODE`). This is on by default with a `loginRateLimit:`. To change the limit, pass
+`codeLimits: [new RateLimit(maxHits: …, windowSeconds: …)]` to the `LoginRateLimit`. Projects that use
+`logInWithCode()` themselves handle the new case ⚠️ `LoginCodeResultEnum::RATE_LIMITED` (in an exhaustive `match`).
+Migrate your own code along yuf's `UPGRADE.md`, v8.19.0: the new `AuthResultEnum::ERROR_WRONG_CODE` breaks exhaustive
+`match` expressions on it.
+
+### Login by code only: `ActraBackendSettings::$passwordLogin`
+
+No migration needed: the default `true` keeps the login as before. `passwordLogin: false` turns the passwords off,
+every user logs in with the login code by email ([docs/users.md](docs/users.md#login-by-code-only)):
+
+- The password pages answer 404 on the backend path, for GET and for a sent form, also a project view with one of
+  these names (`BackendPaths::PASSWORD_FILE_TITLES`): `loginPassword`, `loginPasswordToken`, `passwordForgotten`,
+  `passwordForgottenRes`, `passwordReset`, `passwordResetRes`, `profileChangePassword`, `profileCreatePassword`,
+  `profileRemovePassword`. The profile hides its password section.
+- Stored passwords and the counter of wrong passwords (`wrong_login_attempts`) are ignored, not deleted:
+  `BackendLogin::requestCode()` sends the code to a user with a password (no `ERROR_NO_PASSWORD`), a user at the limit
+  of wrong passwords is not locked out, and `requestCodeWithPassword()` (also yuf's `passwordLogin()` and
+  `verifyPassword()` of the backend's authenticator) verifies no password: `CREDENTIALS_INVALID`, logged as
+  `ERROR_NO_PASSWORD_LOGIN_ACTIVE`, no exception. To remove them:
+  `UPDATE auth_users SET password_salt = NULL, password_hash = NULL, wrong_login_attempts = 0;`
+- A project with its own login page calls only `requestCode()` and `logInWithCode()`: search its code for
+  `requestCodeWithPassword`, `LoginPasswordForm`, `PasswordForgottenForm`, `PasswordResetForm` and links to the pages
+  above (`BackendPaths::loginPassword()`, `passwordForgotten()`, …) and remove them.
+- The login code mail uses `EmailMessages::$loginTokenIntroPasswordLogin` (it mentions no password) instead of
+  `$loginTokenIntroPasswordless`.
+
+`MyAuthUser` has a new optional constructor argument `passwordLogin:` (default `true`), set by the backend's
+authenticator.
+
+### Default subject of the welcome email
+
+`UserMessages::$inviteDefaultSubject` mentions no password: "Access to the protected area", "Zugang zum geschützten
+Bereich", "Accès à l’espace protégé", "Accesso all’area protetta". Projects that want the former text set it with
+`messages:` ([docs/languages.md](docs/languages.md#texts)).
+
 ## v5.10.0 (2026-11-08)
 
 ### ⚠️ Requires `actra/yuf` `~8.18.0`

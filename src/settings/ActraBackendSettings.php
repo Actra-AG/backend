@@ -22,7 +22,8 @@ final readonly class ActraBackendSettings
      * @param string $frontendHref The link to the website in the page footer, `''` for none; its text is
      *     `LayoutMessages::$frontendLink` in the language of the request
      * @param ?LoginRateLimit $loginRateLimit Limits the logins, password verifications and login code requests per
-     *     client IP address and email address (yuf's `Authenticator`); `null` as explicit opt-out
+     *     client IP address and email address, and the entered login codes per client IP address (yuf's
+     *     `Authenticator`); `null` as explicit opt-out
      * @param array<string, BackendMessages> $messages Own texts by language code (`ActraBackend::getMessages()`); a
      *     language without entry gets `BackendMessages::forLanguageCode()`
      * @param ?BackendNavigation $projectNavigation Adds the project's navigation items in the language of the request
@@ -33,6 +34,9 @@ final readonly class ActraBackendSettings
      *     and its other sites (`docs/login.md`); `null` as explicit opt-out
      * @param ?TokenSendLimit $tokenSendLimit Limits the login codes and password reset links per user; `null` turns
      *     the limit off
+     * @param bool $passwordLogin `false`: users log in with the login code by email only. The password pages answer
+     *     404 (`BackendPaths::PASSWORD_FILE_TITLES`), no page links to them, and stored passwords and the counter of
+     *     wrong passwords have no effect (they stay in the database)
      */
     public function __construct(
         public array $ipWhitelist,
@@ -49,5 +53,6 @@ final readonly class ActraBackendSettings
         public ?BackendNavigation $projectNavigation = null,
         public ?UserDeleteHandler $userDeleteHandler = null,
         public ?TokenSendLimit $tokenSendLimit = new TokenSendLimit(),
+        public bool $passwordLogin = true,
     ) {}
 }

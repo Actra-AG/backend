@@ -13,6 +13,7 @@ use actra\backend\ActraBackend;
 use actra\backend\BackendView;
 use actra\backend\BackendViewContext;
 use actra\backend\libs\auth\GeneratedApiKeyFlash;
+use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\form\ProfileForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
@@ -86,29 +87,11 @@ final class profile extends BackendView
             identifier: 'form',
             html: $profileForm->render(),
         );
-        if ($dbAuthUser->password === null) {
-            $replacements->addHtml(
-                identifier: 'createPasswordHref',
-                html: $this->backendContext->paths->profileCreatePassword(),
-            );
-        } else {
-            $replacements->addHtml(
-                identifier: 'createPasswordHref',
-                html: '',
-            );
-            $replacements->addText(
-                identifier: 'loginPasswordHref',
-                text: $this->context->httpRequest->getProtocol()->value . '://'
-                    . $this->context->httpRequest->getHost() . $this->backendContext->paths->loginPassword(),
-            );
-            $replacements->addHtml(
-                identifier: 'changePasswordHref',
-                html: $this->backendContext->paths->profileChangePassword(),
-            );
-            $replacements->addHtml(
-                identifier: 'removePasswordHref',
-                html: $this->backendContext->paths->profileRemovePassword(),
-            );
+        $passwordLogin = $this->backendContext->actraBackend->actraBackendSettings->passwordLogin;
+        $replacements->addBool(identifier: 'passwordLogin', booleanValue: $passwordLogin);
+        // Without password login the password section is hidden: no link to the password pages (they answer 404)
+        if ($passwordLogin) {
+            $this->addPasswordLinks(replacements: $replacements, dbAuthUser: $dbAuthUser);
         }
         if (!$hasApi) {
             return;
@@ -132,6 +115,24 @@ final class profile extends BackendView
                 userId: $dbAuthUser->id,
             ) ?? '',
         );
+    }
+
+    private function addPasswordLinks(HtmlReplacementCollection $replacements, DbAuthUser $dbAuthUser): void
+    {
+        $paths = $this->backendContext->paths;
+        if ($dbAuthUser->password === null) {
+            $replacements->addHtml(identifier: 'createPasswordHref', html: $paths->profileCreatePassword());
+
+            return;
+        }
+        $replacements->addHtml(identifier: 'createPasswordHref', html: '');
+        $httpRequest = $this->context->httpRequest;
+        $replacements->addText(
+            identifier: 'loginPasswordHref',
+            text: $httpRequest->getProtocol()->value . '://' . $httpRequest->getHost() . $paths->loginPassword(),
+        );
+        $replacements->addHtml(identifier: 'changePasswordHref', html: $paths->profileChangePassword());
+        $replacements->addHtml(identifier: 'removePasswordHref', html: $paths->profileRemovePassword());
     }
 
     private function addProfileTexts(HtmlReplacementCollection $replacements): void

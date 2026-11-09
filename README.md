@@ -6,8 +6,8 @@ password login, and one-time tokens sent via email.
 
 ## Features
 
-- **Password Login**: Authenticate backend users with their email address and password.
-- **Password Reset**: Allow users to request a reset link and set a new password.
+- **Password Login** (optional): Authenticate backend users with their email address and password.
+- **Password Reset** (optional): Allow users to request a reset link and set a new password.
 - **One-Time Token Authentication**: Secure login confirmation and token-based authentication using tokens sent to the
   user's email.
 - **User Management**: Add, modify, and invite users to the system, including phone number support.
@@ -148,6 +148,7 @@ $actraBackend = ActraBackend::create(
         frontendHref: 'https://example.com', // Optional; its text: LayoutMessages::$frontendLink (docs/languages.md)
         hasApi: false, // Optional, defaults to false
         tokenSendLimit: new TokenSendLimit(maxTokens: 5, withinMinutes: 15), // Optional, this default; null: off
+        passwordLogin: true, // Optional, defaults to true; false: login code by email only (docs/users.md)
     ),
     connectDb: $connectDb, // The project's own repositories use the same $connectDb
     mailerSettings: new MailerSettings(

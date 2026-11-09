@@ -5,21 +5,23 @@ in the layout of the frontend: `ActraBackend::createLogin()` gives the steps of 
 route with a session. The login is the same as on the backend pages (they use it too): login code by email, rate limit,
 send limit, logged attempts, the code bound to the browser session that requested it.
 
-| `BackendLogin::…`                            | Result                                                          |
-|:---------------------------------------------|:----------------------------------------------------------------|
-| `requestCode(email:)`                        | `SENT` (also for unknown or rejected addresses), `RATE_LIMITED` |
-| `requestCodeWithPassword(email:, password:)` | `CODE_SENT`, `CREDENTIALS_INVALID`, `RATE_LIMITED`              |
-| `logInWithCode(code:)`                       | `LOGGED_IN`, `INVALID` (wrong, expired, used, other session)    |
-| `getCurrentUser()`                           | `?MyAuthUser` (`null` also outside the user's IP whitelist)     |
-| `logOut()`                                   | Ends the login of the session (shared login: on all hosts)      |
-| `findReturnPath()`                           | The validated local path of `?returnTo=`, `null` without one    |
-| `checkSharedLogin()`                         | Shared login, site: the silent check at the login host          |
-| `redirectAfterLogin(…)`                      | After the login: push of a shared login, then the next page     |
-| `redirectLoggedInUser(…)`                    | A visitor logged in already: the next page, without push        |
+| `BackendLogin::…`                            | Result                                                                       |
+|:---------------------------------------------|:-----------------------------------------------------------------------------|
+| `requestCode(email:)`                        | `SENT` (also for unknown or rejected addresses), `RATE_LIMITED`              |
+| `requestCodeWithPassword(email:, password:)` | `CODE_SENT`, `CREDENTIALS_INVALID`, `RATE_LIMITED`                           |
+| `logInWithCode(code:)`                       | `LOGGED_IN`, `INVALID` (wrong, expired, used, other session), `RATE_LIMITED` |
+| `getCurrentUser()`                           | `?MyAuthUser` (`null` also outside the user's IP whitelist)                  |
+| `logOut()`                                   | Ends the login of the session (shared login: on all hosts)                   |
+| `findReturnPath()`                           | The validated local path of `?returnTo=`, `null` without one                 |
+| `checkSharedLogin()`                         | Shared login, site: the silent check at the login host                       |
+| `redirectAfterLogin(…)`                      | After the login: push of a shared login, then the next page                  |
+| `redirectLoggedInUser(…)`                    | A visitor logged in already: the next page, without push                     |
 
 A user with a password gets no code with `requestCode()` (answered with `SENT`, logged as `ERROR_NO_PASSWORD`): log
-in with `requestCodeWithPassword()`, which sends the code as second factor, then `logInWithCode()`. The texts of the
-backend in the language of the request are in `$login->context->messages` (`auth`, `common`).
+in with `requestCodeWithPassword()`, which sends the code as second factor, then `logInWithCode()`. Without password
+login (`ActraBackendSettings::$passwordLogin: false`, [users.md](users.md#login-by-code-only)) every user gets the
+code with `requestCode()`, and `requestCodeWithPassword()` verifies no password (`CREDENTIALS_INVALID`). The texts
+of the backend in the language of the request are in `$login->context->messages` (`auth`, `common`).
 `BackendLogin::createNextStepUri(path:, returnPath:, loginRequestId:)` adds the return path (and the login request of a
 site, see below) to the path of the next step.
 

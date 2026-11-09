@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\auth;
 
 use actra\backend\BackendViewContext;
+use actra\backend\libs\db\DbAuthUser;
 use actra\backend\settings\AuthTokenTypeEnum;
 use actra\yuf\auth\Authenticator;
 use actra\yuf\auth\AuthMethodEnum;
@@ -32,17 +33,27 @@ final class MyAuthenticator extends Authenticator
     }
 
     /**
-     * Logs in with a claimed login token; the logged-in user, `null` for a wrong token or a rejected user. The token
-     * was sent after a counted step (`verifyPassword()` or `findTokenLoginUser()`), so the login is not counted by the
-     * rate limit again (yuf's `logInVerifiedUser()`), and a claimed token is not lost to it.
+     * Logs in with a claimed login token; the logged-in user, `null` for a wrong token or a rejected user. Every attempt
+     * is counted per client IP address before the token is checked (yuf's `consumeCodeAttempt()`, `codeLimits` of the
+     * `LoginRateLimit`): above the limit the token is not checked, `$authResult` is `ERROR_RATE_LIMITED`. A wrong token
+     * is logged as `ERROR_WRONG_CODE` with the user the session's token was sent to (the token itself never). The
+     * login itself is not counted again (yuf's `logInVerifiedUser()`): the token was sent after a counted step.
      */
-    public function tokenLogin(string $inputToken): ?MyAuthUser
+    public function tokenLogin(#[\SensitiveParameter] string $inputToken): ?MyAuthUser
     {
-        $dbAuthToken = new AuthTokens(context: $this->context)->claim(
-            type: AuthTokenTypeEnum::LOGIN,
-            inputToken: $inputToken,
-        );
+        $authTokens = new AuthTokens(context: $this->context);
+        // The user of the log; the code step does not know the address, so a session without token logs none
+        $pendingUserId = $authTokens->findPendingUserId(type: AuthTokenTypeEnum::LOGIN);
+        $pendingUserName = $pendingUserId === null
+            ? ''
+            : $this->context->repositories->users()->selectById(id: $pendingUserId)->email ?? '';
+        if (!$this->consumeCodeAttempt(userName: $pendingUserName, userId: $pendingUserId)) {
+            return null;
+        }
+        $dbAuthToken = $authTokens->claim(type: AuthTokenTypeEnum::LOGIN, inputToken: $inputToken);
         if ($dbAuthToken === null) {
+            $this->rejectWrongCode(userName: $pendingUserName, userId: $pendingUserId);
+
             return null;
         }
         $dbAuthUser = $this->context->repositories->users()->selectById(id: $dbAuthToken->userId);
@@ -51,12 +62,7 @@ final class MyAuthenticator extends Authenticator
         }
         $isLoggedIn = $this->logInVerifiedUser(
             authMethod: AuthMethodEnum::OTP,
-            authUser: new MyAuthUser(
-                dbAuthUser: $dbAuthUser,
-                parentSessionId: null,
-                repositories: $this->context->repositories,
-                clientData: $this->context->clientData,
-            ),
+            authUser: $this->createMyAuthUser(dbAuthUser: $dbAuthUser),
             userName: $dbAuthToken->email,
         );
 
@@ -80,12 +86,7 @@ final class MyAuthenticator extends Authenticator
             : null;
         $isLoggedIn = $this->logInIdentifiedUser(
             authMethod: AuthMethodEnum::SSO,
-            authUser: $dbAuthUser === null ? null : new MyAuthUser(
-                dbAuthUser: $dbAuthUser,
-                parentSessionId: null,
-                repositories: $this->context->repositories,
-                clientData: $this->context->clientData,
-            ),
+            authUser: $dbAuthUser === null ? null : $this->createMyAuthUser(dbAuthUser: $dbAuthUser),
             identifier: $dbAuthUser === null ? $subject : $dbAuthUser->email,
         );
 
@@ -98,8 +99,9 @@ final class MyAuthenticator extends Authenticator
 
     /**
      * The user that may get a login token by email: yuf's `precheck()` (unknown user, IP whitelist, inactive, out tried)
-     * and no password (a user with password logs in with it, logged as `ERROR_NO_PASSWORD`). Rejections are logged;
-     * `$authResult` is `ERROR_RATE_LIMITED` if the rate limit blocked the request.
+     * and no password (a user with password logs in with it, logged as `ERROR_NO_PASSWORD`; without password login,
+     * `ActraBackendSettings::$passwordLogin`, the user has none here). Rejections are logged; `$authResult` is
+     * `ERROR_RATE_LIMITED` if the rate limit blocked the request.
      */
     public function findTokenLoginUser(string $email): ?MyAuthUser
     {
@@ -135,11 +137,22 @@ final class MyAuthenticator extends Authenticator
         if ($dbAuthUser === null) {
             return null;
         }
+
+        return $this->createMyAuthUser(dbAuthUser: $dbAuthUser);
+    }
+
+    /**
+     * Every user of a login step: without password login (`ActraBackendSettings::$passwordLogin`) without its stored
+     * password and wrong password attempts (`MyAuthUser`).
+     */
+    private function createMyAuthUser(DbAuthUser $dbAuthUser): MyAuthUser
+    {
         return new MyAuthUser(
             dbAuthUser: $dbAuthUser,
             parentSessionId: null,
             repositories: $this->context->repositories,
             clientData: $this->context->clientData,
+            passwordLogin: $this->context->actraBackend->actraBackendSettings->passwordLogin,
         );
     }
 

@@ -77,6 +77,14 @@ final readonly class AuthTokens
     }
 
     /**
+     * The ID of the user the session's token was sent to, without claiming it; `null` if the session has none.
+     */
+    public function findPendingUserId(AuthTokenTypeEnum $type): ?int
+    {
+        return $this->context->session->getInt(key: AuthTokens::getUserIdKey(type: $type));
+    }
+
+    /**
      * The token if it is the one kept in the session and still claimable, `null` otherwise (counted as failed attempt).
      */
     public function claim(AuthTokenTypeEnum $type, #[\SensitiveParameter] string $inputToken): ?DbAuthToken

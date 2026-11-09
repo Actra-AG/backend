@@ -59,6 +59,28 @@ sessions and the open tokens of the user.
 
 Wrong passwords are counted per user (`maxAllowedLoginAttempts`, also for the current password in the profile). At the
 limit the user is locked until a new password is set with a reset link; a successful login does not reset the counter.
+Without password login (below) the counter is ignored. Wrong login codes are counted per browser session and per
+client IP address ([Login rate limit](#login-rate-limit)) either way.
+
+## Login by code only
+
+`passwordLogin: false` turns the passwords off; every user logs in with the login code by email:
+
+```php
+new ActraBackendSettings(
+    // …
+    passwordLogin: false, // Default true: a password is optional, the code always possible
+);
+```
+
+- The password pages answer 404 (`BackendPaths::PASSWORD_FILE_TITLES`: password login, password forgotten and reset,
+  create, change and remove in the profile), also for a sent form; the profile and the login pages link to none.
+- Stored passwords and the counter of wrong passwords have no effect: `BackendLogin::requestCode()` sends the code to
+  a user with a password (same checks as for every user: active, rights, IP whitelist, rate limit, send limit), and
+  `requestCodeWithPassword()` verifies no password (`CREDENTIALS_INVALID`, logged as
+  `ERROR_NO_PASSWORD_LOGIN_ACTIVE`, no code sent).
+- Both stay in the database, so turning passwords on again restores them (and the lock-out at the limit). To remove
+  them: `UPDATE auth_users SET password_salt = NULL, password_hash = NULL, wrong_login_attempts = 0;`
 
 ## Send limit of login codes and reset links
 
@@ -83,7 +105,13 @@ The setting `loginRateLimit:` (required, `null` as explicit opt-out; see
 
 - Counted per client IP address (default 20 per 15 minutes and 100 per day), then per email address (default 10 per
   15 minutes; `clientLimits:` and `accountLimits:` of `LoginRateLimit` change them): every password login, login
-  code request and password reset request. The login with a code that was sent is not counted again.
+  code request and password reset request.
+- Every entered login code is counted per client IP address, separately (default 30 per hour; `codeLimits:` of
+  `LoginRateLimit`), across all sessions and codes, before the code is checked; a right code costs one attempt too.
+  Above the limit the code is not checked (not even a right one) and the form shows `AuthMessages::$tooManyAttempts`
+  (`LoginCodeResultEnum::RATE_LIMITED`). Wrong codes are logged as "wrong code" (`AuthResultEnum::ERROR_WRONG_CODE`)
+  with the user the session's code was sent to (none for a session without code), also without `loginRateLimit:`;
+  the code itself is never logged. The limit of wrong codes per session (`maxAllowedLoginAttempts`) stays.
 - Unknown addresses are counted like registered ones. A blocked request shows `AuthMessages::$tooManyAttempts`,
   whether the address exists or not; nothing is checked, counted or sent. Blocked logins and code requests are
   logged with the result "rate limited" (`AuthResultEnum::ERROR_RATE_LIMITED`, page "Visits").
@@ -91,8 +119,8 @@ The setting `loginRateLimit:` (required, `null` as explicit opt-out; see
   blocked and the error is logged with the `Logger`. Use a directory on a local file system that the web server does
   not serve (e.g. `$core->cacheDirectory . 'rateLimit'`) and a secret of at least 32 bytes (`rateLimit.secret` in
   `.env.php`); changing it resets the counters.
-- The lock-out (wrong passwords per user) and the send limit stay the protection against slow guessing and floods of
-  one address.
+- The lock-out (wrong passwords per user, only with password login) and the send limit stay the protection against
+  slow guessing and floods of one address.
 
 ## API Key Authentication
 

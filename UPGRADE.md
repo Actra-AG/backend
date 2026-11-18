@@ -2,6 +2,14 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.11.1 (2026-11-18)
+
+### Lists of IP addresses and groups: the comma stays at the end of a wrapped line
+
+The comma between the items of `.user-group-list` (user page: IP whitelist, user groups) is now set after each item
+(`li:not(:last-child)::after`) instead of before the next one, so a wrapped line no longer starts with ", ". Projects
+with an own copy of `blocks/_details.css` can take over the rule. No other changes.
+
 ## v5.11.0 (2026-11-09)
 
 ### ⚠️ Requires `actra/yuf` `~8.19.0`: wrong login codes are limited per IP address and logged

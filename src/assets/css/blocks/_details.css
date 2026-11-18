@@ -33,8 +33,10 @@
     display: flex;
     flex-wrap: wrap;
 
-    & > li + li::before {
-      content: ", ";
+    /* After the item, so a wrapped line does not start with the comma */
+    & > li:not(:last-child)::after {
+      content: ",";
+      margin-inline-end: 0.25em;
     }
   }
 }

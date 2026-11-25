@@ -2,6 +2,13 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.11.2 (2026-11-25)
+
+### Requires `actra/yuf` `~8.20.0`: directories are created race-safe
+
+yuf v8.20.0 creates directories (template cache, file cache, rate limits, uploads, logs, sessions) race-safe: parallel
+requests no longer end in a `PhpException` "mkdir(): File exists". No migration needed.
+
 ## v5.11.1 (2026-11-18)
 
 ### Lists of IP addresses and groups: the comma stays at the end of a wrapped line

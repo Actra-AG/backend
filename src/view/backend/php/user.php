@@ -225,9 +225,10 @@ final class user extends BackendView
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'userGroups',
-            htmlDataObjectCollection: $this->backendContext->repositories->groups()
-                ->listByUserId(userId: $dbAuthUser->id)
-                ->render(),
+            // Without the groups the logged-in user may not see (UserScope)
+            htmlDataObjectCollection: $this->backendContext->userScopeGuard->filterGroups(
+                groups: $this->backendContext->repositories->groups()->listByUserId(userId: $dbAuthUser->id),
+            )->render(),
         );
         $replacements->addHtmlDataObjectCollection(
             identifier: 'ipWhitelist',

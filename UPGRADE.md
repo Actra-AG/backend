@@ -2,6 +2,14 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.12.1 (2026-11-26)
+
+### `UserScope`: groups outside the scope are not shown
+
+A user restricted by a `UserScope` no longer sees the names of groups outside `filterGroups()` on the user page and in
+the "Groups" column of the user list (not sortable for such a user). The user query has the new column
+`right_group_ids`. No migration needed.
+
 ## v5.12.0 (2026-11-26)
 
 ### ⚠️ Requires `actra/yuf` `~8.22.0`

@@ -50,6 +50,9 @@ final class DbAuthUserRepository
                            WHERE auth_groups.id IN (SELECT group_id
                                FROM auth_group_user
                                WHERE user_id=auth_users.id)) AS right_groups,
+                       (SELECT GROUP_CONCAT(group_id)
+                           FROM auth_group_user
+                           WHERE user_id=auth_users.id) AS right_group_ids,
                        CONCAT_WS(\' \', auth_users.first_name, auth_users.last_name) AS full_name,
                        (SELECT GROUP_CONCAT(auth_ip_whitelists.ip_address)
                            FROM auth_ip_whitelists

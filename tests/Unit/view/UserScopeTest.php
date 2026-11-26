@@ -106,6 +106,30 @@ final class UserScopeTest extends TestCase
         $this->assertStringContainsString($this->email(userId: $insideUserId), $html);
     }
 
+    public function testGroupsOutsideTheScopeAreNotShown(): void
+    {
+        // In group 1 ("Administrator", hidden from the scope) and in the staff group
+        $insideUserId = $this->createUser(name: 'inside');
+        $this->db->execute(
+            sql: 'INSERT INTO auth_group_user SET user_id=?, group_id=?',
+            parameters: [$insideUserId, $this->staffGroupId],
+        );
+        $renderer = $this->createRenderer(
+            scope: new ListUserScope(userIds: [$insideUserId], groupIds: [$this->staffGroupId]),
+        );
+        $staffTitle = (
+            $renderer->actraBackend->getRepositories()->groups()->selectById(id: $this->staffGroupId)
+            ?? self::fail('No staff group')
+        )->title;
+
+        foreach (['user' => $insideUserId, 'users' => null] as $fileTitle => $userId) {
+            $html = $this->renderAsActor(renderer: $renderer, fileTitle: $fileTitle, userId: $userId, isPost: false);
+
+            $this->assertStringContainsString($staffTitle, $html, $fileTitle);
+            $this->assertStringNotContainsString('Administrator', $html, $fileTitle);
+        }
+    }
+
     public function testListsShowOnlyTheUsersOfTheScope(): void
     {
         $insideUserId = $this->createUser(name: 'inside');

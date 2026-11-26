@@ -15,6 +15,7 @@ use actra\backend\libs\form\UserSearchForm;
 use actra\yuf\common\SearchQueryBuilder;
 use actra\yuf\html\HtmlEncoder;
 use actra\yuf\html\HtmlText;
+use actra\yuf\table\column\AbstractTableColumn;
 use actra\yuf\table\column\BooleanColumn;
 use actra\yuf\table\column\CallbackColumn;
 use actra\yuf\table\column\DefaultColumn;
@@ -90,13 +91,7 @@ final class UserTable extends AbstractTable
                 sortAscendingByDefault: false,
             ),
         );
-        $this->addColumn(
-            abstractTableColumn: new DefaultColumn(
-                identifier: 'right_groups',
-                label: HtmlText::fromText(text: $messages->rightGroupsColumn),
-                isSortable: true,
-            ),
-        );
+        $this->addColumn(abstractTableColumn: $this->createGroupsColumn(context: $context));
         $this->addColumn(
             abstractTableColumn: new CallbackColumn(
                 identifier: 'ip_whitelist',
@@ -124,6 +119,35 @@ final class UserTable extends AbstractTable
                 withTime: false,
                 isSortable: true,
             ),
+        );
+    }
+
+    /**
+     * The groups of the user; for a user restricted by a `UserScope` only the groups it may see, not sortable (the
+     * order would depend on the hidden groups).
+     */
+    private function createGroupsColumn(BackendViewContext $context): AbstractTableColumn
+    {
+        $label = HtmlText::fromText(text: $context->messages->user->rightGroupsColumn);
+        $userScopeGuard = $context->userScopeGuard;
+        if (!$userScopeGuard->isRestricted()) {
+            return new DefaultColumn(identifier: 'right_groups', label: $label, isSortable: true);
+        }
+        $visibleGroups = $userScopeGuard->filterGroups(groups: $context->repositories->groups()->listAll());
+
+        return new CallbackColumn(
+            identifier: 'right_groups',
+            label: $label,
+            callbackFunction: static function (TableItem $tableItem) use ($visibleGroups): string {
+                $titles = [];
+                foreach ($tableItem->getRow()->getStringList(column: 'right_group_ids') as $groupId) {
+                    if (array_key_exists(key: (int) $groupId, array: $visibleGroups->items)) {
+                        $titles[] = $visibleGroups->items[(int) $groupId]->title;
+                    }
+                }
+
+                return nl2br(string: HtmlEncoder::encode(value: implode(separator: PHP_EOL, array: $titles)));
+            },
         );
     }
 }

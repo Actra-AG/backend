@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace actra\backend\libs\db;
 
+use actra\backend\libs\auth\UserScopeGuard;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\auth\Password;
 use actra\yuf\clock\Clock;
@@ -150,22 +151,29 @@ final class DbAuthUserRepository
     }
 
     /**
-     * The active users with a right, without one user (e.g. to keep at least one user who manages users).
+     * The active users with a right, without one user (e.g. to keep at least one user who manages users), within the
+     * users the logged-in user may manage.
      */
-    public function countActiveWithRight(string $accessRight, int $exceptUserId): int
-    {
-        return $this->db->selectRow(
-            sql: '
+    public function countActiveWithRight(
+        string $accessRight,
+        int $exceptUserId,
+        UserScopeGuard $userScopeGuard,
+    ): int {
+        $dbQuery = DbQuery::createFromSqlQuery(
+            query: '
                 SELECT COUNT(DISTINCT auth_users.id) AS amount
                 FROM auth_users
                     INNER JOIN auth_group_user ON auth_group_user.user_id=auth_users.id
                     INNER JOIN auth_group_right ON auth_group_right.group_id=auth_group_user.group_id
-                WHERE auth_users.is_active=1
-                  AND auth_group_right.right_name=?
-                  AND auth_users.id<>?
             ',
-            parameters: [$accessRight, $exceptUserId],
-        )?->getInt(column: 'amount') ?? 0;
+        );
+        $dbQuery->addWherePart(wherePart: 'auth_users.is_active=1', parameters: []);
+        $dbQuery->addWherePart(wherePart: 'auth_group_right.right_name=?', parameters: [$accessRight]);
+        $dbQuery->addWherePart(wherePart: 'auth_users.id<>?', parameters: [$exceptUserId]);
+        $userScopeGuard->restrictUserQuery(dbQuery: $dbQuery, userIdColumn: 'auth_users.id');
+
+        return array_first(array: $dbQuery->selectRowsFromDb(db: $this->db, offset: 0, rowCount: 1))
+            ?->getInt(column: 'amount') ?? 0;
     }
 
     public function sentInvitation(int $id, Clock $clock = new SystemClock()): void

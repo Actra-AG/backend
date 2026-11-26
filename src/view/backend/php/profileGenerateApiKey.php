@@ -57,7 +57,9 @@ final class profileGenerateApiKey extends ConfirmationView
     {
         if (
             !$this->backendContext->actraBackend->actraBackendSettings->hasApi
-            || $this->getUser()->ipWhitelist === []
+            || !$this->backendContext->actraBackend->actraBackendSettings->apiKeyIpPolicy->allowsApiKey(
+                ipWhitelist: $this->getUser()->ipWhitelist,
+            )
         ) {
             throw new NotFoundException();
         }

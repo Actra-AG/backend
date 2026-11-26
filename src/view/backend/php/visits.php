@@ -17,7 +17,6 @@ use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\form\VisitSearchForm;
 use actra\backend\libs\table\VisitTable;
 use actra\yuf\auth\AccessRightCollection;
-use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
@@ -70,10 +69,7 @@ final class visits extends BackendView
     {
         if ($this->getPathVar(nr: 1) !== null) {
             $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
-            $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
-            if ($dbAuthUser === null) {
-                throw new NotFoundException();
-            }
+            $dbAuthUser = $this->backendContext->requireUserInScope(userId: $pathUserId);
             $filterUserId = $dbAuthUser->id;
         } else {
             $filterUserId = null;

@@ -38,7 +38,9 @@ final class UserSearchForm extends AbstractSearchForm
             formField: $this->userGroupField = new SelectOptionsField(
                 name: 'userGroup',
                 label: HtmlText::fromText(text: $common->userGroupLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
+                formOptions: $this->backendContext->userScopeGuard->filterGroups(
+                    groups: $this->backendContext->repositories->groups()->listAll(),
+                )->getFormOptions(),
                 initialValue: '',
                 individualEmptyValueLabel: HtmlText::fromText(text: $common->filterAll),
             ),

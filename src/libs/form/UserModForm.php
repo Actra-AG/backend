@@ -39,6 +39,8 @@ final class UserModForm extends Form
     private readonly BooleanField $activeField;
     private readonly IpWhitelistField $ipWhitelistField;
     private readonly ?LanguageField $languageField;
+    /** @var list<int> The groups of the user that the logged-in user may not see: a save keeps them */
+    private readonly array $hiddenGroupIds;
 
     public function __construct(
         BackendViewContext $context,
@@ -109,14 +111,23 @@ final class UserModForm extends Form
                 isCheckedByDefault: $dbAuthUser->isActive,
             ),
         );
+        $groups = $this->backendContext->repositories->groups();
+        $visibleGroups = $this->backendContext->userScopeGuard->filterGroups(groups: $groups->listAll());
+        $userGroupIds = $groups->listByUserId(userId: $dbAuthUser->id)->listIds();
+        $this->hiddenGroupIds = array_values(array: array_filter(
+            array: $userGroupIds,
+            callback: static fn(int $groupId): bool => !array_key_exists(key: $groupId, array: $visibleGroups->items),
+        ));
         $this->addField(
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
-                initialValues: $this->backendContext->repositories->groups()->listByUserId(
-                    userId: $dbAuthUser->id,
-                )->getFormOptions()->getKeys(),
+                formOptions: $visibleGroups->getFormOptions(),
+                // Only the visible groups: the removed ones are the visible groups that are no longer selected
+                initialValues: array_map(
+                    callback: static fn(int $groupId): string => (string) $groupId,
+                    array: array_values(array: array_diff($userGroupIds, $this->hiddenGroupIds)),
+                ),
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
             ),
         );
@@ -126,6 +137,11 @@ final class UserModForm extends Form
                 label: HtmlText::fromText(text: $common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
                 invalidErrorMessage: HtmlText::fromText(text: $common->ipWhitelistInvalid),
+                fieldInfo: IpWhitelistField::createFieldInfo(
+                    ipWhitelistInfo: $this->backendContext->messages->common->ipWhitelistInfo,
+                    messages: $this->backendContext->messages->common,
+                    settings: $this->backendContext->actraBackend->actraBackendSettings,
+                ),
                 messages: $this->backendContext->messages->common,
             ),
         );
@@ -152,7 +168,7 @@ final class UserModForm extends Form
         }
         $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
-            $newIpWhitelist === []
+            !$this->backendContext->actraBackend->actraBackendSettings->apiKeyIpPolicy->allowsApiKey(ipWhitelist: $newIpWhitelist)
             && $this->backendContext->repositories->apiKeys()->hasByUserId(userId: $this->dbAuthUser->id)
         ) {
             $this->addError(
@@ -257,6 +273,7 @@ final class UserModForm extends Form
             $context->repositories->users()->countActiveWithRight(
                 accessRight: ActraBackend::RIGHT_MANAGE_USERS,
                 exceptUserId: $dbAuthUser->id,
+                userScopeGuard: $context->userScopeGuard,
             ) > 0
         ) {
             return true;
@@ -271,7 +288,7 @@ final class UserModForm extends Form
         $groups = $this->backendContext->repositories->groups()->listAll();
 
         return array_any(
-            array: $this->userGroupsField->getIntValues(),
+            array: [...$this->userGroupsField->getIntValues(), ...$this->hiddenGroupIds],
             callback: static fn(int $groupId): bool => $groups->get(id: $groupId)
                 ->accessRightCollection
                 ->hasAccessRight(accessRight: ActraBackend::RIGHT_MANAGE_USERS),

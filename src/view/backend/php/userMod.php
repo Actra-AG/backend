@@ -15,7 +15,6 @@ use actra\backend\BackendViewContext;
 use actra\backend\libs\form\UserModForm;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\HttpResponse;
-use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -55,10 +54,7 @@ final class userMod extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
-        if ($dbAuthUser === null) {
-            throw new NotFoundException();
-        }
+        $dbAuthUser = $this->backendContext->requireUserInScope(userId: $pathUserId);
         $replacements = $htmlDocument->replacements;
         $userModForm = new UserModForm(context: $this->backendContext, dbAuthUser: $dbAuthUser);
         if ($userModForm->process()) {

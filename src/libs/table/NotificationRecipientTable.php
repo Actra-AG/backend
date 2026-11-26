@@ -21,6 +21,10 @@ final class NotificationRecipientTable extends AbstractTable
     public function __construct(BackendViewContext $context, int $notificationId)
     {
         $dbQuery = $context->repositories->notificationRecipients()->getDbQuery();
+        $context->userScopeGuard->restrictUserQuery(
+            dbQuery: $dbQuery,
+            userIdColumn: 'auth_user_notification_recipients.user_id',
+        );
         $dbQuery->addWherePart(
             wherePart: 'auth_user_notification_recipients.user_notification_id=?',
             parameters: [$notificationId],

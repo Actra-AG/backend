@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\auth;
 
 use actra\backend\libs\auth\UserController;
+use actra\backend\libs\auth\UserScopeGuard;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\tests\Double\RecordingUserDeleteHandler;
 use actra\backend\tests\Double\TestDatabase;
@@ -42,6 +43,7 @@ final class UserControllerTest extends TestCase
             userDeleteHandler: $handler,
             authSession: new AuthSession(session: new Session(storage: new ArraySessionStorage())),
             currentUser: null,
+            userScopeGuard: new UserScopeGuard(userScope: null, actor: null, repositories: $this->repositories),
         );
     }
 

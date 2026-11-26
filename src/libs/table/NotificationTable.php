@@ -25,6 +25,11 @@ final class NotificationTable extends AbstractTable
     public function __construct(BackendViewContext $context)
     {
         $dbQuery = $context->repositories->notifications()->getDbQuery();
+        // The notifications sent by the users the logged-in user may manage
+        $context->userScopeGuard->restrictUserQuery(
+            dbQuery: $dbQuery,
+            userIdColumn: 'auth_user_notifications.sent_by_user_id',
+        );
         parent::__construct(
             context: $context,
             identifier: 'NotificationTable',

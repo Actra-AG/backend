@@ -14,10 +14,14 @@ use actra\backend\libs\auth\LoggedInUserCheck;
 use actra\backend\libs\common\BreadcrumbItemCollection;
 use actra\backend\libs\common\LanguageSwitcher;
 use actra\backend\libs\common\SessionBreadcrumbTrail;
+use actra\backend\settings\BackendFooterLinks;
+use actra\backend\settings\PageNotice;
 use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\BaseView;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\exception\UnauthorizedException;
+use actra\yuf\html\HtmlDataObject;
+use actra\yuf\html\HtmlDataObjectCollection;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlReplacementCollection;
 use actra\yuf\html\HtmlText;
@@ -33,6 +37,8 @@ abstract class BackendView extends BaseView
     /**
      * The services of the backend; `$this->context` is the `ViewContext` of yuf.
      */
+    /** @var list<PageNotice> */
+    private array $pageNotices = [];
     protected readonly BackendViewContext $backendContext;
 
     /**
@@ -125,22 +131,14 @@ abstract class BackendView extends BaseView
             identifier: 'pageTitle',
             htmlText: $this->getPageTitle(),
         );
-        $replacements->addHtml(
-            identifier: 'backendTitle',
-            html: strip_tags(string: $actraBackendSettings->backendName),
-        );
-        $replacements->addHtml(
-            identifier: 'backendName',
-            html: $actraBackendSettings->backendName,
-        );
-        $replacements->addHtml(
-            identifier: 'frontendHref',
-            html: $actraBackendSettings->frontendHref,
-        );
-        $replacements->addHtmlText(
+        // Project values are text: the templates escape them
+        $replacements->addText(identifier: 'backendName', text: $actraBackendSettings->backendName);
+        $replacements->addText(identifier: 'frontendHref', text: $actraBackendSettings->frontendHref);
+        $replacements->addText(
             identifier: 'frontendName',
-            htmlText: HtmlText::fromText(text: $this->backendContext->messages->layout->frontendLink),
+            text: $this->backendContext->messages->layout->frontendLink,
         );
+        $this->addFooterLinks(replacements: $replacements, footerLinks: $actraBackendSettings->footerLinks);
         if (!$replacements->has(identifier: 'refreshUrl')) {
             // Only a page that continues to another URL by itself sets it (`loginShared`)
             $replacements->addHtml(identifier: 'refreshUrl', html: '');
@@ -171,10 +169,13 @@ abstract class BackendView extends BaseView
                 identifier: 'isLoggedIn',
                 booleanValue: false,
             );
+            $this->renderPageNotices(replacements: $replacements, pageNotices: []);
             return;
         }
         $myAuthUser = $this->backendContext->getCurrentUser();
-        $accessRightCollection = $myAuthUser->dbAuthUser->accessRightCollection;
+        $accessRightCollection = $this->backendContext->userScopeGuard->filterAccessRights(
+            accessRightCollection: $myAuthUser->dbAuthUser->accessRightCollection,
+        );
         $navigationItemCollection = $this->backendContext->getNavigation();
         $firstNavigationItem = $navigationItemCollection->getFirst(accessRightCollection: $accessRightCollection);
         if ($firstNavigationItem === null) {
@@ -223,6 +224,42 @@ abstract class BackendView extends BaseView
         $replacements->addBool(
             identifier: 'hasApi',
             booleanValue: $actraBackendSettings->hasApi,
+        );
+        $this->renderPageNotices(
+            replacements: $replacements,
+            pageNotices: [
+                ...$actraBackendSettings->pageNoticeProvider?->listNotices(context: $this->backendContext) ?? [],
+                ...$this->pageNotices,
+            ],
+        );
+    }
+
+    /**
+     * Shows a notice above the content of this page after login, after the notices of
+     * `ActraBackendSettings::$pageNoticeProvider`; call it before `execute()` renders the layout, e.g. in
+     * `prepareHtmlDocument()`.
+     */
+    protected function addPageNotice(PageNotice $pageNotice): void
+    {
+        $this->pageNotices[] = $pageNotice;
+    }
+
+    /**
+     * @param list<PageNotice> $pageNotices
+     */
+    private function renderPageNotices(HtmlReplacementCollection $replacements, array $pageNotices): void
+    {
+        $htmlDataObjectCollection = new HtmlDataObjectCollection();
+        foreach ($pageNotices as $pageNotice) {
+            $htmlDataObject = new HtmlDataObject();
+            $htmlDataObject->addText(propertyName: 'cssClass', text: $pageNotice->level->value);
+            $htmlDataObject->addHtmlText(propertyName: 'content', htmlText: $pageNotice->content);
+            $htmlDataObject->addBooleanValue(propertyName: 'isLiveRegion', booleanValue: $pageNotice->isLiveRegion);
+            $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
+        }
+        $replacements->addHtmlDataObjectCollection(
+            identifier: 'pageNotices',
+            htmlDataObjectCollection: $htmlDataObjectCollection,
         );
     }
 
@@ -277,6 +314,28 @@ abstract class BackendView extends BaseView
         $replacements->addHtmlDataObjectCollection(
             identifier: 'languageSwitcher',
             htmlDataObjectCollection: $languageSwitcher->render(),
+        );
+    }
+
+    private function addFooterLinks(HtmlReplacementCollection $replacements, ?BackendFooterLinks $footerLinks): void
+    {
+        $footerLinkList = $footerLinks?->listFooterLinks(language: $this->backendContext->language) ?? [];
+        $htmlDataObjectCollection = new HtmlDataObjectCollection();
+        foreach ($footerLinkList as $footerLink) {
+            $htmlDataObject = new HtmlDataObject();
+            $htmlDataObject->addText(propertyName: 'label', text: $footerLink->label);
+            $htmlDataObject->addText(propertyName: 'href', text: $footerLink->href);
+            $htmlDataObjectCollection->add(htmlDataObject: $htmlDataObject);
+        }
+        $hasFooterLinks = $footerLinkList !== [];
+        $replacements->addBool(identifier: 'hasFooterLinks', booleanValue: $hasFooterLinks);
+        $replacements->addBool(
+            identifier: 'hasFooter',
+            booleanValue: $hasFooterLinks || $this->backendContext->actraBackend->actraBackendSettings->frontendHref !== '',
+        );
+        $replacements->addHtmlDataObjectCollection(
+            identifier: 'footerLinks',
+            htmlDataObjectCollection: $htmlDataObjectCollection,
         );
     }
 

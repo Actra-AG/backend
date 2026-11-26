@@ -10,8 +10,12 @@ declare(strict_types=1);
 namespace actra\backend\tests\Double;
 
 use actra\backend\ActraBackend;
+use actra\backend\libs\auth\UserScope;
 use actra\backend\libs\db\ClientData;
+use actra\backend\settings\ApiKeyIpPolicyEnum;
+use actra\backend\settings\BackendFooterLinks;
 use actra\backend\settings\LoginHandOverSettings;
+use actra\backend\settings\PageNoticeProvider;
 use actra\backend\settings\SharedLoginSettings;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\clock\SystemClock;
@@ -52,6 +56,11 @@ final readonly class BackendPageRenderer
      * @param list<string> $ipWhitelist The global IP whitelist of the backend
      * @param list<string> $languageCodes The languages of the backend (`de`, `en`, `fr`, `it`), the first one is the
      *                                    main language
+     * @param ?BackendFooterLinks $footerLinks Further links of the page footer
+     * @param string $backendName The name of the backend (plain text)
+     * @param ?PageNoticeProvider $pageNoticeProvider Notices above the content after login
+     * @param ?UserScope $userScope Restricts the user management
+     * @param ApiKeyIpPolicyEnum $apiKeyIpPolicy Whether API keys need an IP whitelist
      * @param bool $passwordLogin `false`: login by code only
      */
     public function __construct(
@@ -62,6 +71,11 @@ final readonly class BackendPageRenderer
         array $languageCodes = ['de', 'en'],
         ?SharedLoginSettings $sharedLogin = null,
         string $frontendHref = '',
+        ?BackendFooterLinks $footerLinks = null,
+        string $backendName = 'Test backend',
+        ?PageNoticeProvider $pageNoticeProvider = null,
+        ?UserScope $userScope = null,
+        ApiKeyIpPolicyEnum $apiKeyIpPolicy = ApiKeyIpPolicyEnum::WHITELIST_REQUIRED,
         bool $passwordLogin = true,
     ) {
         $locales = ['de' => 'de_CH.UTF-8', 'en' => 'en_GB.UTF-8', 'fr' => 'fr_CH.UTF-8', 'it' => 'it_CH.UTF-8'];
@@ -81,16 +95,25 @@ final readonly class BackendPageRenderer
             loginHandOver: $loginHandOver,
             sharedLogin: $sharedLogin,
             frontendHref: $frontendHref,
+            footerLinks: $footerLinks,
+            backendName: $backendName,
+            pageNoticeProvider: $pageNoticeProvider,
+            userScope: $userScope,
+            apiKeyIpPolicy: $apiKeyIpPolicy,
             passwordLogin: $passwordLogin,
         );
-        $this->route = array_first(array: $this->actraBackend->createRoutes(viewDirectory: __DIR__ . '/view/'))
+        $this->route = array_first(array: $this->actraBackend->createRoutes(
+            viewDirectory: __DIR__ . '/view/',
+            viewClassPrefix: 'actra\\backend\\tests\\Double',
+        ))
             ?? throw new LogicException(message: 'The backend has no route');
     }
 
     /**
      * @param string $languageCode The language of the request (as resolved by yuf's `RequestLanguageResolver`)
      * @param list<string> $pathVars The path variables after the file title (`user-5.html`: `['5']`)
-     * @param array<string, string> $postParameters A POST request with these values, a GET request without
+     * @param array<string, string|list<string>> $postParameters A POST request with these values (a list for fields
+     *     with several values), a GET request without
      * @param ?string $formName The form that is sent (the query of its action, `?FormName`)
      * @param array<string, string> $queryParameters The query of the request
      * @param RecordingResponseSender $responseSender Keeps the response of a view that ends with a redirect

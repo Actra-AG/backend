@@ -31,6 +31,7 @@ final class TokenTable extends AbstractTable
         TokenSearchForm $tokenSearchForm,
     ) {
         $dbQuery = $context->repositories->tokens()->getDbQuery();
+        $context->userScopeGuard->restrictUserQuery(dbQuery: $dbQuery, userIdColumn: 'auth_tokens.user_id');
         if ($filterUserId !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_tokens.user_id=?',

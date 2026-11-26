@@ -15,6 +15,7 @@ use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\ProfileLanguageProvider;
 use actra\backend\libs\auth\SharedLoginSession;
 use actra\backend\libs\auth\UserController;
+use actra\backend\libs\auth\UserScopeGuard;
 use actra\backend\libs\common\DateFormatter;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\ClientData;
@@ -433,6 +434,11 @@ final class ActraBackend
             repositories: $repositories,
             clientData: $clientData,
         );
+        $userScopeGuard = new UserScopeGuard(
+            userScope: $this->actraBackendSettings->userScope,
+            actor: $currentUser,
+            repositories: $repositories,
+        );
 
         return new BackendViewContext(
             viewContext: $viewContext,
@@ -452,7 +458,9 @@ final class ActraBackend
                 userDeleteHandler: $this->actraBackendSettings->userDeleteHandler,
                 authSession: $authSession,
                 currentUser: $currentUser,
+                userScopeGuard: $userScopeGuard,
             ),
+            userScopeGuard: $userScopeGuard,
         );
     }
 
@@ -480,8 +488,9 @@ final class ActraBackend
     /**
      * The user of the API key sent as bearer token (`Authorization: Bearer api_key_<public-id>_<secret>`). The key must
      * be valid, the API on (`ActraBackendSettings::$hasApi`), the user active with at least one right, and the request
-     * must come from an address of the user's IP whitelist (a user without whitelist is refused). Check the rights of
-     * the endpoint with the returned user (`hasOneOfRights()`).
+     * must come from an address of the user's IP whitelist. A user without whitelist is refused, unless
+     * `ActraBackendSettings::$apiKeyIpPolicy` is `WHITELIST_OPTIONAL`. Check the rights of the endpoint with the
+     * returned user (`hasOneOfRights()`).
      *
      * @throws UnauthorizedException if one of the checks fails
      */
@@ -513,8 +522,11 @@ final class ActraBackend
         );
         if (
             !$myAuthUser->isActive
-            || $dbAuthUser->ipWhitelist === []
-            || !IpValidator::isInWhitelist(whiteList: $dbAuthUser->ipWhitelist, ipAddressToCheck: $remoteAddress)
+            || !$this->actraBackendSettings->apiKeyIpPolicy->allowsApiKey(ipWhitelist: $dbAuthUser->ipWhitelist)
+            || (
+                $dbAuthUser->ipWhitelist !== []
+                && !IpValidator::isInWhitelist(whiteList: $dbAuthUser->ipWhitelist, ipAddressToCheck: $remoteAddress)
+            )
         ) {
             throw new UnauthorizedException();
         }

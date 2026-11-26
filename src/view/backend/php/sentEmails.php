@@ -17,6 +17,7 @@ use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\form\SentEmailSearchForm;
 use actra\backend\libs\table\SentEmailTable;
 use actra\yuf\auth\AccessRightCollection;
+use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 use actra\yuf\layout\NavigationItem;
@@ -68,6 +69,10 @@ final class sentEmails extends BackendView
     #[\Override]
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
+        // The log has no user column: it cannot be restricted to the users of a scope
+        if ($this->backendContext->userScopeGuard->isRestricted()) {
+            throw new NotFoundException();
+        }
         $sentEmailSearchForm = new SentEmailSearchForm(
             context: $this->backendContext,
             name: sentEmails::PAGE_IDENTIFIER . 'Form',

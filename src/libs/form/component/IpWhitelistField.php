@@ -11,6 +11,8 @@ namespace actra\backend\libs\form\component;
 
 use actra\backend\i18n\CommonMessages;
 use actra\backend\libs\form\rule\ValidIpAddressRule;
+use actra\backend\settings\ActraBackendSettings;
+use actra\backend\settings\ApiKeyIpPolicyEnum;
 use actra\yuf\form\component\field\TextAreaField;
 use actra\yuf\html\HtmlText;
 
@@ -62,5 +64,23 @@ final class IpWhitelistField extends TextAreaField
         sort(array: $initialIpAddresses);
 
         return $ipAddresses !== $initialIpAddresses;
+    }
+
+    /**
+     * The info of the field; with API keys without whitelist (`ApiKeyIpPolicyEnum::WHITELIST_OPTIONAL`) followed by
+     * `CommonMessages::$apiKeyWithoutIpWhitelistInfo`.
+     *
+     * @param string $ipWhitelistInfo e.g. `CommonMessages::$ipWhitelistInfo`
+     */
+    public static function createFieldInfo(
+        string $ipWhitelistInfo,
+        CommonMessages $messages,
+        ActraBackendSettings $settings,
+    ): HtmlText {
+        if (!$settings->hasApi || $settings->apiKeyIpPolicy === ApiKeyIpPolicyEnum::WHITELIST_REQUIRED) {
+            return HtmlText::fromText(text: $ipWhitelistInfo);
+        }
+
+        return HtmlText::fromText(text: $ipWhitelistInfo . ' ' . $messages->apiKeyWithoutIpWhitelistInfo);
     }
 }

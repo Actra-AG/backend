@@ -53,10 +53,9 @@ final class userImpersonate extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $context = $this->backendContext;
-        $dbAuthUser = $context->repositories->users()->selectById(id: $this->getRequiredPathVarAsInt(nr: 1));
+        $dbAuthUser = $context->requireUserInScope(userId: $this->getRequiredPathVarAsInt(nr: 1));
         if (
-            $dbAuthUser === null
-            || !$this->hasValidCsrfLinkToken()
+            !$this->hasValidCsrfLinkToken()
             || !$context->getCurrentUser()->canImpersonateUser(dbAuthUser: $dbAuthUser)
         ) {
             throw new NotFoundException();

@@ -71,16 +71,16 @@ final class userDelete extends ConfirmationView
         }
         $context = $this->backendContext;
         $currentUser = $context->getCurrentUser();
-        $dbAuthUser = $context->repositories->users()->selectById(id: $this->getRequiredPathVarAsInt(nr: 1));
+        $dbAuthUser = $context->requireUserInScope(userId: $this->getRequiredPathVarAsInt(nr: 1));
         if (
-            $dbAuthUser === null
-            || $dbAuthUser->id === $currentUser->id
+            $dbAuthUser->id === $currentUser->id
             || (
                 $dbAuthUser->isActive
                 && $dbAuthUser->accessRightCollection->hasAccessRight(accessRight: ActraBackend::RIGHT_MANAGE_USERS)
                 && $context->repositories->users()->countActiveWithRight(
                     accessRight: ActraBackend::RIGHT_MANAGE_USERS,
                     exceptUserId: $dbAuthUser->id,
+                    userScopeGuard: $context->userScopeGuard,
                 ) === 0
             )
         ) {

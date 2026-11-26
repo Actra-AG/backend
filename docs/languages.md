@@ -54,7 +54,8 @@ new ActraBackendSettings(
 ```
 
 The link to the website in the page footer (`ActraBackendSettings::$frontendHref`) has the text
-`LayoutMessages::$frontendLink` ("Go to website", "Zur Website", …). The emails end with the closing greeting
+`LayoutMessages::$frontendLink` ("Go to website", "Zur Website", …); further footer links per language:
+[views.md](views.md#footer-links). The emails end with the closing greeting
 (`CommonMessages::$closingGreeting`) and the signature `EmailMessages::$signature`, by default the sender name
 (`MailerSettings::$senderName`, placeholder `[senderName]`); both are in the language of the email. A signature of
 several lines or one per language:

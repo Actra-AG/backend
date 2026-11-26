@@ -19,7 +19,6 @@ use actra\yuf\auth\AccessRightCollection;
 use actra\yuf\core\InputParameter;
 use actra\yuf\core\InputParameterCollection;
 use actra\yuf\core\InputSourceEnum;
-use actra\yuf\exception\NotFoundException;
 use actra\yuf\html\HtmlDocument;
 use actra\yuf\html\HtmlText;
 
@@ -88,10 +87,7 @@ final class user extends BackendView
     protected function prepareHtmlDocument(HtmlDocument $htmlDocument): void
     {
         $pathUserId = $this->getRequiredPathVarAsInt(nr: 1);
-        $dbAuthUser = $this->backendContext->repositories->users()->selectById(id: $pathUserId);
-        if ($dbAuthUser === null) {
-            throw new NotFoundException();
-        }
+        $dbAuthUser = $this->backendContext->requireUserInScope(userId: $pathUserId);
         $this->pageTitle = HtmlText::fromText(
             text: $dbAuthUser->renderFullName(messages: $this->backendContext->messages->common),
         );
@@ -253,7 +249,7 @@ final class user extends BackendView
         );
         $replacements->addHtml(
             identifier: 'generateApiKeyHref',
-            html: $dbAuthUser->ipWhitelist !== []
+            html: $this->backendContext->actraBackend->actraBackendSettings->apiKeyIpPolicy->allowsApiKey(ipWhitelist: $dbAuthUser->ipWhitelist)
                 ? $this->backendContext->paths->userGenerateApiKey(id: $dbAuthUser->id)
                 : '',
         );

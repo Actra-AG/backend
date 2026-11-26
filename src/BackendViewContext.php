@@ -12,13 +12,16 @@ namespace actra\backend;
 use actra\backend\i18n\BackendMessages;
 use actra\backend\libs\auth\MyAuthUser;
 use actra\backend\libs\auth\UserController;
+use actra\backend\libs\auth\UserScopeGuard;
 use actra\backend\libs\common\DateFormatter;
 use actra\backend\libs\db\BackendRepositories;
 use actra\backend\libs\db\ClientData;
+use actra\backend\libs\db\DbAuthUser;
 use actra\backend\libs\email\Mailer;
 use actra\yuf\auth\AuthSession;
 use actra\yuf\core\Language;
 use actra\yuf\core\ViewContext;
+use actra\yuf\exception\NotFoundException;
 use actra\yuf\exception\UnauthorizedException;
 use actra\yuf\layout\NavigationItemCollection;
 use actra\yuf\session\Session;
@@ -36,6 +39,8 @@ final readonly class BackendViewContext
      * @param DateFormatter $dateFormatter Dates in the locale of the language of the request
      * @param BackendPaths $paths The links to the backend pages
      * @param ?MyAuthUser $currentUser The logged-in user, `null` without login
+     * @param UserScopeGuard $userScopeGuard The users and groups the logged-in user may manage
+     *     (`ActraBackendSettings::$userScope`)
      */
     public function __construct(
         public ViewContext $viewContext,
@@ -51,7 +56,19 @@ final readonly class BackendViewContext
         public ClientData $clientData,
         public ?MyAuthUser $currentUser,
         public UserController $userController,
+        public UserScopeGuard $userScopeGuard,
     ) {}
+
+    /**
+     * The user with this ID, if the logged-in user may manage it (`ActraBackendSettings::$userScope`). Every view and
+     * form that works on a user given by the request gets the user here.
+     *
+     * @throws NotFoundException for an unknown user and for a user outside the scope alike
+     */
+    public function requireUserInScope(int $userId): DbAuthUser
+    {
+        return $this->userScopeGuard->requireUser(userId: $userId);
+    }
 
     /**
      * The logged-in user, for views and forms that require a login.

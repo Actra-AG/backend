@@ -89,11 +89,13 @@ final class ProfileForm extends Form
                 label: HtmlText::fromText(text: $messages->common->ipWhitelistLabel),
                 value: $dbAuthUser->ipWhitelist,
                 invalidErrorMessage: HtmlText::fromText(text: $messages->common->ipWhitelistInvalid),
+                fieldInfo: IpWhitelistField::createFieldInfo(
+                    ipWhitelistInfo: $messages->profile->ipWhitelistInfo,
+                    messages: $this->backendContext->messages->common,
+                    settings: $this->backendContext->actraBackend->actraBackendSettings,
+                ),
                 messages: $this->backendContext->messages->common,
             ),
-        );
-        $this->ipWhitelistField->fieldInfo = HtmlText::fromText(
-            text: $messages->profile->ipWhitelistInfo,
         );
         $this->addComponent(
             formComponent: new FormControl(
@@ -119,7 +121,7 @@ final class ProfileForm extends Form
         $currentIpAddress = $this->context->httpRequest->getRemoteAddress();
         $newIpWhitelist = $this->ipWhitelistField->getValues();
         if (
-            $newIpWhitelist === []
+            !$this->backendContext->actraBackend->actraBackendSettings->apiKeyIpPolicy->allowsApiKey(ipWhitelist: $newIpWhitelist)
             && $this->backendContext->repositories->apiKeys()->hasByUserId(userId: $this->dbAuthUser->id)
         ) {
             $this->addError(

@@ -3,7 +3,7 @@
 <head>
   <meta charset="{tst:text value='charset'}">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{tst:text value='pageTitle'} | {tst:text value='backendTitle'}</title>
+  <title>{tst:text value='pageTitle'} | {tst:text value='backendName'}</title>
   <meta name="author" content="Actra AG Webagentur">
   <meta name="robots" content="noindex,nofollow">
   <script
@@ -153,9 +153,24 @@
       </div>
     </div>
     <main id="content">
+      <tst:for value="pageNotices" var="pageNotice">
+        <tst:if compare="pageNotice.isLiveRegion" operator="EQ" against="true">
+          <div class="msg {tst:text value='pageNotice.cssClass'}" role="status" aria-live="polite">{tst:text value='pageNotice.content'}</div>
+        </tst:if>
+        <tst:else>
+          <div class="msg {tst:text value='pageNotice.cssClass'}">{tst:text value='pageNotice.content'}</div>
+        </tst:else>
+      </tst:for>
       {tst:text value='breadcrumb'}
       <tst:loadSubTpl tplfile="{this}"/>
     </main>
+    <tst:if compare="hasFooterLinks" operator="EQ" against="true">
+    <footer class="site-footer">
+      <tst:for value="footerLinks" var="footerLink">
+      <a href="{tst:text value='footerLink.href'}">{tst:text value='footerLink.label'}</a>
+      </tst:for>
+    </footer>
+    </tst:if>
   </div>
 </div>
 

@@ -36,13 +36,87 @@ For simple database relations, projects can alternatively use foreign keys with 
 ## Rights of users who manage users
 
 The right `manage_users` gives full control: a user with it manages all users and grants every group, also to their
-own account. Give it only to administrators. Nobody can deactivate or delete their own account, and the last active
+own account (restricted by a `UserScope`, see below). Give it only to administrators. Nobody can deactivate or delete their own account, and the last active
 user with `manage_users` keeps it. Deactivating a user ends the user's sessions and deletes the open tokens and the API
 key; changing the email address ends the sessions and open tokens.
 
 "Impersonate user" and "Cancel session change" act with one click (`userImpersonate-{ID}.html`,
 `userImpersonateEnd.html`); their links carry the CSRF token of the session, without it the pages answer 404. An
 impersonation ends as soon as the impersonating user no longer manages users (deactivated, right removed).
+
+## Restricting user management (multi-tenant)
+
+In a project with several tenants on one installation, `ActraBackendSettings::$userScope` (required, `null`: every
+user with `manage_users` manages all users) restricts the built-in user management to the users an actor may manage.
+The actor is the logged-in user, during a session change the impersonated user. For an actor that
+`UserScope::restrictsActor()` restricts:
+
+- Every page of a user (`user`, `userMod`, `userDelete`, `userInvite`, `userImpersonate`, `userGenerateApiKey`,
+  `userRemoveApiKey`, `tokens-{ID}`, `visits-{ID}`) answers 404 for a user outside the scope, for GET and POST, like
+  an unknown ID. `UserController::deleteUser()` throws a `NotFoundException` as well.
+- The lists of users, tokens, visits, notifications (by sender) and notification recipients show the users of the
+  scope only. Logins without user (unknown email address) are not shown.
+- Group pickers and filters offer the groups of `filterGroups()` only; another posted group is an invalid input.
+  Saving a user keeps the groups the actor does not see.
+- A new user is linked with `afterUserCreated()` in the transaction that creates it; an exception rolls it back.
+- The last active user with `manage_users` is counted within the scope.
+- A notification reaches the active users of the group within the scope.
+- "Sent emails" answers 404 and is not in the navigation: the log has no user column.
+
+Email addresses stay unique on the installation: adding or changing a user to an address of another tenant shows
+`CommonMessages::$emailAlreadyInUse`, which tells that the address exists. Projects build the settings per request,
+so a scope may hold the tenant ID. `restrictUserQuery()` adds WHERE parts with bound parameters only; the library
+never builds SQL from it. Keep the methods cheap: `restrictsActor()` runs once per request, `restrictUserQuery()` once
+per query.
+
+```php
+final readonly class TenantUserScope implements UserScope
+{
+    /** @param list<int> $groupIds The groups of tenants, never the platform groups */
+    public function __construct(private int $tenantId, private array $groupIds) {}
+
+    public function restrictsActor(MyAuthUser $actor): bool
+    {
+        // Platform administrators manage all users
+        return !$actor->dbAuthUser->accessRightCollection->hasAccessRight(accessRight: 'manage_tenants');
+    }
+
+    public function restrictUserQuery(DbQuery $dbQuery, string $userIdColumn, MyAuthUser $actor): void
+    {
+        $dbQuery->addWherePart(
+            wherePart: $userIdColumn . ' IN (SELECT user_id FROM tenant_user WHERE tenant_id=?)',
+            parameters: [$this->tenantId],
+        );
+    }
+
+    public function containsUser(int $userId, MyAuthUser $actor): bool
+    {
+        return $this->db->selectRow(/* SELECT 1 FROM tenant_user WHERE tenant_id=? AND user_id=? */) !== null;
+    }
+
+    public function filterGroups(DbAuthGroupCollection $groups, MyAuthUser $actor): DbAuthGroupCollection
+    {
+        $filtered = new DbAuthGroupCollection();
+        foreach ($groups->items as $group) {
+            if (in_array(needle: $group->id, haystack: $this->groupIds, strict: true)) {
+                $filtered->add(dbAuthGroup: $group);
+            }
+        }
+
+        return $filtered;
+    }
+
+    public function afterUserCreated(int $userId, MyAuthUser $actor, BackendRepositories $repositories): void
+    {
+        $repositories->db()->execute(
+            sql: 'INSERT INTO tenant_user SET tenant_id=?, user_id=?',
+            parameters: [$this->tenantId, $userId],
+        );
+    }
+}
+```
+
+Remove the link rows with `ON DELETE CASCADE` on `tenant_user.user_id` or a `UserDeleteHandler`.
 
 ## IP whitelists
 
@@ -136,8 +210,16 @@ new ActraBackendSettings(
 Users with management access can generate, replace, or remove a user's API key on the user detail page. Logged-in users
 can also manage their own API key on their profile page.
 
-API keys can only be generated if an IP whitelist is configured for the user, and they work only from an address of
-this whitelist. If an API key exists, the user's IP whitelist cannot be emptied until the API key has been removed.
+By default (`apiKeyIpPolicy: ApiKeyIpPolicyEnum::WHITELIST_REQUIRED`), API keys can only be generated if an IP
+whitelist is configured for the user, and they work only from an address of this whitelist. If an API key exists, the
+user's IP whitelist cannot be emptied until the API key has been removed.
+
+Clients with changing addresses (e.g. office PCs) need `apiKeyIpPolicy: ApiKeyIpPolicyEnum::WHITELIST_OPTIONAL`: keys
+are also generated for users without whitelist and work from any address, the whitelist can be emptied while a key
+exists, and the whitelist fields say so (`CommonMessages::$apiKeyWithoutIpWhitelistInfo`). A user's non-empty whitelist
+is still enforced. Such a key is a bearer secret: use HTTPS only, limit the requests of the API in the project (the
+backend does not), rotate keys, and give each client its own API user with one group. Switching back to
+`WHITELIST_REQUIRED` refuses the existing keys of users without whitelist; no data changes.
 Generated keys are shown only once and stored as SHA-256 hash of the random secret (yuf's `SecretTokenHash`, fast
 enough for every API request); keys generated before v1.11.0 keep their former hash until they are generated again.
 

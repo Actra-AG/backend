@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\libs\form;
 
 use actra\backend\BackendViewContext;
+use actra\backend\libs\db\DbAuthUserCollection;
 use actra\backend\libs\db\DbAuthUserNotification;
 use actra\backend\libs\email\EmailAuthUser;
 use actra\yuf\form\component\collection\Form;
@@ -44,7 +45,9 @@ final class NotificationSendForm extends Form
             formField: $this->authUserGroupField = new SelectOptionsField(
                 name: 'authUserGroupField',
                 label: HtmlText::fromText(text: $messages->common->userGroupLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
+                formOptions: $this->backendContext->userScopeGuard->filterGroups(
+                    groups: $this->backendContext->repositories->groups()->listAll(),
+                )->getFormOptions(),
                 initialValue: null,
                 requiredError: HtmlText::fromText(text: $messages->notification->userGroupRequired),
             ),
@@ -106,7 +109,7 @@ final class NotificationSendForm extends Form
             subject: $subject,
             message: $message,
         );
-        $recipients = $this->backendContext->repositories->users()->selectByUserGroup(groupId: $authGroupId);
+        $recipients = $this->selectRecipients(authGroupId: $authGroupId);
         foreach ($recipients->items as $dbAuthUser) {
             EmailAuthUser::send(
                 mailer: $this->backendContext->mailer,
@@ -133,5 +136,22 @@ final class NotificationSendForm extends Form
         }
 
         return $notificationId;
+    }
+
+    /**
+     * The active users of the group that the logged-in user may manage.
+     */
+    private function selectRecipients(int $authGroupId): DbAuthUserCollection
+    {
+        $users = $this->backendContext->repositories->users();
+        $dbQuery = $users->getDbQuery();
+        $dbQuery->addWherePart(
+            wherePart: 'auth_users.id IN (SELECT user_id FROM auth_group_user WHERE group_id=?)',
+            parameters: [$authGroupId],
+        );
+        $dbQuery->addWherePart(wherePart: 'auth_users.is_active=1', parameters: []);
+        $this->backendContext->userScopeGuard->restrictUserQuery(dbQuery: $dbQuery, userIdColumn: 'auth_users.id');
+
+        return $users->select(dbQuery: $dbQuery);
     }
 }

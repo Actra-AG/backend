@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace actra\backend\tests\Unit\libs\auth;
 
 use actra\backend\ActraBackend;
+use actra\backend\settings\ApiKeyIpPolicyEnum;
 use actra\backend\tests\Double\ActraBackendTestInstance;
 use actra\backend\tests\Double\TestDatabase;
 use actra\backend\tests\Double\TestUsers;
@@ -33,9 +34,15 @@ final class ApiKeyAuthenticationTest extends TestCase
         $this->testUsers = new TestUsers(db: TestDatabase::connect());
     }
 
-    private static function createBackend(bool $hasApi = true): ActraBackend
-    {
-        return ActraBackendTestInstance::create(dbSettings: TestDatabase::settings(), hasApi: $hasApi);
+    private static function createBackend(
+        bool $hasApi = true,
+        ApiKeyIpPolicyEnum $apiKeyIpPolicy = ApiKeyIpPolicyEnum::WHITELIST_REQUIRED,
+    ): ActraBackend {
+        return ActraBackendTestInstance::create(
+            dbSettings: TestDatabase::settings(),
+            hasApi: $hasApi,
+            apiKeyIpPolicy: $apiKeyIpPolicy,
+        );
     }
 
     /**
@@ -77,6 +84,29 @@ final class ApiKeyAuthenticationTest extends TestCase
 
         $this->assertTrue($myAuthUser->isActive);
         $this->assertTrue($myAuthUser->canManageUsers());
+    }
+
+    public function testKeyWithoutWhitelistWorksFromAnyAddressWithOptionalWhitelist(): void
+    {
+        $actraBackend = ApiKeyAuthenticationTest::createBackend(apiKeyIpPolicy: ApiKeyIpPolicyEnum::WHITELIST_OPTIONAL);
+        $apiKey = $this->createUserWithKey(actraBackend: $actraBackend, ipWhitelist: []);
+
+        $myAuthUser = $actraBackend->authenticateBearerOrThrow(
+            httpRequest: ApiKeyAuthenticationTest::request(apiKey: $apiKey, ip: '203.0.113.66'),
+        );
+
+        $this->assertTrue($myAuthUser->isActive);
+    }
+
+    public function testOptionalWhitelistStillEnforcesAWhitelist(): void
+    {
+        $actraBackend = ApiKeyAuthenticationTest::createBackend(apiKeyIpPolicy: ApiKeyIpPolicyEnum::WHITELIST_OPTIONAL);
+        $apiKey = $this->createUserWithKey(actraBackend: $actraBackend);
+
+        $this->expectException(UnauthorizedException::class);
+        $actraBackend->authenticateBearerOrThrow(
+            httpRequest: ApiKeyAuthenticationTest::request(apiKey: $apiKey, ip: '203.0.113.66'),
+        );
     }
 
     /**

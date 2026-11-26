@@ -102,7 +102,9 @@ final class profile extends BackendView
         );
         $replacements->addHtml(
             identifier: 'generateApiKeyHref',
-            html: $dbAuthUser->ipWhitelist !== [] ? $this->backendContext->paths->profileGenerateApiKey() : '',
+            html: $this->backendContext->actraBackend->actraBackendSettings->apiKeyIpPolicy->allowsApiKey(ipWhitelist: $dbAuthUser->ipWhitelist)
+                ? $this->backendContext->paths->profileGenerateApiKey()
+                : '',
         );
         $replacements->addHtml(
             identifier: 'removeApiKeyHref',

@@ -22,6 +22,7 @@ use actra\yuf\form\component\field\PhoneNumberField;
 use actra\yuf\form\component\field\TextField;
 use actra\yuf\form\component\FormControl;
 use actra\yuf\html\HtmlText;
+use Throwable;
 
 /**
  * @internal
@@ -106,7 +107,9 @@ final class UserAddForm extends Form
             formField: $this->userGroupsField = new CheckboxOptionsField(
                 name: 'userGroups',
                 label: HtmlText::fromText(text: $common->userGroupsLabel),
-                formOptions: $this->backendContext->repositories->groups()->listAll()->getFormOptions(),
+                formOptions: $this->backendContext->userScopeGuard->filterGroups(
+                    groups: $this->backendContext->repositories->groups()->listAll(),
+                )->getFormOptions(),
                 initialValues: [],
                 requiredError: HtmlText::fromText(text: $userMessages->userGroupsRequired),
             ),
@@ -117,6 +120,11 @@ final class UserAddForm extends Form
                 label: HtmlText::fromText(text: $common->ipWhitelistLabel),
                 value: [],
                 invalidErrorMessage: HtmlText::fromText(text: $common->ipWhitelistInvalid),
+                fieldInfo: IpWhitelistField::createFieldInfo(
+                    ipWhitelistInfo: $this->backendContext->messages->common->ipWhitelistInfo,
+                    messages: $this->backendContext->messages->common,
+                    settings: $this->backendContext->actraBackend->actraBackendSettings,
+                ),
                 messages: $this->backendContext->messages->common,
             ),
         );
@@ -145,23 +153,30 @@ final class UserAddForm extends Form
 
             return null;
         }
-        $newUserId = $this->backendContext->repositories->users()->insert(
-            createdByUserId: $this->backendContext->getCurrentUser()->id,
-            email: $this->emailField->getValueAsString(),
-            phone: $this->phoneNumberField->getValueAsString(),
-            isActive: $this->activeField->isChecked(),
-            firstName: $this->firstNameField->getValueAsString(),
-            lastName: $this->lastNameField->getValueAsString(),
-            languageCode: $this->languageField?->getLanguageCode(),
-        );
-        foreach ($this->userGroupsField->getIntValues() as $groupId) {
-            $this->backendContext->repositories->userGroups()->insert(userId: $newUserId, groupId: $groupId);
-        }
-        foreach ($this->ipWhitelistField->getValues() as $ip) {
-            $this->backendContext->repositories->ipWhitelists()->insert(
-                userId: $newUserId,
-                ipAddress: $ip,
+        $repositories = $this->backendContext->repositories;
+        $db = $repositories->db();
+        $db->beginTransaction();
+        try {
+            $newUserId = $repositories->users()->insert(
+                createdByUserId: $this->backendContext->getCurrentUser()->id,
+                email: $this->emailField->getValueAsString(),
+                phone: $this->phoneNumberField->getValueAsString(),
+                isActive: $this->activeField->isChecked(),
+                firstName: $this->firstNameField->getValueAsString(),
+                lastName: $this->lastNameField->getValueAsString(),
+                languageCode: $this->languageField?->getLanguageCode(),
             );
+            foreach ($this->userGroupsField->getIntValues() as $groupId) {
+                $repositories->userGroups()->insert(userId: $newUserId, groupId: $groupId);
+            }
+            foreach ($this->ipWhitelistField->getValues() as $ip) {
+                $repositories->ipWhitelists()->insert(userId: $newUserId, ipAddress: $ip);
+            }
+            $this->backendContext->userScopeGuard->afterUserCreated(userId: $newUserId, repositories: $repositories);
+            $db->commit();
+        } catch (Throwable $throwable) {
+            $db->rollBack();
+            throw $throwable;
         }
 
         return $newUserId;

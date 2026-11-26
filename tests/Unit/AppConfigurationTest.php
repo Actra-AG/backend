@@ -26,6 +26,7 @@ use actra\yuf\Core;
 use actra\yuf\core\BaseView;
 use actra\yuf\core\CoreSettings;
 use actra\yuf\core\EnvironmentSettings;
+use actra\yuf\core\HostPatterns;
 use actra\yuf\core\HttpRequest;
 use actra\yuf\core\HttpResponse;
 use actra\yuf\core\HttpStatusCodeEnum;
@@ -128,7 +129,7 @@ final class AppConfigurationTest extends TestCase
                     environmentSettings: new EnvironmentSettings(
                         errorReporting: E_ALL,
                         timeZone: 'UTC',
-                        allowedDomains: ['example.com'],
+                        allowedDomains: new HostPatterns(patterns: ['example.com']),
                         logEmailRecipient: '',
                         debug: false,
                         robots: 'noindex',

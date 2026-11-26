@@ -36,6 +36,7 @@ final class TestDatabase
             databaseName: TestDatabase::DATABASE_NAME,
             userName: TestDatabase::env(name: 'TEST_DB_USER', default: 'db'),
             password: TestDatabase::env(name: 'TEST_DB_PASSWORD', default: 'db'),
+            timeZone: date_default_timezone_get(),
         );
     }
 

@@ -50,6 +50,7 @@ final readonly class CommonMessages
         public string $apiKeyNeedsIpWhitelist = 'API keys can only be generated once an IP whitelist has been set.',
         public string $apiKeyBlocksEmptyIpWhitelist = 'The API key must be removed before the IP whitelist can be '
             . 'emptied.',
+        public string $apiKeyWithoutIpWhitelistInfo = 'Without IP whitelist, the API key works from any IP address.',
         public string $newPasswordLabel = 'New password',
         public string $newPasswordRequired = 'Please enter the new password.',
         public string $newPasswordConfirmLabel = 'Confirm new password',
@@ -111,6 +112,7 @@ final readonly class CommonMessages
             apiKeyNeedsIpWhitelist: 'API-Keys können erst generiert werden, wenn eine IP-Whitelist hinterlegt ist.',
             apiKeyBlocksEmptyIpWhitelist: 'Der API-Key muss entfernt werden, bevor die IP-Whitelist geleert werden '
                 . 'kann.',
+            apiKeyWithoutIpWhitelistInfo: 'Ohne IP-Whitelist funktioniert der API-Key von jeder IP-Adresse aus.',
             newPasswordLabel: 'Neues Passwort',
             newPasswordRequired: 'Bitte geben Sie das neue Passwort ein.',
             newPasswordConfirmLabel: 'Neues Passwort bestätigen',
@@ -174,6 +176,8 @@ final readonly class CommonMessages
                 . 'enregistrée.',
             apiKeyBlocksEmptyIpWhitelist: 'La clé API doit être supprimée avant que la liste blanche IP puisse être '
                 . 'vidée.',
+            apiKeyWithoutIpWhitelistInfo: 'Sans liste blanche IP, la clé API fonctionne depuis n’importe quelle '
+                . 'adresse IP.',
             newPasswordLabel: 'Nouveau mot de passe',
             newPasswordRequired: 'Veuillez saisir le nouveau mot de passe.',
             newPasswordConfirmLabel: 'Confirmer le nouveau mot de passe',
@@ -235,6 +239,7 @@ final readonly class CommonMessages
             generateApiKeyLink: 'Generare una nuova chiave',
             apiKeyNeedsIpWhitelist: 'Le chiavi API possono essere generate solo dopo aver registrato una whitelist IP.',
             apiKeyBlocksEmptyIpWhitelist: 'La chiave API deve essere rimossa prima di poter svuotare la whitelist IP.',
+            apiKeyWithoutIpWhitelistInfo: 'Senza whitelist IP, la chiave API funziona da qualsiasi indirizzo IP.',
             newPasswordLabel: 'Nuova password',
             newPasswordRequired: 'Inserisca la nuova password.',
             newPasswordConfirmLabel: 'Confermare la nuova password',

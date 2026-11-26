@@ -11,6 +11,7 @@ namespace actra\backend\libs\auth;
 
 use actra\backend\libs\db\BackendRepositories;
 use actra\yuf\auth\AuthSession;
+use actra\yuf\exception\NotFoundException;
 use Throwable;
 
 final readonly class UserController
@@ -20,14 +21,18 @@ final readonly class UserController
         private ?UserDeleteHandler $userDeleteHandler,
         private AuthSession $authSession,
         private ?MyAuthUser $currentUser,
+        private UserScopeGuard $userScopeGuard,
     ) {}
 
     /**
      * Deletes a user with its sessions, tokens, groups, IP whitelist and API key; the `UserDeleteHandler` of the
      * project deletes its own data first. A user who deletes himself is logged out.
+     *
+     * @throws NotFoundException for an unknown user and for a user outside the scope of the logged-in user
      */
     public function deleteUser(int $userId): void
     {
+        $this->userScopeGuard->requireUser(userId: $userId);
         $repositories = $this->repositories;
         $db = $repositories->db();
         $db->beginTransaction();

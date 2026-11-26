@@ -11,10 +11,14 @@ namespace actra\backend\tests\Double;
 
 use actra\backend\ActraBackend;
 use actra\backend\i18n\BackendMessages;
+use actra\backend\libs\auth\UserScope;
 use actra\backend\settings\ActraBackendSettings;
+use actra\backend\settings\ApiKeyIpPolicyEnum;
+use actra\backend\settings\BackendFooterLinks;
 use actra\backend\settings\BackendNavigation;
 use actra\backend\settings\LoginHandOverSettings;
 use actra\backend\settings\MailerSettings;
+use actra\backend\settings\PageNoticeProvider;
 use actra\backend\settings\SharedLoginSettings;
 use actra\backend\settings\TokenSendLimit;
 use actra\yuf\auth\LoginRateLimit;
@@ -44,6 +48,11 @@ final class ActraBackendTestInstance
      * @param string $viewGroup The view group of the project views on the backend route
      * @param ?Closure(): FrameworkDb $connectDb The connection of the project; default: one from `$dbSettings`
      * @param string $frontendHref The link to the website, `''` for none
+     * @param ?BackendFooterLinks $footerLinks Further links of the page footer
+     * @param string $backendName The name of the backend (plain text)
+     * @param ?PageNoticeProvider $pageNoticeProvider Notices above the content after login
+     * @param ?UserScope $userScope Restricts the user management
+     * @param ApiKeyIpPolicyEnum $apiKeyIpPolicy Whether API keys need an IP whitelist
      * @param bool $passwordLogin `false`: login by code only
      */
     public static function create(
@@ -70,6 +79,11 @@ final class ActraBackendTestInstance
         ?Closure $connectDb = null,
         ?SharedLoginSettings $sharedLogin = null,
         string $frontendHref = '',
+        ?BackendFooterLinks $footerLinks = null,
+        string $backendName = 'Test backend',
+        ?PageNoticeProvider $pageNoticeProvider = null,
+        ?UserScope $userScope = null,
+        ApiKeyIpPolicyEnum $apiKeyIpPolicy = ApiKeyIpPolicyEnum::WHITELIST_REQUIRED,
         bool $passwordLogin = true,
     ): ActraBackend {
         return ActraBackend::create(
@@ -79,16 +93,20 @@ final class ActraBackendTestInstance
             ),
             actraBackendSettings: new ActraBackendSettings(
                 ipWhitelist: $ipWhitelist,
-                backendName: 'Test backend',
+                backendName: $backendName,
                 javaScriptPaths: [],
                 stylesPaths: [],
                 loginRateLimit: $loginRateLimit,
                 loginHandOver: $loginHandOver,
                 sharedLogin: $sharedLogin,
+                footerLinks: $footerLinks,
+                userScope: $userScope,
                 frontendHref: $frontendHref,
                 hasApi: $hasApi,
+                apiKeyIpPolicy: $apiKeyIpPolicy,
                 messages: $messages,
                 projectNavigation: $projectNavigation,
+                pageNoticeProvider: $pageNoticeProvider,
                 tokenSendLimit: $tokenSendLimit,
                 passwordLogin: $passwordLogin,
             ),
@@ -99,6 +117,7 @@ final class ActraBackendTestInstance
                     databaseName: 'example',
                     userName: 'example',
                     password: 'example',
+                    timeZone: null,
                 )),
                 queryLog: new DbQueryLogList(clock: new SystemClock()),
             ),

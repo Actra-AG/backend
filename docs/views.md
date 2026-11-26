@@ -119,7 +119,11 @@ parent::__construct(context: $context, identifier: 'OrderTable', dbQuery: $dbQue
 | `getNavigation()` | The navigation of the request (`ActraBackend::createNavigation()`) |
 | `session`, `authSession`, `viewContext` | yuf's session objects and `ViewContext` |
 | `viewContext->documentRoot` | The document root of the web server with a trailing slash, e.g. for files written below it (in views also `$this->context->documentRoot`) |
-| `userController` | `->deleteUser(userId:)` |
+| `userController` | `->deleteUser(userId:)` (404 for a user outside the scope) |
+| `requireUserInScope(userId:)`, `userScopeGuard` | A user given by the request, 404 if unknown or outside the `UserScope` ([users.md](users.md#restricting-user-management-multi-tenant)); `->restrictUserQuery()` and `->filterGroups()` for own lists of users and groups |
+
+A project view that works on a user given by the request gets it with `requireUserInScope()`, never with
+`repositories->users()->selectById()`, so the `UserScope` applies.
 
 Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and
 `$actraBackend->createMailer(responseSender: new NativeResponseSender())`.
@@ -127,6 +131,72 @@ Outside a request (CLI scripts), use `$actraBackend->getRepositories()` and
 The values of a search form come from the posted form (`reset` and `find` from the query string), and tables and
 search forms keep their state in the session. New services of the backend are added to `BackendViewContext`, so these
 constructors do not change again.
+
+## Footer links
+
+The page footer shows the link to the website (`ActraBackendSettings::$frontendHref`, text
+`LayoutMessages::$frontendLink`) and then the links of `footerLinks:` (imprint, privacy policy). The backend calls
+`BackendFooterLinks::listFooterLinks()` once per page with the language of the request. The authentication pages show
+all links in `.auth-footer`; the pages after login keep the website link in `.section-top` and show the footer links
+in `.site-footer` after `<main>`. Without links there is no footer.
+
+`backendName`, `frontendHref` and the label and URL of a `FooterLink` are plain text: the backend escapes them. A URL
+must be an http(s) URL or a path starting with `/` (`FooterLink::isAllowedHref()`), otherwise the constructor throws
+an `InvalidArgumentException` at bootstrap.
+
+```php
+final readonly class LegalFooterLinks implements BackendFooterLinks
+{
+    public function listFooterLinks(Language $language): array
+    {
+        return match ($language->code) {
+            'de' => [
+                new FooterLink(label: 'Impressum', href: '/de/impressum.html'),
+                new FooterLink(label: 'Datenschutz', href: '/de/datenschutz.html'),
+            ],
+            default => [
+                new FooterLink(label: 'Imprint', href: '/en/imprint.html'),
+                new FooterLink(label: 'Privacy policy', href: '/en/privacy.html'),
+            ],
+        };
+    }
+}
+
+new ActraBackendSettings(/* … */, sharedLogin: null, footerLinks: new LegalFooterLinks(), /* … */);
+```
+
+## Page notices
+
+Notices above the content of every page after login (also `ConfirmationView`, not on the login pages), e.g. a support
+session, a maintenance window or a trial period. A project passes a `PageNoticeProvider` as
+`ActraBackendSettings::$pageNoticeProvider`; the backend calls it once per such page, after the access check of the
+view. It runs on every page: keep it cheap. A view adds its own notices with `addPageNotice()` in
+`prepareHtmlDocument()`; they follow the notices of the provider. Each notice is a `.msg` block of its
+`PageNoticeLevelEnum` (`msg-note`, `msg-success`, `msg-warning`, `msg-error`); `isLiveRegion: true` announces it to
+screen readers.
+
+The content is `HtmlText`: `HtmlText::fromText()` is escaped, `HtmlText::fromHtml()` is trusted HTML of the project
+(e.g. a form with CSRF token). Never pass user data with `fromHtml()`; use `fromText()` or yuf's `fromSanitizedHtml()`.
+
+```php
+final readonly class SupportNoticeProvider implements PageNoticeProvider
+{
+    public function listNotices(BackendViewContext $context): array
+    {
+        $supportSession = $this->supportSessions->findActive(); // Cached per request
+        if ($supportSession === null) {
+            return [];
+        }
+
+        return [new PageNotice(
+            level: PageNoticeLevelEnum::WARNING,
+            content: HtmlText::fromText(text: 'Support access until ' . $supportSession->endTime),
+        )];
+    }
+}
+
+new ActraBackendSettings(/* … */, pageNoticeProvider: new SupportNoticeProvider(/* … */));
+```
 
 ## Breadcrumb
 

@@ -72,7 +72,10 @@ final class notification extends BackendView
         $dbAuthUserNotification = $this->backendContext->repositories->notifications()->selectById(
             id: $this->getRequiredPathVarAsInt(nr: 1),
         );
-        if ($dbAuthUserNotification === null) {
+        if (
+            $dbAuthUserNotification === null
+            || !$this->backendContext->userScopeGuard->containsUser(userId: $dbAuthUserNotification->sentById)
+        ) {
             throw new NotFoundException();
         }
         $this->pageTitle = HtmlText::fromText(

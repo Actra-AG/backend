@@ -10,9 +10,11 @@ password login, and one-time tokens sent via email.
 - **Password Reset** (optional): Allow users to request a reset link and set a new password.
 - **One-Time Token Authentication**: Secure login confirmation and token-based authentication using tokens sent to the
   user's email.
-- **User Management**: Add, modify, and invite users to the system, including phone number support.
+- **User Management**: Add, modify, and invite users to the system, including phone number support; tenant-scoped
+  with a `UserScope` (docs/users.md).
 - **User Profile Management**: Logged-in users can update their own profile details, IP whitelist, and API key.
-- **API Key Management**: Generate hashed API keys for users and validate bearer tokens for API access.
+- **API Key Management**: Generate hashed API keys for users and validate bearer tokens for API access, with IP
+  whitelist (default) or without (`ApiKeyIpPolicyEnum`).
 - **User Notifications**: Send email notifications to specific user groups directly from the backend.
 - **Role-Based Access Control**: Basic functionality to manage user permissions.
 - **IP Whitelisting**: Additional security layer to restrict backend access.
@@ -113,6 +115,7 @@ $connectDb = static function () use (&$db, $core, $clock): FrameworkDb {
             databaseName: $core->environmentSettings->getString(key: 'db.name'),
             userName: $core->environmentSettings->getString(key: 'db.user'),
             password: $core->environmentSettings->getString(key: 'db.password'),
+            timeZone: $core->environmentSettings->timeZone, // null: the time zone of the database server
         )),
         queryLog: new DbQueryLogList(clock: $clock),
     );
@@ -123,7 +126,7 @@ $actraBackend = ActraBackend::create(
     languages: $app->core->availableLanguages, // The languages of the App (withLanguage())
     actraBackendSettings: new ActraBackendSettings(
         ipWhitelist: ['127.0.0.1'], // Allowed IP addresses
-        backendName: 'My Project Backend',
+        backendName: 'My Project Backend', // Plain text
         javaScriptPaths: [
             '/js/backend.min.js', // Copy of dist/backend.min.js
         ],
@@ -144,9 +147,15 @@ $actraBackend = ActraBackend::create(
         loginHandOver: null,
         // Required, null as explicit opt-out: the login shared by several hosts of the server (docs/login.md)
         sharedLogin: null,
+        // Required, null as explicit opt-out: imprint, privacy policy … in the page footer (docs/views.md)
+        footerLinks: null,
+        // Required, null as explicit opt-out: restricts the user management per tenant (docs/users.md)
+        userScope: null,
         maxAllowedLoginAttempts: 5, // Optional, defaults to 5
-        frontendHref: 'https://example.com', // Optional; its text: LayoutMessages::$frontendLink (docs/languages.md)
+        frontendHref: 'https://example.com', // Optional, http(s) URL or path starting with /; its text: LayoutMessages::$frontendLink (docs/languages.md)
         hasApi: false, // Optional, defaults to false
+        apiKeyIpPolicy: ApiKeyIpPolicyEnum::WHITELIST_REQUIRED, // Optional, this default (docs/users.md)
+        pageNoticeProvider: null, // Optional: notices above the content of every page after login (docs/views.md)
         tokenSendLimit: new TokenSendLimit(maxTokens: 5, withinMinutes: 15), // Optional, this default; null: off
         passwordLogin: true, // Optional, defaults to true; false: login code by email only (docs/users.md)
     ),

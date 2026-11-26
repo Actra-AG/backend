@@ -2,6 +2,67 @@
 
 Changes of `actra/backend`, newest first. ⚠️ marks breaking changes. Older versions: [v1](docs/upgrade/v1.md).
 
+## v5.12.0 (2026-11-26)
+
+### ⚠️ Requires `actra/yuf` `~8.22.0`
+
+Migrate along yuf's `UPGRADE.md`, v8.21.0 and v8.22.0: `DbSettings` has the required `timeZone:`
+(`$environmentSettings->timeZone`, `null` keeps the zone of the database server), `allowedDomains` is a
+`HostPatterns`, `RequestHandler` takes `hostPolicy:`.
+
+### API keys without IP whitelist (opt-in)
+
+New `ActraBackendSettings::$apiKeyIpPolicy` (`ApiKeyIpPolicyEnum`), default `WHITELIST_REQUIRED`: no migration
+needed. `WHITELIST_OPTIONAL` lets API keys work without IP whitelist of their user
+([docs/users.md](docs/users.md#api-key-authentication)). New text `CommonMessages::$apiKeyWithoutIpWhitelistInfo`.
+New `IpWhitelistField::createFieldInfo()`.
+
+### Page notices
+
+New `PageNoticeProvider` (`ActraBackendSettings::$pageNoticeProvider`, default none) and
+`BackendView::addPageNotice()`: notices above the content of every page after login, also on `ConfirmationView`
+pages ([docs/views.md](docs/views.md#page-notices)). Projects that override `execute()` to inject a notice switch to
+the provider. Projects with an own copy of `default.html` add the `pageNotices` loop at the start of `<main>`.
+
+### ⚠️ `ActraBackendSettings`: required `footerLinks:`
+
+Further links of the page footer (imprint, privacy policy) in the language of the request, after the link to the
+website ([docs/views.md](docs/views.md#footer-links)). Pass `null` for none:
+
+```php
+// Before
+new ActraBackendSettings(/* … */, sharedLogin: null, /* … */);
+// After
+new ActraBackendSettings(/* … */, sharedLogin: null, footerLinks: null, /* … */);
+```
+
+### ⚠️ `ActraBackendSettings`: required `userScope:`
+
+Restricts the built-in user management to the users an actor may manage (multi-tenant projects,
+[docs/users.md](docs/users.md#restricting-user-management-multi-tenant)). Pass `null` to keep managing all users:
+
+```php
+// Before
+new ActraBackendSettings(/* … */, footerLinks: null, /* … */);
+// After
+new ActraBackendSettings(/* … */, footerLinks: null, userScope: null, /* … */);
+```
+
+- ⚠️ `DbAuthUserRepository::countActiveWithRight()` takes the required `userScopeGuard:`
+  (`$backendContext->userScopeGuard`).
+- ⚠️ `BackendViewContext` and `UserController` take the required `userScopeGuard:` (created by
+  `ActraBackend::createContext()`; only test doubles construct them).
+- Project views that load a user given by the request switch from `repositories->users()->selectById()` to
+  `$backendContext->requireUserInScope(userId:)`.
+- Adding a user runs in a transaction now.
+
+### ⚠️ `backendName:` and `frontendHref:` are text
+
+The backend escapes them. Remove your own HTML encoding (otherwise `&amp;` is shown); HTML in `backendName:` is shown
+as text. `frontendHref:` must be an http(s) URL or a path starting with `/`, otherwise `ActraBackendSettings` throws an
+`InvalidArgumentException`. The template replacement `backendTitle` is removed: projects with own copies of
+`default.html` or `authentication.html` use `backendName` in `<title>`, and take over the new footer markup.
+
 ## v5.11.2 (2026-11-25)
 
 ### Requires `actra/yuf` `~8.20.0`: directories are created race-safe

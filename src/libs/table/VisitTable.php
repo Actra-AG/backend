@@ -30,6 +30,8 @@ final class VisitTable extends AbstractTable
         VisitSearchForm $tokenSearchForm,
     ) {
         $dbQuery = $context->repositories->userLogins()->getDbQuery();
+        // A restricted user sees no logins without user (unknown email address)
+        $context->userScopeGuard->restrictUserQuery(dbQuery: $dbQuery, userIdColumn: 'auth_logins.user_id');
         if ($filterUserId !== null) {
             $dbQuery->addWherePart(
                 wherePart: 'auth_logins.user_id=?',

@@ -65,12 +65,9 @@ final class userRemoveApiKey extends ConfirmationView
         if ($this->dbAuthUser !== null) {
             return $this->dbAuthUser;
         }
-        $dbAuthUser = $this->backendContext->repositories->users()->selectById(
-            id: $this->getRequiredPathVarAsInt(nr: 1),
-        );
+        $dbAuthUser = $this->backendContext->requireUserInScope(userId: $this->getRequiredPathVarAsInt(nr: 1));
         if (
-            $dbAuthUser === null
-            || !$this->backendContext->actraBackend->actraBackendSettings->hasApi
+            !$this->backendContext->actraBackend->actraBackendSettings->hasApi
             || !$this->backendContext->repositories->apiKeys()->hasByUserId(userId: $dbAuthUser->id)
         ) {
             throw new NotFoundException();

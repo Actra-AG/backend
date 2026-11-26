@@ -28,6 +28,7 @@ final class UserTable extends AbstractTable
     public function __construct(BackendViewContext $context, UserSearchForm $userSearchForm)
     {
         $dbQuery = $context->repositories->users()->getDbQuery();
+        $context->userScopeGuard->restrictUserQuery(dbQuery: $dbQuery, userIdColumn: 'auth_users.id');
         $dbAuthGroup = $userSearchForm->dbAuthGroup;
         if ($dbAuthGroup !== null) {
             $dbQuery->addWherePart(

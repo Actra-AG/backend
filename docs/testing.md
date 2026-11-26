@@ -19,6 +19,7 @@ abstract class DatabaseTestCase extends TestCase
                 databaseName: 'app_test',
                 userName: 'db',
                 password: 'db',
+                timeZone: date_default_timezone_get(),
             )),
             queryLog: new DbQueryLogList(clock: new SystemClock()),
         );
